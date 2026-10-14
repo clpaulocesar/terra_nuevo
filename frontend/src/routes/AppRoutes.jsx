@@ -29,6 +29,7 @@ import PedidosAdmin from '../pages/admin/PedidosAdmin.jsx';
 import ClientesAdmin from '../pages/admin/ClientesAdmin.jsx';
 import LoginAdmin from '../pages/admin/LoginAdmin.jsx';
 import RutaAdmin from '../components/admin/RutaAdmin.jsx';
+import ChatAsistente from '../components/chat/ChatAsistente.jsx';
 import './Layout.css';
 import './NavigationFix.css';
 import './ClienteTheme.css';
@@ -101,6 +102,8 @@ function Layout() {
         <div>TERRA AUTOSERVICIO · Sucursal Equipetrol, Santa Cruz</div>
         <small>Terminal táctil optimizado para celular, tablet y PC</small>
       </footer>
+
+      <ChatAsistente />
     </div>
   );
 }
