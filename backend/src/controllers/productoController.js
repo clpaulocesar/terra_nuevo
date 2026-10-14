@@ -6,6 +6,20 @@ import {
   actualizarStockBD,
   eliminarProductoBD,
 } from '../models/productoModel.js';
+import { migrateAndSeed } from '../config/migrate_seed.js';
+
+export async function seedProductos(req, res, next) {
+  try {
+    const resultado = await migrateAndSeed({ closePool: false });
+    return res.json({
+      success: true,
+      mensaje: 'Base de datos sincronizada con éxito en Supabase',
+      total: resultado.total,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 
 export async function listarProductos(req, res, next) {
   try {

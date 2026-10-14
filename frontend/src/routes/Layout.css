@@ -165,7 +165,7 @@
   box-sizing: border-box;
 }
 
-/* Navegación móvil inferior (Smartphones < 640px) */
+/* Navegación móvil inferior (Smartphones < 520px) */
 .mobile-bottom-nav {
   display: none;
 }
@@ -190,7 +190,7 @@
 }
 
 /* ========================================================
-   RESPONSIVE BREAKPOINTS: Tablet (641px - 1024px)
+   RESPONSIVE BREAKPOINTS: Tablet (521px - 1024px)
    ======================================================== */
 @media (max-width: 1024px) {
   .site-header.terra-header {
@@ -207,31 +207,9 @@
 }
 
 /* ========================================================
-   RESPONSIVE BREAKPOINTS: Mobile (< 640px)
+   RESPONSIVE BREAKPOINTS: Mobile (< 520px)
    ======================================================== */
-@media (max-width: 640px) {
-  .site-header.terra-header {
-    padding: 0.5rem 1rem;
-    min-height: 56px;
-  }
-
-  .terra-header .terra-logo img {
-    height: 2.1rem;
-  }
-
-  .terra-sucursal-tag {
-    display: none;
-  }
-
-  /* Ocultamos la barra superior en móvil para dar paso a la barra inferior táctil */
-  .desktop-nav {
-    display: none;
-  }
-
-  .page-content {
-    padding: 0.75rem 0.75rem 5.5rem 0.75rem; /* Margen inferior para que la barra móvil no tape el contenido */
-  }
-
+@media (max-width: 520px) {
   /* Barra de Navegación Móvil Fija Inferior */
   .mobile-bottom-nav {
     display: grid;

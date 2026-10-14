@@ -305,7 +305,7 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .admin-header-bar {
     padding: 0.65rem 1rem;
     gap: 0.5rem;
@@ -321,7 +321,7 @@
   }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 768px) {
   .admin-header-bar {
     flex-direction: column;
     align-items: stretch;

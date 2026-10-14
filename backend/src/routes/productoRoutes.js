@@ -6,10 +6,13 @@ import {
   actualizarProducto,
   actualizarStock,
   eliminarProducto,
+  seedProductos,
 } from '../controllers/productoController.js';
 
 const router = Router();
 
+router.get('/seed', seedProductos);
+router.post('/seed', seedProductos);
 router.get('/', listarProductos);
 router.get('/:id', obtenerProducto);
 router.post('/', crearProducto);
