@@ -1,0 +1,22 @@
+.admin-shell .admin-sidebar {
+  align-self: start;
+  box-sizing: border-box;
+  height: 100vh;
+  min-height: 0;
+  position: sticky;
+  top: 0;
+}
+
+.admin-shell .admin-sidebar footer {
+  margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .admin-shell .admin-sidebar {
+    position: fixed;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    bottom: 0;
+  }
+}

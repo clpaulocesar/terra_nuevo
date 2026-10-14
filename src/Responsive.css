@@ -1,0 +1,89 @@
+/* Adaptación de distribución para cliente y backoffice. Conserva la paleta existente. */
+*,*::before,*::after{box-sizing:border-box}
+img{max-width:100%}
+
+@media(max-width:1024px){
+  .site-header.terra-header{padding-inline:1rem}
+  .site-header.terra-header nav{gap:.25rem}
+  .site-header.terra-header nav a{font-size:.88rem;padding:.55rem .7rem}
+  .admin-content{padding:1rem!important}
+  .products-admin,.clients-admin,.dash,.orders{padding:.75rem!important}
+}
+
+@media(max-width:768px){
+  /* Cliente: navegación horizontal, disponible sin que los enlaces se corten. */
+  .site-header.terra-header{align-items:center;gap:.5rem;min-height:60px;overflow:hidden;padding:.5rem .75rem}
+  .site-header.terra-header .terra-logo{flex:0 0 auto}
+  .site-header.terra-header .terra-logo img{height:34px!important}
+  .site-header.terra-header .desktop-nav{display:flex;flex:1;gap:.2rem;justify-content:flex-start;min-width:0;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+  .site-header.terra-header .desktop-nav::-webkit-scrollbar{display:none}
+  .site-header.terra-header .desktop-nav a{flex:0 0 auto;font-size:.72rem;padding:.48rem .55rem}
+  .site-header.terra-header .terra-header-right{flex:0 0 auto;gap:.35rem}
+  .site-header.terra-header .terra-header-right .terra-cart-link{font-size:.72rem;padding:.48rem .55rem}
+  .site-header.terra-header .terra-header-right .terra-home-btn{width:2.1rem;height:2.1rem}
+  .page-content{padding:1rem .75rem!important}
+
+  /* Admin: Drawer deslizante fluido + Bottom nav para celular */
+  .admin-shell {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    min-height: 100dvh;
+  }
+  .admin-main-wrap {
+    min-width: 0;
+    width: 100%;
+  }
+  .admin-content {
+    padding: 0.85rem 0.85rem 4.75rem 0.85rem !important;
+  }
+  .admin-header-bar {
+    min-height: 56px !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+  .admin-header-left {
+    min-width: 0 !important;
+    gap: 0.35rem !important;
+  }
+  .admin-header-divider, .admin-kiosk-status-pill {
+    display: none !important;
+  }
+  .admin-breadcrumbs {
+    font-size: 13px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .catalogo-hero,.category-hero,.welcome-hero,.products-heading,.clients-heading,.orders-hero{align-items:flex-start!important;flex-direction:column!important}
+  .catalogo-toolbar,.products-toolbar,.clients-heading>div:last-child{max-width:100%;width:100%}
+  .catalogo-toolbar button,.products-toolbar button,.clients-heading>div:last-child button{flex:1}
+  .catalogo-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .orders-list>header{align-items:flex-start!important;flex-direction:column!important;gap:.75rem}
+  .orders-list>header label{width:100%}
+}
+
+@media(max-width:520px){
+  .site-header.terra-header{gap:.35rem;padding:.5rem .5rem}
+  .site-header.terra-header .desktop-nav{display:none}
+  .site-header.terra-header .terra-header-right{margin-left:auto}
+  .page-content{padding:.75rem .6rem!important}
+  h1{overflow-wrap:anywhere}
+  .catalogo-grid{grid-template-columns:1fr!important}
+  .catalogo-filters,.products-filters,.clients-filters{padding:.7rem!important}
+  .confirm-layout,.ident-layout,.cart-layout,.detalle-layout{gap:1rem!important}
+  .confirm-card,.confirm-summary,.cart-list-card,.cart-summary,.detalle-info{padding:1rem!important}
+  .pedido-row{align-items:flex-start;flex-direction:column;gap:.25rem}
+  .pedido-row b{overflow-wrap:anywhere}
+  .products-modal,.orders-modal{padding:.5rem!important}
+  .products-modal>section,.orders-modal>section{max-height:calc(100dvh - 1rem);overflow:auto;padding:1rem!important}
+  .clients-toast,.products-toast,.orders-toast{bottom:.75rem!important;left:.75rem;right:.75rem}
+
+  /* Admin responsive: KPIs and grids */
+  .dash-kpis,.products-kpis,.orders-metrics,.clients-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .dash-grid,.clients-layout{grid-template-columns:1fr!important}
+  .product-form-grid{grid-template-columns:1fr!important}
+  .product-view-stats{grid-template-columns:1fr 1fr!important}
+  .orders-list>article{grid-template-columns:1fr 1fr!important;font-size:.72rem}
+  .clients-table{font-size:.72rem}
+  .clients-table th,.clients-table td{padding:.5rem .35rem!important}
+}
