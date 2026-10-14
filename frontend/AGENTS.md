@@ -4,7 +4,7 @@
 TERRA Autoservicio: React 19 + Vite frontend (self-service kiosk) and Express 5 + PostgreSQL backend. Personal data stays in React state only (shared tablet).
 
 ## Commands
-Frontend (repo root):
+Frontend (run from `frontend/`):
 - `npm install`
 - `npm run dev` -> Vite dev server on `http://localhost:5173`
 - `npm run build` -> production bundle
@@ -17,12 +17,12 @@ Backend:
 - Backend exits on startup if Postgres is unavailable; requires `backend/.env` with `DATABASE_URL`, `PORT`, `FRONTEND_URL`, admin env vars
 
 Database:
-- Create DB `terra_autoservicio`, then `psql -U postgres -d terra_autoservicio -f database/schema.sql` (run from repo root)
+- Create DB `terra_autoservicio`, then `psql -U postgres -d terra_autoservicio -f database/schema.sql` (run from `frontend/`; at repo root the path is `frontend/database/schema.sql`)
 - Reset/seed catalog: `cd backend && node src/config/migrate_seed.js`
 - Health check: `GET http://localhost:3001/api/health`
 
 ## Architecture
-- Frontend env: root `.env` (copy from `.env.example`): `VITE_API_URL`, `VITE_MODO_DEMO`. `VITE_MODO_DEMO` must equal exactly `"true"` to enable demo mode.
+- Frontend env: `frontend/.env` (copy from `frontend/.env.example`): `VITE_API_URL`, `VITE_MODO_DEMO`. `VITE_MODO_DEMO` must equal exactly `"true"` to enable demo mode.
 - Frontend API base comes from `src/services/api.js` (`VITE_API_URL`, default `http://localhost:3001/api`; trailing slash stripped). Backend mounts `/api/{productos,pedidos,clientes,admin}`.
 - CORS uses `FRONTEND_URL` (default `http://localhost:5173`).
 - Admin token lives in `sessionStorage` under `terra_admin_token` (not `localStorage`), expires in 8h; `apiRequest` does not attach it.
