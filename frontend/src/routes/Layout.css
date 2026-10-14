@@ -209,7 +209,29 @@
 /* ========================================================
    RESPONSIVE BREAKPOINTS: Mobile (< 520px)
    ======================================================== */
-@media (max-width: 520px) {
+@media (max-width: 640px) {
+  .site-header.terra-header {
+    padding: 0.5rem 1rem;
+    min-height: 56px;
+  }
+
+  .terra-header .terra-logo img {
+    height: 2.1rem;
+  }
+
+  .terra-sucursal-tag {
+    display: none;
+  }
+
+  /* Ocultamos la barra superior en móvil para dar paso a la barra inferior táctil */
+  .desktop-nav {
+    display: none;
+  }
+
+  .page-content {
+    padding: 0.75rem 0.75rem 5.5rem 0.75rem; /* Margen inferior para que la barra móvil no tape el contenido */
+  }
+
   /* Barra de Navegación Móvil Fija Inferior */
   .mobile-bottom-nav {
     display: grid;
@@ -278,5 +300,11 @@
 
   .site-footer {
     padding-bottom: 5rem; /* Evita que la barra móvil tape el texto */
+  }
+}
+
+@media (max-width: 360px) {
+  .terra-header-right .terra-cart-link > span {
+    display: none;
   }
 }

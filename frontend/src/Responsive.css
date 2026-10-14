@@ -1,4 +1,5 @@
-/* Adaptación de distribución para cliente y backoffice. Conserva la paleta existente. */
+/* Capa responsive transversal (cliente y backoffice). Se carga al final para
+   ajustar detalles de las vistas en celular, tablet y escritorio sin alterar la paleta. */
 *,*::before,*::after{box-sizing:border-box}
 img{max-width:100%}
 
@@ -54,9 +55,10 @@ img{max-width:100%}
     white-space: nowrap;
   }
 
-  .welcome-hero,.products-heading,.clients-heading,.orders-hero{align-items:flex-start!important;flex-direction:column!important}
-  .products-toolbar,.clients-heading>div:last-child{max-width:100%;width:100%}
-  .products-toolbar button,.clients-heading>div:last-child button{flex:1}
+  .catalogo-hero,.category-hero,.welcome-hero,.products-heading,.clients-heading,.orders-hero{align-items:flex-start!important;flex-direction:column!important}
+  .catalogo-toolbar,.products-toolbar,.clients-heading>div:last-child{max-width:100%;width:100%}
+  .catalogo-toolbar button,.products-toolbar button,.clients-heading>div:last-child button{flex:1}
+  .catalogo-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .orders-list>header{align-items:flex-start!important;flex-direction:column!important;gap:.75rem}
   .orders-list>header label{width:100%}
 }
@@ -67,7 +69,8 @@ img{max-width:100%}
   .site-header.terra-header .terra-header-right{margin-left:auto}
   .page-content{padding:.75rem .6rem!important}
   h1{overflow-wrap:anywhere}
-  .products-filters,.clients-filters{padding:.7rem!important}
+  .catalogo-grid{grid-template-columns:1fr!important}
+  .catalogo-filters,.products-filters,.clients-filters{padding:.7rem!important}
   .confirm-layout,.ident-layout,.cart-layout,.detalle-layout{gap:1rem!important}
   .confirm-card,.confirm-summary,.cart-list-card,.cart-summary,.detalle-info{padding:1rem!important}
   .pedido-row{align-items:flex-start;flex-direction:column;gap:.25rem}

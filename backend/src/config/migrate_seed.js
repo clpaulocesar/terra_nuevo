@@ -4,7 +4,7 @@ import { pool } from './database.js';
 export async function migrateAndSeed({ closePool = false } = {}) {
   console.log('Iniciando migración y sincronización con Supabase / PostgreSQL...');
 
-  // 1. Crear tablas necesarias si no existen
+  // 1. Crear tablas necesarias si no existen (cada una individualmente para compatibilidad con PgBouncer/Supabase)
   await pool.query(`
     CREATE TABLE IF NOT EXISTS clientes (
         id SERIAL PRIMARY KEY,
@@ -13,7 +13,9 @@ export async function migrateAndSeed({ closePool = false } = {}) {
         email VARCHAR(150),
         fecha_registro TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     );
+  `);
 
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS productos (
         id SERIAL PRIMARY KEY,
         sku VARCHAR(60),
@@ -34,7 +36,9 @@ export async function migrateAndSeed({ closePool = false } = {}) {
         imagenes TEXT[],
         activo BOOLEAN NOT NULL DEFAULT TRUE
     );
+  `);
 
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS pedidos (
         id BIGSERIAL PRIMARY KEY,
         codigo VARCHAR(60) NOT NULL UNIQUE,
@@ -45,7 +49,9 @@ export async function migrateAndSeed({ closePool = false } = {}) {
         CONSTRAINT chk_estado_pedido
         CHECK (estado IN ('pendiente_pago', 'pagado', 'cancelado', 'entregado'))
     );
+  `);
 
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS pedido_detalles (
         id BIGSERIAL PRIMARY KEY,
         pedido_id BIGINT NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
@@ -54,10 +60,10 @@ export async function migrateAndSeed({ closePool = false } = {}) {
         precio_unitario NUMERIC(12,2) NOT NULL CHECK (precio_unitario >= 0),
         subtotal NUMERIC(12,2) NOT NULL CHECK (subtotal >= 0)
     );
-
-    CREATE INDEX IF NOT EXISTS idx_productos_categoria ON productos(categoria);
-    CREATE INDEX IF NOT EXISTS idx_pedidos_cliente ON pedidos(cliente_id);
   `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_productos_categoria ON productos(categoria);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_pedidos_cliente ON pedidos(cliente_id);`);
 
   console.log('Estructura de tablas verificada.');
 
@@ -255,6 +261,20 @@ export async function migrateAndSeed({ closePool = false } = {}) {
         WHERE p.codigo_terra NOT IN ('DEMO-MAT-01', 'DEMO-CAM-02');
       `);
 
+      function normalizarCategoria(cat) {
+        const c = (cat || '').trim().toUpperCase();
+        if (c === 'COLCHON' || c === 'COLCHONES') return 'Colchones';
+        if (c === 'SOMIER' || c === 'SOMMIERS') return 'Sommiers';
+        if (c === 'ESPALDAR' || c === 'ESPALDARES' || c === 'RESPALDO' || c === 'RESPALDOS') return 'Espaldares';
+        if (c === 'SET CAMA' || c === 'CAMA' || c === 'CAMAS') return 'Camas';
+        if (c === 'RECAMIER' || c === 'RECAMIERS') return 'Recamier';
+        if (c === 'LIVING') return 'Muebles';
+        if (c === 'ALMOHADAS' || c === 'ALMOHADA') return 'Almohadas';
+        if (c === 'ROPA DE CAMA') return 'Ropa de cama';
+        if (c === 'MUEBLES' || c === 'MUEBLE') return 'Muebles';
+        return cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : 'Varios';
+      }
+
       for (const sp of supProds) {
         await pool.query(
           `INSERT INTO productos 
@@ -265,7 +285,7 @@ export async function migrateAndSeed({ closePool = false } = {}) {
             sp.sku,
             sp.nombre,
             sp.descripcion,
-            sp.categoria,
+            normalizarCategoria(sp.categoria),
             Number(sp.precio) || 1000,
             Math.floor((Number(sp.stock) || 10) / 2),
             Math.ceil((Number(sp.stock) || 10) / 2),
@@ -295,7 +315,7 @@ export async function migrateAndSeed({ closePool = false } = {}) {
 }
 
 // Si se ejecuta directamente desde node
-if (process.argv[1]?.endsWith('migrate_seed.js')) {
+if (process.argv[1] && process.argv[1].replace(/\\/g, '/').includes('migrate_seed.js')) {
   migrateAndSeed({ closePool: true }).catch((err) => {
     console.error('Error durante migración y seed:', err);
     process.exit(1);

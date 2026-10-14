@@ -2,7 +2,17 @@
 import {
   crearClienteBD,
   obtenerClienteBD,
+  listarClientesBD,
 } from '../models/clienteModel.js';
+
+export async function listarClientes(req, res, next) {
+  try {
+    const limite = Number(req.query.limite ?? 100);
+    if (!Number.isSafeInteger(limite) || limite < 1 || limite > 200) return res.status(400).json({ success: false, mensaje: 'Límite inválido' });
+    const clientes = await listarClientesBD({ buscar: String(req.query.buscar ?? '').trim(), limite });
+    return res.json({ success: true, data: clientes });
+  } catch (error) { next(error); }
+}
 
 export async function crearCliente(req, res, next) {
   try {
@@ -64,9 +74,9 @@ export async function crearCliente(req, res, next) {
 
 export async function obtenerCliente(req, res, next) {
   try {
-    const id = Number(req.params.id);
+    const id = String(req.params.id || '').trim();
 
-    if (!Number.isSafeInteger(id) || id < 1) {
+    if (!id) {
       return res.status(400).json({
         success: false,
         mensaje: 'ID de cliente inválido',

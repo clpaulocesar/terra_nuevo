@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
-import { CheckCircle2, Clock3, Home, QrCode, ReceiptText, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, Clock3, Download, Home, QrCode, ReceiptText, ShoppingBag } from 'lucide-react';
 import { obtenerPedido } from '../services/pedidoService.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
+import { descargarTicket } from '../utils/descargarTicket.js';
 import './PedidoGenerado.css';
 
 function formatoFechaPedido(fecha) {
@@ -60,7 +61,17 @@ export default function PedidoGenerado() {
           <div className="pedido-time"><Clock3 size={19} /> Tu ticket tiene validez limitada. Consultá en caja.</div>
         </aside>
       </div>
-      <div className="pedido-actions"><Link to="/" className="pedido-home"><Home size={20} /> Nueva compra</Link><Link to="/catalogo" className="pedido-catalog">Seguir explorando</Link></div>
+      <div className="pedido-actions">
+        <button
+          type="button"
+          onClick={() => descargarTicket(pedido, state?.cliente, state?.items || pedido.items)}
+          className="pedido-download"
+        >
+          <Download size={20} /> Descargar ticket
+        </button>
+        <Link to="/" className="pedido-home"><Home size={20} /> Nueva compra</Link>
+        <Link to="/catalogo" className="pedido-catalog">Seguir explorando</Link>
+      </div>
     </section>
   );
 }

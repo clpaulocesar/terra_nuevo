@@ -45,10 +45,9 @@
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--color-on-surface);
   background-color: var(--color-surface);
-  min-height: 100vh;
+  min-height: auto;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   user-select: none;
   -webkit-font-smoothing: antialiased;
 }
@@ -71,9 +70,10 @@
 }
 
 /* Custom Spacing & Utilities */
+/* El contenedor .page-content del Layout ya aporta el margen lateral. */
 .catalogo-container .px-margin {
-  padding-left: clamp(1rem, 2.5vw, 2rem);
-  padding-right: clamp(1rem, 2.5vw, 2rem);
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .catalogo-container .gap-space-xs { gap: 0.5rem; }

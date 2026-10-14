@@ -6,6 +6,7 @@ import { useCarrito } from '../hooks/useCarrito.js';
 import { crearCliente } from '../services/clienteService.js';
 import { crearPedido } from '../services/pedidoService.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
+import { descargarTicket } from '../utils/descargarTicket.js';
 import './Confirmacion.css';
 
 export default function Confirmacion() {
@@ -18,14 +19,12 @@ export default function Confirmacion() {
   const clienteId = useRef(null);
 
   // Tiene prioridad sobre el carrito vacío luego de completar la compra.
-  if (pedidoGenerado) return <Navigate to="/pedido" replace state={{ pedido: pedidoGenerado }} />;
+  if (pedidoGenerado) return <Navigate to="/pedido" replace state={{ pedido: pedidoGenerado, cliente, items }} />;
   if (!items.length) return <Navigate to="/carrito" replace />;
 
   const confirmar = async () => {
     if (enviando.current) return;
 
-    // La ventana se abre durante el clic para evitar que el navegador bloquee el popup.
-    const ventanaTicket = window.open('', '_blank');
     enviando.current = true;
     setProcesando(true);
     setError('');
@@ -42,11 +41,9 @@ export default function Confirmacion() {
         items: items.map((item) => ({ productoId: item.id, cantidad: item.cantidad })),
       });
 
-      if (ventanaTicket && pedido.id) {
-        ventanaTicket.location.href = `/pedido/${pedido.id}?imprimir=1`;
-      } else if (ventanaTicket) {
-        ventanaTicket.close();
-      }
+      // Descarga automática directa del ticket sin abrir otra ventana
+      descargarTicket(pedido, cliente, items);
+
       setPedidoGenerado(pedido);
       vaciarCarrito();
       limpiarCliente();

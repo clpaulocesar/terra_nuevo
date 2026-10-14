@@ -1,220 +1,52 @@
 import { pool } from '../config/database.js';
 
-export async function listarProductosBD({
-  buscar = '',
-  categoria = '',
-  pagina = 1,
-  limite = 100,
-  soloActivos = false,
-} = {}) {
-  let sql = `
-    SELECT id, sku, nombre, descripcion, categoria,
-           precio, precio_original, descuento, promocion,
-           stock, showroom, bodega, medida, firmeza, detalle,
-           imagen_url, imagenes, activo
-    FROM productos
-    WHERE 1=1
-  `;
+const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku,
+  p.name AS nombre, p.description AS descripcion, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
+  COALESCE(p.public_price, 0) AS precio, p.stock_quantity::integer AS stock,
+  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
 
+export async function listarProductosBD({ buscar = '', categoria = '', pagina = 1, limite = 100, soloActivos = false } = {}) {
   const valores = [];
-
-  if (soloActivos) {
-    sql += ` AND activo = TRUE`;
-  }
-
-  if (buscar) {
-    valores.push(`%${buscar}%`);
-    sql += `
-      AND (
-        nombre ILIKE $${valores.length}
-        OR descripcion ILIKE $${valores.length}
-        OR COALESCE(sku, '') ILIKE $${valores.length}
-        OR COALESCE(detalle, '') ILIKE $${valores.length}
-      )
-    `;
-  }
-
-  if (categoria && categoria !== 'Todos') {
-    if (categoria === 'Promociones') {
-      sql += ` AND (promocion = TRUE OR (descuento IS NOT NULL AND descuento != ''))`;
-    } else {
-      valores.push(categoria);
-      sql += ` AND LOWER(categoria) = LOWER($${valores.length})`;
-    }
-  }
-
-  valores.push(limite);
-  const posicionLimite = valores.length;
-
-  valores.push((pagina - 1) * limite);
-  const posicionOffset = valores.length;
-
-  sql += `
-    ORDER BY id ASC
-    LIMIT $${posicionLimite}
-    OFFSET $${posicionOffset}
-  `;
-
-  const resultado = await pool.query(sql, valores);
-  return resultado.rows;
+  const condiciones = [];
+  if (soloActivos) condiciones.push('COALESCE(p.activo, p.is_active, TRUE) = TRUE');
+  if (buscar) { valores.push(`%${buscar}%`); condiciones.push(`(p.name ILIKE $${valores.length} OR COALESCE(p.codigo_terra, p.internal_code, '') ILIKE $${valores.length})`); }
+  if (categoria && categoria !== 'Todos') { valores.push(categoria); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
+  valores.push(limite, (pagina - 1) * limite);
+  const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
+  const { rows } = await pool.query(`SELECT ${campos} FROM products p LEFT JOIN categories c ON c.id=p.category_id ${where} ORDER BY p.created_at DESC LIMIT $${valores.length - 1} OFFSET $${valores.length}`, valores);
+  return rows;
 }
 
 export async function obtenerProductoBD(id) {
-  const resultado = await pool.query(
-    `SELECT id, sku, nombre, descripcion, categoria,
-            precio, precio_original, descuento, promocion,
-            stock, showroom, bodega, medida, firmeza, detalle,
-            imagen_url, imagenes, activo
-     FROM productos
-     WHERE id = $1`,
-    [id]
-  );
-
-  return resultado.rows[0] || null;
+  const { rows } = await pool.query(`SELECT ${campos} FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.id=$1`, [id]);
+  return rows[0] || null;
 }
 
 export async function crearProductoBD(datos) {
-  const {
-    sku,
-    nombre,
-    descripcion,
-    categoria,
-    precio,
-    precio_original = null,
-    descuento = null,
-    promocion = false,
-    showroom = 0,
-    bodega = 0,
-    medida = null,
-    firmeza = null,
-    detalle = null,
-    imagen_url = null,
-    imagenes = [],
-    activo = true,
-  } = datos;
-
-  const stock = Number(showroom || 0) + Number(bodega || 0);
-
-  const resultado = await pool.query(
-    `INSERT INTO productos
-      (sku, nombre, descripcion, categoria, precio, precio_original, descuento, promocion,
-       showroom, bodega, stock, medida, firmeza, detalle, imagen_url, imagenes, activo)
-     VALUES
-      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-     RETURNING *`,
-    [
-      sku,
-      nombre,
-      descripcion,
-      categoria,
-      precio,
-      precio_original,
-      descuento,
-      promocion,
-      showroom,
-      bodega,
-      stock,
-      medida,
-      firmeza,
-      detalle,
-      imagen_url,
-      imagenes,
-      activo,
-    ]
+  const baseSlug = String(datos.nombre || 'producto').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const codigo = String(datos.sku || `TRR-${Date.now()}`).trim();
+  const { rows } = await pool.query(
+    `INSERT INTO products (name, slug, codigo_terra, description, public_price, stock_quantity, imagen_url, activo, is_active, internal_code, size, color)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$8,$3,$9,$10) RETURNING id`,
+    [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, datos.activo ?? true, datos.medida || null, datos.detalle || null]
   );
-
-  return resultado.rows[0];
+  return obtenerProductoBD(rows[0].id);
 }
 
 export async function actualizarProductoBD(id, datos) {
-  const {
-    sku,
-    nombre,
-    descripcion,
-    categoria,
-    precio,
-    precio_original = null,
-    descuento = null,
-    promocion = false,
-    showroom,
-    bodega,
-    medida,
-    firmeza,
-    detalle,
-    imagen_url,
-    imagenes,
-    activo = true,
-  } = datos;
-
-  const showroomNum = Number(showroom ?? 0);
-  const bodegaNum = Number(bodega ?? 0);
-  const stockCalc = showroomNum + bodegaNum;
-
-  const resultado = await pool.query(
-    `UPDATE productos SET
-      sku = COALESCE($1, sku),
-      nombre = COALESCE($2, nombre),
-      descripcion = COALESCE($3, descripcion),
-      categoria = COALESCE($4, categoria),
-      precio = COALESCE($5, precio),
-      precio_original = $6,
-      descuento = $7,
-      promocion = COALESCE($8, promocion),
-      showroom = $9,
-      bodega = $10,
-      stock = $11,
-      medida = COALESCE($12, medida),
-      firmeza = COALESCE($13, firmeza),
-      detalle = COALESCE($14, detalle),
-      imagen_url = COALESCE($15, imagen_url),
-      imagenes = COALESCE($16, imagenes),
-      activo = COALESCE($17, activo)
-     WHERE id = $18
-     RETURNING *`,
-    [
-      sku,
-      nombre,
-      descripcion,
-      categoria,
-      precio,
-      precio_original,
-      descuento,
-      promocion,
-      showroomNum,
-      bodegaNum,
-      stockCalc,
-      medida,
-      firmeza,
-      detalle,
-      imagen_url,
-      imagenes,
-      activo,
-      id,
-    ]
+  const { rows } = await pool.query(
+    `UPDATE products SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), activo=COALESCE($6,activo), internal_code=COALESCE($7,internal_code), size=COALESCE($8,size), color=COALESCE($9,color), updated_at=NOW() WHERE id=$10 RETURNING id`,
+    [datos.nombre, datos.descripcion, datos.precio, datos.stock ?? datos.showroom, datos.imagen_url, datos.activo, datos.sku, datos.medida, datos.detalle, id]
   );
-
-  return resultado.rows[0] || null;
+  return rows[0] ? obtenerProductoBD(id) : null;
 }
 
 export async function actualizarStockBD(id, { showroom, bodega }) {
-  const showroomNum = Number(showroom ?? 0);
-  const bodegaNum = Number(bodega ?? 0);
-  const stock = showroomNum + bodegaNum;
-
-  const resultado = await pool.query(
-    `UPDATE productos
-     SET showroom = $1, bodega = $2, stock = $3
-     WHERE id = $4
-     RETURNING *`,
-    [showroomNum, bodegaNum, stock, id]
-  );
-  return resultado.rows[0] || null;
+  const { rows } = await pool.query('UPDATE products SET stock_quantity=$1, updated_at=NOW() WHERE id=$2 RETURNING id', [Number(showroom ?? 0) + Number(bodega ?? 0), id]);
+  return rows[0] ? obtenerProductoBD(id) : null;
 }
 
 export async function eliminarProductoBD(id) {
-  const resultado = await pool.query(
-    `UPDATE productos SET activo = FALSE WHERE id = $1 RETURNING *`,
-    [id]
-  );
-  return resultado.rows[0] || null;
+  const { rows } = await pool.query('UPDATE products SET activo=FALSE, updated_at=NOW() WHERE id=$1 RETURNING id', [id]);
+  return rows[0] ? obtenerProductoBD(id) : null;
 }

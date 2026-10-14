@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 
 import productoRoutes from './routes/productoRoutes.js';
+import categoriaRoutes from './routes/categoriaRoutes.js';
 import pedidoRoutes from './routes/pedidoRoutes.js';
 import clienteRoutes from './routes/clienteRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
@@ -147,6 +148,7 @@ app.get('/api/health', async (req, res, next) => {
 
 // Registrar rutas.
 app.use('/api/productos', productoRoutes);
+app.use('/api/categorias', categoriaRoutes);
 app.use('/api/pedidos', pedidoRoutes);
 app.use('/api/clientes', clienteRoutes);
 app.use('/api/admin', adminRoutes);

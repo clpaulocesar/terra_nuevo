@@ -8,11 +8,13 @@ import {
   eliminarProducto,
   seedProductos,
 } from '../controllers/productoController.js';
+import { listarCategorias } from '../controllers/categoriaController.js';
 
 const router = Router();
 
 router.get('/seed', seedProductos);
 router.post('/seed', seedProductos);
+router.get('/categorias', listarCategorias);
 router.get('/', listarProductos);
 router.get('/:id', obtenerProducto);
 router.post('/', crearProducto);

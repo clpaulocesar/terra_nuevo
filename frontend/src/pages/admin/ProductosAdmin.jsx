@@ -129,7 +129,13 @@ export default function ProductosAdmin() {
   const [editImagenes, setEditImagenes] = useState([]);
   const [urlEdit, setUrlEdit] = useState('');
 
-  const categorias = ['Todos', 'Colchones', 'Sommiers', 'Living', 'Muebles', 'Almohadas', 'Ropa de cama'];
+  const categorias = useMemo(() => {
+    const set = new Set(['Todos', 'Colchones', 'Sommiers', 'Espaldares', 'Camas', 'Almohadas', 'Ropa de cama', 'Muebles', 'Recamier']);
+    for (const p of productos) {
+      if (p.categoria) set.add(p.categoria);
+    }
+    return Array.from(set);
+  }, [productos]);
 
   const avisar = texto => {
     setMensaje(texto);
