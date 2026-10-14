@@ -211,12 +211,40 @@
    ======================================================== */
 @media (max-width: 640px) {
   .site-header.terra-header {
-    padding: 0.5rem 1rem;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0.85rem;
     min-height: 56px;
+  }
+
+  .terra-header-left {
+    flex-shrink: 0;
   }
 
   .terra-header .terra-logo img {
     height: 2.1rem;
+    width: auto;
+    max-width: none;
+  }
+
+  /* Ocultamos la barra superior en móvil (specificidad mayor que las reglas base de index.css) */
+  .site-header.terra-header .desktop-nav {
+    display: none;
+  }
+
+  .terra-header-right {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .terra-header-right .terra-cart-link {
+    padding: 0.5rem 0.7rem;
+  }
+
+  .terra-home-btn {
+    width: 2.3rem;
+    height: 2.3rem;
   }
 
   .terra-sucursal-tag {
@@ -300,5 +328,11 @@
 
   .site-footer {
     padding-bottom: 5rem; /* Evita que la barra móvil tape el texto */
+  }
+}
+
+@media (max-width: 360px) {
+  .terra-header-right .terra-cart-link > span {
+    display: none;
   }
 }

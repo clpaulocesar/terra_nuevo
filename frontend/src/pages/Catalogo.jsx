@@ -180,7 +180,7 @@ export default function Catalogo() {
   }[orden];
 
   return (
-    <div className="catalogo-container bg-surface font-body-md text-on-surface select-none antialiased min-h-screen flex flex-col justify-between">
+    <div className="catalogo-container bg-surface font-body-md text-on-surface select-none antialiased flex flex-col">
       {/* HEADER TÁCTIL FIJO */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-primary-container text-on-primary shadow-[0_4px_20px_rgba(0,66,48,0.15)]">
         <div className="h-20 w-full px-margin flex items-center justify-between">
@@ -253,13 +253,13 @@ export default function Catalogo() {
       </header>
 
       {/* CONTENIDO PRINCIPAL */}
-      <main className="w-full pt-20 pb-16 bg-surface flex-1 min-h-[calc(100vh-144px)]">
+      <main className="w-full pb-4 bg-surface flex-1">
         <div className="flex flex-col w-full">
           {/* BARRA TÁCTICA DE BÚSQUEDA Y CONTROL DE FILTROS */}
           <section className="w-full px-margin pt-space-md pb-space-sm bg-surface">
             <div className="max-w-[1240px] mx-auto flex flex-col gap-space-md">
               {/* Fila principal de búsqueda táctil */}
-              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-space-md">
+              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md">
                 {/* Cuadro de búsqueda optimizado para pantalla táctil */}
                 <div className="relative flex-1 group">
                   <div className="flex items-center bg-surface-container-lowest rounded-xl shadow-sm px-space-md min-h-[56px] transition-all focus-within:shadow-md">
@@ -306,8 +306,8 @@ export default function Catalogo() {
                 </div>
 
                 {/* Contador de inventario y selector de orden */}
-                <div className="flex items-center justify-between md:justify-end gap-space-md flex-shrink-0">
-                  <div className="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-container-high rounded-xl">
+                <div className="flex flex-wrap items-center justify-between lg:justify-end gap-3 lg:gap-4 shrink-0">
+                  <div className="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-container-high rounded-xl min-h-[48px]">
                     <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
                     <span className="font-label-md text-label-md text-on-surface font-semibold">
                       {productosFiltrados.length} disponibles en tienda
@@ -317,7 +317,7 @@ export default function Catalogo() {
                   {/* Emulador de Menú Desplegable de Orden */}
                   <div className="relative">
                     <button
-                      className="min-h-[56px] px-space-lg rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:bg-surface-container transition-all flex items-center gap-space-sm active:scale-95"
+                      className="min-h-[48px] lg:min-h-[56px] px-4 lg:px-6 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:bg-surface-container transition-all flex items-center gap-space-sm active:scale-95"
                       id="sort-menu-btn"
                       type="button"
                       onClick={() => setMenuOrdenAbierto((prev) => !prev)}
@@ -554,7 +554,7 @@ export default function Catalogo() {
           <section className="w-full px-margin py-space-md flex-1">
             <div className="max-w-[1240px] mx-auto">
               {productosFiltrados.length === 0 ? (
-                <div className="bg-surface-container-lowest rounded-2xl p-12 text-center flex flex-col items-center justify-center gap-4 my-8 shadow-sm">
+                <div className="bg-surface-container-lowest rounded-2xl p-6 sm:p-12 text-center flex flex-col items-center justify-center gap-4 my-8 shadow-sm">
                   <span className="material-symbols-outlined text-[64px] text-outline">search_off</span>
                   <h3 className="font-title-lg text-title-lg text-on-surface font-bold">
                     No encontramos productos que coincidan con tu búsqueda
@@ -576,7 +576,7 @@ export default function Catalogo() {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">
+                <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
                   {productosFiltrados.map((producto) => {
                     const recienAgregado = Boolean(agregados[producto.id]);
 
@@ -648,7 +648,7 @@ export default function Catalogo() {
                         </div>
 
                         {/* Cuerpo de la Tarjeta */}
-                        <div className="p-space-lg flex flex-col flex-1 justify-between gap-space-md">
+                        <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
                           <div className="flex flex-col gap-space-xs">
                             <div className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
                               <span className="material-symbols-outlined text-[18px] text-secondary">
@@ -683,9 +683,9 @@ export default function Catalogo() {
                           </div>
 
                           {/* Precio y Botón Táctil de Agregar */}
-                          <div className="flex flex-col gap-space-sm pt-space-xs bg-surface-container-low/50 p-space-md rounded-xl">
-                            <div className="flex items-baseline justify-between">
-                              <div>
+                          <div className="flex flex-col gap-space-sm pt-space-xs bg-surface-container-low/50 p-3 sm:p-4 rounded-xl">
+                            <div className="flex items-baseline justify-between gap-2">
+                              <div className="min-w-0">
                                 {producto.precioOriginal ? (
                                   <span className="font-body-sm text-body-sm text-outline line-through">
                                     {formatoMoneda(producto.precioOriginal)}
@@ -699,14 +699,14 @@ export default function Catalogo() {
                                   {formatoMoneda(producto.precio)}
                                 </div>
                               </div>
-                              <span className="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant">
+                              <span className="hidden sm:inline-block shrink-0 font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant">
                                 {producto.garantia || 'Garantía Oficial'}
                               </span>
                             </div>
 
                             {/* Botón Táctil de Gran Formato */}
                             <button
-                              className={`w-full min-h-[52px] rounded-xl font-label-lg text-label-lg font-bold flex items-center justify-center gap-space-xs shadow-sm transition-all active:scale-95 ${
+                              className={`w-full min-h-[48px] sm:min-h-[52px] rounded-xl text-[15px] sm:text-base font-bold flex items-center justify-center gap-space-xs shadow-sm transition-all active:scale-95 ${
                                 recienAgregado
                                   ? 'bg-secondary text-surface-bright shadow-md'
                                   : 'bg-primary-container hover:bg-primary text-on-primary'
@@ -732,20 +732,20 @@ export default function Catalogo() {
           </section>
 
           {/* BARRA FLOTANTE STICKY DE CARRITO PARA VISIBILIDAD INMEDIATA */}
-          <aside className="sticky bottom-20 z-30 px-margin mt-space-md mb-space-md pointer-events-none">
+          <aside className="sticky bottom-[72px] sm:bottom-4 z-30 mt-space-md mb-space-md pointer-events-none">
             <div className="max-w-[1240px] mx-auto flex justify-end">
-              <div className="pointer-events-auto bg-surface-container-lowest text-on-surface rounded-2xl shadow-xl p-space-sm pl-space-lg flex items-center gap-space-lg transition-transform active:scale-98 border border-surface-container-high/60">
+              <div className="pointer-events-auto w-full sm:w-auto bg-surface-container-lowest text-on-surface rounded-2xl shadow-xl p-2 sm:p-3 sm:pl-6 flex items-center justify-between gap-3 sm:gap-6 border border-surface-container-high/60">
                 {/* Resumen de items y precio */}
-                <div className="flex items-center gap-space-md">
-                  <div className="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
                     <span className="material-symbols-outlined text-[26px]">shopping_bag</span>
                   </div>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <span className="font-label-lg text-label-lg font-bold text-on-surface">
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-[14px] sm:text-base font-bold text-on-surface truncate">
                         {cantidadTotal} {cantidadTotal === 1 ? 'producto en orden' : 'productos en orden'}
                       </span>
-                      <span className="w-2 h-2 rounded-full bg-secondary"></span>
+                      <span className="w-2 h-2 shrink-0 rounded-full bg-secondary"></span>
                     </div>
                     <div className="flex items-baseline gap-1">
                       <span className="font-body-sm text-body-sm text-on-surface-variant">Total:</span>
@@ -758,7 +758,7 @@ export default function Catalogo() {
 
                 {/* Botón de checkout hacia carrito */}
                 <Link
-                  className="min-h-[52px] px-space-xl rounded-xl bg-secondary-container hover:bg-secondary-fixed text-on-secondary-fixed font-label-lg text-label-lg font-bold flex items-center gap-space-xs shadow-sm transition-all active:scale-95"
+                  className="min-h-[48px] sm:min-h-[52px] px-4 sm:px-9 shrink-0 rounded-xl bg-secondary-container hover:bg-secondary-fixed text-on-secondary-fixed text-[15px] sm:text-base font-bold flex items-center gap-space-xs shadow-sm transition-all active:scale-95"
                   to="/carrito"
                 >
                   <span>Ver Carrito</span>
