@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, BedDouble, CreditCard, Grid2X2, Package, QrCode, ShieldCheck, ShoppingBag, Stars, Touchpad } from 'lucide-react';
 import './Bienvenida.css';
+import './BienvenidaFeaturedHidden.css';
 
 const beneficios = [
   { icono: BedDouble, titulo: 'Probá en tienda', texto: 'Sentí la firmeza y adaptabilidad de cada modelo en nuestro showroom de Equipetrol.', pie: 'Test de firmeza libre', detalle: Touchpad },

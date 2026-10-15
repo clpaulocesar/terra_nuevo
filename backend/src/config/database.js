@@ -15,7 +15,8 @@ const requiresSsl =
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: requiresSsl ? { rejectUnauthorized: false } : undefined,
-  max: 10,
+  // En Vercel cada instancia puede abrir su propio pool; mantenerlo pequeño.
+  max: Number(process.env.DATABASE_POOL_MAX) || 1,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
 });

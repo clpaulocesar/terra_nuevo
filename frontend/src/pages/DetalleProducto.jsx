@@ -6,6 +6,7 @@ import { useCarrito } from '../hooks/useCarrito.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { emojiCategoria } from '../data/categorias.js';
 import './DetalleProducto.css';
+import './DetalleProductoModern.css';
 
 const FOTOS = ['https://lh3.googleusercontent.com/aida-public/AB6AXuA_0IGZ5s0DjeFACULr5bK2zw8jNwY_4ygmGz_44Kd65Bb13xtjOAWf_fm_SD4sowQnCxMzCwU_ZD_DlXUGgV7nKlnEyI79XA31Ux46VzAsTssz8IaDziDvdlnriYJndVw-fukT_eKvBuoZjUQ7TIUvqEM4I4DJGnrYW6oGxCOdnHj9ITk2DfjrYEHNFCmMYaIS2C5r-2fvONkPGloLIafxeLD40KaqPvmWXpvg6uCzUefyXPRDfnq2','https://lh3.googleusercontent.com/aida-public/AB6AXuBEmshhPCR02R1rPB00S3yCTur7glZQk9xFegzv8g33Br4UBSp_b-NiIrb8dIMqy48zrs6SIER6ZtNnvKhWeaPYDRLyIORRhNZe-Uq5b6qOb41zrVtgxGtEYUyZwk1FSSnPDyIQoeq_-Hw4Qgvs7MfvzXMGjlDoml5sTc5YEfsRKOKXUmJrq0aPrYAoQNXWxKb3-06Lgp5IOLKPDCQhyYRY7nsRK_YDRu6kGkvyRbEfb2MJ_Dkn4rud','https://lh3.googleusercontent.com/aida-public/AB6AXuCbgAk-ekwWog04vbc4vd4qkhpiPPY_6hT5ZX5EOmqXOT6sZq-GCiChAvqFzUPGEk2VIRlE9m_BuqEtR9vgBcTEujuzJUi_k6UOwvdhv9LYRpLlHHiP-u2qSaiWk3FxevWrr7VYt1wKqJz-nqFL7K5VbX2aJ2_y1b_S8krM-UDBvb3ZzGKwC-y8ay8_EKcA8E_IZ_98y74Cs2Mn994Lx6Uf8mpjjl-qYcFYCxHDX27iQ_oNoPSQhLu2'];
 
