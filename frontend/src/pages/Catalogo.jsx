@@ -60,13 +60,6 @@ export default function Catalogo() {
   // Retroalimentación de productos agregados temporalmente: { [id]: boolean }
   const [agregados, setAgregados] = useState({});
 
-  // Descripciones desplegables por tarjeta: { [id]: boolean }
-  const [descripcionesAbiertas, setDescripcionesAbiertas] = useState({});
-
-  const alternarDescripcion = (id) => {
-    setDescripcionesAbiertas((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
   // Modal de Asesor TERRA
   const [modalAsesorAbierto, setModalAsesorAbierto] = useState(false);
 
@@ -711,25 +704,9 @@ export default function Catalogo() {
                             </h2>
 
                             {Boolean(producto.descripcion) && (
-                              <div className="flex flex-col gap-1">
-                                <p className={`text-on-surface-variant font-body-sm text-body-sm leading-relaxed ${descripcionesAbiertas[producto.id] ? '' : 'line-clamp-2'}`}>
-                                  {producto.descripcion}
-                                </p>
-                                <button
-                                  type="button"
-                                  onClick={() => alternarDescripcion(producto.id)}
-                                  aria-expanded={Boolean(descripcionesAbiertas[producto.id])}
-                                  className="self-start min-h-[44px] px-3 rounded-lg bg-surface-container-low text-primary font-label-sm text-label-sm font-bold flex items-center gap-1.5 hover:bg-surface-container-high transition-colors active:scale-95"
-                                >
-                                  <span className="material-symbols-outlined text-[18px] text-secondary">
-                                    description
-                                  </span>
-                                  <span>Descripción</span>
-                                  <span className="material-symbols-outlined text-[18px]">
-                                    {descripcionesAbiertas[producto.id] ? 'expand_less' : 'expand_more'}
-                                  </span>
-                                </button>
-                              </div>
+                              <p className="text-on-surface-variant font-body-sm text-body-sm leading-relaxed line-clamp-2">
+                                {producto.descripcion}
+                              </p>
                             )}
 
                             {/* Tonos disponibles */}
