@@ -25,7 +25,7 @@ export default function Bienvenida() {
   useEffect(() => {
     const timer = setInterval(() => {
       setIndice((i) => (i + 1) % fotosPoltronas.length);
-    }, 6000);
+    }, 2500);
     return () => clearInterval(timer);
   }, []);
 
