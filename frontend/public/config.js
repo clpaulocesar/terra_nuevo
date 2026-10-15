@@ -7,5 +7,5 @@
 window.TERRA_CONFIG = {
   // Webhook del nodo "When chat message received" de n8n (workflow publicado/activo).
   // Ejemplo producción: "https://n8n.midominio.com/webhook/xxxx-xxxx/chat"
-  N8N_CHAT_URL: "http://localhost:5678/webhook/cf2f2ecb-49f1-4287-9704-7f2214849274/chat",
+  N8N_CHAT_URL: "https://gem-useful-pose-counts.trycloudflare.com/webhook/cf2f2ecb-49f1-4287-9704-7f2214849274/chat",
 };
