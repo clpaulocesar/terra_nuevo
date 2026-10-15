@@ -51,6 +51,13 @@ export default function DetalleProducto() {
   }, [video]);
   const viendoVideo = Boolean(video) && foto === 0;
   const indiceFoto = video ? foto - 1 : foto;
+  // Divide la descripción en líneas: respeta los saltos de línea ya existentes
+  // y corta después de cada punto para que cada frase quede en su propia línea.
+  const lineasDescripcion = useMemo(() => String(producto?.descripcion || '')
+    .split(/\r?\n/)
+    .flatMap((linea) => linea.split(/(?<=\.)\s+/))
+    .map((frase) => frase.trim())
+    .filter(Boolean), [producto?.descripcion]);
   const agregar = () => { for (let indice = 0; indice < cantidad; indice += 1) agregarProducto(producto); setAgregado(true); setTimeout(() => setAgregado(false), 1800); };
 
   if (cargando) return <p className="detalle-status">Cargando producto…</p>;
@@ -121,7 +128,7 @@ export default function DetalleProducto() {
         <section className="product-buy">
           <h1>{producto.nombre}</h1><div className="product-buy__rating"><span>{[1, 2, 3, 4, 5].map((n) => <Star size={15} fill="currentColor" key={n} />)}</span><small>Producto recomendado TERRA</small></div>
           <div className="product-buy__price"><strong>{formatoMoneda(producto.precio)}</strong><small>{disponible ? 'Disponible para entrega inmediata' : 'Consultar disponibilidad'}</small></div>
-          <p className="product-buy__description">{producto.descripcion || ''}</p>
+          <p className="product-buy__description">{lineasDescripcion.map((linea, indice) => <span key={`${indice}-${linea}`}>{linea}</span>)}</p>
           <div className="product-buy__choice"><b>Color:</b><div>{colores.map((opcion) => <button type="button" title={opcion.nombre} aria-label={opcion.nombre} key={opcion.nombre} onClick={() => setColor(opcion)} className={color.nombre === opcion.nombre ? 'active' : ''} style={{ backgroundColor: opcion.valor }} />)}</div><small>Tono actual: <strong>{color.nombre}</strong></small></div>
           <div className="product-buy__quantity"><b>Cantidad:</b><div><button type="button" aria-label="Disminuir" disabled={cantidad <= 1} onClick={() => setCantidad((valor) => Math.max(1, valor - 1))}><CircleMinus size={19} /></button><span>{cantidad}</span><button type="button" aria-label="Aumentar" disabled={cantidad >= Number(producto.stock)} onClick={() => setCantidad((valor) => Math.min(Number(producto.stock), valor + 1))}><CirclePlus size={19} /></button></div></div>
           <button className="product-buy__add" disabled={!disponible} onClick={agregar} type="button">{agregado ? <><Check size={19} /> Agregado al carrito</> : <><ShoppingCart size={19} /> Agregar al carrito</>}</button><Link className="product-buy__now" to="/carrito">Comprar ahora</Link>
