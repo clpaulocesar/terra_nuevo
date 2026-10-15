@@ -49,7 +49,7 @@ export default function AdminLayout() {
 
         <section className="admin-branch">
           <span><Store size={17}/></span>
-          <div><small>Sucursal activa</small><b>Equipetrol Showroom</b></div>
+          <div><small>Sucursal activa</small><b>Central Showroom</b></div>
           <i title="Terminal operativo"/>
         </section>
 
@@ -70,7 +70,7 @@ export default function AdminLayout() {
         <footer>
           <div className="admin-user">
             <span><Users size={15}/></span>
-            <div><b>Carlos Mendoza</b><small>Admin Sucursal Equipetrol</small></div>
+            <div><b>Carlos Mendoza</b><small>Admin Sucursal 1 Central</small></div>
           </div>
           <button onClick={salir}><LogOut size={16}/> Cerrar sesión</button>
         </footer>

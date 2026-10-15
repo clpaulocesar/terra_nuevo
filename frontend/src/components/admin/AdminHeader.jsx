@@ -126,7 +126,7 @@ export default function AdminHeader({ onToggleDrawer }) {
                 <p>Sesión activa iniciada en salón principal.</p>
               </div>
               <div className="admin-notif-item">
-                <b>Sucursal Equipetrol</b>
+                <b>Sucursal 1 Central</b>
                 <p>2 terminales sincronizadas con catálogo en vivo.</p>
               </div>
               <div className="admin-notif-item">
@@ -159,7 +159,7 @@ export default function AdminHeader({ onToggleDrawer }) {
               </div>
               <div className="admin-dropdown-item" style={{ cursor: 'default' }}>
                 <Store size={16} color="#745a27" />
-                <span>Sucursal Equipetrol</span>
+                <span>Sucursal 1 Central</span>
               </div>
               <div className="admin-dropdown-item" style={{ cursor: 'default' }}>
                 <ShieldCheck size={16} color="#a6192e" />
