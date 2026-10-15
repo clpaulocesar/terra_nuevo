@@ -271,8 +271,8 @@ export default function Catalogo() {
             <div className="hidden lg:flex items-center gap-space-xs bg-primary/40 px-space-md py-space-xs rounded-full border border-primary-fixed/20">
               <span className="material-symbols-outlined text-[18px] text-secondary-fixed">storefront</span>
               <span className="font-label-sm text-label-sm text-surface-bright">
-                Sucursal Equipetrol • Santa Cruz de la Sierra
-              </span>
+                Sucursal 1 Central • Santa Cruz de la Sierra
+              </span>r
             </div>
 
             <div className="flex items-center gap-space-xs bg-surface-container-lowest/10 px-space-sm py-space-xs rounded-full">
@@ -340,7 +340,7 @@ export default function Catalogo() {
                       ref={searchInputRef}
                       className="w-full bg-transparent border-none outline-none font-body-lg text-body-lg text-on-surface placeholder:text-outline/70 py-2"
                       id="kiosk-search"
-                      placeholder="Buscar colchones, sommiers, almohadas..."
+                      placeholder="Buscar poltronas y sofa cama"
                       type="text"
                       value={buscar}
                       onChange={(e) => setBuscar(e.target.value)}
@@ -499,7 +499,16 @@ export default function Catalogo() {
               {/* Riel desplazable horizontal de categorías */}
               <div className="w-full overflow-x-auto no-scrollbar py-1">
                 <div className="flex items-center gap-space-sm min-w-max">
-                  {categoriasDinamicas.map((cat) => {
+                  {cargando
+                    ? [110, 150, 130, 140].map((ancho, i) => (
+                        <span
+                          key={i}
+                          aria-hidden="true"
+                          style={{ width: ancho }}
+                          className="min-h-[52px] rounded-full bg-surface-container-low animate-pulse"
+                        />
+                      ))
+                    : categoriasDinamicas.map((cat) => {
                     const activa =
                       (!categoriaSeleccionada && cat.id === '') ||
                       (Boolean(categoriaSeleccionada) && Boolean(cat.id) && categoriaSeleccionada.toLowerCase() === cat.id.toLowerCase());
@@ -556,82 +565,18 @@ export default function Catalogo() {
                 </div>
               </div>
 
-              {/* Filtros táctiles secundarios: Medidas y Firmeza */}
-              <div className="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs pb-space-xs">
-                {/* Riel táctil rápido de medidas */}
-                <div className="flex items-center gap-space-xs flex-wrap">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mr-1">
-                    Medidas:
-                  </span>
-                  {MEDIDAS_CONFIG.map((medida) => {
-                    const activa = medidaSeleccionada === medida.id;
-                    return (
-                      <button
-                        key={medida.id}
-                        type="button"
-                        onClick={() => setMedidaSeleccionada(activa ? '' : medida.id)}
-                        className={`min-h-[46px] px-space-md rounded-lg font-label-md text-label-md font-semibold flex items-center gap-1 transition-colors ${
-                          activa
-                            ? 'bg-primary/10 text-primary border border-primary/20'
-                            : 'bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant'
-                        }`}
-                      >
-                        <span>{medida.label}</span>
-                        {activa && <span className="material-symbols-outlined text-[16px]">done</span>}
-                      </button>
-                    );
-                  })}
-                  {medidaSeleccionada && (
-                    <button
-                      type="button"
-                      onClick={() => setMedidaSeleccionada('')}
-                      className="text-xs text-outline underline ml-1"
-                    >
-                      Todas
-                    </button>
-                  )}
-                </div>
-
-                {/* Riel táctil rápido de firmeza */}
-                <div className="flex items-center gap-space-xs flex-wrap">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mr-1">
-                    Firmeza:
-                  </span>
-                  {FIRMEZAS_CONFIG.map((firmeza) => {
-                    const activa = firmezaSeleccionada === firmeza.id;
-                    return (
-                      <button
-                        key={firmeza.id}
-                        type="button"
-                        onClick={() => setFirmezaSeleccionada(activa ? '' : firmeza.id)}
-                        className={`min-h-[46px] px-space-md rounded-lg font-label-md text-label-md transition-colors ${
-                          activa
-                            ? 'bg-surface-container-highest text-on-surface font-bold ring-1 ring-outline'
-                            : 'bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant'
-                        }`}
-                      >
-                        {firmeza.label}
-                      </button>
-                    );
-                  })}
-                  {firmezaSeleccionada && (
-                    <button
-                      type="button"
-                      onClick={() => setFirmezaSeleccionada('')}
-                      className="text-xs text-outline underline ml-1"
-                    >
-                      Todas
-                    </button>
-                  )}
-                </div>
-              </div>
             </div>
           </section>
 
           {/* CATÁLOGO DE PRODUCTOS: Cuadrícula Landscape Tablet 3 Columnas */}
           <section className="w-full px-margin py-space-md flex-1">
             <div className="max-w-[1240px] mx-auto">
-              {productosFiltrados.length === 0 ? (
+              {cargando ? (
+                <div className="catalogo-loader">
+                  <div className="loader" role="status" aria-label="Cargando productos" />
+                  <p>Cargando productos...</p>
+                </div>
+              ) : productosFiltrados.length === 0 ? (
                 <div className="bg-surface-container-lowest rounded-2xl p-6 sm:p-12 text-center flex flex-col items-center justify-center gap-4 my-8 shadow-sm">
                   <span className="material-symbols-outlined text-[64px] text-outline">search_off</span>
                   <h3 className="font-title-lg text-title-lg text-on-surface font-bold">
@@ -661,7 +606,7 @@ export default function Catalogo() {
                     return (
                       <article
                         key={producto.id}
-                        className="flex flex-col bg-surface-container-lowest rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden relative cursor-pointer"
+                        className="flex flex-col bg-surface-container-lowest rounded-[1.75rem] shadow-sm hover:shadow-md transition-all overflow-hidden relative cursor-pointer"
                         onClick={(event) => {
                           if (!event.target.closest('button, a')) {
                             navigate(`/productos/${producto.id}`);
@@ -669,9 +614,9 @@ export default function Catalogo() {
                         }}
                       >
                         {/* Contenedor de Imagen y Badges */}
-                        <div className="relative w-full aspect-[4/3] bg-surface-container overflow-hidden">
+                        <div className="relative w-full aspect-square bg-surface-container-lowest overflow-hidden m-3 mb-0 rounded-2xl" style={{ width: 'calc(100% - 1.5rem)' }}>
                           <img
-                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                            className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
                             alt={producto.nombre}
                             src={producto.imagen_url}
                             loading="lazy"
@@ -895,7 +840,7 @@ export default function Catalogo() {
               ¡Asesor TERRA Notificado!
             </h3>
             <p className="font-body-md text-body-md text-on-surface-variant">
-              Un especialista en descanso de la <strong>Sucursal Equipetrol</strong> se está acercando a tu <strong>Terminal Kiosco #02</strong> para asistirte con modelos, medidas y pruebas de firmeza.
+              Un especialista en descanso de la <strong>Sucursal 1central</strong> se está acercando a tu <strong>Terminal Kiosco #02</strong> para asistirte con modelos, medidas y pruebas de firmeza.
             </p>
             <div className="w-full bg-surface-container-low p-3 rounded-xl flex items-center justify-center gap-2 text-primary font-bold text-sm">
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>

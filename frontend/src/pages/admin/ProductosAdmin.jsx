@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Plus, Search, SlidersHorizontal, Star, Store, Trash2, Truck, Warehouse, X } from 'lucide-react';
 import { listarProductos, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
+import { archivoADataURL } from '../../utils/imagenes.js';
 import './Admin.css';
 import './ProductosAdmin.css';
 import './AdminViewsColorFix.css';
@@ -214,10 +215,19 @@ export default function ProductosAdmin() {
     }
   };
 
-  // Manejo de imágenes en Nuevo Producto
-  const agregarImagenesNuevoArchivos = event => {
-    const urls = Array.from(event.target.files).map(file => URL.createObjectURL(file));
-    setImagenesNuevo(prev => [...prev, ...urls]);
+  // Manejo de imágenes en Nuevo Producto (archivos reales, no vistas temporales)
+  const agregarImagenesNuevoArchivos = async event => {
+    const archivos = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!archivos.length) return;
+    avisar('Procesando imágenes...');
+    try {
+      const urls = await Promise.all(archivos.map(archivoADataURL));
+      setImagenesNuevo(prev => [...prev, ...urls]);
+      avisar(`${urls.length} imagen(es) lista(s). Guardá el producto para subirlas.`);
+    } catch (err) {
+      avisar(err.message);
+    }
   };
 
   const agregarUrlNuevo = () => {
@@ -265,6 +275,7 @@ export default function ProductosAdmin() {
       descripcion: datos.get('descripcion') || '',
       imagen_url: imagenesNuevo[0] || null,
       imagenes: imagenesNuevo,
+      video_url: String(datos.get('video') || '').trim() || null,
     };
 
     try {
@@ -285,10 +296,19 @@ export default function ProductosAdmin() {
     }
   };
 
-  // Manejo de imágenes en Editar Producto
-  const agregarImagenesEditArchivos = event => {
-    const urls = Array.from(event.target.files).map(file => URL.createObjectURL(file));
-    setEditImagenes(prev => [...prev, ...urls]);
+  // Manejo de imágenes en Editar Producto (archivos reales, no vistas temporales)
+  const agregarImagenesEditArchivos = async event => {
+    const archivos = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!archivos.length) return;
+    avisar('Procesando imágenes...');
+    try {
+      const urls = await Promise.all(archivos.map(archivoADataURL));
+      setEditImagenes(prev => [...prev, ...urls]);
+      avisar(`${urls.length} imagen(es) lista(s). Guardá los cambios para subirlas.`);
+    } catch (err) {
+      avisar(err.message);
+    }
   };
 
   const agregarUrlEdit = () => {
@@ -337,6 +357,7 @@ export default function ProductosAdmin() {
       activo: datos.get('visible') === 'on',
       imagen_url: editImagenes[0] || null,
       imagenes: editImagenes,
+      video_url: String(datos.get('video') || '').trim() || null,
     };
 
     try {
@@ -411,7 +432,7 @@ export default function ProductosAdmin() {
         <article>
           <Store />
           <div>
-            <small>Showroom Equipetrol</small>
+            <small>Showroom 1 Central</small>
             <b>{totalShowroom} unid.</b>
             <span>Disponible en sala</span>
           </div>
@@ -639,7 +660,7 @@ export default function ProductosAdmin() {
 
               <div className="product-view-stats">
                 <article>
-                  <small>Showroom Equipetrol</small>
+                  <small>Showroom 1 Central</small>
                   <b style={{ color: vistaProducto.showroom < 2 ? '#ba1a1a' : '#004230' }}>
                     {vistaProducto.showroom} un.
                   </b>
@@ -864,6 +885,16 @@ export default function ProductosAdmin() {
                   <p>Sin imágenes asignadas. Agrega al menos una para visibilidad en el kiosco.</p>
                 )}
               </div>
+
+              <div className="product-url-row" style={{ marginTop: '1rem' }}>
+                <input
+                  type="url"
+                  name="video"
+                  defaultValue={editarProducto.video_url || ''}
+                  placeholder="Video del producto (URL https://... mp4 o YouTube)"
+                />
+              </div>
+              <small>Si el producto tiene video, pega su enlace aquí. Se muestra en la ficha del kiosco.</small>
             </section>
 
             <label className="product-kiosk-check">
@@ -1022,6 +1053,15 @@ export default function ProductosAdmin() {
                   <p>Sin imágenes aún. Puedes agregar fotos locales o enlaces web.</p>
                 )}
               </div>
+
+              <div className="product-url-row" style={{ marginTop: '1rem' }}>
+                <input
+                  type="url"
+                  name="video"
+                  placeholder="Video del producto (URL https://... mp4 o YouTube)"
+                />
+              </div>
+              <small>Si el producto tiene video, pega su enlace aquí. Se muestra en la ficha del kiosco.</small>
             </section>
 
             <label className="product-kiosk-check">
@@ -1054,7 +1094,7 @@ export default function ProductosAdmin() {
             </header>
             <div className="adjust-row">
               <div>
-                <b>Showroom Equipetrol</b>
+                <b>Showroom 1 Central</b>
                 <small>Stock para venta inmediata</small>
               </div>
               <input

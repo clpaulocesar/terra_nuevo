@@ -40,16 +40,30 @@
   --color-on-surface-variant: #404944;
   --color-outline: #707974;
 }
-
 .catalogo-container {
-  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Manrope', -apple-system,
+BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--color-on-surface);
-  background-color: var(--color-surface);
+  background-color: #ffffff;
+  border: 1px solid #e7e5e4;
+  border-radius: 1.5rem;
+  box-shadow: 0 14px 30px rgba(41, 37, 36, 0.08);
+  padding: 1.5rem clamp(1rem, 2.5vw, 2rem);
+  margin-bottom: 1rem;
   min-height: auto;
   display: flex;
   flex-direction: column;
   user-select: none;
   -webkit-font-smoothing: antialiased;
+}
+
+.catalogo-container .bg-surface { background-color: #ffffff; }
+
+@media (max-width: 640px) {
+  .catalogo-container {
+    border-radius: 1.1rem;
+    padding: 1rem 0.85rem;
+  }
 }
 
 /* Material Symbols */
@@ -146,7 +160,7 @@
 .catalogo-container .text-tertiary { color: var(--color-tertiary); }
 .catalogo-container .text-on-tertiary-fixed { color: var(--color-on-tertiary-fixed); }
 
-.catalogo-container .bg-surface { background-color: var(--color-surface); }
+.catalogo-container .bg-surface { background-color: #ffffff; }
 .catalogo-container .bg-surface-bright { background-color: var(--color-surface-bright); }
 .catalogo-container .text-surface-bright { color: var(--color-surface-bright); }
 .catalogo-container .bg-surface-variant { background-color: var(--color-surface-variant); }
@@ -167,6 +181,55 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Loader del catálogo (HTML: <div class="loader"></div>) */
+.catalogo-loader {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 3rem 1rem;
+}
+
+.catalogo-loader .loader {
+  margin-bottom: 2.75rem;
+}
+
+.catalogo-loader p {
+  color: #707974;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.loader {
+  --s: 20px;
+  --_d: calc(0.353 * var(--s));
+  width: calc(var(--s) + var(--_d));
+  aspect-ratio: 1;
+  display: grid;
+}
+.loader:before,
+.loader:after {
+  content: "";
+  grid-area: 1/1;
+  clip-path: polygon(var(--_d) 0, 100% 0, 100% calc(100% - var(--_d)), calc(100% - var(--_d)) 100%, 0 100%, 0 var(--_d));
+  background:
+    conic-gradient(from -90deg at calc(100% - var(--_d)) var(--_d),
+      #a6192e 135deg, #d6d3d1 0 270deg, #8a948e 0);
+  animation: l6 2s infinite;
+}
+.loader:after {
+  animation-delay: -1s;
+}
+@keyframes l6 {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(30px, 0); }
+  50% { transform: translate(30px, 30px); }
+  75% { transform: translate(0, 30px); }
+  100% { transform: translate(0, 0); }
 }
 
 /* Animations */

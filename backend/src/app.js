@@ -20,8 +20,8 @@ const app = express();
 // Permitir conexiones cross-origin (incluyendo frontend en Vercel y local)
 app.use(cors());
 
-// Permitir recibir JSON.
-app.use(express.json({ limit: '100kb' }));
+// Permitir recibir JSON (límite alto para fotos en base64 desde el admin).
+app.use(express.json({ limit: '12mb' }));
 
 // Ruta principal requerida por la especificación
 app.get('/', (req, res) => {

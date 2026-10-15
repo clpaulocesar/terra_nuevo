@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Check, ChevronRight, CircleMinus, CirclePlus, MapPin, ShieldCheck, ShoppingCart, Sparkles, Star, Truck } from 'lucide-react';
+import { Check, ChevronRight, CircleMinus, CirclePlus, MapPin, ShieldCheck, ShoppingCart, Sparkles, Star, Truck, X } from 'lucide-react';
 import { obtenerProducto, listarProductos } from '../services/productoService.js';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
@@ -8,6 +8,11 @@ import './DetalleProducto.css';
 
 const colores = [{ nombre: 'Gris marengo', valor: '#54595f' }, { nombre: 'Gris perla', valor: '#9b9b9b' }, { nombre: 'Azul petróleo', valor: '#455a64' }, { nombre: 'Terracota', valor: '#8d5b4c' }, { nombre: 'Borgoña', valor: '#8e2828' }, { nombre: 'Verde oliva', valor: '#5d6b4f' }];
 const fallbackFotos = ['https://lh3.googleusercontent.com/aida-public/AB6AXuA_0IGZ5s0DjeFACULr5bK2zw8jNwY_4ygmGz_44Kd65Bb13xtjOAWf_fm_SD4sowQnCxMzCwU_ZD_DlXUGgV7nKlnEyI79XA31Ux46VzAsTssz8IaDziDvdlnriYJndVw-fukT_eKvBuoZjUQ7TIUvqEM4I4DJGnrYW6oGxCOdnHj9ITk2DfjrYEHNFCmMYaIS2C5r-2fvONkPGloLIafxeLD40KaqPvmWXpvg6uCzUefyXPRDfnq2'];
+
+function videoIncrustado(url) {
+  const coincidencia = String(url || '').match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/);
+  return coincidencia ? `https://www.youtube.com/embed/${coincidencia[1]}` : null;
+}
 
 export default function DetalleProducto() {
   const { id } = useParams();
@@ -18,6 +23,7 @@ export default function DetalleProducto() {
   const [error, setError] = useState('');
   const [foto, setFoto] = useState(0);
   const [cantidad, setCantidad] = useState(1);
+  const [videoAmpliado, setVideoAmpliado] = useState(false);
   const [color, setColor] = useState(colores[0]);
   const [agregado, setAgregado] = useState(false);
 
@@ -41,14 +47,17 @@ export default function DetalleProducto() {
   if (cargando) return <p className="detalle-status">Cargando producto…</p>;
   if (error || !producto) return <div className="detalle-status"><p>{error || 'Producto no encontrado.'}</p><Link to="/catalogo">Volver al catálogo</Link></div>;
   const disponible = Number(producto.stock) > 0;
+  const videoEmbed = producto.video_url ? videoIncrustado(producto.video_url) : null;
+  const videoSrc = videoEmbed ? `${videoEmbed}?autoplay=1&mute=1&loop=1&playlist=${videoEmbed.split('/').pop()}` : null;
 
   return <main className="product-detail">
     <nav className="product-detail__crumb"><Link to="/">Inicio</Link><ChevronRight size={14} /><Link to="/catalogo">Catálogo</Link><ChevronRight size={14} /><span>{producto.nombre}</span></nav>
     <section className="product-detail__card">
       <div className="product-detail__layout">
         <div className="product-gallery">
-          <div className="product-gallery__main">{fotos[foto] ? <img src={fotos[foto]} alt={producto.nombre} /> : null}<b><Sparkles size={13} /> Más vendido</b></div>
+          <div className="product-gallery__main">{fotos[foto] ? <img src={fotos[foto]} alt={producto.nombre} /> : null}<b><Sparkles size={13} /> Más vendido</b>{producto.video_url && <button type="button" className="video-mini" onClick={() => setVideoAmpliado(true)} aria-label="Ampliar video del producto">{videoEmbed ? <iframe src={videoSrc} title={`Video de ${producto.nombre}`} tabIndex={-1} /> : <video src={producto.video_url} autoPlay muted loop playsInline preload="metadata" />}</button>}</div>
           <div className="product-gallery__thumbs">{fotos.slice(0, 4).map((src, indice) => <button className={foto === indice ? 'active' : ''} onClick={() => setFoto(indice)} type="button" key={`${src}-${indice}`}><img src={src} alt={`Vista ${indice + 1}`} /><span>Vista {indice + 1}</span></button>)}</div>
+          {videoAmpliado && producto.video_url && <div className="video-modal" onClick={() => setVideoAmpliado(false)}><div className="video-box" onClick={e => e.stopPropagation()}><button type="button" className="video-close" onClick={() => setVideoAmpliado(false)} aria-label="Cerrar video"><X size={20} /></button>{videoEmbed ? <iframe src={videoSrc} title={`Video de ${producto.nombre}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /> : <video src={producto.video_url} controls autoPlay playsInline />}</div></div>}
         </div>
         <section className="product-buy">
           <h1>{producto.nombre}</h1><div className="product-buy__rating"><span>{[1, 2, 3, 4, 5].map((n) => <Star size={15} fill="currentColor" key={n} />)}</span><small>Producto recomendado TERRA</small></div>
