@@ -85,6 +85,7 @@ function Layout() {
   const { cantidadTotal } = useCarrito();
   const navigate = useNavigate();
   const [texto, setTexto] = useState('');
+  const [cuentaAbierta, setCuentaAbierta] = useState(false);
 
   function buscar(event) {
     event.preventDefault();
