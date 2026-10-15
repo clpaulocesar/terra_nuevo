@@ -60,6 +60,13 @@ export default function Catalogo() {
   // Retroalimentación de productos agregados temporalmente: { [id]: boolean }
   const [agregados, setAgregados] = useState({});
 
+  // Descripciones desplegables por tarjeta: { [id]: boolean }
+  const [descripcionesAbiertas, setDescripcionesAbiertas] = useState({});
+
+  const alternarDescripcion = (id) => {
+    setDescripcionesAbiertas((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   // Modal de Asesor TERRA
   const [modalAsesorAbierto, setModalAsesorAbierto] = useState(false);
 
@@ -673,12 +680,38 @@ export default function Catalogo() {
                         {/* Cuerpo de la Tarjeta */}
                         <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
                           <div className="flex flex-col gap-space-xs">
-                            <div className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
-                              <span className="material-symbols-outlined text-[18px] text-secondary">
-                                {producto.iconSubtitulo || 'tune'}
-                              </span>
-                              <span>{producto.subtitulo || producto.descripcion}</span>
-                            </div>
+                            {producto.subtitulo && (
+                              <div className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
+                                <span className="material-symbols-outlined text-[18px] text-secondary">
+                                  {producto.iconSubtitulo || 'tune'}
+                                </span>
+                                <span>{producto.subtitulo}</span>
+                              </div>
+                            )}
+
+                            {producto.descripcion && producto.descripcion !== producto.subtitulo && (
+                              <div className="flex flex-col gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => alternarDescripcion(producto.id)}
+                                  aria-expanded={Boolean(descripcionesAbiertas[producto.id])}
+                                  className="self-start min-h-[44px] px-3 rounded-lg bg-surface-container-low text-primary font-label-sm text-label-sm font-bold flex items-center gap-1.5 hover:bg-surface-container-high transition-colors active:scale-95"
+                                >
+                                  <span className="material-symbols-outlined text-[18px] text-secondary">
+                                    description
+                                  </span>
+                                  <span>Descripción</span>
+                                  <span className="material-symbols-outlined text-[18px]">
+                                    {descripcionesAbiertas[producto.id] ? 'expand_less' : 'expand_more'}
+                                  </span>
+                                </button>
+                                {descripcionesAbiertas[producto.id] && (
+                                  <p className="text-on-surface-variant font-body-sm text-body-sm leading-relaxed">
+                                    {producto.descripcion}
+                                  </p>
+                                )}
+                              </div>
+                            )}
 
                             <h2 className="font-title-md text-title-md text-on-surface font-bold leading-snug">
                               <Link
