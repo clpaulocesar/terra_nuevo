@@ -1,6 +1,6 @@
 import { pool } from '../config/database.js';
 
-const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku,
+const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, p.slug AS slug,
   p.name AS nombre, p.description AS descripcion, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
   COALESCE(p.public_price, 0) AS precio, p.stock_quantity::integer AS stock,
   p.size AS medida, p.color AS detalle, p.imagen_url, p.video_url, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
@@ -26,7 +26,17 @@ export async function listarProductosBD({ buscar = '', categoria = '', pagina = 
 
 export async function obtenerProductoBD(id) {
   await asegurarColumnaVideo();
-  const { rows } = await pool.query(`SELECT ${campos} FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.id=$1`, [id]);
+  const idStr = String(id || '').trim();
+  const { rows } = await pool.query(
+    `SELECT ${campos} 
+     FROM products p 
+     LEFT JOIN categories c ON c.id=p.category_id 
+     WHERE p.id::text = $1 
+        OR p.slug = $1 
+        OR COALESCE(p.codigo_terra, p.internal_code) = $1
+     LIMIT 1`,
+    [idStr]
+  );
   return rows[0] || null;
 }
 
@@ -43,19 +53,37 @@ export async function crearProductoBD(datos) {
 }
 
 export async function actualizarProductoBD(id, datos) {
+  const idStr = String(id || '').trim();
   const { rows } = await pool.query(
-    `UPDATE products SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), activo=COALESCE($6,activo), internal_code=COALESCE($7,internal_code), size=COALESCE($8,size), color=COALESCE($9,color), video_url=$10, updated_at=NOW() WHERE id=$11 RETURNING id`,
-    [datos.nombre, datos.descripcion, datos.precio, datos.stock ?? datos.showroom, datos.imagen_url, datos.activo, datos.sku, datos.medida, datos.detalle, datos.video_url ?? null, id]
+    `UPDATE products 
+     SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), activo=COALESCE($6,activo), internal_code=COALESCE($7,internal_code), size=COALESCE($8,size), color=COALESCE($9,color), video_url=$10, updated_at=NOW() 
+     WHERE id::text = $11 OR slug = $11 OR COALESCE(codigo_terra, internal_code) = $11 
+     RETURNING id`,
+    [datos.nombre, datos.descripcion, datos.precio, datos.stock ?? datos.showroom, datos.imagen_url, datos.activo, datos.sku, datos.medida, datos.detalle, datos.video_url ?? null, idStr]
   );
-  return rows[0] ? obtenerProductoBD(id) : null;
+  return rows[0] ? obtenerProductoBD(rows[0].id) : null;
 }
 
 export async function actualizarStockBD(id, { showroom, bodega }) {
-  const { rows } = await pool.query('UPDATE products SET stock_quantity=$1, updated_at=NOW() WHERE id=$2 RETURNING id', [Number(showroom ?? 0) + Number(bodega ?? 0), id]);
-  return rows[0] ? obtenerProductoBD(id) : null;
+  const idStr = String(id || '').trim();
+  const { rows } = await pool.query(
+    `UPDATE products 
+     SET stock_quantity=$1, updated_at=NOW() 
+     WHERE id::text = $2 OR slug = $2 OR COALESCE(codigo_terra, internal_code) = $2 
+     RETURNING id`,
+    [Number(showroom ?? 0) + Number(bodega ?? 0), idStr]
+  );
+  return rows[0] ? obtenerProductoBD(rows[0].id) : null;
 }
 
 export async function eliminarProductoBD(id) {
-  const { rows } = await pool.query('UPDATE products SET activo=FALSE, updated_at=NOW() WHERE id=$1 RETURNING id', [id]);
-  return rows[0] ? obtenerProductoBD(id) : null;
+  const idStr = String(id || '').trim();
+  const { rows } = await pool.query(
+    `UPDATE products 
+     SET activo=FALSE, is_active=FALSE, updated_at=NOW() 
+     WHERE id::text = $1 OR slug = $1 OR COALESCE(codigo_terra, internal_code) = $1 
+     RETURNING id`,
+    [idStr]
+  );
+  return rows[0] ? obtenerProductoBD(rows[0].id) : null;
 }

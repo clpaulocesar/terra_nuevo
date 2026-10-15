@@ -592,7 +592,7 @@ export default function ProductosAdmin() {
                         video.tipo === 'embed' ? (
                           <iframe src={video.src} title={`Video de ${vistaProducto.nombre}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
                         ) : (
-                          <video controls preload="metadata" poster={fotos[0]}><source src={video.src} /></video>
+                          <video key={video.src} src={video.src} controls playsInline preload="auto" poster={fotos[0]}><source src={video.src} type={video.mime || 'video/mp4'} /></video>
                         )
                       ) : fotos[indiceFoto] ? (
                         <img src={fotos[indiceFoto]} alt={vistaProducto.nombre} />

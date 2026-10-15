@@ -611,7 +611,7 @@ export default function Catalogo() {
                         {/* Contenedor de Imagen y Badges */}
                         <div className="catalog-product-image relative w-full aspect-[4/3] bg-surface-container overflow-hidden">
                           <img
-                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                            className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
                             alt={producto.nombre}
                             src={producto.imagen_url}
                             loading="lazy"
@@ -710,7 +710,6 @@ export default function Catalogo() {
                           </div>
 
                           {/* Precio y Botón Táctil de Agregar */}
-                          <div className="catalog-product-benefits"><span>▱<small>Convertible</small></span><span>▣<small>Fácil aseo</small></span><span>♧<small>Garantía</small></span></div>
                           <div className="catalog-product-buy flex flex-col gap-space-sm pt-space-xs bg-surface-container-low/50 p-3 sm:p-4 rounded-xl">
                             <div className="flex items-baseline justify-between gap-2">
                               <div className="min-w-0">

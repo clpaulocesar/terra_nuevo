@@ -22,10 +22,11 @@ export default function DetalleProducto() {
   const [cantidad, setCantidad] = useState(1);
   const [color, setColor] = useState(colores[0]);
   const [agregado, setAgregado] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
   useEffect(() => {
     let activo = true;
-    setCargando(true); setError(''); setFoto(0); setCantidad(1);
+    setCargando(true); setError(''); setFoto(0); setCantidad(1); setVideoError(false);
     obtenerProducto(id).then((dato) => { if (activo) setProducto(dato); }).catch((err) => { if (activo) setError(err.message || 'No fue posible cargar el producto.'); }).finally(() => { if (activo) setCargando(false); });
     return () => { activo = false; };
   }, [id]);
@@ -38,7 +39,7 @@ export default function DetalleProducto() {
   }, [producto]);
 
   const fotos = useMemo(() => producto?.imagenes?.length ? producto.imagenes : (producto?.imagen_url ? [producto.imagen_url] : fallbackFotos), [producto]);
-  const video = mediaDeVideo(producto?.video_url);
+  const video = useMemo(() => mediaDeVideo(producto?.video_url), [producto?.video_url]);
   const viendoVideo = Boolean(video) && foto === 0;
   const indiceFoto = video ? foto - 1 : foto;
   const agregar = () => { for (let indice = 0; indice < cantidad; indice += 1) agregarProducto(producto); setAgregado(true); setTimeout(() => setAgregado(false), 1800); };
@@ -52,17 +53,58 @@ export default function DetalleProducto() {
     <section className="product-detail__card">
       <div className="product-detail__layout">
         <div className="product-gallery">
-          <div className={video ? 'product-gallery__main product-gallery__main--media' : 'product-gallery__main'}>
+          <div className={`product-gallery__main ${viendoVideo ? 'product-gallery__main--media' : ''}`}>
             {viendoVideo
               ? (video.tipo === 'embed'
-                ? <iframe src={video.src} title={`Video de ${producto.nombre}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-                : <video controls preload="metadata" poster={fotos[0]}><source src={video.src} /></video>)
+                ? <iframe key={video.src} src={video.src} title={`Video de ${producto.nombre}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                : (videoError ? (
+                  <div className="product-gallery__video-error">
+                    <p>No se pudo reproducir el video en el navegador.</p>
+                    <a href={video.src} target="_blank" rel="noopener noreferrer">Abrir video en nueva pestaña</a>
+                  </div>
+                ) : (
+                  <video
+                    key={video.src}
+                    src={video.src}
+                    controls
+                    playsInline
+                    preload="auto"
+                    poster={fotos[0]}
+                    className="product-gallery__video"
+                    onError={() => setVideoError(true)}
+                  >
+                    <source src={video.src} type={video.mime || 'video/mp4'} />
+                    Tu navegador no soporta la reproducción de video.
+                  </video>
+                )))
               : (fotos[indiceFoto] ? <img src={fotos[indiceFoto]} alt={producto.nombre} /> : null)}
-            <b>{viendoVideo ? <><Play size={13} /> Video del producto</> : <><Sparkles size={13} /> Más vendido</>}</b>
+            <b>{viendoVideo ? <><Play size={13} fill="currentColor" /> Video del producto</> : <><Sparkles size={13} /> Más vendido</>}</b>
           </div>
           <div className="product-gallery__thumbs">
-            {video && <button className={`product-gallery__thumbs-video${foto === 0 ? ' active' : ''}`} onClick={() => setFoto(0)} type="button" key="video"><Play size={16} /><span>Video</span></button>}
-            {fotos.slice(0, video ? 3 : 4).map((src, indice) => <button className={foto === (video ? indice + 1 : indice) ? 'active' : ''} onClick={() => setFoto(video ? indice + 1 : indice)} type="button" key={`${src}-${indice}`}><img src={src} alt={`Vista ${indice + 1}`} /><span>Vista {indice + 1}</span></button>)}
+            {video && (
+              <button
+                className={`product-gallery__thumbs-video${foto === 0 ? ' active' : ''}`}
+                onClick={() => setFoto(0)}
+                type="button"
+                key="video"
+                title="Ver video del producto"
+                aria-label="Ver video del producto"
+              >
+                <Play size={16} fill="currentColor" />
+                <span>Video</span>
+              </button>
+            )}
+            {fotos.slice(0, video ? 3 : 4).map((src, indice) => (
+              <button
+                className={foto === (video ? indice + 1 : indice) ? 'active' : ''}
+                onClick={() => setFoto(video ? indice + 1 : indice)}
+                type="button"
+                key={`${src}-${indice}`}
+              >
+                <img src={src} alt={`Vista ${indice + 1}`} />
+                <span>Vista {indice + 1}</span>
+              </button>
+            ))}
           </div>
         </div>
         <section className="product-buy">
