@@ -2,7 +2,7 @@
 .chat-widget {
   position: fixed;
   right: 1rem;
-  bottom: 1rem;
+  bottom: 6.5rem;
   z-index: 70;
   display: flex;
   flex-direction: column;
@@ -136,9 +136,9 @@
 }
 .chat-enviar:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* En movil dejamos espacio a la barra inferior de navegacion */
+/* En movil dejamos espacio a la barra de carrito y la navegacion inferior */
 @media (max-width: 639px) {
-  .chat-widget { right: 0.75rem; bottom: 5.25rem; }
+  .chat-widget { right: 0.75rem; bottom: 9rem; }
   .chat-fab span { display: none; }
   .chat-fab { padding: 0.9rem; }
   .chat-panel { height: min(520px, calc(100vh - 11rem)); }

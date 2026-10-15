@@ -6,19 +6,6 @@ import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { obtenerIconoCategoria } from '../data/categorias.js';
 import './Catalogo.css';
 
-const CATEGORIAS_CONFIG = [
-  { id: '', nombre: 'Todos', icon: 'apps' },
-  { id: 'Colchones', nombre: 'Colchones', icon: 'bed' },
-  { id: 'Sommiers', nombre: 'Sommiers', icon: 'layers' },
-  { id: 'Espaldares', nombre: 'Espaldares', icon: 'vertical_split' },
-  { id: 'Camas', nombre: 'Camas', icon: 'bedroom_parent' },
-  { id: 'Almohadas', nombre: 'Almohadas', icon: 'hotel' },
-  { id: 'Ropa de cama', nombre: 'Ropa de cama', icon: 'texture' },
-  { id: 'Muebles', nombre: 'Muebles', icon: 'chair' },
-  { id: 'Recamier', nombre: 'Recamier', icon: 'weekend' },
-  { id: 'Promociones', nombre: 'Promociones', icon: 'star', especial: true },
-];
-
 const FIRMEZAS_CONFIG = [
   { id: 'Suave', label: 'Suave' },
   { id: 'Media', label: 'Media' },
@@ -126,10 +113,6 @@ export default function Catalogo() {
           icon: obtenerIconoCategoria(cat),
           total: conteo[cat],
         });
-      }
-    } else {
-      for (const cat of CATEGORIAS_CONFIG.filter((c) => c.id && !c.especial)) {
-        lista.push(cat);
       }
     }
 
@@ -483,7 +466,12 @@ export default function Catalogo() {
           {/* CATÁLOGO DE PRODUCTOS: Cuadrícula Landscape Tablet 3 Columnas */}
           <section className="w-full px-margin py-space-md flex-1">
             <div className="max-w-[1240px] mx-auto">
-              {productosFiltrados.length === 0 ? (
+              {cargando ? (
+                <div className="bg-surface-container-lowest rounded-2xl p-6 sm:p-12 text-center flex flex-col items-center justify-center gap-4 my-8 shadow-sm">
+                  <span className="material-symbols-outlined text-[48px] text-primary animate-spin">progress_activity</span>
+                  <p className="font-body-md text-body-md text-on-surface-variant">Cargando productos…</p>
+                </div>
+              ) : productosFiltrados.length === 0 ? (
                 <div className="bg-surface-container-lowest rounded-2xl p-6 sm:p-12 text-center flex flex-col items-center justify-center gap-4 my-8 shadow-sm">
                   <span className="material-symbols-outlined text-[64px] text-outline">search_off</span>
                   <h3 className="font-title-lg text-title-lg text-on-surface font-bold">
@@ -581,12 +569,14 @@ export default function Catalogo() {
                             <div className="catalog-product-rating" aria-label="Valoración del producto">
                               <span>★★★★★</span><b>(32 reseñas)</b><em>Entrega inmediata</em>
                             </div>
-                            <div className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
-                              <span className="material-symbols-outlined text-[18px] text-secondary">
-                                {producto.iconSubtitulo || 'tune'}
-                              </span>
-                              <span>{producto.subtitulo || producto.descripcion}</span>
-                            </div>
+
+                            <Link
+                              className="flex items-center gap-1.5 w-fit opacity-60 text-on-surface-variant font-body-sm text-body-sm hover:opacity-100 hover:underline transition-opacity"
+                              to={`/productos/${producto.id}`}
+                            >
+                              <span className="material-symbols-outlined text-[16px]">visibility</span>
+                              Ver detalles del producto
+                            </Link>
 
                             <h2 className="font-title-md text-title-md text-on-surface font-bold leading-snug">
                               <Link
@@ -597,25 +587,10 @@ export default function Catalogo() {
                               </Link>
                             </h2>
 
-                            <p className="catalog-product-description">{producto.descripcion || 'Diseño moderno y confortable, ideal para complementar tus espacios.'}</p>
+                            <p className="catalog-product-description">{producto.descripcion || ''}</p>
 
                             <div className="catalog-product-colors" aria-label="Colores disponibles">
                               <i /><i /><i /><i /><i /><span>+6 tonos</span>
-                            </div>
-
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <span
-                                className={`w-2 h-2 rounded-full ${
-                                  producto.stock > 0 ? (producto.stock > 5 ? 'bg-primary' : 'bg-secondary') : 'bg-error'
-                                }`}
-                              ></span>
-                              <span
-                                className={`font-label-sm text-label-sm font-medium ${
-                                  producto.stock > 0 ? (producto.stock > 5 ? 'text-primary' : 'text-on-surface-variant') : 'text-error font-bold'
-                                }`}
-                              >
-                                {producto.stock > 0 ? (producto.stockLabel || `En stock (${producto.stock} disponibles)`) : 'Agotado'}
-                              </span>
                             </div>
                           </div>
 

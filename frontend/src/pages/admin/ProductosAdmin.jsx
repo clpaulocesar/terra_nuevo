@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Play, Plus, Search, SlidersHorizontal, Star, Store, Trash2, Truck, Warehouse, X } from 'lucide-react';
-import { listarProductos, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
+import { listarProductos, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
 import { mediaDeVideo } from '../../utils/videoEmbed.js';
 import './Admin.css';
 import './ProductosAdmin.css';
@@ -131,13 +131,36 @@ export default function ProductosAdmin() {
   const [editImagenes, setEditImagenes] = useState([]);
   const [urlEdit, setUrlEdit] = useState('');
 
+  const [categoriasApi, setCategoriasApi] = useState([]);
+
+  // Categorías reales desde la base de datos (endpoint /categorias)
+  useEffect(() => {
+    let activo = true;
+    listarCategorias()
+      .then((cats) => {
+        if (!activo) return;
+        setCategoriasApi(Array.isArray(cats) ? cats.map((c) => c?.nombre).filter(Boolean) : []);
+      })
+      .catch(() => {});
+    return () => { activo = false; };
+  }, []);
+
   const categorias = useMemo(() => {
-    const set = new Set(['Todos', 'Colchones', 'Sommiers', 'Espaldares', 'Camas', 'Almohadas', 'Ropa de cama', 'Muebles', 'Recamier']);
+    const set = new Set(['Todos']);
+    for (const nombre of categoriasApi) set.add(nombre);
     for (const p of productos) {
       if (p.categoria) set.add(p.categoria);
     }
     return Array.from(set);
-  }, [productos]);
+  }, [productos, categoriasApi]);
+
+  // Opciones para los <select> de categoría (crear/editar): solo datos reales
+  const opcionesCategoria = useMemo(() => {
+    const set = new Set(categoriasApi);
+    for (const p of productos) if (p.categoria) set.add(p.categoria);
+    if (editarProducto?.categoria) set.add(editarProducto.categoria);
+    return Array.from(set);
+  }, [categoriasApi, productos, editarProducto]);
 
   const avisar = texto => {
     setMensaje(texto);
@@ -740,11 +763,9 @@ export default function ProductosAdmin() {
               <label>
                 Categoría
                 <select name="categoria" required defaultValue={editarProducto.categoria}>
-                  <option>Colchones</option>
-                  <option>Sommiers</option>
-                  <option>Living</option>
-                  <option>Almohadas</option>
-                  <option>Ropa de cama</option>
+                  {opcionesCategoria.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
                 </select>
               </label>
 
@@ -795,10 +816,7 @@ export default function ProductosAdmin() {
                 Descripción para catálogo
                 <textarea
                   name="descripcion"
-                  defaultValue={
-                    editarProducto.descripcion ||
-                    `Producto de alta calidad ${editarProducto.nombre} disponible en Showroom Equipetrol con garantía oficial TERRA.`
-                  }
+                  defaultValue={editarProducto.descripcion || ''}
                   placeholder="Describe beneficios, materiales y garantía del producto."
                 />
               </label>
@@ -938,11 +956,9 @@ export default function ProductosAdmin() {
                 Categoría
                 <select name="categoria" required defaultValue="">
                   <option value="" disabled>Seleccionar categoría</option>
-                  <option>Colchones</option>
-                  <option>Sommiers</option>
-                  <option>Living</option>
-                  <option>Almohadas</option>
-                  <option>Ropa de cama</option>
+                  {opcionesCategoria.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
                 </select>
               </label>
               <label>
