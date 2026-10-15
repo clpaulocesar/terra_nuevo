@@ -11,9 +11,12 @@ const garantias = [
 ];
 
 const fotosPoltronas = [
-  { src: '/images/poltrona1.jpeg', alt: 'Poltrona TERRA modelo 1' },
-  { src: '/images/poltrona2.jpeg', alt: 'Poltrona TERRA modelo 2' },
-  { src: '/images/poltrona3.jpeg', alt: 'Poltrona TERRA modelo 3' },
+  { src: '/images/inicio/poltrona1.jpeg', alt: 'Poltrona TERRA modelo 1' },
+  { src: '/images/inicio/poltrona2.jpeg', alt: 'Poltrona TERRA modelo 2' },
+  { src: '/images/inicio/poltrona3.jpeg', alt: 'Poltrona TERRA modelo 3' },
+  { src: '/images/inicio/sofacama1.jpeg', alt: 'Sofá cama TERRA modelo 1' },
+  { src: '/images/inicio/sofacama2.jpeg', alt: 'Sofá cama TERRA modelo 2' },
+  { src: '/images/inicio/sofacama3.jpeg', alt: 'Sofá cama TERRA modelo 3' },
 ];
 
 export default function Bienvenida() {
@@ -71,8 +74,8 @@ export default function Bienvenida() {
         </div>
         <aside className="welcome-spot">
           <span><Sofa size={14} /> Poltronas</span>
-          <b>Poltronas y Livings</b>
-          <footer><Link to="/catalogo?buscar=living">Probar aquí <ArrowRight size={14} /></Link></footer>
+          <b>Poltronas y Sofas Cama</b>
+          <footer><Link to="/catalogo">Probar aquí <ArrowRight size={14} /></Link></footer>
         </aside>
       </div>
     </section>
