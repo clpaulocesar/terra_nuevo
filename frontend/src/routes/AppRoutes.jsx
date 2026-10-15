@@ -149,7 +149,7 @@ function Layout() {
       <NavegacionMovil />
 
       <footer className="site-footer">
-        <div>TERRA AUTOSERVICIO · Sucursal Equipetrol, Santa Cruz</div>
+        <div>TERRA AUTOSERVICIO · Sucursal 1 Central, Santa Cruz</div>
         <small>Terminal táctil optimizado para celular, tablet y PC</small>
       </footer>
 
