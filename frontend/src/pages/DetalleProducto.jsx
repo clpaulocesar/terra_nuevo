@@ -40,6 +40,15 @@ export default function DetalleProducto() {
 
   const fotos = useMemo(() => producto?.imagenes?.length ? producto.imagenes : (producto?.imagen_url ? [producto.imagen_url] : fallbackFotos), [producto]);
   const video = useMemo(() => mediaDeVideo(producto?.video_url), [producto?.video_url]);
+  // URL del video con reproducción automática (autoplay). Los navegadores
+  // solo permiten autoplay en modo silenciado, por eso agregamos mute/autoplay.
+  const videoSrc = useMemo(() => {
+    if (!video || video.tipo !== 'embed') return video?.src;
+    const separador = video.src.includes('?') ? '&' : '?';
+    const esVimeo = /player\.vimeo\.com/i.test(video.src);
+    const parametros = esVimeo ? 'autoplay=1&muted=1' : 'autoplay=1&mute=1';
+    return `${video.src}${separador}${parametros}`;
+  }, [video]);
   const viendoVideo = Boolean(video) && foto === 0;
   const indiceFoto = video ? foto - 1 : foto;
   const agregar = () => { for (let indice = 0; indice < cantidad; indice += 1) agregarProducto(producto); setAgregado(true); setTimeout(() => setAgregado(false), 1800); };
@@ -56,7 +65,7 @@ export default function DetalleProducto() {
           <div className={`product-gallery__main ${viendoVideo ? 'product-gallery__main--media' : ''}`}>
             {viendoVideo
               ? (video.tipo === 'embed'
-                ? <iframe key={video.src} src={video.src} title={`Video de ${producto.nombre}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                ? <iframe key={videoSrc} src={videoSrc} title={`Video de ${producto.nombre}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
                 : (videoError ? (
                   <div className="product-gallery__video-error">
                     <p>No se pudo reproducir el video en el navegador.</p>
@@ -67,6 +76,9 @@ export default function DetalleProducto() {
                     key={video.src}
                     src={video.src}
                     controls
+                    autoPlay
+                    muted
+                    loop
                     playsInline
                     preload="auto"
                     poster={fotos[0]}
@@ -78,7 +90,6 @@ export default function DetalleProducto() {
                   </video>
                 )))
               : (fotos[indiceFoto] ? <img src={fotos[indiceFoto]} alt={producto.nombre} /> : null)}
-            <b>{viendoVideo ? <><Play size={13} fill="currentColor" /> Video del producto</> : <><Sparkles size={13} /> Más vendido</>}</b>
           </div>
           <div className="product-gallery__thumbs">
             {video && (
@@ -110,7 +121,7 @@ export default function DetalleProducto() {
         <section className="product-buy">
           <h1>{producto.nombre}</h1><div className="product-buy__rating"><span>{[1, 2, 3, 4, 5].map((n) => <Star size={15} fill="currentColor" key={n} />)}</span><small>Producto recomendado TERRA</small></div>
           <div className="product-buy__price"><strong>{formatoMoneda(producto.precio)}</strong><small>{disponible ? 'Disponible para entrega inmediata' : 'Consultar disponibilidad'}</small></div>
-          <p className="product-buy__description">{producto.descripcion || 'Diseño funcional y materiales de calidad para brindar confort a tu hogar todos los días.'}</p>
+          <p className="product-buy__description">{producto.descripcion || ''}</p>
           <div className="product-buy__choice"><b>Color:</b><div>{colores.map((opcion) => <button type="button" title={opcion.nombre} aria-label={opcion.nombre} key={opcion.nombre} onClick={() => setColor(opcion)} className={color.nombre === opcion.nombre ? 'active' : ''} style={{ backgroundColor: opcion.valor }} />)}</div><small>Tono actual: <strong>{color.nombre}</strong></small></div>
           <div className="product-buy__quantity"><b>Cantidad:</b><div><button type="button" aria-label="Disminuir" disabled={cantidad <= 1} onClick={() => setCantidad((valor) => Math.max(1, valor - 1))}><CircleMinus size={19} /></button><span>{cantidad}</span><button type="button" aria-label="Aumentar" disabled={cantidad >= Number(producto.stock)} onClick={() => setCantidad((valor) => Math.min(Number(producto.stock), valor + 1))}><CirclePlus size={19} /></button></div></div>
           <button className="product-buy__add" disabled={!disponible} onClick={agregar} type="button">{agregado ? <><Check size={19} /> Agregado al carrito</> : <><ShoppingCart size={19} /> Agregar al carrito</>}</button><Link className="product-buy__now" to="/carrito">Comprar ahora</Link>
