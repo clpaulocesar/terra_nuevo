@@ -54,9 +54,6 @@ export default function Catalogo() {
   // Modal de Asesor TERRA
   const [modalAsesorAbierto, setModalAsesorAbierto] = useState(false);
 
-  // Modal Teclado Kiosco
-  const [tecladoAbierto, setTecladoAbierto] = useState(false);
-
   // Contador de sesión activa del Kiosco (3 minutos de inactividad)
   const [segundosSesion, setSegundosSesion] = useState(180);
 
@@ -205,18 +202,6 @@ export default function Catalogo() {
     }, 1800);
   };
 
-  // Teclado virtual táctil
-  const agregarCaracter = (caracter) => {
-    setBuscar((prev) => prev + caracter);
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  };
-
-  const borrarCaracter = () => {
-    setBuscar((prev) => prev.slice(0, -1));
-  };
-
   const nombreOrdenActual = {
     'recomendados': 'Recomendados',
     'precio-asc': 'Menor precio',
@@ -334,19 +319,6 @@ export default function Catalogo() {
                         <span className="material-symbols-outlined text-[20px]">close</span>
                       </button>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => setTecladoAbierto((prev) => !prev)}
-                      className={`hidden sm:flex items-center gap-space-xs ml-space-sm pl-space-sm px-space-sm py-1.5 rounded-lg cursor-pointer transition-colors ${
-                        tecladoAbierto ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant'
-                      }`}
-                      title="Abrir teclado táctil para kiosco"
-                    >
-                      <span className={`material-symbols-outlined text-[18px] ${tecladoAbierto ? 'text-on-primary' : 'text-primary'}`}>
-                        keyboard
-                      </span>
-                      <span className="font-label-sm text-label-sm uppercase tracking-wider">Teclado</span>
-                    </button>
                   </div>
                 </div>
 
@@ -408,68 +380,6 @@ export default function Catalogo() {
                   </div>
                 </div>
               </div>
-
-              {/* Teclado en pantalla táctil (Touch Virtual Keyboard) */}
-              {tecladoAbierto && (
-                <div className="w-full bg-surface-container-high p-3 rounded-2xl shadow-inner flex flex-col gap-2">
-                  <div className="flex justify-between items-center px-2">
-                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Teclado Táctil TERRA
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setTecladoAbierto(false)}
-                      className="text-xs font-semibold text-primary hover:underline"
-                    >
-                      Cerrar teclado
-                    </button>
-                  </div>
-                  {[
-                    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-                    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ'],
-                    ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
-                  ].map((row, i) => (
-                    <div key={i} className="flex justify-center gap-1 sm:gap-1.5 w-full">
-                      {row.map((letra) => (
-                        <button
-                          key={letra}
-                          type="button"
-                          onClick={() => agregarCaracter(letra)}
-                          className="flex-1 min-w-[26px] sm:min-w-[36px] max-w-[44px] h-10 sm:h-12 rounded-lg bg-surface-container-lowest text-on-surface font-bold text-sm sm:text-base shadow-sm active:scale-95 active:bg-primary-container active:text-on-primary transition-all flex items-center justify-center"
-                        >
-                          {letra}
-                        </button>
-                      ))}
-                      {i === 2 && (
-                        <button
-                          type="button"
-                          onClick={borrarCaracter}
-                          className="px-2 sm:px-3 h-10 sm:h-12 rounded-lg bg-error-container text-on-error-container font-bold text-xs sm:text-sm shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1"
-                        >
-                          <span className="material-symbols-outlined text-[16px] sm:text-[18px]">backspace</span>
-                          <span className="hidden sm:inline">Borrar</span>
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <div className="flex justify-center gap-1.5 sm:gap-2 mt-1">
-                    <button
-                      type="button"
-                      onClick={() => agregarCaracter(' ')}
-                      className="flex-1 max-w-[340px] h-10 sm:h-12 rounded-lg bg-surface-container-lowest text-on-surface font-semibold text-xs sm:text-sm shadow-sm active:scale-95 flex items-center justify-center gap-2"
-                    >
-                      Espacio
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBuscar('')}
-                      className="px-3 sm:px-4 h-10 sm:h-12 rounded-lg bg-surface-variant text-on-surface-variant font-semibold text-xs sm:text-sm shadow-sm active:scale-95 flex items-center justify-center"
-                    >
-                      Limpiar todo
-                    </button>
-                  </div>
-                </div>
-              )}
 
               {/* Riel desplazable horizontal de categorías */}
               <div className="w-full overflow-x-auto no-scrollbar py-1">
