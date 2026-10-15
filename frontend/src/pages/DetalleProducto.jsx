@@ -9,6 +9,7 @@ import './DetalleProducto.css';
 
 const colores = [{ nombre: 'Gris marengo', valor: '#54595f' }, { nombre: 'Gris perla', valor: '#9b9b9b' }, { nombre: 'Azul petróleo', valor: '#455a64' }, { nombre: 'Terracota', valor: '#8d5b4c' }, { nombre: 'Borgoña', valor: '#8e2828' }, { nombre: 'Verde oliva', valor: '#5d6b4f' }];
 const fallbackFotos = ['https://lh3.googleusercontent.com/aida-public/AB6AXuA_0IGZ5s0DjeFACULr5bK2zw8jNwY_4ygmGz_44Kd65Bb13xtjOAWf_fm_SD4sowQnCxMzCwU_ZD_DlXUGgV7nKlnEyI79XA31Ux46VzAsTssz8IaDziDvdlnriYJndVw-fukT_eKvBuoZjUQ7TIUvqEM4I4DJGnrYW6oGxCOdnHj9ITk2DfjrYEHNFCmMYaIS2C5r-2fvONkPGloLIafxeLD40KaqPvmWXpvg6uCzUefyXPRDfnq2'];
+const NOMBRES_COLOR = Object.fromEntries(colores.map((color) => [color.valor.toLowerCase(), color.nombre]));
 // El soporte de video (YouTube/Vimeo/MP4) vive en utils/videoEmbed.js
 
 export default function DetalleProducto() {
@@ -39,6 +40,15 @@ export default function DetalleProducto() {
   }, [producto]);
 
   const fotos = useMemo(() => producto?.imagenes?.length ? producto.imagenes : (producto?.imagen_url ? [producto.imagen_url] : fallbackFotos), [producto]);
+  const coloresProducto = useMemo(() => {
+    const lista = Array.isArray(producto?.colores) ? producto.colores : [];
+    return lista.map((registro) => {
+      const [nombreGuardado, valorGuardado] = String(registro).split('|');
+      const valor = valorGuardado || nombreGuardado;
+      return { valor, nombre: valorGuardado ? nombreGuardado : (NOMBRES_COLOR[String(valor).toLowerCase()] || valor) };
+    });
+  }, [producto]);
+  useEffect(() => { if (coloresProducto.length) setColor(coloresProducto[0]); }, [producto?.id, coloresProducto]);
   const video = useMemo(() => mediaDeVideo(producto?.video_url), [producto?.video_url]);
   const viendoVideo = Boolean(video) && foto === 0;
   const indiceFoto = video ? foto - 1 : foto;
@@ -111,7 +121,7 @@ export default function DetalleProducto() {
           <h1>{producto.nombre}</h1><div className="product-buy__rating"><span>{[1, 2, 3, 4, 5].map((n) => <Star size={15} fill="currentColor" key={n} />)}</span><small>Producto recomendado TERRA</small></div>
           <div className="product-buy__price"><strong>{formatoMoneda(producto.precio)}</strong><small>{disponible ? 'Disponible para entrega inmediata' : 'Consultar disponibilidad'}</small></div>
           <p className="product-buy__description">{producto.descripcion || 'Diseño funcional y materiales de calidad para brindar confort a tu hogar todos los días.'}</p>
-          <div className="product-buy__choice"><b>Color:</b><div>{colores.map((opcion) => <button type="button" title={opcion.nombre} aria-label={opcion.nombre} key={opcion.nombre} onClick={() => setColor(opcion)} className={color.nombre === opcion.nombre ? 'active' : ''} style={{ backgroundColor: opcion.valor }} />)}</div><small>Tono actual: <strong>{color.nombre}</strong></small></div>
+          <div className="product-buy__choice"><b>Color:</b>{coloresProducto.length ? <><div>{coloresProducto.map((opcion) => <button type="button" title={opcion.nombre} aria-label={opcion.nombre} key={opcion.valor} onClick={() => setColor(opcion)} className={color.valor === opcion.valor ? 'active' : ''} style={{ backgroundColor: opcion.valor }} />)}</div><small>Tono actual: <strong>{color.nombre}</strong></small></> : <small>Colores por confirmar</small>}</div>
           <div className="product-buy__quantity"><b>Cantidad:</b><div><button type="button" aria-label="Disminuir" disabled={cantidad <= 1} onClick={() => setCantidad((valor) => Math.max(1, valor - 1))}><CircleMinus size={19} /></button><span>{cantidad}</span><button type="button" aria-label="Aumentar" disabled={cantidad >= Number(producto.stock)} onClick={() => setCantidad((valor) => Math.min(Number(producto.stock), valor + 1))}><CirclePlus size={19} /></button></div></div>
           <button className="product-buy__add" disabled={!disponible} onClick={agregar} type="button">{agregado ? <><Check size={19} /> Agregado al carrito</> : <><ShoppingCart size={19} /> Agregar al carrito</>}</button><Link className="product-buy__now" to="/carrito">Comprar ahora</Link>
           <div className="product-buy__guarantees"><span><ShieldCheck size={15} /> Garantía oficial TERRA</span><span><Truck size={15} /> Envío seguro a Bolivia</span></div>
