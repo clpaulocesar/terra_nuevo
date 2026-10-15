@@ -680,17 +680,41 @@ export default function Catalogo() {
                         {/* Cuerpo de la Tarjeta */}
                         <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
                           <div className="flex flex-col gap-space-xs">
-                            {producto.subtitulo && (
-                              <div className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
-                                <span className="material-symbols-outlined text-[18px] text-secondary">
-                                  {producto.iconSubtitulo || 'tune'}
-                                </span>
-                                <span>{producto.subtitulo}</span>
-                              </div>
-                            )}
+                            {/* Fila de reseñas y entrega */}
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-label-sm text-label-sm text-on-surface-variant">
+                                <span className="text-amber-500 tracking-tight">★★★★★</span>{' '}
+                                (32 reseñas)
+                              </span>
+                              <span className={`font-label-sm text-label-sm font-bold ${producto.stock > 0 ? 'text-on-surface' : 'text-error'}`}>
+                                {producto.stock > 0 ? 'Entrega inmediata' : 'Agotado'}
+                              </span>
+                            </div>
 
-                            {producto.descripcion && producto.descripcion !== producto.subtitulo && (
+                            <Link
+                              to={`/productos/${producto.id}`}
+                              className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">
+                                visibility
+                              </span>
+                              <span>Ver detalles del producto</span>
+                            </Link>
+
+                            <h2 className="font-title-md text-title-md text-on-surface font-bold leading-snug">
+                              <Link
+                                className="hover:text-primary transition-colors"
+                                to={`/productos/${producto.id}`}
+                              >
+                                {producto.nombre}
+                              </Link>
+                            </h2>
+
+                            {Boolean(producto.descripcion) && (
                               <div className="flex flex-col gap-1">
+                                <p className={`text-on-surface-variant font-body-sm text-body-sm leading-relaxed ${descripcionesAbiertas[producto.id] ? '' : 'line-clamp-2'}`}>
+                                  {producto.descripcion}
+                                </p>
                                 <button
                                   type="button"
                                   onClick={() => alternarDescripcion(producto.id)}
@@ -705,35 +729,21 @@ export default function Catalogo() {
                                     {descripcionesAbiertas[producto.id] ? 'expand_less' : 'expand_more'}
                                   </span>
                                 </button>
-                                {descripcionesAbiertas[producto.id] && (
-                                  <p className="text-on-surface-variant font-body-sm text-body-sm leading-relaxed">
-                                    {producto.descripcion}
-                                  </p>
-                                )}
                               </div>
                             )}
 
-                            <h2 className="font-title-md text-title-md text-on-surface font-bold leading-snug">
-                              <Link
-                                className="hover:text-primary transition-colors"
-                                to={`/productos/${producto.id}`}
-                              >
-                                {producto.nombre}
-                              </Link>
-                            </h2>
-
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <span
-                                className={`w-2 h-2 rounded-full ${
-                                  producto.stock > 0 ? (producto.stock > 5 ? 'bg-primary' : 'bg-secondary') : 'bg-error'
-                                }`}
-                              ></span>
-                              <span
-                                className={`font-label-sm text-label-sm font-medium ${
-                                  producto.stock > 0 ? (producto.stock > 5 ? 'text-primary' : 'text-on-surface-variant') : 'text-error font-bold'
-                                }`}
-                              >
-                                {producto.stock > 0 ? (producto.stockLabel || `En stock (${producto.stock} disponibles)`) : 'Agotado'}
+                            {/* Tonos disponibles */}
+                            <div className="flex items-center gap-1.5">
+                              {['#9ca3af', '#7f1d1d', '#b91c1c', '#374151'].map((tono) => (
+                                <span
+                                  key={tono}
+                                  aria-hidden="true"
+                                  style={{ backgroundColor: tono }}
+                                  className="w-3.5 h-3.5 rounded-full border border-surface-container-high"
+                                />
+                              ))}
+                              <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">
+                                +6 tonos
                               </span>
                             </div>
                           </div>
