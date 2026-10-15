@@ -30,8 +30,8 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
   const ticketHtml = `
   <div style="width: 380px; background: #ffffff; padding: 28px; border-radius: 16px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a;">
     <div style="text-align: center; border-bottom: 2px dashed #a6192e; padding-bottom: 18px; margin-bottom: 20px;">
-      <div style="margin: 0; color: #a6192e; font-size: 22px; font-weight: 800; letter-spacing: 1.5px;">TERRA AUTOSERVICIO</div>
-      <div style="margin: 4px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Ticket de Pago en Caja · Kiosco Digital</div>
+      <img src="/logo-terra.png" alt="TERRA Autoservicio" style="width: 240px; max-width: 100%; height: auto; display: block; margin: 0 auto;" />
+      <div style="margin: 8px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Ticket de Pago en Caja · Kiosco Digital</div>
     </div>
 
     <div style="background: #fff1f2; border: 2px dashed #a6192e; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 20px;">

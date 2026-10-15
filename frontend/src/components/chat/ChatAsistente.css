@@ -142,4 +142,13 @@
   .chat-fab span { display: none; }
   .chat-fab { padding: 0.9rem; }
   .chat-panel { height: min(520px, calc(100vh - 11rem)); }
+  /* En el catálogo la barra del pedido ocupa la zona baja: el botón sube por encima */
+  .app-shell:has(.catalogo-container) .chat-widget { bottom: 11rem; }
+}
+
+/* Tableta: píldora compacta y panel algo más angosto */
+@media (min-width: 640px) and (max-width: 1023.98px) {
+  .chat-fab { font-size: 0.85rem; padding: 0.7rem 0.95rem; }
+  .chat-fab svg { width: 20px; height: 20px; }
+  .chat-panel { width: min(340px, calc(100vw - 2rem)); }
 }

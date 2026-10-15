@@ -2,7 +2,10 @@ import { pool } from '../config/database.js';
 
 let nitColumnReady = null;
 function asegurarColumnaNit() {
-  if (!nitColumnReady) nitColumnReady = pool.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS nit VARCHAR(20)');
+  if (!nitColumnReady) nitColumnReady = (async () => {
+    await pool.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS nit TEXT');
+    await pool.query('ALTER TABLE customers ALTER COLUMN nit TYPE TEXT');
+  })();
   return nitColumnReady;
 }
 
