@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Check, ChevronRight, CircleMinus, CirclePlus, MapPin, ShieldCheck, ShoppingCart, Sparkles, Star, Truck } from 'lucide-react';
+import { Check, ChevronRight, CircleMinus, CirclePlus, MapPin, Play, ShieldCheck, ShoppingCart, Sparkles, Star, Truck } from 'lucide-react';
 import { obtenerProducto, listarProductos } from '../services/productoService.js';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
@@ -8,6 +8,7 @@ import './DetalleProducto.css';
 
 const colores = [{ nombre: 'Gris marengo', valor: '#54595f' }, { nombre: 'Gris perla', valor: '#9b9b9b' }, { nombre: 'Azul petróleo', valor: '#455a64' }, { nombre: 'Terracota', valor: '#8d5b4c' }, { nombre: 'Borgoña', valor: '#8e2828' }, { nombre: 'Verde oliva', valor: '#5d6b4f' }];
 const fallbackFotos = ['https://lh3.googleusercontent.com/aida-public/AB6AXuA_0IGZ5s0DjeFACULr5bK2zw8jNwY_4ygmGz_44Kd65Bb13xtjOAWf_fm_SD4sowQnCxMzCwU_ZD_DlXUGgV7nKlnEyI79XA31Ux46VzAsTssz8IaDziDvdlnriYJndVw-fukT_eKvBuoZjUQ7TIUvqEM4I4DJGnrYW6oGxCOdnHj9ITk2DfjrYEHNFCmMYaIS2C5r-2fvONkPGloLIafxeLD40KaqPvmWXpvg6uCzUefyXPRDfnq2'];
+function videoEmbed(url) { const value = String(url || '').trim(); const youtube = value.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^?&/]+)/i); if (youtube) return `https://www.youtube-nocookie.com/embed/${youtube[1]}?rel=0`; const vimeo = value.match(/vimeo\.com\/(?:video\/)?(\d+)/i); if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`; return null; }
 
 export default function DetalleProducto() {
   const { id } = useParams();
@@ -36,6 +37,8 @@ export default function DetalleProducto() {
   }, [producto]);
 
   const fotos = useMemo(() => producto?.imagenes?.length ? producto.imagenes : (producto?.imagen_url ? [producto.imagen_url] : fallbackFotos), [producto]);
+  const videoUrl = videoEmbed(producto?.video_url);
+  const videoDirecto = String(producto?.video_url || '').match(/\.(mp4|webm|ogg)(?:\?.*)?$/i);
   const agregar = () => { for (let indice = 0; indice < cantidad; indice += 1) agregarProducto(producto); setAgregado(true); setTimeout(() => setAgregado(false), 1800); };
 
   if (cargando) return <p className="detalle-status">Cargando producto…</p>;
@@ -47,7 +50,7 @@ export default function DetalleProducto() {
     <section className="product-detail__card">
       <div className="product-detail__layout">
         <div className="product-gallery">
-          <div className="product-gallery__main">{fotos[foto] ? <img src={fotos[foto]} alt={producto.nombre} /> : null}<b><Sparkles size={13} /> Más vendido</b></div>
+          <div className="product-gallery__main product-gallery__main--media">{videoUrl ? <iframe src={videoUrl} title={`Video de ${producto.nombre}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /> : videoDirecto ? <video controls preload="metadata" poster={fotos[0]}><source src={producto.video_url} /></video> : fotos[foto] ? <img src={fotos[foto]} alt={producto.nombre} /> : null}<b>{videoUrl || videoDirecto ? <><Play size={13} /> Video del producto</> : <><Sparkles size={13} /> Más vendido</>}</b></div>
           <div className="product-gallery__thumbs">{fotos.slice(0, 4).map((src, indice) => <button className={foto === indice ? 'active' : ''} onClick={() => setFoto(indice)} type="button" key={`${src}-${indice}`}><img src={src} alt={`Vista ${indice + 1}`} /><span>Vista {indice + 1}</span></button>)}</div>
         </div>
         <section className="product-buy">

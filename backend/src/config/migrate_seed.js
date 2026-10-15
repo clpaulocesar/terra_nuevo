@@ -63,6 +63,7 @@ export async function migrateAndSeed({ closePool = false } = {}) {
   `);
 
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_productos_categoria ON productos(categoria);`);
+  await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS video_url TEXT;`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_pedidos_cliente ON pedidos(cliente_id);`);
 
   console.log('Estructura de tablas verificada.');

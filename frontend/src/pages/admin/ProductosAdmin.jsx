@@ -265,6 +265,7 @@ export default function ProductosAdmin() {
       descripcion: datos.get('descripcion') || '',
       imagen_url: imagenesNuevo[0] || null,
       imagenes: imagenesNuevo,
+      video_url: datos.get('video_url') || null,
     };
 
     try {
@@ -944,6 +945,10 @@ export default function ProductosAdmin() {
                   name="descripcion"
                   placeholder="Describe beneficios, materiales, medidas y garantía del producto."
                 />
+              </label>
+              <label className="product-form-wide">
+                URL de video del producto <small>Opcional · YouTube, Vimeo o enlace directo MP4</small>
+                <input name="video_url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
               </label>
             </div>
 

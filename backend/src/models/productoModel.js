@@ -3,9 +3,16 @@ import { pool } from '../config/database.js';
 const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku,
   p.name AS nombre, p.description AS descripcion, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
   COALESCE(p.public_price, 0) AS precio, p.stock_quantity::integer AS stock,
-  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
+  p.size AS medida, p.color AS detalle, p.imagen_url, p.video_url, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
+
+let videoColumnReady;
+function asegurarColumnaVideo() {
+  if (!videoColumnReady) videoColumnReady = pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS video_url TEXT');
+  return videoColumnReady;
+}
 
 export async function listarProductosBD({ buscar = '', categoria = '', pagina = 1, limite = 100, soloActivos = false } = {}) {
+  await asegurarColumnaVideo();
   const valores = [];
   const condiciones = [];
   if (soloActivos) condiciones.push('COALESCE(p.activo, p.is_active, TRUE) = TRUE');
@@ -18,6 +25,7 @@ export async function listarProductosBD({ buscar = '', categoria = '', pagina = 
 }
 
 export async function obtenerProductoBD(id) {
+  await asegurarColumnaVideo();
   const { rows } = await pool.query(`SELECT ${campos} FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.id=$1`, [id]);
   return rows[0] || null;
 }
@@ -25,10 +33,11 @@ export async function obtenerProductoBD(id) {
 export async function crearProductoBD(datos) {
   const baseSlug = String(datos.nombre || 'producto').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const codigo = String(datos.sku || `TRR-${Date.now()}`).trim();
+  await asegurarColumnaVideo();
   const { rows } = await pool.query(
-    `INSERT INTO products (name, slug, codigo_terra, description, public_price, stock_quantity, imagen_url, activo, is_active, internal_code, size, color)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$8,$3,$9,$10) RETURNING id`,
-    [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, datos.activo ?? true, datos.medida || null, datos.detalle || null]
+    `INSERT INTO products (name, slug, codigo_terra, description, public_price, stock_quantity, imagen_url, video_url, activo, is_active, internal_code, size, color)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$3,$10,$11) RETURNING id`,
+    [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, datos.video_url || null, datos.activo ?? true, datos.medida || null, datos.detalle || null]
   );
   return obtenerProductoBD(rows[0].id);
 }
