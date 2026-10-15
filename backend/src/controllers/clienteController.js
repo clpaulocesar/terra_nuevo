@@ -31,6 +31,11 @@ export async function crearCliente(req, res, next) {
         ? req.body.email.trim().toLowerCase() || null
         : null;
 
+    const nit =
+      typeof req.body?.nit === 'string'
+        ? req.body.nit.trim() || null
+        : null;
+
     if (nombre.length < 2 || nombre.length > 120) {
       return res.status(400).json({
         success: false,
@@ -56,10 +61,18 @@ export async function crearCliente(req, res, next) {
       });
     }
 
+    if (nit && !/^[0-9]{5,20}$/.test(nit)) {
+      return res.status(400).json({
+        success: false,
+        mensaje: 'NIT inválido: debe tener entre 5 y 20 dígitos',
+      });
+    }
+
     const cliente = await crearClienteBD({
       nombre,
       telefono,
       email,
+      nit,
     });
 
     return res.status(201).json({
