@@ -2,7 +2,8 @@
 .chat-widget {
   position: fixed;
   right: 1rem;
-  bottom: 1rem;
+  /* Elevado para quedar por encima del footer fijo y de la barra flotante del carrito */
+  bottom: 7rem;
   z-index: 70;
   display: flex;
   flex-direction: column;
@@ -136,10 +137,12 @@
 }
 .chat-enviar:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* En movil dejamos espacio a la barra inferior de navegacion */
+/* En movil y tablet la barra del carrito es mas alta: el chat va por encima de ella */
+@media (max-width: 1023px) {
+  .chat-widget { right: 0.75rem; bottom: 11.5rem; }
+  .chat-panel { height: min(520px, calc(100vh - 16rem)); }
+}
 @media (max-width: 639px) {
-  .chat-widget { right: 0.75rem; bottom: 5.25rem; }
   .chat-fab span { display: none; }
   .chat-fab { padding: 0.9rem; }
-  .chat-panel { height: min(520px, calc(100vh - 11rem)); }
 }
