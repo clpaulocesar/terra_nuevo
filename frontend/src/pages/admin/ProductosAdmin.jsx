@@ -581,12 +581,21 @@ export default function ProductosAdmin() {
                 const fotos = vistaProducto.imagenes?.length
                   ? vistaProducto.imagenes
                   : (vistaProducto.imagen_url ? [vistaProducto.imagen_url] : []);
+                const video = mediaDeVideo(vistaProducto.video_url);
+                const viendoVideo = Boolean(video) && fotoActivaIndex === 0;
+                const indiceFoto = video ? fotoActivaIndex - 1 : fotoActivaIndex;
 
                 return (
                   <div className="product-view-stage">
-                    <div className="product-view-stage-main">
-                      {fotos[fotoActivaIndex] ? (
-                        <img src={fotos[fotoActivaIndex]} alt={vistaProducto.nombre} />
+                    <div className={video ? 'product-view-stage-main product-view-stage-main--media' : 'product-view-stage-main'}>
+                      {viendoVideo ? (
+                        video.tipo === 'embed' ? (
+                          <iframe src={video.src} title={`Video de ${vistaProducto.nombre}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                        ) : (
+                          <video controls preload="metadata" poster={fotos[0]}><source src={video.src} /></video>
+                        )
+                      ) : fotos[indiceFoto] ? (
+                        <img src={fotos[indiceFoto]} alt={vistaProducto.nombre} />
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#707974' }}>
                           <Box size={42} />
@@ -595,14 +604,20 @@ export default function ProductosAdmin() {
                       )}
                     </div>
 
-                    {fotos.length > 1 && (
+                    {(fotos.length + (video ? 1 : 0)) > 1 && (
                       <div className="product-view-stage-thumbs">
+                        {video && (
+                          <button key="video" type="button" className={fotoActivaIndex === 0 ? 'product-view-stage-thumb-video active' : 'product-view-stage-thumb-video'} onClick={() => setFotoActivaIndex(0)}>
+                            <Play size={16} />
+                            <span>Video</span>
+                          </button>
+                        )}
                         {fotos.map((src, i) => (
                           <button
                             key={i}
                             type="button"
-                            className={fotoActivaIndex === i ? 'active' : ''}
-                            onClick={() => setFotoActivaIndex(i)}
+                            className={fotoActivaIndex === (video ? i + 1 : i) ? 'active' : ''}
+                            onClick={() => setFotoActivaIndex(video ? i + 1 : i)}
                           >
                             <img src={src} alt={`Vista ${i + 1}`} />
                           </button>
