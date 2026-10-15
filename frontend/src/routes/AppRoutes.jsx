@@ -3,7 +3,7 @@ import {
   BrowserRouter, Routes, Route, Navigate, Link,
   NavLink, Outlet, useNavigate, useLocation, useSearchParams,
 } from 'react-router-dom';
-import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer } from 'lucide-react';
+import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { useProductos } from '../hooks/useProductos.js';
 import { ClienteContext } from '../context/ClienteContext.jsx';
@@ -30,13 +30,16 @@ import ClientesAdmin from '../pages/admin/ClientesAdmin.jsx';
 import LoginAdmin from '../pages/admin/LoginAdmin.jsx';
 import RutaAdmin from '../components/admin/RutaAdmin.jsx';
 import ChatAsistente from '../components/chat/ChatAsistente.jsx';
+import WebAccountModal from '../components/WebAccountModal.jsx';
 import './Layout.css';
 import './NavigationFix.css';
 import './ClienteTheme.css';
 import '../Responsive.css';
+import './HeaderOptionsHidden.css';
 
 function Layout() {
   const { cantidadTotal } = useCarrito();
+  const [cuentaAbierta, setCuentaAbierta] = useState(false);
 
   return (
     <div className="app-shell">
@@ -54,6 +57,7 @@ function Layout() {
         </nav>
 
         <div className="terra-header-right">
+          <button type="button" className="terra-login-button" aria-haspopup="dialog" aria-expanded={cuentaAbierta} onClick={() => setCuentaAbierta(true)}><UserRound size={19} /><span>Iniciar sesión</span></button>
           <NavLink to="/carrito" className="cart-link terra-cart-link">
             <ShoppingCart size={18} />
             <span>Carrito</span>
@@ -64,6 +68,7 @@ function Layout() {
           </NavLink>
         </div>
       </header>
+      {cuentaAbierta && <WebAccountModal onClose={() => setCuentaAbierta(false)} />}
 
       {MODO_DEMO && (
         <div className="demo-banner">

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Search, Bell, UserRound, LogOut, Store, ShieldCheck, Menu } from 'lucide-react';
 import { cerrarSesionAdmin } from '../../services/adminService.js';
 import './AdminHeader.css';
+import './AdminNavigationHidden.css';
 
 const TITULOS_RUTAS = {
   '/admin': 'Panel Principal',

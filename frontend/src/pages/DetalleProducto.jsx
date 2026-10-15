@@ -1,31 +1,68 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Check, ChevronRight, Minus, PackageCheck, Plus, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
-import { obtenerProducto } from '../services/productoService.js';
+import { Check, ChevronRight, CircleMinus, CirclePlus, MapPin, ShieldCheck, ShoppingCart, Sparkles, Star, Truck } from 'lucide-react';
+import { obtenerProducto, listarProductos } from '../services/productoService.js';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
-import { emojiCategoria } from '../data/categorias.js';
 import './DetalleProducto.css';
 
-const FOTOS = ['https://lh3.googleusercontent.com/aida-public/AB6AXuA_0IGZ5s0DjeFACULr5bK2zw8jNwY_4ygmGz_44Kd65Bb13xtjOAWf_fm_SD4sowQnCxMzCwU_ZD_DlXUGgV7nKlnEyI79XA31Ux46VzAsTssz8IaDziDvdlnriYJndVw-fukT_eKvBuoZjUQ7TIUvqEM4I4DJGnrYW6oGxCOdnHj9ITk2DfjrYEHNFCmMYaIS2C5r-2fvONkPGloLIafxeLD40KaqPvmWXpvg6uCzUefyXPRDfnq2','https://lh3.googleusercontent.com/aida-public/AB6AXuBEmshhPCR02R1rPB00S3yCTur7glZQk9xFegzv8g33Br4UBSp_b-NiIrb8dIMqy48zrs6SIER6ZtNnvKhWeaPYDRLyIORRhNZe-Uq5b6qOb41zrVtgxGtEYUyZwk1FSSnPDyIQoeq_-Hw4Qgvs7MfvzXMGjlDoml5sTc5YEfsRKOKXUmJrq0aPrYAoQNXWxKb3-06Lgp5IOLKPDCQhyYRY7nsRK_YDRu6kGkvyRbEfb2MJ_Dkn4rud','https://lh3.googleusercontent.com/aida-public/AB6AXuCbgAk-ekwWog04vbc4vd4qkhpiPPY_6hT5ZX5EOmqXOT6sZq-GCiChAvqFzUPGEk2VIRlE9m_BuqEtR9vgBcTEujuzJUi_k6UOwvdhv9LYRpLlHHiP-u2qSaiWk3FxevWrr7VYt1wKqJz-nqFL7K5VbX2aJ2_y1b_S8krM-UDBvb3ZzGKwC-y8ay8_EKcA8E_IZ_98y74Cs2Mn994Lx6Uf8mpjjl-qYcFYCxHDX27iQ_oNoPSQhLu2'];
+const colores = [{ nombre: 'Gris marengo', valor: '#54595f' }, { nombre: 'Gris perla', valor: '#9b9b9b' }, { nombre: 'Azul petróleo', valor: '#455a64' }, { nombre: 'Terracota', valor: '#8d5b4c' }, { nombre: 'Borgoña', valor: '#8e2828' }, { nombre: 'Verde oliva', valor: '#5d6b4f' }];
+const fallbackFotos = ['https://lh3.googleusercontent.com/aida-public/AB6AXuA_0IGZ5s0DjeFACULr5bK2zw8jNwY_4ygmGz_44Kd65Bb13xtjOAWf_fm_SD4sowQnCxMzCwU_ZD_DlXUGgV7nKlnEyI79XA31Ux46VzAsTssz8IaDziDvdlnriYJndVw-fukT_eKvBuoZjUQ7TIUvqEM4I4DJGnrYW6oGxCOdnHj9ITk2DfjrYEHNFCmMYaIS2C5r-2fvONkPGloLIafxeLD40KaqPvmWXpvg6uCzUefyXPRDfnq2'];
 
-export default function DetalleProducto(){
- const {id}=useParams(),{agregarProducto}=useCarrito(); const [producto,setProducto]=useState(null),[cargando,setCargando]=useState(true),[error,setError]=useState(''),[foto,setFoto]=useState(0),[cantidad,setCantidad]=useState(1),[agregado,setAgregado]=useState(false);
- useEffect(()=>{
-   let activo=true;
-   setCargando(true);
-   obtenerProducto(id)
-     .then(res=>{
-       if(activo){
-         if(res) setProducto(res);
-         else setError('Producto no encontrado.');
-       }
-     })
-     .catch((err)=>{ if(activo) setError(err.message || 'No fue posible cargar el producto.'); })
-     .finally(()=>{if(activo) setCargando(false)});
-   return ()=>{activo=false};
- },[id]);
- if(cargando)return <p className="detalle-status">Cargando producto…</p>; if(error||!producto)return <div className="detalle-status"><p>{error||'Producto no encontrado.'}</p><Link to="/catalogo">Volver al catálogo</Link></div>;
- const fotos=(producto.imagenes?.length ? producto.imagenes : (producto.imagen_url ? [producto.imagen_url] : FOTOS)); const agregar=()=>{if(agregarProducto(producto,cantidad)){setAgregado(true);setTimeout(()=>setAgregado(false),1800)}};
- return <section className="detalle-page"><Link className="detalle-back" to="/catalogo"><ArrowLeft size={21}/>Volver al catálogo</Link><div className="detalle-layout"><div><div className="detalle-gallery"><img src={fotos[foto]} alt={producto.nombre}/><span><ShieldCheck size={16}/> Calidad garantizada TERRA</span></div><div className="detalle-thumbs">{fotos.map((src,i)=><button className={foto===i?'active':''} onClick={()=>setFoto(i)} type="button" key={src}><img src={src} alt={`Vista ${i+1}`}/></button>)}</div><div className="detalle-delivery"><Truck size={25}/><div><b>Entrega y retiro coordinado</b><p>Consultá disponibilidad y condiciones directamente en caja.</p></div><PackageCheck size={21}/></div></div><div className="detalle-info"><span className="detalle-category">{emojiCategoria(producto.categoria)} {producto.categoria}</span><h1>{producto.nombre}</h1><p>{producto.descripcion||'Producto seleccionado de nuestra colección TERRA.'}</p><div className="detalle-price"><strong>{formatoMoneda(producto.precio)}</strong><span>Precio por unidad</span></div><div className="detalle-specs"><b>Características</b><div><span>✓ Producto de calidad TERRA</span><span>✓ Atención en tienda</span><span>✓ Compra segura en caja</span><span>✓ Stock actualizado</span></div><p className={producto.stock?'in-stock':'out-stock'}>{producto.stock?`Disponible: ${producto.stock} unidades`:'Producto agotado'}</p></div><div className="detalle-actions"><div className="detalle-quantity"><button disabled={cantidad<=1} onClick={()=>setCantidad(cantidad-1)} type="button"><Minus/></button><b>{cantidad}</b><button disabled={cantidad>=producto.stock} onClick={()=>setCantidad(cantidad+1)} type="button"><Plus/></button></div><button className="detalle-add" disabled={!producto.stock} onClick={agregar} type="button">{agregado?<><Check/>Agregado al carrito</>:<><ShoppingBag/>Agregar · {formatoMoneda(producto.precio*cantidad)}</>}</button></div><Link className="detalle-cart-link" to="/carrito">Ver mi carrito <ChevronRight size={18}/></Link></div></div></section>;
+export default function DetalleProducto() {
+  const { id } = useParams();
+  const { agregarProducto } = useCarrito();
+  const [producto, setProducto] = useState(null);
+  const [relacionados, setRelacionados] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
+  const [foto, setFoto] = useState(0);
+  const [cantidad, setCantidad] = useState(1);
+  const [color, setColor] = useState(colores[0]);
+  const [agregado, setAgregado] = useState(false);
+
+  useEffect(() => {
+    let activo = true;
+    setCargando(true); setError(''); setFoto(0); setCantidad(1);
+    obtenerProducto(id).then((dato) => { if (activo) setProducto(dato); }).catch((err) => { if (activo) setError(err.message || 'No fue posible cargar el producto.'); }).finally(() => { if (activo) setCargando(false); });
+    return () => { activo = false; };
+  }, [id]);
+
+  useEffect(() => {
+    if (!producto?.categoria) return undefined;
+    let activo = true;
+    listarProductos({ categoria: producto.categoria, limite: 4 }).then((lista) => { if (activo) setRelacionados(lista.filter((item) => String(item.id) !== String(producto.id)).slice(0, 3)); }).catch(() => { if (activo) setRelacionados([]); });
+    return () => { activo = false; };
+  }, [producto]);
+
+  const fotos = useMemo(() => producto?.imagenes?.length ? producto.imagenes : (producto?.imagen_url ? [producto.imagen_url] : fallbackFotos), [producto]);
+  const agregar = () => { for (let indice = 0; indice < cantidad; indice += 1) agregarProducto(producto); setAgregado(true); setTimeout(() => setAgregado(false), 1800); };
+
+  if (cargando) return <p className="detalle-status">Cargando producto…</p>;
+  if (error || !producto) return <div className="detalle-status"><p>{error || 'Producto no encontrado.'}</p><Link to="/catalogo">Volver al catálogo</Link></div>;
+  const disponible = Number(producto.stock) > 0;
+
+  return <main className="product-detail">
+    <nav className="product-detail__crumb"><Link to="/">Inicio</Link><ChevronRight size={14} /><Link to="/catalogo">Catálogo</Link><ChevronRight size={14} /><span>{producto.nombre}</span></nav>
+    <section className="product-detail__card">
+      <div className="product-detail__layout">
+        <div className="product-gallery">
+          <div className="product-gallery__main">{fotos[foto] ? <img src={fotos[foto]} alt={producto.nombre} /> : null}<b><Sparkles size={13} /> Más vendido</b></div>
+          <div className="product-gallery__thumbs">{fotos.slice(0, 4).map((src, indice) => <button className={foto === indice ? 'active' : ''} onClick={() => setFoto(indice)} type="button" key={`${src}-${indice}`}><img src={src} alt={`Vista ${indice + 1}`} /><span>Vista {indice + 1}</span></button>)}</div>
+        </div>
+        <section className="product-buy">
+          <h1>{producto.nombre}</h1><div className="product-buy__rating"><span>{[1, 2, 3, 4, 5].map((n) => <Star size={15} fill="currentColor" key={n} />)}</span><small>Producto recomendado TERRA</small></div>
+          <div className="product-buy__price"><strong>{formatoMoneda(producto.precio)}</strong><small>{disponible ? 'Disponible para entrega inmediata' : 'Consultar disponibilidad'}</small></div>
+          <p className="product-buy__description">{producto.descripcion || 'Diseño funcional y materiales de calidad para brindar confort a tu hogar todos los días.'}</p>
+          <div className="product-buy__choice"><b>Color:</b><div>{colores.map((opcion) => <button type="button" title={opcion.nombre} aria-label={opcion.nombre} key={opcion.nombre} onClick={() => setColor(opcion)} className={color.nombre === opcion.nombre ? 'active' : ''} style={{ backgroundColor: opcion.valor }} />)}</div><small>Tono actual: <strong>{color.nombre}</strong></small></div>
+          <div className="product-buy__quantity"><b>Cantidad:</b><div><button type="button" aria-label="Disminuir" disabled={cantidad <= 1} onClick={() => setCantidad((valor) => Math.max(1, valor - 1))}><CircleMinus size={19} /></button><span>{cantidad}</span><button type="button" aria-label="Aumentar" disabled={cantidad >= Number(producto.stock)} onClick={() => setCantidad((valor) => Math.min(Number(producto.stock), valor + 1))}><CirclePlus size={19} /></button></div></div>
+          <button className="product-buy__add" disabled={!disponible} onClick={agregar} type="button">{agregado ? <><Check size={19} /> Agregado al carrito</> : <><ShoppingCart size={19} /> Agregar al carrito</>}</button><Link className="product-buy__now" to="/carrito">Comprar ahora</Link>
+          <div className="product-buy__guarantees"><span><ShieldCheck size={15} /> Garantía oficial TERRA</span><span><Truck size={15} /> Envío seguro a Bolivia</span></div>
+        </section>
+      </div>
+      <div className="product-highlights"><article><Sparkles size={23} /><b>Confort superior</b><small>Materiales seleccionados</small></article><article><Check size={23} /><b>Calidad garantizada</b><small>Respaldo TERRA</small></article><article><Truck size={23} /><b>Despacho coordinado</b><small>Atención personalizada</small></article><article><ShieldCheck size={23} /><b>Compra segura</b><small>Soporte en showroom</small></article></div>
+    </section>
+    <section className="product-detail__bottom"><article><h2>Ficha técnica y dimensiones</h2><dl><dt>Modelo</dt><dd>{producto.nombre}</dd><dt>Categoría</dt><dd>{producto.categoria}</dd><dt>Medidas</dt><dd>{producto.medida || producto.detalle || 'Consultar medidas disponibles'}</dd><dt>Disponibilidad</dt><dd>{disponible ? `${producto.stock} unidades disponibles` : 'Consultar en showroom'}</dd><dt>Garantía</dt><dd>Garantía oficial de fábrica TERRA</dd></dl></article><aside><MapPin size={24} /><h2>Pruébalo en nuestro showroom</h2><p>Visitá nuestro espacio de descanso para conocer el producto y recibir asesoramiento.</p><Link to="/catalogo">Coordinar visita por WhatsApp</Link></aside></section>
+    {!!relacionados.length && <section className="product-related"><header><h2>Otros modelos que te pueden interesar</h2><Link to="/catalogo">Ver catálogo <ChevronRight size={16} /></Link></header><div>{relacionados.map((item) => <Link to={`/productos/${item.id}`} key={item.id}><figure>{item.imagen_url && <img src={item.imagen_url} alt={item.nombre} />}</figure><h3>{item.nombre}</h3><p>{item.descripcion || item.categoria}</p><strong>{formatoMoneda(item.precio)}</strong></Link>)}</div></section>}
+  </main>;
 }

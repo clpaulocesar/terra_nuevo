@@ -5,6 +5,7 @@ import './Admin.css';
 import './ProductosAdmin.css';
 import './AdminViewsColorFix.css';
 import './ProductosDb.css';
+import './ProductosDelete.css';
 
 const productosIniciales = [
   {
@@ -353,10 +354,23 @@ export default function ProductosAdmin() {
     }
   };
 
+  const borrarProducto = async producto => {
+    if (!window.confirm(`¿Eliminar "${producto.nombre}" del catálogo?`)) return;
+    try {
+      await eliminarProducto(producto.id);
+      setProductos(lista => lista.filter(item => item.id !== producto.id));
+      if (vistaProducto?.id === producto.id) setVistaProducto(null);
+      if (editarProducto?.id === producto.id) setEditarProducto(null);
+      avisar(`Producto ${producto.sku} eliminado.`);
+    } catch (err) {
+      avisar(`No se pudo eliminar el producto: ${err.message}`);
+    }
+  };
+
   return (
     <main className="products-admin">
       {errorCarga && <section className="products-db-error"><b>No se cargaron datos reales.</b><span>{errorCarga}</span><button type="button" onClick={cargarProductos}>Reintentar conexión</button></section>}
-      <section className="products-alert">
+      {false && <section className="products-alert">
         <div>
           <span><Box size={22} /></span>
           <div>
@@ -367,7 +381,7 @@ export default function ProductosAdmin() {
         <button onClick={() => avisar('Solicitud de traslado creada.')}>
           <Truck size={18} /> Solicitar traslado
         </button>
-      </section>
+      </section>}
 
       <header className="products-heading">
         <div>
@@ -530,6 +544,9 @@ export default function ProductosAdmin() {
                       </button>
                       <button title="Editar producto y fotos" onClick={() => abrirEdicion(p)}>
                         <Edit3 size={17} />
+                      </button>
+                      <button className="product-action-delete" title="Eliminar producto" onClick={() => borrarProducto(p)}>
+                        <Trash2 size={17} />
                       </button>
                     </div>
                   </td>

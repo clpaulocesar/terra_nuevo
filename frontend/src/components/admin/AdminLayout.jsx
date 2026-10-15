@@ -6,6 +6,7 @@ import AdminHeader from './AdminHeader.jsx';
 import '../../pages/admin/Admin.css';
 import './AdminSidebar.css';
 import './AdminSidebarFix.css';
+import './AdminNavigationHidden.css';
 import './AdminContentFix.css';
 import './AdminTheme.css';
 
