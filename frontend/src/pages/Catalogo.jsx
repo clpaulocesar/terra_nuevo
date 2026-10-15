@@ -19,13 +19,6 @@ const CATEGORIAS_CONFIG = [
   { id: 'Promociones', nombre: 'Promociones', icon: 'star', especial: true },
 ];
 
-const MEDIDAS_CONFIG = [
-  { id: 'King', label: 'King (200x200)' },
-  { id: 'Queen', label: 'Queen (160x200)' },
-  { id: '2 Plazas', label: '2 Plazas (140x190)' },
-  { id: '1.5 Plazas', label: '1.5 Plazas' },
-];
-
 const FIRMEZAS_CONFIG = [
   { id: 'Suave', label: 'Suave' },
   { id: 'Media', label: 'Media' },
@@ -52,8 +45,6 @@ export default function Catalogo() {
     };
     return equivalencias[categoria] || categoria;
   });
-  const [medidaSeleccionada, setMedidaSeleccionada] = useState('');
-  const [firmezaSeleccionada, setFirmezaSeleccionada] = useState('');
   const [orden, setOrden] = useState('recomendados'); // 'recomendados' | 'precio-asc' | 'precio-desc' | 'nombre'
   const [menuOrdenAbierto, setMenuOrdenAbierto] = useState(false);
 
@@ -193,22 +184,6 @@ export default function Catalogo() {
       }
     }
 
-    // Filtro por medida
-    if (medidaSeleccionada) {
-      resultado = resultado.filter((p) =>
-        p.medida?.toLowerCase().includes(medidaSeleccionada.toLowerCase()) ||
-        p.tagMedida?.toLowerCase().includes(medidaSeleccionada.toLowerCase())
-      );
-    }
-
-    // Filtro por firmeza
-    if (firmezaSeleccionada) {
-      resultado = resultado.filter((p) =>
-        p.firmeza?.toLowerCase().includes(firmezaSeleccionada.toLowerCase()) ||
-        p.subtitulo?.toLowerCase().includes(firmezaSeleccionada.toLowerCase())
-      );
-    }
-
     // Ordenamiento
     if (orden === 'precio-asc') {
       resultado.sort((a, b) => a.precio - b.precio);
@@ -219,7 +194,7 @@ export default function Catalogo() {
     }
 
     return resultado;
-  }, [productos, buscar, categoriaSeleccionada, medidaSeleccionada, firmezaSeleccionada, orden]);
+  }, [productos, buscar, categoriaSeleccionada, orden]);
 
   // Acción de agregar al carrito con efecto visual
   const handleAgregar = (producto) => {
@@ -557,47 +532,14 @@ export default function Catalogo() {
               </div>
 
               {/* Filtros táctiles secundarios: Medidas y Firmeza */}
-              <div className="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs pb-space-xs">
+              <div className="hidden">
                 {/* Riel táctil rápido de medidas */}
-                <div className="flex items-center gap-space-xs flex-wrap">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mr-1">
-                    Medidas:
-                  </span>
-                  {MEDIDAS_CONFIG.map((medida) => {
-                    const activa = medidaSeleccionada === medida.id;
-                    return (
-                      <button
-                        key={medida.id}
-                        type="button"
-                        onClick={() => setMedidaSeleccionada(activa ? '' : medida.id)}
-                        className={`min-h-[46px] px-space-md rounded-lg font-label-md text-label-md font-semibold flex items-center gap-1 transition-colors ${
-                          activa
-                            ? 'bg-primary/10 text-primary border border-primary/20'
-                            : 'bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant'
-                        }`}
-                      >
-                        <span>{medida.label}</span>
-                        {activa && <span className="material-symbols-outlined text-[16px]">done</span>}
-                      </button>
-                    );
-                  })}
-                  {medidaSeleccionada && (
-                    <button
-                      type="button"
-                      onClick={() => setMedidaSeleccionada('')}
-                      className="text-xs text-outline underline ml-1"
-                    >
-                      Todas
-                    </button>
-                  )}
-                </div>
-
                 {/* Riel táctil rápido de firmeza */}
                 <div className="flex items-center gap-space-xs flex-wrap">
                   <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mr-1">
-                    Firmeza:
+                    <span className="sr-only">Firmeza eliminada</span>
                   </span>
-                  {FIRMEZAS_CONFIG.map((firmeza) => {
+                  {[].map((firmeza) => {
                     const activa = firmezaSeleccionada === firmeza.id;
                     return (
                       <button
@@ -614,7 +556,7 @@ export default function Catalogo() {
                       </button>
                     );
                   })}
-                  {firmezaSeleccionada && (
+                  {false && (
                     <button
                       type="button"
                       onClick={() => setFirmezaSeleccionada('')}
@@ -645,8 +587,6 @@ export default function Catalogo() {
                     onClick={() => {
                       setBuscar('');
                       setCategoriaSeleccionada('');
-                      setMedidaSeleccionada('');
-                      setFirmezaSeleccionada('');
                     }}
                     className="min-h-[50px] px-6 rounded-xl bg-primary text-on-primary font-bold shadow-sm active:scale-95"
                   >
@@ -661,7 +601,7 @@ export default function Catalogo() {
                     return (
                       <article
                         key={producto.id}
-                        className="flex flex-col bg-surface-container-lowest rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden relative cursor-pointer"
+                        className="catalog-product-card flex flex-col bg-surface-container-lowest rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden relative cursor-pointer"
                         onClick={(event) => {
                           if (!event.target.closest('button, a')) {
                             navigate(`/productos/${producto.id}`);
@@ -669,7 +609,7 @@ export default function Catalogo() {
                         }}
                       >
                         {/* Contenedor de Imagen y Badges */}
-                        <div className="relative w-full aspect-[4/3] bg-surface-container overflow-hidden">
+                        <div className="catalog-product-image relative w-full aspect-[4/3] bg-surface-container overflow-hidden">
                           <img
                             className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                             alt={producto.nombre}
@@ -726,8 +666,11 @@ export default function Catalogo() {
                         </div>
 
                         {/* Cuerpo de la Tarjeta */}
-                        <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
+                        <div className="catalog-product-body p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
                           <div className="flex flex-col gap-space-xs">
+                            <div className="catalog-product-rating" aria-label="Valoración del producto">
+                              <span>★★★★★</span><b>(32 reseñas)</b><em>Entrega inmediata</em>
+                            </div>
                             <div className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
                               <span className="material-symbols-outlined text-[18px] text-secondary">
                                 {producto.iconSubtitulo || 'tune'}
@@ -743,6 +686,12 @@ export default function Catalogo() {
                                 {producto.nombre}
                               </Link>
                             </h2>
+
+                            <p className="catalog-product-description">{producto.descripcion || 'Diseño moderno y confortable, ideal para complementar tus espacios.'}</p>
+
+                            <div className="catalog-product-colors" aria-label="Colores disponibles">
+                              <i /><i /><i /><i /><i /><span>+6 tonos</span>
+                            </div>
 
                             <div className="flex items-center gap-1.5 mt-1">
                               <span
@@ -761,7 +710,8 @@ export default function Catalogo() {
                           </div>
 
                           {/* Precio y Botón Táctil de Agregar */}
-                          <div className="flex flex-col gap-space-sm pt-space-xs bg-surface-container-low/50 p-3 sm:p-4 rounded-xl">
+                          <div className="catalog-product-benefits"><span>▱<small>Convertible</small></span><span>▣<small>Fácil aseo</small></span><span>♧<small>Garantía</small></span></div>
+                          <div className="catalog-product-buy flex flex-col gap-space-sm pt-space-xs bg-surface-container-low/50 p-3 sm:p-4 rounded-xl">
                             <div className="flex items-baseline justify-between gap-2">
                               <div className="min-w-0">
                                 {producto.precioOriginal ? (
