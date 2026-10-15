@@ -1,5 +1,50 @@
 import { pool } from '../config/database.js';
 
+function nombreValido(valor) {
+  return String(valor ?? '').trim().replace(/\s+/g, ' ');
+}
+
+export async function crearCategoria(req, res, next) {
+  try {
+    const nombre = nombreValido(req.body?.nombre);
+    if (!nombre) return res.status(400).json({ success: false, mensaje: 'El nombre de la categoría es obligatorio.' });
+    const { rows } = await pool.query(
+      `INSERT INTO categories (name, is_active) VALUES ($1, TRUE) RETURNING id, name AS nombre, is_active AS activo`,
+      [nombre]
+    );
+    return res.status(201).json({ success: true, data: rows[0] });
+  } catch (error) {
+    if (error.code === '23505') return res.status(409).json({ success: false, mensaje: 'Ya existe una categoría con ese nombre.' });
+    next(error);
+  }
+}
+
+export async function actualizarCategoria(req, res, next) {
+  try {
+    const nombre = nombreValido(req.body?.nombre);
+    if (!nombre) return res.status(400).json({ success: false, mensaje: 'El nombre de la categoría es obligatorio.' });
+    const { rows } = await pool.query(
+      `UPDATE categories SET name = $1 WHERE id = $2 RETURNING id, name AS nombre, is_active AS activo`,
+      [nombre, req.params.id]
+    );
+    if (!rows[0]) return res.status(404).json({ success: false, mensaje: 'Categoría no encontrada.' });
+    return res.json({ success: true, data: rows[0] });
+  } catch (error) {
+    if (error.code === '23505') return res.status(409).json({ success: false, mensaje: 'Ya existe una categoría con ese nombre.' });
+    next(error);
+  }
+}
+
+export async function eliminarCategoria(req, res, next) {
+  try {
+    const { rows: asociadas } = await pool.query('SELECT COUNT(*)::integer AS total FROM products WHERE category_id = $1', [req.params.id]);
+    if (Number(asociadas[0]?.total || 0) > 0) return res.status(409).json({ success: false, mensaje: 'No puedes eliminar una categoría que tiene productos asociados.' });
+    const { rowCount } = await pool.query('DELETE FROM categories WHERE id = $1', [req.params.id]);
+    if (!rowCount) return res.status(404).json({ success: false, mensaje: 'Categoría no encontrada.' });
+    return res.json({ success: true, data: { id: req.params.id } });
+  } catch (error) { next(error); }
+}
+
 export async function listarCategorias(req, res, next) {
   try {
     const resultado = await pool.query(`

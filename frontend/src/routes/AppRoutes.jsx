@@ -27,6 +27,7 @@ import DashboardAdmin from '../pages/admin/DashboardAdmin.jsx';
 import ProductosAdmin from '../pages/admin/ProductosAdmin.jsx';
 import PedidosAdmin from '../pages/admin/PedidosAdmin.jsx';
 import ClientesAdmin from '../pages/admin/ClientesAdmin.jsx';
+import CategoriasAdmin from '../pages/admin/CategoriasAdmin.jsx';
 import LoginAdmin from '../pages/admin/LoginAdmin.jsx';
 import RutaAdmin from '../components/admin/RutaAdmin.jsx';
 import ChatAsistente from '../components/chat/ChatAsistente.jsx';
@@ -192,6 +193,7 @@ export default function AppRoutes() {
         <Route path="admin" element={<RutaAdmin><AdminLayout /></RutaAdmin>}>
           <Route index element={<DashboardAdmin />} />
           <Route path="productos" element={<ProductosAdmin />} />
+          <Route path="categorias" element={<CategoriasAdmin />} />
           <Route path="pedidos" element={<PedidosAdmin />} />
           <Route path="clientes" element={<ClientesAdmin />} />
         </Route>

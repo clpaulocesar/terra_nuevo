@@ -9,6 +9,7 @@ const TITULOS_RUTAS = {
   '/admin': 'Panel Principal',
   '/admin/': 'Panel Principal',
   '/admin/productos': 'Productos',
+  '/admin/categorias': 'Categorías',
   '/admin/pedidos': 'Pedidos',
   '/admin/clientes': 'Clientes',
 };

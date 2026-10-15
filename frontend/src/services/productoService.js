@@ -14,3 +14,6 @@ export async function actualizarProducto(id, datos) { exigirConexionReal(); retu
 export async function actualizarStock(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}/stock`, { method: 'PATCH', body: datos })); }
 export async function eliminarProducto(id) { exigirConexionReal(); return apiRequest(`/productos/${id}`, { method: 'DELETE' }); }
 export async function listarCategorias({ signal } = {}) { try { const r = await apiRequest('/categorias', { signal }); return Array.isArray(r) ? r : r?.data || []; } catch { return []; } }
+export async function crearCategoria(datos) { exigirConexionReal(); return apiRequest('/categorias', { method: 'POST', body: datos }); }
+export async function actualizarCategoria(id, datos) { exigirConexionReal(); return apiRequest(`/categorias/${id}`, { method: 'PUT', body: datos }); }
+export async function eliminarCategoria(id) { exigirConexionReal(); return apiRequest(`/categorias/${id}`, { method: 'DELETE' }); }
