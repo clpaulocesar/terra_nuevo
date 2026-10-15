@@ -42,7 +42,7 @@ export default function Catalogo() {
   const [cargando, setCargando] = useState(true);
 
   // Estados de búsqueda y filtros
-  const [buscar, setBuscar] = useState('');
+  const [buscar, setBuscar] = useState(() => searchParams.get('buscar') || '');
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(() => {
     const categoria = searchParams.get('categoria') || '';
     const equivalencias = {
@@ -70,6 +70,11 @@ export default function Catalogo() {
   const [segundosSesion, setSegundosSesion] = useState(180);
 
   const searchInputRef = useRef(null);
+
+  // Sincronizar búsqueda cuando se llega desde el buscador del encabezado (?buscar=...)
+  useEffect(() => {
+    setBuscar(searchParams.get('buscar') || '');
+  }, [searchParams]);
 
   // Carga de productos reales desde backend PostgreSQL
   useEffect(() => {
@@ -497,21 +502,10 @@ export default function Catalogo() {
               )}
 
               {/* Riel desplazable horizontal de categorías */}
-              <div className="w-full overflow-x-auto no-scrollbar py-1">
-                <div className="flex items-center gap-space-sm min-w-max">
-                  {cargando
-                    ? [110, 150, 130, 140].map((ancho, i) => (
-                        <span
-                          key={i}
-                          aria-hidden="true"
-                          style={{ width: ancho }}
-                          className="min-h-[52px] rounded-full bg-surface-container-low animate-pulse"
-                        />
-                      ))
-                    : categoriasDinamicas.map((cat) => {
-                    const activa =
-                      (!categoriaSeleccionada && cat.id === '') ||
-                      (Boolean(categoriaSeleccionada) && Boolean(cat.id) && categoriaSeleccionada.toLowerCase() === cat.id.toLowerCase());
+              <div className="w-full overflow-x-auto no-scrollbar py-2">
+                <div className="flex items-center gap-space-sm min-w-max px-1 pr-6">
+                  {CATEGORIAS_CONFIG.map((cat) => {
+                    const activa = categoriaSeleccionada === cat.id;
 
                     if (cat.especial) {
                       return (

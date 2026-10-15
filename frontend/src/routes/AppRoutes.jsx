@@ -37,9 +37,61 @@ import './ClienteTheme.css';
 import '../Responsive.css';
 import './HeaderOptionsHidden.css';
 
+const TABS_MOVIL = [
+  { ruta: '/catalogo', icono: Package, texto: 'Catálogo' },
+  { ruta: '/categorias', icono: Tags, texto: 'Categorías' },
+  { ruta: '/carrito', icono: ShoppingCart, texto: 'Carrito' },
+  { ruta: '/', icono: Home, texto: 'Inicio', exacto: true },
+];
+
+function indiceTabActivo(rutaActual) {
+  if (rutaActual === '/') return 3;
+  if (rutaActual.startsWith('/catalogo') || rutaActual.startsWith('/productos')) return 0;
+  if (rutaActual.startsWith('/categorias')) return 1;
+  if (rutaActual.startsWith('/carrito') || rutaActual.startsWith('/identificacion') || rutaActual.startsWith('/confirmacion') || rutaActual.startsWith('/pedido')) return 2;
+  return 3;
+}
+
+function NavegacionMovil() {
+  const { cantidadTotal } = useCarrito();
+  const ubicacion = useLocation();
+  const indice = indiceTabActivo(ubicacion.pathname);
+
+  return (
+    <nav className="mobile-bottom-nav" aria-label="Navegación móvil">
+      <span
+        className="mobile-nav-glider"
+        style={{ transform: `translateX(${indice * 100}%)` }}
+        aria-hidden="true"
+      />
+      {TABS_MOVIL.map(({ ruta, icono: Icono, texto, exacto }) => (
+        <NavLink key={ruta} to={ruta} end={exacto} className="mobile-nav-item">
+          {ruta === '/carrito' ? (
+            <span className="mobile-cart-icon-wrap">
+              <Icono size={20} />
+              {cantidadTotal > 0 && <span className="mobile-cart-badge">{cantidadTotal}</span>}
+            </span>
+          ) : (
+            <Icono size={20} />
+          )}
+          <span>{texto}</span>
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
+
 function Layout() {
   const { cantidadTotal } = useCarrito();
+  const navigate = useNavigate();
+  const [texto, setTexto] = useState('');
   const [cuentaAbierta, setCuentaAbierta] = useState(false);
+
+  function buscar(event) {
+    event.preventDefault();
+    const q = texto.trim();
+    navigate(q ? `/catalogo?buscar=${encodeURIComponent(q)}` : '/catalogo');
+  }
 
   return (
     <div className="app-shell">
@@ -49,6 +101,19 @@ function Layout() {
             <img src="/logo-terra.png" alt="TERRA Autoservicio" />
           </Link>
         </div>
+
+        <form className="terra-search" role="search" onSubmit={buscar}>
+          <Search size={17} />
+          <input
+            value={texto}
+            onChange={(event) => setTexto(event.target.value)}
+            placeholder="Buscar muebles y más..."
+            aria-label="Buscar muebles y más"
+          />
+          <button type="submit" aria-label="Buscar">
+            <ArrowRight size={17} />
+          </button>
+        </form>
 
         {/* Desktop & Tablet Navigation */}
         <nav className="desktop-nav" aria-label="Navegación principal">
@@ -81,27 +146,7 @@ function Layout() {
       </main>
 
       {/* Mobile Bottom Navigation (< 640px) */}
-      <nav className="mobile-bottom-nav" aria-label="Navegación móvil">
-        <NavLink to="/catalogo" className="mobile-nav-item">
-          <Package size={20} />
-          <span>Catálogo</span>
-        </NavLink>
-        <NavLink to="/categorias" className="mobile-nav-item">
-          <Tags size={20} />
-          <span>Categorías</span>
-        </NavLink>
-        <NavLink to="/carrito" className="mobile-nav-item mobile-cart-item">
-          <div className="mobile-cart-icon-wrap">
-            <ShoppingCart size={20} />
-            {cantidadTotal > 0 && <span className="mobile-cart-badge">{cantidadTotal}</span>}
-          </div>
-          <span>Carrito</span>
-        </NavLink>
-        <NavLink to="/" end className="mobile-nav-item">
-          <Home size={20} />
-          <span>Inicio</span>
-        </NavLink>
-      </nav>
+      <NavegacionMovil />
 
       <footer className="site-footer">
         <div>TERRA AUTOSERVICIO · Sucursal 1 Central, Santa Cruz</div>

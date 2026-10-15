@@ -1,4 +1,4 @@
-/* Portada estilo retail TERRA: hero + carrusel poltronas + franja de confianza */
+/* Portada estilo retail TERRA: fondo textura + foto en tarjeta + franja de confianza */
 .welcome-retail {
   font-family: Manrope, Arial, sans-serif;
   margin: -0.5rem 0;
@@ -189,7 +189,6 @@
   position: absolute;
   right: 1.25rem;
   width: min(19rem, calc(100% - 2.5rem));
-  z-index: 1;
 }
 
 .welcome-spot > span {
@@ -238,7 +237,7 @@
   box-shadow: 0 8px 20px rgba(41, 37, 36, 0.06);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  margin: 2.5rem clamp(1rem, 4vw, 3.5rem) 0;
+  margin-top: 2.5rem;
 }
 
 .welcome-trust article {
@@ -283,6 +282,7 @@
     padding: 1rem 0;
   }
   .welcome-hero {
+    border-radius: 1.1rem;
     padding: 1.5rem 1.25rem;
   }
   .welcome-copy h1 {
@@ -294,8 +294,6 @@
   }
   .welcome-trust {
     grid-template-columns: 1fr;
-    margin-left: 1.25rem;
-    margin-right: 1.25rem;
   }
   .welcome-trust article {
     justify-content: flex-start;
