@@ -14,6 +14,10 @@
 .product-view-stage-thumbs button{width:56px;height:56px;border-radius:.55rem;overflow:hidden;padding:0;border:2px solid transparent;background:#e4e2e1;cursor:pointer;flex-shrink:0}
 .product-view-stage-thumbs button.active{border-color:#a6192e;box-shadow:0 0 0 2px rgba(0,66,48,0.25)}
 .product-view-stage-thumbs button img{width:100%;height:100%;object-fit:cover}
+.product-view-stage-main--media{height:auto;aspect-ratio:16/9}
+.product-view-stage-main iframe,.product-view-stage-main video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;object-fit:contain}
+.product-view-stage-thumbs button.product-view-stage-thumb-video{background:#1a1a1a;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.product-view-stage-thumbs button.product-view-stage-thumb-video span{font-size:.5rem}
 .product-view-main{display:flex;align-items:center;gap:1rem;background:#f6f3f2;padding:1rem;border-radius:.85rem}
 .product-view-thumb{width:4rem;height:4rem;border-radius:.75rem;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;overflow:hidden}
 .product-view-thumb img{width:100%;height:100%;object-fit:cover}

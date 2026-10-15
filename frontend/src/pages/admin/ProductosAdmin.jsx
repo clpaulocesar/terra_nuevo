@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Plus, Search, SlidersHorizontal, Star, Store, Trash2, Truck, Warehouse, X } from 'lucide-react';
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Play, Plus, Search, SlidersHorizontal, Star, Store, Trash2, Truck, Warehouse, X } from 'lucide-react';
 import { listarProductos, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
+import { mediaDeVideo } from '../../utils/videoEmbed.js';
 import './Admin.css';
 import './ProductosAdmin.css';
 import './AdminViewsColorFix.css';
@@ -265,7 +266,7 @@ export default function ProductosAdmin() {
       descripcion: datos.get('descripcion') || '',
       imagen_url: imagenesNuevo[0] || null,
       imagenes: imagenesNuevo,
-      video_url: datos.get('video_url') || null,
+      video_url: String(datos.get('video_url') || '').trim() || null,
     };
 
     try {
@@ -338,6 +339,7 @@ export default function ProductosAdmin() {
       activo: datos.get('visible') === 'on',
       imagen_url: editImagenes[0] || null,
       imagenes: editImagenes,
+      video_url: String(datos.get('video_url') || '').trim() || null,
     };
 
     try {
@@ -784,6 +786,11 @@ export default function ProductosAdmin() {
                   }
                   placeholder="Describe beneficios, materiales y garantía del producto."
                 />
+              </label>
+
+              <label className="product-form-wide">
+                URL de video del producto <small>Opcional · YouTube, Vimeo o enlace directo MP4</small>
+                <input name="video_url" type="url" defaultValue={editarProducto.video_url || ''} placeholder="https://www.youtube.com/watch?v=..." />
               </label>
             </div>
 

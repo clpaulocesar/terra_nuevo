@@ -44,8 +44,8 @@ export async function crearProductoBD(datos) {
 
 export async function actualizarProductoBD(id, datos) {
   const { rows } = await pool.query(
-    `UPDATE products SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), activo=COALESCE($6,activo), internal_code=COALESCE($7,internal_code), size=COALESCE($8,size), color=COALESCE($9,color), updated_at=NOW() WHERE id=$10 RETURNING id`,
-    [datos.nombre, datos.descripcion, datos.precio, datos.stock ?? datos.showroom, datos.imagen_url, datos.activo, datos.sku, datos.medida, datos.detalle, id]
+    `UPDATE products SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), activo=COALESCE($6,activo), internal_code=COALESCE($7,internal_code), size=COALESCE($8,size), color=COALESCE($9,color), video_url=$10, updated_at=NOW() WHERE id=$11 RETURNING id`,
+    [datos.nombre, datos.descripcion, datos.precio, datos.stock ?? datos.showroom, datos.imagen_url, datos.activo, datos.sku, datos.medida, datos.detalle, datos.video_url ?? null, id]
   );
   return rows[0] ? obtenerProductoBD(id) : null;
 }
