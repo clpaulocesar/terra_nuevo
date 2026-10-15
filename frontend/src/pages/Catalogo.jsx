@@ -1,18 +1,21 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCarrito } from '../hooks/useCarrito.js';
-import { listarProductos } from '../services/productoService.js';
+import { listarProductos, listarCategorias } from '../services/productoService.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
+import { obtenerIconoCategoria } from '../data/categorias.js';
 import './Catalogo.css';
 
 const CATEGORIAS_CONFIG = [
   { id: '', nombre: 'Todos', icon: 'apps' },
   { id: 'Colchones', nombre: 'Colchones', icon: 'bed' },
   { id: 'Sommiers', nombre: 'Sommiers', icon: 'layers' },
+  { id: 'Espaldares', nombre: 'Espaldares', icon: 'vertical_split' },
   { id: 'Camas', nombre: 'Camas', icon: 'bedroom_parent' },
   { id: 'Almohadas', nombre: 'Almohadas', icon: 'hotel' },
   { id: 'Ropa de cama', nombre: 'Ropa de cama', icon: 'texture' },
   { id: 'Muebles', nombre: 'Muebles', icon: 'chair' },
+  { id: 'Recamier', nombre: 'Recamier', icon: 'weekend' },
   { id: 'Promociones', nombre: 'Promociones', icon: 'star', especial: true },
 ];
 
@@ -92,6 +95,73 @@ export default function Catalogo() {
     return () => { cancelado = true; };
   }, []);
 
+  // Cargar categorías dinámicas desde backend / Supabase
+  const [categoriasApi, setCategoriasApi] = useState([]);
+  useEffect(() => {
+    let cancelado = false;
+    listarCategorias()
+      .then((cats) => {
+        if (!cancelado && Array.isArray(cats) && cats.length > 0) {
+          setCategoriasApi(cats);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelado = true; };
+  }, []);
+
+  // Construcción de categorías dinámicas
+  const categoriasDinamicas = useMemo(() => {
+    const lista = [
+      { id: '', nombre: 'Todos', icon: 'apps' },
+    ];
+
+    const conteo = {};
+    let hayPromociones = false;
+    for (const p of productos) {
+      if (p.promocion || p.descuento) hayPromociones = true;
+      const cat = (p.categoria || '').trim();
+      if (cat) {
+        conteo[cat] = (conteo[cat] || 0) + 1;
+      }
+    }
+
+    if (categoriasApi.length > 0) {
+      for (const cat of categoriasApi) {
+        lista.push({
+          id: cat.nombre,
+          nombre: cat.nombre,
+          icon: cat.icon || obtenerIconoCategoria(cat.nombre),
+          total: conteo[cat.nombre] ?? cat.total,
+        });
+      }
+    } else if (Object.keys(conteo).length > 0) {
+      const catsOrdenadas = Object.keys(conteo).sort((a, b) => conteo[b] - conteo[a]);
+      for (const cat of catsOrdenadas) {
+        lista.push({
+          id: cat,
+          nombre: cat,
+          icon: obtenerIconoCategoria(cat),
+          total: conteo[cat],
+        });
+      }
+    } else {
+      for (const cat of CATEGORIAS_CONFIG.filter((c) => c.id && !c.especial)) {
+        lista.push(cat);
+      }
+    }
+
+    if (hayPromociones || productos.some((p) => p.promocion || p.descuento)) {
+      lista.push({
+        id: 'Promociones',
+        nombre: 'Promociones',
+        icon: 'star',
+        especial: true,
+      });
+    }
+
+    return lista;
+  }, [productos, categoriasApi]);
+
   // Manejo del temporizador de sesión
   useEffect(() => {
     const timer = setInterval(() => {
@@ -158,7 +228,7 @@ export default function Catalogo() {
 
   // Acción de agregar al carrito con efecto visual
   const handleAgregar = (producto) => {
-    agregarProducto(producto);
+    if (!agregarProducto(producto)) return;
     setAgregados((prev) => ({ ...prev, [producto.id]: true }));
     setTimeout(() => {
       setAgregados((prev) => ({ ...prev, [producto.id]: false }));
@@ -206,8 +276,8 @@ export default function Catalogo() {
             <div className="hidden lg:flex items-center gap-space-xs bg-primary/40 px-space-md py-space-xs rounded-full border border-primary-fixed/20">
               <span className="material-symbols-outlined text-[18px] text-secondary-fixed">storefront</span>
               <span className="font-label-sm text-label-sm text-surface-bright">
-                Sucursal Equipetrol • Santa Cruz de la Sierra
-              </span>
+                Sucursal 1 Central • Santa Cruz de la Sierra
+              </span>r
             </div>
 
             <div className="flex items-center gap-space-xs bg-surface-container-lowest/10 px-space-sm py-space-xs rounded-full">
@@ -275,7 +345,7 @@ export default function Catalogo() {
                       ref={searchInputRef}
                       className="w-full bg-transparent border-none outline-none font-body-lg text-body-lg text-on-surface placeholder:text-outline/70 py-2"
                       id="kiosk-search"
-                      placeholder="Buscar colchones, sommiers, almohadas..."
+                      placeholder="Buscar poltronas y sofa cama"
                       type="text"
                       value={buscar}
                       onChange={(e) => setBuscar(e.target.value)}
@@ -440,7 +510,7 @@ export default function Catalogo() {
                     if (cat.especial) {
                       return (
                         <button
-                          key={cat.id}
+                          key={cat.id || 'todos'}
                           type="button"
                           onClick={() => setCategoriaSeleccionada(activa ? '' : cat.id)}
                           className={`min-h-[52px] px-space-lg rounded-full shadow-sm flex items-center gap-space-xs font-label-lg text-label-lg font-bold transition-all active:scale-95 ${
@@ -459,9 +529,15 @@ export default function Catalogo() {
 
                     return (
                       <button
-                        key={cat.id}
+                        key={cat.id || 'todos'}
                         type="button"
-                        onClick={() => setCategoriaSeleccionada(activa ? '' : cat.id)}
+                        onClick={() => {
+                          if (cat.id === '') {
+                            setCategoriaSeleccionada('');
+                          } else {
+                            setCategoriaSeleccionada(activa ? '' : cat.id);
+                          }
+                        }}
                         className={`min-h-[52px] px-space-lg rounded-full flex items-center gap-space-xs font-label-lg text-label-lg transition-transform active:scale-95 ${
                           activa
                             ? 'bg-primary-container text-on-primary shadow-md'
@@ -483,82 +559,18 @@ export default function Catalogo() {
                 </div>
               </div>
 
-              {/* Filtros táctiles secundarios: Medidas y Firmeza */}
-              <div className="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs pb-space-xs">
-                {/* Riel táctil rápido de medidas */}
-                <div className="flex items-center gap-space-xs flex-wrap">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mr-1">
-                    Medidas:
-                  </span>
-                  {MEDIDAS_CONFIG.map((medida) => {
-                    const activa = medidaSeleccionada === medida.id;
-                    return (
-                      <button
-                        key={medida.id}
-                        type="button"
-                        onClick={() => setMedidaSeleccionada(activa ? '' : medida.id)}
-                        className={`min-h-[46px] px-space-md rounded-lg font-label-md text-label-md font-semibold flex items-center gap-1 transition-colors ${
-                          activa
-                            ? 'bg-primary/10 text-primary border border-primary/20'
-                            : 'bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant'
-                        }`}
-                      >
-                        <span>{medida.label}</span>
-                        {activa && <span className="material-symbols-outlined text-[16px]">done</span>}
-                      </button>
-                    );
-                  })}
-                  {medidaSeleccionada && (
-                    <button
-                      type="button"
-                      onClick={() => setMedidaSeleccionada('')}
-                      className="text-xs text-outline underline ml-1"
-                    >
-                      Todas
-                    </button>
-                  )}
-                </div>
-
-                {/* Riel táctil rápido de firmeza */}
-                <div className="flex items-center gap-space-xs flex-wrap">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mr-1">
-                    Firmeza:
-                  </span>
-                  {FIRMEZAS_CONFIG.map((firmeza) => {
-                    const activa = firmezaSeleccionada === firmeza.id;
-                    return (
-                      <button
-                        key={firmeza.id}
-                        type="button"
-                        onClick={() => setFirmezaSeleccionada(activa ? '' : firmeza.id)}
-                        className={`min-h-[46px] px-space-md rounded-lg font-label-md text-label-md transition-colors ${
-                          activa
-                            ? 'bg-surface-container-highest text-on-surface font-bold ring-1 ring-outline'
-                            : 'bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant'
-                        }`}
-                      >
-                        {firmeza.label}
-                      </button>
-                    );
-                  })}
-                  {firmezaSeleccionada && (
-                    <button
-                      type="button"
-                      onClick={() => setFirmezaSeleccionada('')}
-                      className="text-xs text-outline underline ml-1"
-                    >
-                      Todas
-                    </button>
-                  )}
-                </div>
-              </div>
             </div>
           </section>
 
           {/* CATÁLOGO DE PRODUCTOS: Cuadrícula Landscape Tablet 3 Columnas */}
           <section className="w-full px-margin py-space-md flex-1">
             <div className="max-w-[1240px] mx-auto">
-              {productosFiltrados.length === 0 ? (
+              {cargando ? (
+                <div className="catalogo-loader">
+                  <div className="loader" role="status" aria-label="Cargando productos" />
+                  <p>Cargando productos...</p>
+                </div>
+              ) : productosFiltrados.length === 0 ? (
                 <div className="bg-surface-container-lowest rounded-2xl p-6 sm:p-12 text-center flex flex-col items-center justify-center gap-4 my-8 shadow-sm">
                   <span className="material-symbols-outlined text-[64px] text-outline">search_off</span>
                   <h3 className="font-title-lg text-title-lg text-on-surface font-bold">
@@ -588,7 +600,7 @@ export default function Catalogo() {
                     return (
                       <article
                         key={producto.id}
-                        className="flex flex-col bg-surface-container-lowest rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden relative cursor-pointer"
+                        className="flex flex-col bg-surface-container-lowest rounded-[1.75rem] shadow-sm hover:shadow-md transition-all overflow-hidden relative cursor-pointer"
                         onClick={(event) => {
                           if (!event.target.closest('button, a')) {
                             navigate(`/productos/${producto.id}`);
@@ -596,9 +608,9 @@ export default function Catalogo() {
                         }}
                       >
                         {/* Contenedor de Imagen y Badges */}
-                        <div className="relative w-full aspect-[4/3] bg-surface-container overflow-hidden">
+                        <div className="relative w-full aspect-square bg-surface-container-lowest overflow-hidden m-3 mb-0 rounded-2xl" style={{ width: 'calc(100% - 1.5rem)' }}>
                           <img
-                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                            className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
                             alt={producto.nombre}
                             src={producto.imagen_url}
                             loading="lazy"
@@ -674,15 +686,15 @@ export default function Catalogo() {
                             <div className="flex items-center gap-1.5 mt-1">
                               <span
                                 className={`w-2 h-2 rounded-full ${
-                                  producto.stock > 5 ? 'bg-primary' : 'bg-secondary'
+                                  producto.stock > 0 ? (producto.stock > 5 ? 'bg-primary' : 'bg-secondary') : 'bg-error'
                                 }`}
                               ></span>
                               <span
                                 className={`font-label-sm text-label-sm font-medium ${
-                                  producto.stock > 5 ? 'text-primary' : 'text-on-surface-variant'
+                                  producto.stock > 0 ? (producto.stock > 5 ? 'text-primary' : 'text-on-surface-variant') : 'text-error font-bold'
                                 }`}
                               >
-                                {producto.stockLabel || `En stock (${producto.stock} disponibles)`}
+                                {producto.stock > 0 ? (producto.stockLabel || `En stock (${producto.stock} disponibles)`) : 'Agotado'}
                               </span>
                             </div>
                           </div>
@@ -718,6 +730,7 @@ export default function Catalogo() {
                               }`}
                               onClick={() => handleAgregar(producto)}
                               type="button"
+                              disabled={producto.stock <= 0}
                             >
                               <span className="material-symbols-outlined text-[22px]">
                                 {recienAgregado ? 'done' : 'add_shopping_cart'}
@@ -821,7 +834,7 @@ export default function Catalogo() {
               ¡Asesor TERRA Notificado!
             </h3>
             <p className="font-body-md text-body-md text-on-surface-variant">
-              Un especialista en descanso de la <strong>Sucursal Equipetrol</strong> se está acercando a tu <strong>Terminal Kiosco #02</strong> para asistirte con modelos, medidas y pruebas de firmeza.
+              Un especialista en descanso de la <strong>Sucursal 1central</strong> se está acercando a tu <strong>Terminal Kiosco #02</strong> para asistirte con modelos, medidas y pruebas de firmeza.
             </p>
             <div className="w-full bg-surface-container-low p-3 rounded-xl flex items-center justify-center gap-2 text-primary font-bold text-sm">
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>

@@ -6,12 +6,12 @@ export function CarritoProvider({ children }) {
   const [items, setItems] = useState([]);
 
   const agregarProducto = useCallback((producto, cantidad = 1) => {
-    const id = Number(producto?.id);
+    const id = String(producto?.id || '').trim();
     const precio = Number(producto?.precio);
     const stock = Number(producto?.stock);
     const unidades = Number(cantidad);
 
-    if (!Number.isSafeInteger(id) || id < 1 || !Number.isFinite(precio) ||
+    if (!id || !Number.isFinite(precio) ||
         !Number.isSafeInteger(unidades) || unidades < 1 ||
         !Number.isSafeInteger(stock) || stock < 1) return false;
 
@@ -34,14 +34,14 @@ export function CarritoProvider({ children }) {
   }, [items]);
 
   const quitarProducto = useCallback((id) => {
-    setItems((anterior) => anterior.filter((item) => item.id !== Number(id)));
+    setItems((anterior) => anterior.filter((item) => item.id !== String(id)));
   }, []);
 
   const actualizarCantidad = useCallback((id, cantidad) => {
     const n = Number(cantidad);
     if (!Number.isSafeInteger(n)) return;
     setItems((anterior) => anterior
-      .map((item) => item.id === Number(id)
+      .map((item) => item.id === String(id)
         ? { ...item, cantidad: Math.min(Math.max(0, n), item.stock) }
         : item)
       .filter((item) => item.cantidad > 0));

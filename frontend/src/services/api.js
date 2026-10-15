@@ -4,6 +4,13 @@ export const API_URL = (
 
 export const MODO_DEMO = import.meta.env.VITE_MODO_DEMO === 'true';
 
+// Conexión al chat de n8n (nodo "When chat message received").
+// La URL se define ÚNICAMENTE en public/config.js (window.TERRA_CONFIG),
+// que se carga en tiempo de ejecución y se puede editar en el despliegue sin recompilar.
+export const N8N_CHAT_URL = String(
+  (typeof window !== 'undefined' && window.TERRA_CONFIG?.N8N_CHAT_URL) || ''
+).trim().replace(/\/$/, '');
+
 export async function apiRequest(ruta, { method = 'GET', body, signal } = {}) {
   let respuesta;
   try {

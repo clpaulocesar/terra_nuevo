@@ -1,111 +1,90 @@
 /* Capa responsive transversal (cliente y backoffice). Se carga al final para
    ajustar detalles de las vistas en celular, tablet y escritorio sin alterar la paleta. */
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-img,svg,video{max-width:100%}
-img{height:auto}
-button,input,select,textarea{font-family:inherit}
-h1,h2,h3{overflow-wrap:anywhere}
+img{max-width:100%}
 
-/* ---------- Tablet (<= 1024px) ---------- */
-@media (max-width:1024px){
-  .page-content{padding:1.25rem 1rem 2rem}
-  .welcome-hero{min-height:0}
-  .welcome-copy{padding:clamp(1.5rem,3.5vw,2.5rem)}
-  .admin-content{padding:1.25rem}
+@media(max-width:1024px){
+  .site-header.terra-header{padding-inline:1rem}
+  .site-header.terra-header nav{gap:.25rem}
+  .site-header.terra-header nav a{font-size:.88rem;padding:.55rem .7rem}
+  .admin-content{padding:1rem!important}
+  .products-admin,.clients-admin,.dash,.orders{padding:.75rem!important}
 }
 
-/* ---------- Tablet vertical y celular grande (<= 900px) ---------- */
-@media (max-width:900px){
-  .welcome-copy{min-height:auto;gap:1.5rem}
-  .welcome-actions{margin-top:0}
-  .welcome-benefits{grid-template-columns:repeat(3,1fr)}
-  .welcome-benefits article{padding:1.15rem}
-  .cart-heading .cart-terminal{width:100%}
-  .detalle-info{padding:1.5rem}
-  .ident-layout{gap:1.25rem}
+@media(max-width:768px){
+  /* Cliente: navegación horizontal, disponible sin que los enlaces se corten. */
+  .site-header.terra-header{align-items:center;gap:.5rem;min-height:60px;overflow:hidden;padding:.5rem .75rem}
+  .site-header.terra-header .terra-logo{flex:0 0 auto}
+  .site-header.terra-header .terra-logo img{height:34px!important}
+  .site-header.terra-header .desktop-nav{display:flex;flex:1;gap:.2rem;justify-content:flex-start;min-width:0;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+  .site-header.terra-header .desktop-nav::-webkit-scrollbar{display:none}
+  .site-header.terra-header .desktop-nav a{flex:0 0 auto;font-size:.72rem;padding:.48rem .55rem}
+  .site-header.terra-header .terra-header-right{flex:0 0 auto;gap:.35rem}
+  .site-header.terra-header .terra-header-right .terra-cart-link{font-size:.72rem;padding:.48rem .55rem}
+  .site-header.terra-header .terra-header-right .terra-home-btn{width:2.1rem;height:2.1rem}
+  .page-content{padding:1rem .75rem!important}
+
+  /* Admin: Drawer deslizante fluido + Bottom nav para celular */
+  .admin-shell {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    min-height: 100dvh;
+  }
+  .admin-main-wrap {
+    min-width: 0;
+    width: 100%;
+  }
+  .admin-content {
+    padding: 0.85rem 0.85rem 4.75rem 0.85rem !important;
+  }
+  .admin-header-bar {
+    min-height: 56px !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+  .admin-header-left {
+    min-width: 0 !important;
+    gap: 0.35rem !important;
+  }
+  .admin-header-divider, .admin-kiosk-status-pill {
+    display: none !important;
+  }
+  .admin-breadcrumbs {
+    font-size: 13px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .catalogo-hero,.category-hero,.welcome-hero,.products-heading,.clients-heading,.orders-hero{align-items:flex-start!important;flex-direction:column!important}
+  .catalogo-toolbar,.products-toolbar,.clients-heading>div:last-child{max-width:100%;width:100%}
+  .catalogo-toolbar button,.products-toolbar button,.clients-heading>div:last-child button{flex:1}
+  .catalogo-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .orders-list>header{align-items:flex-start!important;flex-direction:column!important;gap:.75rem}
+  .orders-list>header label{width:100%}
 }
 
-/* ---------- Celular (<= 640px) ---------- */
-@media (max-width:640px){
-  .page-content{padding:0.85rem 0.85rem 5.5rem}
-  .welcome-retail{margin:0;padding:0 0 1rem}
-  .welcome-hero{border-radius:1.1rem}
-  .welcome-copy{padding:1.25rem}
-  .welcome-copy h1{font-size:clamp(2rem,9vw,2.6rem)}
-  .welcome-copy h2{font-size:1.05rem;margin:.75rem 0 .5rem}
-  .welcome-copy>div>p{font-size:.92rem}
-  .welcome-benefits{grid-template-columns:1fr}
-  .categorias-page{margin:0}
-  .categorias-intro{padding:1.15rem}
-  .categorias-intro h1{font-size:1.6rem}
-  .categoria-image{height:11rem}
-  .categoria-featured .categoria-image{height:13rem}
-  .categoria-image h2{font-size:1.1rem}
-  .cart-heading h1,.confirm-page h1,.ident-page h1{font-size:1.6rem}
-  .cart-notice,.confirm-notice{padding:.85rem}
-  .cart-list-card,.cart-summary,.confirm-card,.confirm-summary,.ident-card,.ident-keyboard,.detalle-info{padding:1rem}
-  .cart-item{gap:.7rem;padding:.65rem}
-  .cart-item-image{height:4rem;width:4rem}
-  .cart-item-info h3{font-size:1rem}
-  .cart-item>strong{font-size:.95rem}
-  .cart-summary-box p,.confirm-summary p{align-items:baseline;gap:.75rem}
-  .cart-total b,.confirm-total b{font-size:1.3rem;white-space:nowrap}
-  .cart-payments span{padding:.6rem .4rem}
-  .confirm-payment{flex-wrap:wrap}
-  .confirm-payment span{flex-basis:100%;margin:0 0 .25rem}
-  .ident-order b{font-size:1.15rem;white-space:nowrap}
-  .detalle-back{margin-bottom:1rem;padding:.7rem .85rem}
-  .detalle-price strong{font-size:1.5rem;white-space:nowrap}
-  .detalle-info h1{font-size:1.5rem}
-  .pedido-page{padding:1rem 0}
-  .pedido-ticket,.pedido-steps{padding:1.15rem}
-  .pedido-code{gap:.5rem}
-  .pedido-code svg{height:72px;width:72px}
-  .pedido-row{align-items:flex-start;flex-direction:column;gap:.15rem}
+@media(max-width:520px){
+  .site-header.terra-header{gap:.35rem;padding:.5rem .5rem}
+  .site-header.terra-header .desktop-nav{display:none}
+  .site-header.terra-header .terra-header-right{margin-left:auto}
+  .page-content{padding:.75rem .6rem!important}
+  h1{overflow-wrap:anywhere}
+  .catalogo-grid{grid-template-columns:1fr!important}
+  .catalogo-filters,.products-filters,.clients-filters{padding:.7rem!important}
+  .confirm-layout,.ident-layout,.cart-layout,.detalle-layout{gap:1rem!important}
+  .confirm-card,.confirm-summary,.cart-list-card,.cart-summary,.detalle-info{padding:1rem!important}
+  .pedido-row{align-items:flex-start;flex-direction:column;gap:.25rem}
   .pedido-row b{overflow-wrap:anywhere}
-  /* Catálogo: chips de medidas/firmeza en bloque y teclado compacto */
-  .catalogo-container .font-label-lg{font-size:15px}
-  .catalogo-container .font-price-card{font-size:19px;line-height:24px}
-  .catalogo-container .font-title-md{font-size:16px;line-height:22px}
-}
+  .products-modal,.orders-modal{padding:.5rem!important}
+  .products-modal>section,.orders-modal>section{max-height:calc(100dvh - 1rem);overflow:auto;padding:1rem!important}
+  .clients-toast,.products-toast,.orders-toast{bottom:.75rem!important;left:.75rem;right:.75rem}
 
-/* ---------- Celular pequeño (<= 420px) ---------- */
-@media (max-width:420px){
-  .page-content{padding:.75rem .65rem 5.5rem}
-  .cart-item{flex-wrap:wrap}
-  .cart-item-info{flex:1 1 calc(100% - 4.7rem)}
-  .cart-quantity{margin-left:0}
-  .cart-item>strong{margin-left:auto}
-  .keys button{font-size:.8rem;min-height:2.4rem}
-  .numkeys button{min-height:2.6rem}
-}
-
-/* Los modales del backoffice deben quedar por encima del encabezado fijo (z-index 30) y la barra inferior (60). */
-.admin-shell .products-modal,.admin-shell .orders-modal{z-index:120}
-.admin-shell .products-toast,.admin-shell .orders-toast,.admin-shell .clients-toast{z-index:125}
-
-/* ---------- Backoffice: celular (<= 768px) ---------- */
-@media (max-width:768px){
-  .admin-shell{min-height:100dvh}
-  .admin-main-wrap{min-width:0;width:100%}
-  .admin-content{padding:.85rem .85rem 5rem}
-  .dash,.orders,.products-admin,.clients-admin{padding:.25rem 0 0}
-}
-
-/* ---------- Backoffice: celular pequeño (<= 520px) ---------- */
-@media (max-width:520px){
-  .dash-kpis,.orders-metrics,.products-kpis,.clients-kpis{gap:.6rem}
-  .product-view-stats{grid-template-columns:1fr 1fr}
-  .product-view-stats article:last-child{grid-column:1/-1}
-  .products-modal>section,.product-create-modal>form{padding:1rem}
-  .clients-table{font-size:.74rem}
-  .clients-table th,.clients-table td{padding:.6rem .5rem}
-  .client-preview{padding:.85rem}
-  .client-actions{grid-template-columns:1fr 1fr}
-}
-
-/* ---------- Impresión del ticket ---------- */
-@media print{
-  .mobile-bottom-nav,.admin-mobile-bottom-nav{display:none!important}
+  /* Admin responsive: KPIs and grids */
+  .dash-kpis,.products-kpis,.orders-metrics,.clients-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .dash-grid,.clients-layout{grid-template-columns:1fr!important}
+  .product-form-grid{grid-template-columns:1fr!important}
+  .product-view-stats{grid-template-columns:1fr 1fr!important}
+  .orders-list>article{grid-template-columns:1fr 1fr!important;font-size:.72rem}
+  .clients-table{font-size:.72rem}
+  .clients-table th,.clients-table td{padding:.5rem .35rem!important}
 }

@@ -1,159 +1,60 @@
-
 import { randomUUID } from 'node:crypto';
 import { pool } from '../config/database.js';
 
-function crearError(mensaje, statusCode = 400) {
-  const error = new Error(mensaje);
-  error.statusCode = statusCode;
-  return error;
-}
+const aMonto = (minor) => Number(minor || 0) / 100;
 
 export async function crearPedidoBD(clienteId, items) {
   const conexion = await pool.connect();
-
   try {
     await conexion.query('BEGIN');
-
-    // Validar que el cliente exista, si fue indicado.
-    if (clienteId !== null) {
-      const cliente = await conexion.query(
-        'SELECT id FROM clientes WHERE id = $1',
-        [clienteId]
-      );
-
-      if (cliente.rowCount === 0) {
-        throw crearError('El cliente no existe', 404);
-      }
+    if (clienteId) {
+      const cliente = await conexion.query('SELECT id FROM customers WHERE id=$1', [clienteId]);
+      if (!cliente.rowCount) throw new Error('El cliente no existe en Supabase');
     }
-
-    const detalles = [];
-    let totalCentavos = 0;
-
-    // Consultar precios y stock desde PostgreSQL.
+    const detalles = []; let totalMinor = 0;
     for (const item of items) {
-      const resultado = await conexion.query(
-        `SELECT id, nombre, precio, stock
-         FROM productos
-         WHERE id = $1 AND activo = TRUE
-         FOR SHARE`,
-        [item.productoId]
-      );
-
-      if (resultado.rowCount === 0) {
-        throw crearError(
-          `Producto ${item.productoId} no encontrado`,
-          404
-        );
-      }
-
-      const producto = resultado.rows[0];
-
-      if (producto.stock < item.cantidad) {
-        throw crearError(
-          `Stock insuficiente para ${producto.nombre}`,
-          409
-        );
-      }
-
-      const precioCentavos = Math.round(
-        Number(producto.precio) * 100
-      );
-
-      const subtotalCentavos =
-        precioCentavos * item.cantidad;
-
-      totalCentavos += subtotalCentavos;
-
-      detalles.push({
-        productoId: producto.id,
-        nombre: producto.nombre,
-        cantidad: item.cantidad,
-        precioUnitario: producto.precio,
-        subtotal: (subtotalCentavos / 100).toFixed(2),
-      });
+      const producto = await conexion.query(
+        `SELECT p.id AS product_id, p.name, p.stock_quantity, v.id AS variant_id, v.sku,
+                COALESCE(v.price_minor, ROUND(COALESCE(p.public_price,0)*100)::bigint) AS price_minor
+         FROM products p LEFT JOIN product_variants v ON v.product_id=p.id AND v.is_active=TRUE
+         WHERE p.id=$1 AND COALESCE(p.activo,p.is_active,TRUE)=TRUE LIMIT 1`, [item.productoId]);
+      if (!producto.rowCount) throw new Error('Producto no encontrado o inactivo en Supabase');
+      const p = producto.rows[0];
+      if (Number(p.stock_quantity || 0) < item.cantidad) throw new Error(`Stock insuficiente para ${p.name}`);
+      const subtotalMinor = Number(p.price_minor) * item.cantidad;
+      totalMinor += subtotalMinor;
+      detalles.push({ variantId: p.variant_id, nombre: p.name, sku: p.sku, cantidad: item.cantidad, precioUnitario: aMonto(p.price_minor), subtotal: aMonto(subtotalMinor) });
     }
-
-    // Generar un código único para el pedido.
-    const codigo = `TER-${randomUUID()}`;
-
-    const nuevoPedido = await conexion.query(
-      `INSERT INTO pedidos
-         (codigo, cliente_id, total, estado)
-       VALUES ($1, $2, $3, 'pendiente_pago')
-       RETURNING id, codigo, cliente_id,
-                 total, estado, fecha`,
-      [
-        codigo,
-        clienteId,
-        (totalCentavos / 100).toFixed(2),
-      ]
-    );
-
-    const pedido = nuevoPedido.rows[0];
-
-    // Registrar el detalle de cada producto.
-    for (const detalle of detalles) {
-      await conexion.query(
-        `INSERT INTO pedido_detalles
-          (pedido_id, producto_id, cantidad,
-           precio_unitario, subtotal)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [
-          pedido.id,
-          detalle.productoId,
-          detalle.cantidad,
-          detalle.precioUnitario,
-          detalle.subtotal,
-        ]
-      );
+    const ticket = `TER-${randomUUID().slice(0, 8).toUpperCase()}`;
+    const nuevo = await conexion.query(
+      `INSERT INTO orders (customer_id,status,fulfillment_type,subtotal_minor,discount_minor,delivery_fee_minor,total_minor,currency,ticket_number)
+       VALUES ($1,'pending','store_pickup',$2,0,0,$2,'BOB',$3)
+       RETURNING id, ticket_number AS codigo, customer_id AS cliente_id, total_minor, status AS estado, created_at AS fecha`, [clienteId, totalMinor, ticket]);
+    for (const d of detalles) {
+      await conexion.query(`INSERT INTO order_items (order_id,product_variant_id,product_name,sku,quantity,unit_price_minor,discount_minor,total_minor,currency) VALUES ($1,$2,$3,$4,$5,$6,0,$7,'BOB')`, [nuevo.rows[0].id, d.variantId, d.nombre, d.sku, d.cantidad, Math.round(d.precioUnitario*100), Math.round(d.subtotal*100)]);
     }
-
     await conexion.query('COMMIT');
-
-    return {
-      ...pedido,
-      items: detalles,
-    };
-
-  } catch (error) {
-    await conexion.query('ROLLBACK');
-    throw error;
-  } finally {
-    conexion.release();
-  }
+    return { ...nuevo.rows[0], total: aMonto(nuevo.rows[0].total_minor), items: detalles };
+  } catch (error) { await conexion.query('ROLLBACK'); throw error; } finally { conexion.release(); }
 }
 
 export async function obtenerPedidoBD(id) {
-  const resultado = await pool.query(
-    `SELECT id, codigo, cliente_id,
-            total, estado, fecha
-     FROM pedidos
-     WHERE id = $1`,
-    [id]
-  );
+  const { rows } = await pool.query(`SELECT id,ticket_number AS codigo,customer_id AS cliente_id,total_minor,status AS estado,created_at AS fecha FROM orders WHERE id=$1`, [id]);
+  if (!rows[0]) return null;
+  const detalles = await pool.query(`SELECT product_variant_id AS "productoId",product_name AS nombre,quantity AS cantidad,unit_price_minor/100.0 AS "precioUnitario",total_minor/100.0 AS subtotal FROM order_items WHERE order_id=$1 ORDER BY created_at`, [id]);
+  return { ...rows[0], total: aMonto(rows[0].total_minor), items: detalles.rows };
+}
 
-  if (resultado.rowCount === 0) {
-    return null;
-  }
+export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 } = {}) {
+  const valores=[]; const condiciones=[];
+  if(buscar){valores.push(`%${buscar}%`);condiciones.push(`(o.ticket_number ILIKE $${valores.length} OR COALESCE(c.name,'') ILIKE $${valores.length})`);}
+  if(estado){valores.push(estado);condiciones.push(`o.status=$${valores.length}`);}
+  valores.push(limite); const where=condiciones.length?`WHERE ${condiciones.join(' AND ')}`:'';
+  const { rows } = await pool.query(`SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor/100.0 AS total,o.status AS estado,o.created_at AS fecha,COALESCE(c.name,'Compra como invitado') AS cliente,COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items FROM orders o LEFT JOIN customers c ON c.id=o.customer_id LEFT JOIN order_items i ON i.order_id=o.id ${where} GROUP BY o.id,c.name ORDER BY o.created_at DESC LIMIT $${valores.length}`, valores);
+  return rows;
+}
 
-  const pedido = resultado.rows[0];
-
-  const detalles = await pool.query(
-    `SELECT d.producto_id AS "productoId",
-            p.nombre,
-            d.cantidad,
-            d.precio_unitario AS "precioUnitario",
-            d.subtotal
-     FROM pedido_detalles d
-     INNER JOIN productos p
-       ON p.id = d.producto_id
-     WHERE d.pedido_id = $1
-     ORDER BY d.id`,
-    [id]
-  );
-
-  return {
-    ...pedido,
-    items: detalles.rows,
-  };
+export async function actualizarEstadoPedidoBD(id, estado) {
+  const { rows } = await pool.query(`UPDATE orders SET status=$1, updated_at=NOW() WHERE id=$2 RETURNING id`, [estado, id]);
+  return rows[0] ? obtenerPedidoBD(id) : null;
 }

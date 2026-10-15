@@ -1,34 +1,79 @@
 import 'dotenv/config';
 import { pool } from './database.js';
 
-async function migrateAndSeed() {
-  console.log('Iniciando migración y sincronización de datos reales...');
+export async function migrateAndSeed({ closePool = false } = {}) {
+  console.log('Iniciando migración y sincronización con Supabase / PostgreSQL...');
 
-  // 1. Alterar tabla productos si faltan columnas
+  // 1. Crear tablas necesarias si no existen (cada una individualmente para compatibilidad con PgBouncer/Supabase)
   await pool.query(`
-    ALTER TABLE productos
-      ADD COLUMN IF NOT EXISTS sku VARCHAR(60),
-      ADD COLUMN IF NOT EXISTS medida VARCHAR(100),
-      ADD COLUMN IF NOT EXISTS firmeza VARCHAR(50),
-      ADD COLUMN IF NOT EXISTS showroom INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS bodega INTEGER DEFAULT 0,
-      ADD COLUMN IF NOT EXISTS imagenes TEXT[],
-      ADD COLUMN IF NOT EXISTS promocion BOOLEAN DEFAULT FALSE,
-      ADD COLUMN IF NOT EXISTS descuento VARCHAR(30),
-      ADD COLUMN IF NOT EXISTS precio_original NUMERIC(12,2),
-      ADD COLUMN IF NOT EXISTS detalle VARCHAR(150);
+    CREATE TABLE IF NOT EXISTS clientes (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(120) NOT NULL,
+        telefono VARCHAR(30),
+        email VARCHAR(150),
+        fecha_registro TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
-  console.log('Columnas de base de datos actualizadas con éxito.');
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS productos (
+        id SERIAL PRIMARY KEY,
+        sku VARCHAR(60),
+        nombre VARCHAR(150) NOT NULL,
+        descripcion TEXT,
+        categoria VARCHAR(80) NOT NULL,
+        precio NUMERIC(12,2) NOT NULL CHECK (precio >= 0),
+        precio_original NUMERIC(12,2),
+        descuento VARCHAR(30),
+        promocion BOOLEAN DEFAULT FALSE,
+        stock INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
+        showroom INTEGER DEFAULT 0,
+        bodega INTEGER DEFAULT 0,
+        medida VARCHAR(100),
+        firmeza VARCHAR(50),
+        detalle VARCHAR(150),
+        imagen_url TEXT,
+        imagenes TEXT[],
+        activo BOOLEAN NOT NULL DEFAULT TRUE
+    );
+  `);
 
-  // 2. Limpiar productos demo antiguos (id 1 a 5 si eran los del schema.sql)
-  // o reemplazar con catálogo oficial TERRA
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS pedidos (
+        id BIGSERIAL PRIMARY KEY,
+        codigo VARCHAR(60) NOT NULL UNIQUE,
+        cliente_id INTEGER REFERENCES clientes(id),
+        total NUMERIC(12,2) NOT NULL CHECK (total >= 0),
+        estado VARCHAR(30) NOT NULL DEFAULT 'pendiente_pago',
+        fecha TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT chk_estado_pedido
+        CHECK (estado IN ('pendiente_pago', 'pagado', 'cancelado', 'entregado'))
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS pedido_detalles (
+        id BIGSERIAL PRIMARY KEY,
+        pedido_id BIGINT NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
+        producto_id INTEGER NOT NULL REFERENCES productos(id),
+        cantidad INTEGER NOT NULL CHECK (cantidad > 0),
+        precio_unitario NUMERIC(12,2) NOT NULL CHECK (precio_unitario >= 0),
+        subtotal NUMERIC(12,2) NOT NULL CHECK (subtotal >= 0)
+    );
+  `);
+
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_productos_categoria ON productos(categoria);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_pedidos_cliente ON pedidos(cliente_id);`);
+
+  console.log('Estructura de tablas verificada.');
+
+  // 2. Limpiar e inicializar productos
   await pool.query(`TRUNCATE TABLE pedido_detalles CASCADE;`);
   await pool.query(`TRUNCATE TABLE pedidos CASCADE;`);
   await pool.query(`TRUNCATE TABLE productos RESTART IDENTITY CASCADE;`);
 
-  // 3. Insertar productos reales TERRA
-  const productosReales = [
+  // 3. Catálogo oficial TERRA Showroom
+  const productosOficiales = [
     {
       sku: 'TRR-SOM-B160',
       nombre: 'Sommier Nórdico Bouclé Queen',
@@ -159,7 +204,7 @@ async function migrateAndSeed() {
     },
   ];
 
-  for (const prod of productosReales) {
+  for (const prod of productosOficiales) {
     await pool.query(
       `INSERT INTO productos 
         (sku, nombre, descripcion, categoria, precio, precio_original, descuento, promocion, 
@@ -188,13 +233,91 @@ async function migrateAndSeed() {
     );
   }
 
-  const { rows } = await pool.query('SELECT id, sku, nombre, precio, stock FROM productos');
-  console.log(`¡Éxito! Se sincronizaron ${rows.length} productos reales en PostgreSQL:`);
-  console.table(rows);
-  await pool.end();
+  // 4. Si la tabla products (catálogo importado Supabase) existe, sincronizarla también
+  try {
+    const productsRes = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name = 'products'
+      );
+    `);
+
+    if (productsRes.rows[0].exists) {
+      const { rows: supProds } = await pool.query(`
+        SELECT 
+          p.id,
+          COALESCE(p.codigo_terra, p.internal_code, 'TRR-' || SUBSTRING(p.id::text, 1, 6)) AS sku,
+          p.name AS nombre,
+          COALESCE(p.description, p.name || ' - ' || COALESCE(p.marca, 'TERRA')) AS descripcion,
+          COALESCE(c.name, p.product_group, 'Colchones') AS categoria,
+          COALESCE(p.public_price, 0) AS precio,
+          COALESCE(p.stock_quantity::integer, 10) AS stock,
+          p.size AS medida,
+          COALESCE(p.color, '') AS detalle,
+          p.imagen_url,
+          COALESCE(p.activo, p.is_active, true) AS activo
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.codigo_terra NOT IN ('DEMO-MAT-01', 'DEMO-CAM-02');
+      `);
+
+      function normalizarCategoria(cat) {
+        const c = (cat || '').trim().toUpperCase();
+        if (c === 'COLCHON' || c === 'COLCHONES') return 'Colchones';
+        if (c === 'SOMIER' || c === 'SOMMIERS') return 'Sommiers';
+        if (c === 'ESPALDAR' || c === 'ESPALDARES' || c === 'RESPALDO' || c === 'RESPALDOS') return 'Espaldares';
+        if (c === 'SET CAMA' || c === 'CAMA' || c === 'CAMAS') return 'Camas';
+        if (c === 'RECAMIER' || c === 'RECAMIERS') return 'Recamier';
+        if (c === 'LIVING') return 'Muebles';
+        if (c === 'ALMOHADAS' || c === 'ALMOHADA') return 'Almohadas';
+        if (c === 'ROPA DE CAMA') return 'Ropa de cama';
+        if (c === 'MUEBLES' || c === 'MUEBLE') return 'Muebles';
+        return cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : 'Varios';
+      }
+
+      for (const sp of supProds) {
+        await pool.query(
+          `INSERT INTO productos 
+            (sku, nombre, descripcion, categoria, precio, showroom, bodega, stock, medida, detalle, imagen_url, imagenes, activo)
+           VALUES 
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+          [
+            sp.sku,
+            sp.nombre,
+            sp.descripcion,
+            normalizarCategoria(sp.categoria),
+            Number(sp.precio) || 1000,
+            Math.floor((Number(sp.stock) || 10) / 2),
+            Math.ceil((Number(sp.stock) || 10) / 2),
+            Number(sp.stock) || 10,
+            sp.medida,
+            sp.detalle,
+            sp.imagen_url || null,
+            sp.imagen_url ? [sp.imagen_url] : [],
+            sp.activo,
+          ]
+        );
+      }
+      console.log(`Se sincronizaron ${supProds.length} productos adicionales desde tabla products.`);
+    }
+  } catch (err) {
+    console.warn('Nota: sincronización adicional de products omitida:', err.message);
+  }
+
+  const { rows } = await pool.query('SELECT COUNT(*) AS total FROM productos');
+  console.log(`¡Éxito! Total de productos en tabla productos: ${rows[0].total}`);
+
+  if (closePool) {
+    await pool.end();
+  }
+
+  return { total: Number(rows[0].total) };
 }
 
-migrateAndSeed().catch((err) => {
-  console.error('Error durante migración y seed:', err);
-  process.exit(1);
-});
+// Si se ejecuta directamente desde node
+if (process.argv[1] && process.argv[1].replace(/\\/g, '/').includes('migrate_seed.js')) {
+  migrateAndSeed({ closePool: true }).catch((err) => {
+    console.error('Error durante migración y seed:', err);
+    process.exit(1);
+  });
+}

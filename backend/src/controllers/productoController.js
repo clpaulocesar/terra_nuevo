@@ -6,6 +6,20 @@ import {
   actualizarStockBD,
   eliminarProductoBD,
 } from '../models/productoModel.js';
+import { migrateAndSeed } from '../config/migrate_seed.js';
+
+export async function seedProductos(req, res, next) {
+  try {
+    const resultado = await migrateAndSeed({ closePool: false });
+    return res.json({
+      success: true,
+      mensaje: 'Base de datos sincronizada con éxito en Supabase',
+      total: resultado.total,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 
 export async function listarProductos(req, res, next) {
   try {
@@ -51,9 +65,9 @@ export async function listarProductos(req, res, next) {
 
 export async function obtenerProducto(req, res, next) {
   try {
-    const id = Number(req.params.id);
+    const id = String(req.params.id || '').trim();
 
-    if (!Number.isSafeInteger(id) || id < 1) {
+    if (!id) {
       return res.status(400).json({
         success: false,
         mensaje: 'ID de producto inválido',
@@ -101,8 +115,8 @@ export async function crearProducto(req, res, next) {
 
 export async function actualizarProducto(req, res, next) {
   try {
-    const id = Number(req.params.id);
-    if (!Number.isSafeInteger(id) || id < 1) {
+    const id = String(req.params.id || '').trim();
+    if (!id) {
       return res.status(400).json({
         success: false,
         mensaje: 'ID de producto inválido',
@@ -129,7 +143,7 @@ export async function actualizarProducto(req, res, next) {
 
 export async function actualizarStock(req, res, next) {
   try {
-    const id = Number(req.params.id);
+    const id = String(req.params.id || '').trim();
     const { showroom, bodega } = req.body;
 
     const actualizado = await actualizarStockBD(id, { showroom, bodega });
@@ -152,7 +166,7 @@ export async function actualizarStock(req, res, next) {
 
 export async function eliminarProducto(req, res, next) {
   try {
-    const id = Number(req.params.id);
+    const id = String(req.params.id || '').trim();
     const eliminado = await eliminarProductoBD(id);
     if (!eliminado) {
       return res.status(404).json({

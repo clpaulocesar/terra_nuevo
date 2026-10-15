@@ -1,9 +1,9 @@
-
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 
 import productoRoutes from './routes/productoRoutes.js';
+import categoriaRoutes from './routes/categoriaRoutes.js';
 import pedidoRoutes from './routes/pedidoRoutes.js';
 import clienteRoutes from './routes/clienteRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
@@ -17,34 +17,128 @@ import {
 
 const app = express();
 
-// Permitir conexión desde React.
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  })
-);
+// Permitir conexiones cross-origin (incluyendo frontend en Vercel y local)
+app.use(cors());
 
-// Permitir recibir JSON.
-app.use(express.json({ limit: '50kb' }));
+// Permitir recibir JSON (límite alto para fotos en base64 desde el admin).
+app.use(express.json({ limit: '12mb' }));
 
-// Ruta principal.
+// Ruta principal requerida por la especificación
 app.get('/', (req, res) => {
   res.json({
-    success: true,
-    aplicacion: 'TERRA AUTOSERVICIO',
-    mensaje: 'API funcionando correctamente',
-    version: '1.0.0',
+    service: 'TERRA Centralized Products API',
+    status: 'online',
+    endpoints: {
+      productos: '/api/productos',
+      seed: '/api/productos/seed',
+      docs: '/docs',
+      openapi: '/openapi',
+    },
   });
 });
 
-// Verificar conexión con PostgreSQL.
+// Especificación OpenAPI 3.0
+app.get('/openapi', (req, res) => {
+  res.json({
+    openapi: '3.0.0',
+    info: {
+      title: 'TERRA Centralized Products API',
+      version: '1.0.0',
+      description: 'API centralizada de productos y autoservicio TERRA conectada a Supabase PostgreSQL.',
+    },
+    paths: {
+      '/': {
+        get: {
+          summary: 'Estado y endpoints del servicio',
+          responses: { 200: { description: 'Información del servicio' } },
+        },
+      },
+      '/api/productos': {
+        get: {
+          summary: 'Listar productos',
+          parameters: [
+            { name: 'buscar', in: 'query', schema: { type: 'string' } },
+            { name: 'categoria', in: 'query', schema: { type: 'string' } },
+            { name: 'pagina', in: 'query', schema: { type: 'integer', default: 1 } },
+            { name: 'limite', in: 'query', schema: { type: 'integer', default: 100 } },
+            { name: 'todos', in: 'query', schema: { type: 'boolean', default: false } },
+          ],
+          responses: { 200: { description: 'Lista de productos paginada' } },
+        },
+        post: {
+          summary: 'Crear nuevo producto',
+          responses: { 201: { description: 'Producto creado' } },
+        },
+      },
+      '/api/productos/seed': {
+        get: {
+          summary: 'Sincronizar y sembrar catálogo TERRA en Supabase',
+          responses: { 200: { description: 'Catálogo sincronizado' } },
+        },
+        post: {
+          summary: 'Sincronizar y sembrar catálogo TERRA en Supabase',
+          responses: { 200: { description: 'Catálogo sincronizado' } },
+        },
+      },
+      '/api/productos/{id}': {
+        get: { summary: 'Obtener detalle de un producto por ID' },
+        put: { summary: 'Actualizar producto' },
+        delete: { summary: 'Desactivar producto' },
+      },
+      '/api/productos/{id}/stock': {
+        patch: { summary: 'Actualizar stock (showroom y bodega)' },
+      },
+      '/api/pedidos': {
+        post: { summary: 'Crear un nuevo pedido' },
+      },
+      '/api/clientes': {
+        post: { summary: 'Registrar o buscar cliente' },
+      },
+      '/api/health': {
+        get: { summary: 'Verificar salud y conexión a Supabase' },
+      },
+    },
+  });
+});
+
+// Documentación Swagger UI
+app.get('/docs', (req, res) => {
+  res.type('html').send(`<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TERRA Centralized Products API - Docs</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    body { margin: 0; padding: 0; background: #fafafa; font-family: sans-serif; }
+    .topbar { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    window.onload = () => {
+      SwaggerUIBundle({
+        url: '/openapi',
+        dom_id: '#swagger-ui',
+        presets: [SwaggerUIBundle.presets.apis],
+      });
+    };
+  </script>
+</body>
+</html>`);
+});
+
+// Verificar conexión con Supabase / PostgreSQL.
 app.get('/api/health', async (req, res, next) => {
   try {
     const conexion = await verificarConexion();
-
     res.json({
       success: true,
-      mensaje: 'Servidor y base de datos funcionando',
+      mensaje: 'Servidor y base de datos Supabase funcionando',
+      baseDeDatos: conexion.db,
       fecha: conexion.fecha,
     });
   } catch (error) {
@@ -54,6 +148,7 @@ app.get('/api/health', async (req, res, next) => {
 
 // Registrar rutas.
 app.use('/api/productos', productoRoutes);
+app.use('/api/categorias', categoriaRoutes);
 app.use('/api/pedidos', pedidoRoutes);
 app.use('/api/clientes', clienteRoutes);
 app.use('/api/admin', adminRoutes);
