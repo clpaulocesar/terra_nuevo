@@ -1,19 +1,82 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BedDouble, CreditCard, Grid2X2, Package, QrCode, ShieldCheck, ShoppingBag, Stars, Touchpad } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, CreditCard, ShieldCheck, ShoppingBag, Sofa, Truck } from 'lucide-react';
 import './Bienvenida.css';
 
-const beneficios = [
-  { icono: BedDouble, titulo: 'Probá en tienda', texto: 'Sentí la firmeza y adaptabilidad de cada modelo en nuestro showroom de Equipetrol.', pie: 'Test de firmeza libre', detalle: Touchpad },
-  { icono: ShieldCheck, titulo: 'Garantía oficial de 10 años', texto: 'Respaldo TERRA certificado, con control de calidad y soporte para tu descanso.', pie: 'Calidad certificada', detalle: ShieldCheck },
-  { icono: CreditCard, titulo: 'Pago ágil en caja', texto: 'Armá tu orden en pantalla y pagá al instante con efectivo, QR Simple o tarjeta.', pie: 'Ticket instantáneo', detalle: QrCode },
+const garantias = [
+  { icono: Truck, texto: 'Pedido en Línea' },
+  { icono: ShieldCheck, texto: 'Garantía oficial de 10 años' },
+  { icono: CreditCard, texto: 'Pago seguro en caja' },
+];
+
+const fotosPoltronas = [
+  { src: '/images/inicio/poltrona1.jpeg', alt: 'Poltrona TERRA modelo 1' },
+  { src: '/images/inicio/poltrona2.jpeg', alt: 'Poltrona TERRA modelo 2' },
+  { src: '/images/inicio/poltrona3.jpeg', alt: 'Poltrona TERRA modelo 3' },
 ];
 
 export default function Bienvenida() {
+  const [indice, setIndice] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndice((i) => (i + 1) % fotosPoltronas.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const anterior = () => setIndice((i) => (i - 1 + fotosPoltronas.length) % fotosPoltronas.length);
+  const siguiente = () => setIndice((i) => (i + 1) % fotosPoltronas.length);
+
   return <div className="welcome-retail">
     <section className="welcome-hero">
-      <div className="welcome-copy"><div><h1>Bienvenido a <span>TiERRA</span></h1><h2>Encontrá la tecnología y el confort ideal para tu descanso.</h2><p>Explorá colchones con resortes Pocket, sommiers tapizados y accesorios ergonómicos. Compará medidas y emití tu orden en segundos.</p></div><div className="welcome-actions"><Link to="/catalogo" className="welcome-buy"><span><ShoppingBag size={23}/></span><div><b>Comenzar compra</b><small>Ver catálogo completo</small></div><ArrowRight size={22}/></Link><Link to="/categorias" className="welcome-categories"><span><Grid2X2 size={23}/></span><div><b>Explorar por categorías</b><small>Colchones, sommiers y linos</small></div><Package size={20}/></Link></div></div>
-      <div className="welcome-image"><img src="https://res.cloudinary.com/dctrmbmh4/image/upload/v1792006789/WhatsApp_Image_2026-10-14_at_3.39.17_PM_avpzz5.jpg" alt="Dormitorio contemporáneo TERRA"/><aside><span><Stars size={14}/> Destacado</span><b>Colchón Pocket Supreme</b><p>Resortes ensacados + espuma HR</p><footer><small>Desde</small><strong>Bs 4.890</strong><Link to="/catalogo">Probar aquí <ArrowRight size={14}/></Link></footer></aside></div>
+      <div className="welcome-copy">
+        <p className="welcome-eyebrow">Muebles para cada espacio</p>
+        <h1>Bienvenido a <span>TERRA</span></h1>
+        <p>Tu hogar merece lo mejor. Encuentra los muebles ideales para cada espacio, con la calidad y el confort que estás buscando.</p>
+        <div className="welcome-actions">
+          <Link to="/catalogo" className="welcome-cta">
+            <span><ShoppingBag size={23} /></span>
+            <div><b>Comenzar compra</b><small>Ver catálogo completo</small></div>
+            <ArrowRight size={22} />
+          </Link>
+        </div>
+      </div>
+      <div className="welcome-photo">
+        {fotosPoltronas.map((foto, i) => (
+          <img
+            key={foto.src}
+            src={foto.src}
+            alt={foto.alt}
+            className={i === indice ? 'activa' : ''}
+          />
+        ))}
+        <button className="carousel-btn anterior" type="button" onClick={anterior} aria-label="Foto anterior">
+          <ChevronLeft size={22} />
+        </button>
+        <button className="carousel-btn siguiente" type="button" onClick={siguiente} aria-label="Foto siguiente">
+          <ChevronRight size={22} />
+        </button>
+        <div className="carousel-dots">
+          {fotosPoltronas.map((foto, i) => (
+            <button
+              key={foto.src}
+              type="button"
+              className={i === indice ? 'activo' : ''}
+              onClick={() => setIndice(i)}
+              aria-label={`Ver ${foto.alt}`}
+            />
+          ))}
+        </div>
+        <aside className="welcome-spot">
+          <span><Sofa size={14} /> Poltronas</span>
+          <b>Poltronas y Livings</b>
+          <footer><Link to="/catalogo?buscar=living">Probar aquí <ArrowRight size={14} /></Link></footer>
+        </aside>
+      </div>
     </section>
-    <section className="welcome-benefits">{beneficios.map(({ icono: Icono, detalle: Detalle, titulo, texto, pie }) => <article key={titulo}><span className="welcome-benefit-icon"><Icono size={28}/></span><h2>{titulo}</h2><p>{texto}</p><footer><b>{pie}</b><Detalle size={18}/></footer></article>)}</section>
+    <section className="welcome-trust">
+      {garantias.map(({ icono: Icono, texto }) => <article key={texto}><Icono size={26} /><p>{texto}</p></article>)}
+    </section>
   </div>;
 }
