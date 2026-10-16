@@ -7,6 +7,18 @@ export async function buscarProductosChat(req, res, next) {
     const productos = await buscarProductosChatBD(termino);
     return res.json({ success: true, termino, total: productos.length, data: productos });
   } catch (error) {
+    if (error.code === '42P01') {
+      return res.status(503).json({
+        success: false,
+        mensaje: 'No existe la vista public.v_productos_chat en Supabase. Debe crearse antes de usar el asistente.',
+      });
+    }
+    if (error.code === '42703') {
+      return res.status(503).json({
+        success: false,
+        mensaje: 'La vista v_productos_chat no tiene las columnas esperadas: nombre, categoría, palabras_clave, medida y precio_venta.',
+      });
+    }
     next(error);
   }
 }
