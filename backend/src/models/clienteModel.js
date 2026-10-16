@@ -25,6 +25,22 @@ export async function obtenerClienteBD(id) {
   return rows[0] || null;
 }
 
+export async function eliminarClienteBD(id) {
+  await asegurarColumnaNit();
+  const ventas = await pool.query('SELECT COUNT(*)::int AS total FROM orders WHERE customer_id=$1', [id]);
+  if (ventas.rows[0].total > 0) {
+    const error = new Error('No se puede eliminar un cliente que tiene pedidos registrados. Así se conserva el historial de ventas.');
+    error.code = 'CLIENTE_CON_PEDIDOS';
+    throw error;
+  }
+
+  const { rows } = await pool.query(
+    'DELETE FROM customers WHERE id=$1 RETURNING id, name AS nombre',
+    [id]
+  );
+  return rows[0] || null;
+}
+
 export async function listarClientesBD({ buscar = '', limite = 100 } = {}) {
   await asegurarColumnaNit();
   const { rows } = await pool.query(

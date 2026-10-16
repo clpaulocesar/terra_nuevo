@@ -12,6 +12,40 @@ const FIRMEZAS_CONFIG = [
   { id: 'Firme Ortopédica', label: 'Firme Ortopédica' },
 ];
 
+// Los colores llegan desde Supabase como textos JSON (o desde registros antiguos
+// como "Nombre|#hex"). El catálogo nunca inventa tonos que el administrador no
+// haya registrado para el producto.
+function obtenerColoresDisponibles(producto) {
+  const registros = Array.isArray(producto?.colores) ? producto.colores : [];
+
+  return registros
+    .map((registro, indice) => {
+      if (registro && typeof registro === 'object') {
+        return {
+          id: registro.id || `${registro.nombre || 'color'}-${indice}`,
+          nombre: registro.nombre || 'Color disponible',
+          valor: registro.valor || registro.hex || '',
+        };
+      }
+
+      const texto = String(registro || '').trim();
+      if (!texto) return null;
+
+      try {
+        const color = JSON.parse(texto);
+        return {
+          id: color.id || `${color.nombre || 'color'}-${indice}`,
+          nombre: color.nombre || 'Color disponible',
+          valor: color.valor || color.hex || '',
+        };
+      } catch {
+        const [nombre, valor] = texto.split('|');
+        return { id: `${nombre || 'color'}-${indice}`, nombre: nombre || 'Color disponible', valor: valor || '' };
+      }
+    })
+    .filter((color) => color && /^#[0-9a-f]{3,8}$/i.test(color.valor));
+}
+
 export default function Catalogo() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -495,6 +529,7 @@ export default function Catalogo() {
                 <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
                   {productosFiltrados.map((producto) => {
                     const recienAgregado = Boolean(agregados[producto.id]);
+                    const coloresDisponibles = obtenerColoresDisponibles(producto);
 
                     return (
                       <article
@@ -589,9 +624,24 @@ export default function Catalogo() {
 
                             <p className="catalog-product-description">{producto.descripcion || ''}</p>
 
-                            <div className="catalog-product-colors" aria-label="Colores disponibles">
-                              <i /><i /><i /><i /><i /><span>+6 tonos</span>
-                            </div>
+                            {coloresDisponibles.length > 0 ? (
+                              <div
+                                className="catalog-product-colors"
+                                aria-label={`Colores disponibles: ${coloresDisponibles.map((color) => color.nombre).join(', ')}`}
+                              >
+                                {coloresDisponibles.slice(0, 5).map((color) => (
+                                  <i
+                                    key={color.id}
+                                    title={color.nombre}
+                                    aria-label={color.nombre}
+                                    style={{ backgroundColor: color.valor }}
+                                  />
+                                ))}
+                                {coloresDisponibles.length > 5 && <span>+{coloresDisponibles.length - 5} tonos</span>}
+                              </div>
+                            ) : (
+                              <small className="catalog-product-no-colors">Colores por confirmar</small>
+                            )}
                           </div>
 
                           {/* Precio y Botón Táctil de Agregar */}

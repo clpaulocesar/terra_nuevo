@@ -15,11 +15,12 @@ export default function Confirmacion() {
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
   const [pedidoGenerado, setPedidoGenerado] = useState(null);
+  const [clienteTicket, setClienteTicket] = useState(null);
   const enviando = useRef(false);
   const clienteId = useRef(null);
 
   // Tiene prioridad sobre el carrito vacío luego de completar la compra.
-  if (pedidoGenerado) return <Navigate to="/pedido" replace state={{ pedido: pedidoGenerado, cliente, items }} />;
+  if (pedidoGenerado) return <Navigate to="/pedido" replace state={{ pedido: pedidoGenerado, cliente: clienteTicket, items }} />;
   if (!items.length) return <Navigate to="/carrito" replace />;
 
   const confirmar = async () => {
@@ -30,6 +31,8 @@ export default function Confirmacion() {
     setError('');
 
     try {
+      // Conserva los datos de facturación antes de limpiar el kiosco compartido.
+      const datosClienteTicket = { ...cliente };
       let id = null;
       if (cliente.nombre) {
         clienteId.current ??= await crearCliente(cliente);
@@ -42,8 +45,9 @@ export default function Confirmacion() {
       });
 
       // Descarga automática directa del ticket sin abrir otra ventana
-      descargarTicket(pedido, cliente, items);
+      descargarTicket(pedido, datosClienteTicket, items);
 
+      setClienteTicket(datosClienteTicket);
       setPedidoGenerado(pedido);
       vaciarCarrito();
       limpiarCliente();

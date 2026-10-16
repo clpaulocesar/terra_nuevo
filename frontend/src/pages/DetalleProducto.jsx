@@ -70,7 +70,14 @@ export default function DetalleProducto() {
     setColor(opcion);
     const fotoDelColor = opcion.imagenes?.[0];
     const indice = fotos.indexOf(fotoDelColor);
-    if (indice >= 0) setFoto(video ? indice + 1 : indice);
+    if (indice >= 0) {
+      setFoto(video ? indice + 1 : indice);
+      return;
+    }
+    // Compatibilidad con productos registrados antes de vincular fotos por color.
+    // Usa el orden de la galería hasta que el administrador haga la asociación explícita.
+    const indiceColor = coloresProducto.findIndex((item) => (item.id || item.valor) === (opcion.id || opcion.valor));
+    if (indiceColor >= 0 && fotos.length) setFoto(video ? Math.min(indiceColor + 1, fotos.length) : Math.min(indiceColor, fotos.length - 1));
   };
   const seleccionarFoto = (indice) => {
     const fuente = fotos[indice];
