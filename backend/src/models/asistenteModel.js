@@ -2,12 +2,12 @@ import { pool } from '../config/database.js';
 
 // El asistente consulta directamente la tabla `products` (con su categoría).
 // No usamos la vista `public.v_productos_chat`: no existe en Supabase y no se crea.
+// El payload no expone `id` ni `stock`: al cliente no le interesan cuando consulta.
 export async function buscarProductosChatBD(termino = '') {
   const texto = String(termino || '').trim().slice(0, 120);
   const { rows } = await pool.query(
     `WITH base AS (
        SELECT
-         p.id,
          p.name AS nombre,
          COALESCE(c.name, p.product_group, 'General') AS categoria,
          p.marca,
@@ -15,7 +15,6 @@ export async function buscarProductosChatBD(termino = '') {
          p.color,
          COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku,
          COALESCE(p.public_price, 0) AS precio_venta,
-         COALESCE(p.stock_quantity, 0)::integer AS stock,
          p.description AS descripcion,
          p.imagen_url,
          TRIM(CONCAT_WS(' ', p.name, p.marca, p.product_group, c.name, p.color, p.size,
@@ -32,10 +31,10 @@ export async function buscarProductosChatBD(termino = '') {
          AND translate(lower(busqueda), 'áéíóúüñ', 'aeiouun')
              ILIKE '%' || translate(lower($1), 'áéíóúüñ', 'aeiouun') || '%'
      )
-     SELECT id, nombre, categoria, marca, medida, color, sku, precio_venta, stock, descripcion, imagen_url, palabras_clave
+     SELECT nombre, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
      FROM filtrados
      UNION ALL
-     SELECT id, nombre, categoria, marca, medida, color, sku, precio_venta, stock, descripcion, imagen_url, palabras_clave
+     SELECT nombre, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
      FROM base
      WHERE NOT EXISTS (SELECT 1 FROM filtrados)
      ORDER BY precio_venta
