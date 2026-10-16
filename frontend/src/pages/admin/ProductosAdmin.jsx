@@ -3,6 +3,7 @@ import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, Ima
 import { listarProductos, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
 import { mediaDeVideo } from '../../utils/videoEmbed.js';
 import { subirImagenProducto } from '../../services/storageService.js';
+import { avisoEliminado, avisoError, avisoExito, confirmarEliminacion } from '../../utils/alertas.js';
 import './Admin.css';
 import './ProductosAdmin.css';
 import './AdminViewsColorFix.css';
@@ -417,9 +418,9 @@ export default function ProductosAdmin() {
       setColorImagenNuevo('');
       setNombreColorNuevo('');
       setCategoria('Todos');
-      avisar(`Producto ${payload.sku} guardado exitosamente en base de datos.`);
+      await avisoExito({ titulo: '¡Producto creado!', texto: `${payload.nombre || payload.sku} se guardó correctamente en la base de datos.` });
     } catch (err) {
-      avisar(`Error al registrar en servidor: ${err.message}`);
+      await avisoError(`Error al registrar en servidor: ${err.message}`);
     }
   };
 
@@ -539,22 +540,26 @@ export default function ProductosAdmin() {
       };
       setProductos(lista => lista.map(item => item.id === editarProducto.id ? formateado : item));
       setEditarProducto(null);
-      avisar(`Producto ${payload.sku} actualizado en la base de datos real.`);
+      await avisoExito({ titulo: '¡Producto actualizado!', texto: `${payload.nombre || payload.sku} se actualizó en la base de datos.` });
     } catch (err) {
-      avisar(`Error al actualizar en servidor: ${err.message}`);
+      await avisoError(`Error al actualizar en servidor: ${err.message}`);
     }
   };
 
   const borrarProducto = async producto => {
-    if (!window.confirm(`¿Eliminar "${producto.nombre}" del catálogo?`)) return;
+    const confirmado = await confirmarEliminacion({
+      titulo: `¿Eliminar "${producto.nombre}"?`,
+      texto: 'Se borrará del catálogo y de la base de datos. No podrás revertir esta acción.',
+    });
+    if (!confirmado) return;
     try {
       await eliminarProducto(producto.id);
       setProductos(lista => lista.filter(item => item.id !== producto.id));
       if (vistaProducto?.id === producto.id) setVistaProducto(null);
       if (editarProducto?.id === producto.id) setEditarProducto(null);
-      avisar(`Producto ${producto.sku} eliminado.`);
+      await avisoEliminado(`Producto ${producto.sku} eliminado.`);
     } catch (err) {
-      avisar(`No se pudo eliminar el producto: ${err.message}`);
+      await avisoError(`No se pudo eliminar el producto: ${err.message}`);
     }
   };
 

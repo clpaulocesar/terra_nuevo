@@ -4,13 +4,19 @@ function nombreValido(valor) {
   return String(valor ?? '').trim().replace(/\s+/g, ' ');
 }
 
+function slugificar(valor) {
+  return String(valor ?? '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'categoria';
+}
+
 export async function crearCategoria(req, res, next) {
   try {
     const nombre = nombreValido(req.body?.nombre);
     if (!nombre) return res.status(400).json({ success: false, mensaje: 'El nombre de la categoría es obligatorio.' });
     const { rows } = await pool.query(
-      `INSERT INTO categories (name, is_active) VALUES ($1, TRUE) RETURNING id, name AS nombre, is_active AS activo`,
-      [nombre]
+      `INSERT INTO categories (name, slug, is_active) VALUES ($1, $2, TRUE) RETURNING id, name AS nombre, is_active AS activo`,
+      [nombre, `${slugificar(nombre)}-${Date.now()}`]
     );
     return res.status(201).json({ success: true, data: rows[0] });
   } catch (error) {

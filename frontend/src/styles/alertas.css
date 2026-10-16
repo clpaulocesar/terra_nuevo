@@ -1,0 +1,83 @@
+/* Estilos de SweetAlert2 adaptados a la identidad de TERRA Autoservicio */
+.swal2-container.terra-swal-container {
+  font-family: 'Manrope', Arial, sans-serif;
+}
+
+.swal2-popup.terra-swal {
+  border-radius: 1.4rem;
+  box-shadow: 0 24px 60px rgba(18, 24, 32, 0.22);
+  padding: 2rem 1.7rem 1.6rem;
+  width: 30rem;
+}
+
+.terra-swal .swal2-icon {
+  margin: 0 auto 1.1rem;
+}
+
+.terra-swal .swal2-title {
+  color: #121820;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  padding: 0 0.5rem;
+}
+
+.terra-swal .swal2-html-container,
+.terra-swal .swal2-content {
+  color: #57534e;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin: 0.6rem 0 0;
+  padding: 0 0.5rem;
+}
+
+.terra-swal .swal2-actions {
+  gap: 0.7rem;
+  margin: 1.4rem 0 0;
+  width: 100%;
+}
+
+/* Botón base (buttonsStyling: false) */
+.terra-swal .btn {
+  align-items: center;
+  border: 0;
+  border-radius: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  font: 800 0.92rem 'Manrope', Arial, sans-serif;
+  justify-content: center;
+  min-height: 2.95rem;
+  padding: 0.7rem 1.4rem;
+  transition: background 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.terra-swal .btn:active {
+  transform: translateY(1px);
+}
+
+.terra-swal .btn:focus-visible {
+  outline: 3px solid rgba(166, 25, 46, 0.35);
+  outline-offset: 2px;
+}
+
+/* Confirmar (acción destructiva) -> rojo de marca */
+.terra-swal .btn-success {
+  background: #a6192e;
+  box-shadow: 0 8px 18px rgba(166, 25, 46, 0.28);
+  color: #fff;
+}
+
+.terra-swal .btn-success:hover {
+  background: #8e1527;
+}
+
+/* Cancelar -> neutro */
+.terra-swal .btn-danger {
+  background: #e4e2e1;
+  color: #404944;
+}
+
+.terra-swal .btn-danger:hover {
+  background: #d6d3d1;
+}

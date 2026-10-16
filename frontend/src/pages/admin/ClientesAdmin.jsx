@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Eye, MessageCircle, Search, Trash2, Users, X } from 'lucide-react';
 import { eliminarCliente, listarClientes } from '../../services/clienteService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
+import { avisoAviso, avisoEliminado, avisoError, confirmarEliminacion } from '../../utils/alertas.js';
 import './Admin.css';
 import './ClientesAdmin.css';
 import './AdminViewsColorFix.css';
@@ -24,18 +25,26 @@ export default function ClientesAdmin() {
 
   const borrarCliente = async (cliente) => {
     if (cliente.compras > 0) {
-      setError('No se puede eliminar este cliente porque tiene pedidos registrados. El historial de ventas se conserva.');
+      await avisoAviso({
+        titulo: 'No se puede eliminar',
+        texto: 'Este cliente tiene pedidos registrados. El historial de ventas se conserva.',
+      });
       return;
     }
-    if (!window.confirm(`¿Eliminar a ${cliente.nombre}? Esta acción no se puede deshacer.`)) return;
+    const confirmado = await confirmarEliminacion({
+      titulo: `¿Eliminar a ${cliente.nombre}?`,
+      texto: 'Se borrará de la base de datos. No podrás revertir esta acción.',
+    });
+    if (!confirmado) return;
 
     setEliminando(cliente.id);
     setError('');
     try {
       await eliminarCliente(cliente.id);
       setClientes((actuales) => actuales.filter((item) => item.id !== cliente.id));
+      await avisoEliminado(`Cliente ${cliente.nombre} eliminado.`);
     } catch (err) {
-      setError(err.message || 'No se pudo eliminar el cliente.');
+      await avisoError(err.message || 'No se pudo eliminar el cliente.');
     } finally {
       setEliminando(null);
     }
