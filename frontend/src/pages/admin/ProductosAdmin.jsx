@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Plus, Search, SlidersHorizontal, Star, Store, Trash2, Truck, Warehouse, X } from 'lucide-react';
 import { listarProductos, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
-import { archivoADataURL } from '../../utils/imagenes.js';
 import './Admin.css';
 import './ProductosAdmin.css';
 import './AdminViewsColorFix.css';
@@ -215,19 +214,15 @@ export default function ProductosAdmin() {
     }
   };
 
-  // Manejo de imágenes en Nuevo Producto (archivos reales, no vistas temporales)
-  const agregarImagenesNuevoArchivos = async event => {
+  // Manejo de imágenes en Nuevo Producto (igual que el original:
+  // los archivos solo son vista previa local, lo permanente son URLs https)
+  const agregarImagenesNuevoArchivos = event => {
     const archivos = Array.from(event.target.files || []);
     event.target.value = '';
     if (!archivos.length) return;
-    avisar('Procesando imágenes...');
-    try {
-      const urls = await Promise.all(archivos.map(archivoADataURL));
-      setImagenesNuevo(prev => [...prev, ...urls]);
-      avisar(`${urls.length} imagen(es) lista(s). Guardá el producto para subirlas.`);
-    } catch (err) {
-      avisar(err.message);
-    }
+    const urls = archivos.map(file => URL.createObjectURL(file));
+    setImagenesNuevo(prev => [...prev, ...urls]);
+    avisar('Vista previa lista. Pegá la URL https de la imagen para guardarla permanente.');
   };
 
   const agregarUrlNuevo = () => {
@@ -263,6 +258,8 @@ export default function ProductosAdmin() {
   const registrarProducto = async event => {
     event.preventDefault();
     const datos = new FormData(event.currentTarget);
+    // Nunca se guardan vistas previas locales (blob:) ni base64: solo URLs https reales
+    const imagenesLimpias = imagenesNuevo.filter(u => typeof u === 'string' && u.startsWith('https://'));
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
@@ -273,8 +270,8 @@ export default function ProductosAdmin() {
       activo: datos.get('visible') === 'on',
       detalle: datos.get('detalle') || 'Especificación showroom',
       descripcion: datos.get('descripcion') || '',
-      imagen_url: imagenesNuevo[0] || null,
-      imagenes: imagenesNuevo,
+      imagen_url: imagenesLimpias[0] || null,
+      imagenes: imagenesLimpias,
       video_url: String(datos.get('video') || '').trim() || null,
     };
 
@@ -296,19 +293,15 @@ export default function ProductosAdmin() {
     }
   };
 
-  // Manejo de imágenes en Editar Producto (archivos reales, no vistas temporales)
-  const agregarImagenesEditArchivos = async event => {
+  // Manejo de imágenes en Editar Producto (igual que el original:
+  // los archivos solo son vista previa local, lo permanente son URLs https)
+  const agregarImagenesEditArchivos = event => {
     const archivos = Array.from(event.target.files || []);
     event.target.value = '';
     if (!archivos.length) return;
-    avisar('Procesando imágenes...');
-    try {
-      const urls = await Promise.all(archivos.map(archivoADataURL));
-      setEditImagenes(prev => [...prev, ...urls]);
-      avisar(`${urls.length} imagen(es) lista(s). Guardá los cambios para subirlas.`);
-    } catch (err) {
-      avisar(err.message);
-    }
+    const urls = archivos.map(file => URL.createObjectURL(file));
+    setEditImagenes(prev => [...prev, ...urls]);
+    avisar('Vista previa lista. Pegá la URL https de la imagen para guardarla permanente.');
   };
 
   const agregarUrlEdit = () => {
@@ -345,6 +338,8 @@ export default function ProductosAdmin() {
     event.preventDefault();
     const datos = new FormData(event.currentTarget);
     const precioNumerico = Number(datos.get('precio'));
+    // Nunca se guardan vistas previas locales (blob:) ni base64: solo URLs https reales
+    const imagenesLimpias = editImagenes.filter(u => typeof u === 'string' && u.startsWith('https://'));
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
@@ -355,8 +350,8 @@ export default function ProductosAdmin() {
       showroom: Number(datos.get('showroom')),
       bodega: Number(datos.get('bodega')),
       activo: datos.get('visible') === 'on',
-      imagen_url: editImagenes[0] || null,
-      imagenes: editImagenes,
+      imagen_url: imagenesLimpias[0] || null,
+      imagenes: imagenesLimpias,
       video_url: String(datos.get('video') || '').trim() || null,
     };
 
