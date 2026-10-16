@@ -4,7 +4,7 @@ function exigirConexionReal() { if (MODO_DEMO) throw new Error('El modo demostra
 
 export async function crearPedido({ clienteId = null, items }) {
   exigirConexionReal();
-  return apiRequest('/pedidos', { method: 'POST', body: { clienteId, items: items.map(item => ({ productoId: String(item.productoId), cantidad: Number(item.cantidad) })) } });
+  return apiRequest('/pedidos', { method: 'POST', body: { clienteId, items: items.map(item => ({ productoId: String(item.productoId), cantidad: Number(item.cantidad), color: String(item.color || '').trim() || null })) } });
 }
 
 export async function obtenerPedido(id) { exigirConexionReal(); return apiRequest(`/pedidos/${id}`); }

@@ -1,12 +1,48 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Play, Plus, Search, SlidersHorizontal, Star, Store, Trash2, Truck, Warehouse, X } from 'lucide-react';
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Play, Plus, Search, SlidersHorizontal, Star, Store, Trash2, Truck, X } from 'lucide-react';
 import { listarProductos, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
 import { mediaDeVideo } from '../../utils/videoEmbed.js';
+import { subirImagenProducto } from '../../services/storageService.js';
 import './Admin.css';
 import './ProductosAdmin.css';
 import './AdminViewsColorFix.css';
 import './ProductosDb.css';
 import './ProductosDelete.css';
+import './ProductosCreateProfessional.css';
+import './ProductosCreateMedium.css';
+import './ColorAssistant.css';
+import './ProductosModalReference.css';
+
+const leerColor = (registro) => {
+  if (registro && typeof registro === 'object') return registro;
+  try {
+    const dato = JSON.parse(String(registro));
+    if (dato?.nombre && dato?.valor) return { ...dato, imagenes: Array.isArray(dato.imagenes) ? dato.imagenes : [] };
+  } catch { /* formato anterior Nombre|#hex */ }
+  const [nombre, valor] = String(registro).split('|');
+  return { id: String(registro), nombre: valor ? nombre : (nombre || 'Color'), valor: valor || nombre, imagenes: [] };
+};
+
+const guardarColor = (color) => JSON.stringify({
+  id: color.id,
+  nombre: color.nombre,
+  valor: color.valor,
+  imagenes: Array.isArray(color.imagenes) ? color.imagenes : [],
+});
+
+// Nombres habituales para que el administrador no tenga que conocer códigos HEX.
+const TONOS_SUGERIDOS = {
+  'blanco': '#f5f5f3', 'negro': '#1f2022', 'gris': '#80858b', 'gris claro': '#c7c9c8',
+  'gris grafito': '#54595f', 'gris oscuro': '#4c5054', 'beige': '#d4b48c', 'beige arena': '#cbb38a',
+  'cafe': '#6f4e37', 'marron': '#76503d', 'chocolate': '#4b2e24', 'camel': '#b7794d',
+  'lila': '#b7a2c8', 'lila claro': '#d7c9e6', 'morado': '#76529b', 'rosa': '#db9aaa',
+  'terracota': '#a95f46', 'rojo': '#a6192e', 'bordo': '#7c1830', 'azul': '#365f91',
+  'azul petroleo': '#455a64', 'verde': '#5e7652', 'verde oliva': '#68734d', 'mostaza': '#c38a28',
+};
+const normalizarNombreColor = (texto = '') => texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const tonoSugerido = (nombre) => TONOS_SUGERIDOS[normalizarNombreColor(nombre)] || null;
+const TONOS_RAPIDOS = ['Blanco', 'Negro', 'Gris grafito', 'Beige arena', 'Café', 'Lila claro', 'Terracota', 'Bordó', 'Azul petróleo', 'Verde oliva'];
+const nombreColorDeImagen = (lista, imagen) => lista.map(leerColor).find((color) => color.imagenes?.includes(imagen))?.nombre || 'Galería general';
 
 const productosIniciales = [
   {
@@ -16,7 +52,6 @@ const productosIniciales = [
     categoria: 'Sommiers',
     precio: '3.950',
     showroom: 3,
-    bodega: 14,
     visible: true,
     detalle: 'Queen · 160 × 200 cm',
     tono: 'beige',
@@ -33,7 +68,6 @@ const productosIniciales = [
     categoria: 'Colchones',
     precio: '4.890',
     showroom: 4,
-    bodega: 28,
     visible: true,
     detalle: 'King · 200 × 200 cm',
     tono: 'green',
@@ -50,7 +84,6 @@ const productosIniciales = [
     categoria: 'Almohadas',
     precio: '280',
     showroom: 18,
-    bodega: 85,
     visible: true,
     detalle: 'Estándar · Gel Térmico',
     tono: 'blue',
@@ -66,7 +99,6 @@ const productosIniciales = [
     categoria: 'Living',
     precio: '7.200',
     showroom: 1,
-    bodega: 4,
     visible: true,
     detalle: 'Configuración Completa · Lino Beige',
     tono: 'terra',
@@ -82,7 +114,6 @@ const productosIniciales = [
     categoria: 'Ropa de cama',
     precio: '680',
     showroom: 2,
-    bodega: 30,
     visible: true,
     detalle: 'King · 400 Hilos Satén Blanco',
     tono: 'linen',
@@ -98,7 +129,6 @@ const productosIniciales = [
     categoria: 'Colchones',
     precio: '2.450',
     showroom: 9,
-    bodega: 22,
     visible: true,
     detalle: '2 Plazas · 140 × 190 cm',
     tono: 'green',
@@ -126,6 +156,7 @@ export default function ProductosAdmin() {
   const [coloresNuevo, setColoresNuevo] = useState([]);
   const [valorColorNuevo, setValorColorNuevo] = useState('#54595f');
   const [nombreColorNuevo, setNombreColorNuevo] = useState('');
+  const [colorImagenNuevo, setColorImagenNuevo] = useState('');
 
   const [vistaProducto, setVistaProducto] = useState(null);
   const [fotoActivaIndex, setFotoActivaIndex] = useState(0);
@@ -133,7 +164,10 @@ export default function ProductosAdmin() {
   const [editarProducto, setEditarProducto] = useState(null);
   const [editImagenes, setEditImagenes] = useState([]);
   const [urlEdit, setUrlEdit] = useState('');
-  const [categoriasDisponibles, setCategoriasDisponibles] = useState([]);
+  const [coloresEdit, setColoresEdit] = useState([]);
+  const [valorColorEdit, setValorColorEdit] = useState('#54595f');
+  const [nombreColorEdit, setNombreColorEdit] = useState('');
+  const [colorImagenEdit, setColorImagenEdit] = useState('');
 
   const [categoriasApi, setCategoriasApi] = useState([]);
 
@@ -192,7 +226,6 @@ export default function ProductosAdmin() {
 
   useEffect(() => {
     cargarProductos();
-    listarCategorias().then((lista) => setCategoriasDisponibles(Array.isArray(lista) ? lista : [])).catch(() => setCategoriasDisponibles([]));
   }, []);
 
   const visibles = useMemo(() => productos.filter(p =>
@@ -203,12 +236,11 @@ export default function ProductosAdmin() {
 
   // Cálculos dinámicos de KPIs sobre inventario real
   const totalShowroom = useMemo(() => productos.reduce((acc, p) => acc + (Number(p.showroom) || 0), 0), [productos]);
-  const totalBodega = useMemo(() => productos.reduce((acc, p) => acc + (Number(p.bodega) || 0), 0), [productos]);
   const totalModelosKiosco = useMemo(() => productos.filter(p => p.visible).length, [productos]);
   const valorInventario = useMemo(() => {
     const total = productos.reduce((acc, p) => {
       const precioNum = Number(String(p.precio).replace(/\./g, '').replace(/,/g, '.')) || 0;
-      const stockTotal = (Number(p.showroom) || 0) + (Number(p.bodega) || 0);
+      const stockTotal = Number(p.showroom) || 0;
       return acc + (precioNum * stockTotal);
     }, 0);
     return total.toLocaleString('es-BO');
@@ -227,15 +259,17 @@ export default function ProductosAdmin() {
       : (producto.imagen_url ? [producto.imagen_url] : []);
     setEditImagenes(listaFotos);
     setUrlEdit('');
+    setColoresEdit(Array.isArray(producto.colores) ? producto.colores : []);
+    setColorImagenEdit(Array.isArray(producto.colores) && producto.colores.length ? String(producto.colores[0]) : '');
+    setNombreColorEdit('');
   };
 
   const guardarAjuste = async () => {
     if (!ajuste) return;
     try {
       const showroom = Number(ajuste.showroom);
-      const bodega = Number(ajuste.bodega);
-      await actualizarStock(ajuste.id, { showroom, bodega });
-      setProductos(lista => lista.map(p => p.id === ajuste.id ? { ...p, showroom, bodega, stock: showroom + bodega } : p));
+      await actualizarStock(ajuste.id, { showroom });
+      setProductos(lista => lista.map(p => p.id === ajuste.id ? { ...p, showroom, stock: showroom } : p));
       setAjuste(null);
       avisar(`Stock de ${ajuste.sku} sincronizado en tiempo real con PostgreSQL y kioscos.`);
     } catch (err) {
@@ -244,22 +278,71 @@ export default function ProductosAdmin() {
   };
 
   // Manejo de imágenes en Nuevo Producto
-  const agregarImagenesNuevoArchivos = event => {
-    const urls = Array.from(event.target.files).map(file => URL.createObjectURL(file));
-    setImagenesNuevo(prev => [...prev, ...urls]);
+  const asociarImagenesConColor = (setColores, colorSeleccionado, urls) => {
+    if (!colorSeleccionado || !urls.length) return;
+    setColores((lista) => lista.map((registro) => {
+      if (String(registro) !== colorSeleccionado) return registro;
+      const color = leerColor(registro);
+      return guardarColor({ ...color, imagenes: [...new Set([...color.imagenes, ...urls])] });
+    }));
+  };
+
+  const asignarImagenExistenteAColor = (setColores, colorSeleccionado, imagen) => {
+    if (!colorSeleccionado || !imagen) return;
+    setColores((lista) => lista.map((registro) => {
+      const color = leerColor(registro);
+      const sinImagen = color.imagenes.filter((src) => src !== imagen);
+      return guardarColor({ ...color, imagenes: String(registro) === colorSeleccionado ? [...sinImagen, imagen] : sinImagen });
+    }));
+  };
+
+  const agregarImagenesNuevoArchivos = async event => {
+    const archivos = Array.from(event.target.files || []);
+    if (!archivos.length) return;
+    try {
+      avisar(`Subiendo ${archivos.length} imagen${archivos.length > 1 ? 'es' : ''} a Supabase...`);
+      const urls = await Promise.all(archivos.map(subirImagenProducto));
+      setImagenesNuevo(prev => [...prev, ...urls]);
+      asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, urls);
+      avisar('Imágenes guardadas permanentemente en Supabase.');
+    } catch (err) { avisar(err.message || 'No se pudieron subir las imágenes.'); }
+    finally { event.target.value = ''; }
   };
 
   const agregarUrlNuevo = () => {
     if (urlNuevo.trim()) {
       setImagenesNuevo(prev => [...prev, urlNuevo.trim()]);
+      asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, [urlNuevo.trim()]);
       setUrlNuevo('');
     }
   };
 
   const agregarColorNuevo = () => {
-    const registro = `${nombreColorNuevo.trim() || 'Color'}|${valorColorNuevo}`;
-    if (!/^#[0-9a-f]{6}$/i.test(valorColorNuevo) || coloresNuevo.includes(registro)) return;
+    const nombre = nombreColorNuevo.trim() || 'Color';
+    const existe = coloresNuevo.some((registro) => leerColor(registro).valor.toLowerCase() === valorColorNuevo.toLowerCase() && leerColor(registro).nombre.toLowerCase() === nombre.toLowerCase());
+    if (!/^#[0-9a-f]{6}$/i.test(valorColorNuevo) || existe) return;
+    const registro = guardarColor({ id: `${nombre}-${valorColorNuevo}-${Date.now()}`, nombre, valor: valorColorNuevo, imagenes: [] });
     setColoresNuevo((lista) => [...lista, registro]);
+    setColorImagenNuevo(registro);
+    setNombreColorNuevo('');
+  };
+
+  const actualizarNombreColorNuevo = (nombre) => {
+    setNombreColorNuevo(nombre);
+    const tono = tonoSugerido(nombre);
+    if (tono) setValorColorNuevo(tono);
+  };
+
+  const elegirTonoNuevo = (nombre) => {
+    const valor = tonoSugerido(nombre) || '#54595f';
+    const existente = coloresNuevo.find((registro) => {
+      const color = leerColor(registro);
+      return normalizarNombreColor(color.nombre) === normalizarNombreColor(nombre);
+    });
+    if (existente) { setColorImagenNuevo(existente); return; }
+    const registro = guardarColor({ id: `${nombre}-${valor}-${Date.now()}`, nombre, valor, imagenes: [] });
+    setColoresNuevo((lista) => [...lista, registro]);
+    setColorImagenNuevo(registro);
     setNombreColorNuevo('');
   };
 
@@ -274,6 +357,20 @@ export default function ProductosAdmin() {
       return [item, ...nueva];
     });
     avisar('Imagen fijada como portada del producto.');
+  };
+
+  const usarColorComoPortadaNuevo = () => {
+    const foto = leerColor(colorImagenNuevo).imagenes?.[0];
+    if (!foto) return avisar('Este color aún no tiene una imagen asignada.');
+    setImagenesNuevo((lista) => [foto, ...lista.filter((item) => item !== foto)]);
+    avisar('La primera imagen de este color ahora es la portada principal.');
+  };
+
+  const asignarColorAPortadaNuevo = () => {
+    if (!imagenesNuevo[0]) return avisar('Primero agrega una imagen para usar como portada.');
+    if (!colorImagenNuevo) return avisar('Primero selecciona una variante de color.');
+    asignarImagenExistenteAColor(setColoresNuevo, colorImagenNuevo, imagenesNuevo[0]);
+    avisar(`La portada ahora pertenece a ${leerColor(colorImagenNuevo).nombre}.`);
   };
 
   const moverImagenNuevo = (from, to) => {
@@ -295,7 +392,6 @@ export default function ProductosAdmin() {
       categoria: datos.get('categoria'),
       precio: Number(datos.get('precio')),
       showroom: Number(datos.get('showroom')),
-      bodega: Number(datos.get('bodega')),
       activo: datos.get('visible') === 'on',
       detalle: datos.get('detalle') || 'Especificación showroom',
       descripcion: datos.get('descripcion') || '',
@@ -317,6 +413,7 @@ export default function ProductosAdmin() {
       setImagenesNuevo([]);
       setUrlNuevo('');
       setColoresNuevo([]);
+      setColorImagenNuevo('');
       setNombreColorNuevo('');
       setCategoria('Todos');
       avisar(`Producto ${payload.sku} guardado exitosamente en base de datos.`);
@@ -326,16 +423,54 @@ export default function ProductosAdmin() {
   };
 
   // Manejo de imágenes en Editar Producto
-  const agregarImagenesEditArchivos = event => {
-    const urls = Array.from(event.target.files).map(file => URL.createObjectURL(file));
-    setEditImagenes(prev => [...prev, ...urls]);
+  const agregarImagenesEditArchivos = async event => {
+    const archivos = Array.from(event.target.files || []);
+    if (!archivos.length) return;
+    try {
+      avisar(`Subiendo ${archivos.length} imagen${archivos.length > 1 ? 'es' : ''} a Supabase...`);
+      const urls = await Promise.all(archivos.map(subirImagenProducto));
+      setEditImagenes(prev => [...prev, ...urls]);
+      asociarImagenesConColor(setColoresEdit, colorImagenEdit, urls);
+      avisar('Imágenes guardadas permanentemente en Supabase.');
+    } catch (err) { avisar(err.message || 'No se pudieron subir las imágenes.'); }
+    finally { event.target.value = ''; }
   };
 
   const agregarUrlEdit = () => {
     if (urlEdit.trim()) {
       setEditImagenes(prev => [...prev, urlEdit.trim()]);
+      asociarImagenesConColor(setColoresEdit, colorImagenEdit, [urlEdit.trim()]);
       setUrlEdit('');
     }
+  };
+
+  const agregarColorEdit = () => {
+    const nombre = nombreColorEdit.trim() || 'Color';
+    const existe = coloresEdit.some((registro) => leerColor(registro).valor.toLowerCase() === valorColorEdit.toLowerCase() && leerColor(registro).nombre.toLowerCase() === nombre.toLowerCase());
+    if (!/^#[0-9a-f]{6}$/i.test(valorColorEdit) || existe) return;
+    const registro = guardarColor({ id: `${nombre}-${valorColorEdit}-${Date.now()}`, nombre, valor: valorColorEdit, imagenes: [] });
+    setColoresEdit((lista) => [...lista, registro]);
+    setColorImagenEdit(registro);
+    setNombreColorEdit('');
+  };
+
+  const actualizarNombreColorEdit = (nombre) => {
+    setNombreColorEdit(nombre);
+    const tono = tonoSugerido(nombre);
+    if (tono) setValorColorEdit(tono);
+  };
+
+  const elegirTonoEdit = (nombre) => {
+    const valor = tonoSugerido(nombre) || '#54595f';
+    const existente = coloresEdit.find((registro) => {
+      const color = leerColor(registro);
+      return normalizarNombreColor(color.nombre) === normalizarNombreColor(nombre);
+    });
+    if (existente) { setColorImagenEdit(existente); return; }
+    const registro = guardarColor({ id: `${nombre}-${valor}-${Date.now()}`, nombre, valor, imagenes: [] });
+    setColoresEdit((lista) => [...lista, registro]);
+    setColorImagenEdit(registro);
+    setNombreColorEdit('');
   };
 
   const eliminarImagenEdit = index => {
@@ -349,6 +484,20 @@ export default function ProductosAdmin() {
       return [item, ...nueva];
     });
     avisar('Imagen fijada como portada del producto.');
+  };
+
+  const usarColorComoPortadaEdit = () => {
+    const foto = leerColor(colorImagenEdit).imagenes?.[0];
+    if (!foto) return avisar('Este color aún no tiene una imagen asignada.');
+    setEditImagenes((lista) => [foto, ...lista.filter((item) => item !== foto)]);
+    avisar('La primera imagen de este color ahora es la portada principal.');
+  };
+
+  const asignarColorAPortadaEdit = () => {
+    if (!editImagenes[0]) return avisar('Este producto todavía no tiene imagen de portada.');
+    if (!colorImagenEdit) return avisar('Primero selecciona una variante de color.');
+    asignarImagenExistenteAColor(setColoresEdit, colorImagenEdit, editImagenes[0]);
+    avisar(`La portada ahora pertenece a ${leerColor(colorImagenEdit).nombre}.`);
   };
 
   const moverImagenEdit = (from, to) => {
@@ -373,11 +522,11 @@ export default function ProductosAdmin() {
       detalle: datos.get('detalle') || editarProducto.detalle,
       descripcion: datos.get('descripcion') || editarProducto.descripcion,
       showroom: Number(datos.get('showroom')),
-      bodega: Number(datos.get('bodega')),
       activo: datos.get('visible') === 'on',
       imagen_url: editImagenes[0] || null,
       imagenes: editImagenes,
       video_url: String(datos.get('video_url') || '').trim() || null,
+      colores: coloresEdit,
     };
 
     try {
@@ -410,6 +559,7 @@ export default function ProductosAdmin() {
 
   return (
     <main className="products-admin">
+      <datalist id="tonos-sugeridos">{Object.keys(TONOS_SUGERIDOS).map((nombre) => <option value={nombre.replace(/\b\w/g, (letra) => letra.toUpperCase())} key={nombre} />)}</datalist>
       {errorCarga && <section className="products-db-error"><b>No se cargaron datos reales.</b><span>{errorCarga}</span><button type="button" onClick={cargarProductos}>Reintentar conexión</button></section>}
       {false && <section className="products-alert">
         <div>
@@ -455,14 +605,6 @@ export default function ProductosAdmin() {
             <small>Showroom Equipetrol</small>
             <b>{totalShowroom} unid.</b>
             <span>Disponible en sala</span>
-          </div>
-        </article>
-        <article>
-          <Warehouse />
-          <div>
-            <small>Bodega central</small>
-            <b>{totalBodega} unid.</b>
-            <span>Disponibilidad 24 h</span>
           </div>
         </article>
         <article>
@@ -535,7 +677,6 @@ export default function ProductosAdmin() {
                 <th>Categoría</th>
                 <th>Precio</th>
                 <th>Showroom</th>
-                <th>Bodega central</th>
                 <th>Kiosco</th>
                 <th>Acciones</th>
               </tr>
@@ -563,11 +704,6 @@ export default function ProductosAdmin() {
                   <td>
                     <span className={p.showroom < 2 ? 'stock low' : 'stock'}>
                       {p.showroom} un.
-                    </span>
-                  </td>
-                  <td>
-                    <span className={p.bodega === 0 ? 'stock low' : 'stock'}>
-                      {p.bodega} un.
                     </span>
                   </td>
                   <td>
@@ -688,7 +824,7 @@ export default function ProductosAdmin() {
                 <span>
                   <b>Inventario Total:</b>
                   <strong style={{ color: '#004230', marginLeft: '0.3rem' }}>
-                    {(vistaProducto.showroom || 0) + (vistaProducto.bodega || 0)} unidades
+                    {vistaProducto.showroom || 0} unidades
                   </strong>
                 </span>
               </div>
@@ -702,12 +838,6 @@ export default function ProductosAdmin() {
                   <span style={{ fontSize: '11px', color: '#707974' }}>
                     {vistaProducto.showroom < 2 ? '⚠️ Stock crítico en sala' : 'Disponible en sala'}
                   </span>
-                </article>
-
-                <article>
-                  <small>Bodega Central</small>
-                  <b>{vistaProducto.bodega} un.</b>
-                  <span style={{ fontSize: '11px', color: '#707974' }}>Despacho coordinado 24 h</span>
                 </article>
 
                 <article>
@@ -753,8 +883,12 @@ export default function ProductosAdmin() {
               </div>
               <button type="button" onClick={() => setEditarProducto(null)}><X /></button>
             </header>
+            <nav className="product-form-steps" aria-label="Secciones del formulario">
+              <span><b>1</b> Información comercial</span><span><b>2</b> Variantes y colores</span><span><b>3</b> Galería multimedia</span><span><b>4</b> Publicación</span>
+            </nav>
 
             <div className="product-form-grid">
+              <div className="product-form-section-title"><div><span>Ficha técnica y comercial</span><small>Información que se mostrará en catálogo, kiosco y tienda web.</small></div><em>* Campos obligatorios</em></div>
               <label>
                 Nombre comercial
                 <input
@@ -778,13 +912,7 @@ export default function ProductosAdmin() {
               <label>
                 Categoría
                 <select name="categoria" required defaultValue={editarProducto.categoria}>
-<<<<<<< .merge_file_Tt5UWn
-                  {opcionesCategoria.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-=======
-                  {categoriasDisponibles.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}
->>>>>>> .merge_file_eekQM0
+                  {categoriasApi.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
                 </select>
               </label>
 
@@ -820,17 +948,6 @@ export default function ProductosAdmin() {
                 />
               </label>
 
-              <label>
-                Stock bodega central
-                <input
-                  name="bodega"
-                  required
-                  min="0"
-                  type="number"
-                  defaultValue={editarProducto.bodega}
-                />
-              </label>
-
               <label className="product-form-wide">
                 Descripción para catálogo
                 <textarea
@@ -844,22 +961,38 @@ export default function ProductosAdmin() {
                 URL de video del producto <small>Opcional · YouTube, Vimeo o enlace directo MP4</small>
                 <input name="video_url" type="url" defaultValue={editarProducto.video_url || ''} placeholder="https://www.youtube.com/watch?v=..." />
               </label>
+              <fieldset className="product-form-wide product-color-picker">
+                <legend>Variantes de color <small>Cada variante puede tener sus propias fotos.</small></legend>
+                <div className="product-color-picker__create"><input aria-label="Nombre del color" list="tonos-sugeridos" value={nombreColorEdit} onChange={(event) => actualizarNombreColorEdit(event.target.value)} maxLength="40" placeholder="Ej. Beige arena" /><input aria-label="Elegir tono del color" title="Puedes ajustar manualmente el tono" type="color" value={valorColorEdit} onChange={(event) => setValorColorEdit(event.target.value)} /><button type="button" onClick={agregarColorEdit}><Plus size={16} /> Agregar color</button></div>
+                <small>Color personalizado: escribe un nombre, ajusta el tono si quieres y pulsa “Agregar color”.</small>
+                <b className="color-assistant__title">O agrega una variante rápida:</b>
+                <div className="color-assistant" aria-label="Tonos sugeridos">{TONOS_RAPIDOS.map((nombre) => { const registro = coloresEdit.find((item) => normalizarNombreColor(leerColor(item).nombre) === normalizarNombreColor(nombre)); return <button type="button" key={nombre} onClick={() => elegirTonoEdit(nombre)} title={registro ? `${nombre} ya está registrado` : `Agregar ${nombre}`} className={`${registro ? 'is-registered' : ''} ${registro === colorImagenEdit ? 'is-selected' : ''}`}><i style={{ backgroundColor: tonoSugerido(nombre) }} />{nombre}{registro && <em>Registrado</em>}</button>; })}</div>
+                <div className="product-color-picker__list">{coloresEdit.map((registro) => { const color = leerColor(registro); return <span key={registro}><i style={{ backgroundColor: color.valor }} />{color.nombre}{color.imagenes.length > 0 && <em>{color.imagenes.length} foto{color.imagenes.length > 1 ? 's' : ''}</em>}<button type="button" aria-label={`Quitar ${color.nombre}`} onClick={() => { setColoresEdit((lista) => lista.filter((item) => item !== registro)); if (colorImagenEdit === registro) setColorImagenEdit(''); }}><X size={13} /></button></span>; })}{!coloresEdit.length && <small>Aún no se registraron colores para este producto.</small>}</div>
+              </fieldset>
             </div>
 
             {/* Galería de Imágenes en Edición */}
             <section className="product-gallery">
               <div>
-                <b>Galería de imágenes ({editImagenes.length})</b>
+                <b>Fotos de la variante ({editImagenes.length})</b>
                 <small>
-                  Sube fotos desde tu computadora o agrega enlaces web directos (URLs). La primera foto será la portada principal.
+                  Elige un color y sus fotos se mostrarán al cliente cuando lo seleccione. La primera foto sigue siendo la portada general.
                 </small>
               </div>
+              <label className="product-color-image-target">Estoy cargando fotos para: 
+                <select value={colorImagenEdit} onChange={(event) => setColorImagenEdit(event.target.value)} disabled={!coloresEdit.length}>
+                  {!coloresEdit.length && <option value="">Primero registra un color</option>}
+                  {coloresEdit.map((registro) => { const color = leerColor(registro); return <option value={registro} key={registro}>{color.nombre}</option>; })}
+                </select>
+              </label>
+              <button className="product-color-cover" type="button" disabled={!colorImagenEdit || !leerColor(colorImagenEdit).imagenes?.length} onClick={usarColorComoPortadaEdit}>Usar la primera foto de este color como portada</button>
+              <button className="product-color-cover product-color-cover--secondary" type="button" disabled={!colorImagenEdit || !editImagenes.length} onClick={asignarColorAPortadaEdit}>Asignar el color elegido a la portada actual</button>
 
               <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.8rem', flexWrap: 'wrap' }}>
                 <label className="product-upload" style={{ margin: 0, flex: 1, minWidth: '220px' }}>
                   <ImagePlus size={20} />
                   <span>Subir imágenes desde archivo</span>
-                  <input type="file" accept="image/*" multiple onChange={agregarImagenesEditArchivos} />
+                  <input type="file" accept="image/*" multiple disabled={!coloresEdit.length} onChange={agregarImagenesEditArchivos} />
                 </label>
               </div>
 
@@ -867,10 +1000,10 @@ export default function ProductosAdmin() {
                 <input
                   type="url"
                   placeholder="O pega el enlace URL de una imagen (https://...)"
-                  value={urlEdit}
+                  value={urlEdit} disabled={!coloresEdit.length}
                   onChange={e => setUrlEdit(e.target.value)}
                 />
-                <button type="button" onClick={agregarUrlEdit}>
+                <button type="button" disabled={!coloresEdit.length} onClick={agregarUrlEdit}>
                   <Link2 size={16} /> Agregar URL
                 </button>
               </div>
@@ -917,7 +1050,7 @@ export default function ProductosAdmin() {
                         <Trash2 size={12} />
                       </button>
                     </div>
-                    <figcaption>{index === 0 ? '★ Portada Kiosco' : `Foto ${index + 1}`}</figcaption>
+                    <figcaption>{index === 0 ? '★ Portada' : `Foto ${index + 1}`} · {nombreColorDeImagen(coloresEdit, src)}</figcaption>
                   </figure>
                 ))}
                 {editImagenes.length === 0 && (
@@ -961,8 +1094,12 @@ export default function ProductosAdmin() {
               </div>
               <button type="button" onClick={() => setNuevoProducto(false)}><X /></button>
             </header>
+            <nav className="product-form-steps" aria-label="Secciones del formulario">
+              <span><b>1</b> Información comercial</span><span><b>2</b> Variantes y colores</span><span><b>3</b> Galería multimedia</span><span><b>4</b> Publicación</span>
+            </nav>
 
             <div className="product-form-grid">
+              <div className="product-form-section-title"><div><span>Ficha técnica y comercial</span><small>Información que se mostrará en catálogo, kiosco y tienda web.</small></div><em>* Campos obligatorios</em></div>
               <label>
                 Nombre comercial
                 <input name="nombre" required placeholder="Ej. Colchón Terra Comfort King" />
@@ -973,15 +1110,9 @@ export default function ProductosAdmin() {
               </label>
               <label>
                 Categoría
-                <select name="categoria" required defaultValue="" disabled={!categoriasDisponibles.length}>
+                <select name="categoria" required defaultValue="" disabled={!categoriasApi.length}>
                   <option value="" disabled>Seleccionar categoría</option>
-<<<<<<< .merge_file_Tt5UWn
-                  {opcionesCategoria.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-=======
-                  {categoriasDisponibles.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}
->>>>>>> .merge_file_eekQM0
+                  {categoriasApi.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}
                 </select>
               </label>
               <label>
@@ -996,10 +1127,6 @@ export default function ProductosAdmin() {
                 Stock showroom
                 <input name="showroom" required min="0" type="number" defaultValue="0" />
               </label>
-              <label>
-                Stock bodega central
-                <input name="bodega" required min="0" type="number" defaultValue="0" />
-              </label>
               <label className="product-form-wide">
                 Descripción para catálogo
                 <textarea
@@ -1012,34 +1139,46 @@ export default function ProductosAdmin() {
                 <input name="video_url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
               </label>
               <fieldset className="product-form-wide product-color-picker">
-                <legend>Colores disponibles <small>Selecciona los tonos que el cliente podrá elegir</small></legend>
-                <div className="product-color-picker__create"><input aria-label="Nombre del color" value={nombreColorNuevo} onChange={(event) => setNombreColorNuevo(event.target.value)} maxLength="40" placeholder="Ej. Gris grafito" /><input aria-label="Elegir tono del color" type="color" value={valorColorNuevo} onChange={(event) => setValorColorNuevo(event.target.value)} /><button type="button" onClick={agregarColorNuevo}><Plus size={16} /> Agregar color</button></div>
-                <div className="product-color-picker__list">{coloresNuevo.map((registro) => { const [nombre, valor] = registro.split('|'); return <span key={registro}><i style={{ backgroundColor: valor }} />{nombre}<button type="button" aria-label={`Quitar ${nombre}`} onClick={() => setColoresNuevo((lista) => lista.filter((color) => color !== registro))}><X size={13} /></button></span>; })}{!coloresNuevo.length && <small>Escribe un nombre, elige el tono y agrega el color.</small>}</div>
+                <legend>Variantes de color <small>Cada variante puede tener sus propias fotos.</small></legend>
+                <div className="product-color-picker__create"><input aria-label="Nombre del color" list="tonos-sugeridos" value={nombreColorNuevo} onChange={(event) => actualizarNombreColorNuevo(event.target.value)} maxLength="40" placeholder="Ej. Gris grafito" /><input aria-label="Elegir tono del color" title="Puedes ajustar manualmente el tono" type="color" value={valorColorNuevo} onChange={(event) => setValorColorNuevo(event.target.value)} /><button type="button" onClick={agregarColorNuevo}><Plus size={16} /> Agregar color</button></div>
+                <small>Color personalizado: escribe un nombre, ajusta el tono si quieres y pulsa “Agregar color”.</small>
+                <b className="color-assistant__title">O agrega una variante rápida:</b>
+                <div className="color-assistant" aria-label="Tonos sugeridos">{TONOS_RAPIDOS.map((nombre) => { const registro = coloresNuevo.find((item) => normalizarNombreColor(leerColor(item).nombre) === normalizarNombreColor(nombre)); return <button type="button" key={nombre} onClick={() => elegirTonoNuevo(nombre)} title={registro ? `${nombre} ya está registrado` : `Agregar ${nombre}`} className={`${registro ? 'is-registered' : ''} ${registro === colorImagenNuevo ? 'is-selected' : ''}`}><i style={{ backgroundColor: tonoSugerido(nombre) }} />{nombre}{registro && <em>Registrado</em>}</button>; })}</div>
+                <div className="product-color-picker__list">{coloresNuevo.map((registro) => { const color = leerColor(registro); return <span key={registro}><i style={{ backgroundColor: color.valor }} />{color.nombre}{color.imagenes.length > 0 && <em>{color.imagenes.length} foto{color.imagenes.length > 1 ? 's' : ''}</em>}<button type="button" aria-label={`Quitar ${color.nombre}`} onClick={() => { setColoresNuevo((lista) => lista.filter((item) => item !== registro)); if (colorImagenNuevo === registro) setColorImagenNuevo(''); }}><X size={13} /></button></span>; })}{!coloresNuevo.length && <small>Escribe un nombre, elige el tono y agrega el color.</small>}</div>
               </fieldset>
             </div>
 
             <section className="product-gallery">
               <div>
-                <b>Galería del producto ({imagenesNuevo.length})</b>
+                <b>Fotos de la variante ({imagenesNuevo.length})</b>
                 <small>
-                  Agrega imágenes mediante subida de archivos o URLs directas. La primera foto será la portada.
+                  Primero elige el color y luego carga sus fotos. Al seleccionarlo, el cliente verá esas imágenes en el detalle.
                 </small>
               </div>
+
+              <label className="product-color-image-target">Estoy cargando fotos para: 
+                <select value={colorImagenNuevo} onChange={(event) => setColorImagenNuevo(event.target.value)} disabled={!coloresNuevo.length}>
+                  {!coloresNuevo.length && <option value="">Primero registra un color</option>}
+                  {coloresNuevo.map((registro) => { const color = leerColor(registro); return <option value={registro} key={registro}>{color.nombre}</option>; })}
+                </select>
+              </label>
+              <button className="product-color-cover" type="button" disabled={!colorImagenNuevo || !leerColor(colorImagenNuevo).imagenes?.length} onClick={usarColorComoPortadaNuevo}>Usar la primera foto de este color como portada</button>
+              <button className="product-color-cover product-color-cover--secondary" type="button" disabled={!colorImagenNuevo || !imagenesNuevo.length} onClick={asignarColorAPortadaNuevo}>Asignar el color elegido a la portada actual</button>
 
               <label className="product-upload">
                 <ImagePlus size={22} />
                 <span>Subir imágenes desde archivo</span>
-                <input type="file" accept="image/*" multiple onChange={agregarImagenesNuevoArchivos} />
+                <input type="file" accept="image/*" multiple disabled={!coloresNuevo.length} onChange={agregarImagenesNuevoArchivos} />
               </label>
 
               <div className="product-url-row">
                 <input
                   type="url"
                   placeholder="O pega el enlace URL de una imagen (https://...)"
-                  value={urlNuevo}
+                  value={urlNuevo} disabled={!coloresNuevo.length}
                   onChange={e => setUrlNuevo(e.target.value)}
                 />
-                <button type="button" onClick={agregarUrlNuevo}>
+                <button type="button" disabled={!coloresNuevo.length} onClick={agregarUrlNuevo}>
                   <Link2 size={16} /> Agregar URL
                 </button>
               </div>
@@ -1086,7 +1225,7 @@ export default function ProductosAdmin() {
                         <Trash2 size={12} />
                       </button>
                     </div>
-                    <figcaption>{index === 0 ? '★ Portada Kiosco' : `Foto ${index + 1}`}</figcaption>
+                    <figcaption>{index === 0 ? '★ Portada' : `Foto ${index + 1}`} · {nombreColorDeImagen(coloresNuevo, src)}</figcaption>
                   </figure>
                 ))}
                 {imagenesNuevo.length === 0 && (
@@ -1133,18 +1272,6 @@ export default function ProductosAdmin() {
                 type="number"
                 value={ajuste.showroom}
                 onChange={e => setAjuste({ ...ajuste, showroom: Number(e.target.value) })}
-              />
-            </div>
-            <div className="adjust-row">
-              <div>
-                <b>Bodega central</b>
-                <small>Stock matriz para reposición</small>
-              </div>
-              <input
-                min="0"
-                type="number"
-                value={ajuste.bodega}
-                onChange={e => setAjuste({ ...ajuste, bodega: Number(e.target.value) })}
               />
             </div>
             <footer>

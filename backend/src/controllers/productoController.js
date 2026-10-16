@@ -144,9 +144,9 @@ export async function actualizarProducto(req, res, next) {
 export async function actualizarStock(req, res, next) {
   try {
     const id = String(req.params.id || '').trim();
-    const { showroom, bodega } = req.body;
+    const { showroom } = req.body;
 
-    const actualizado = await actualizarStockBD(id, { showroom, bodega });
+    const actualizado = await actualizarStockBD(id, { showroom });
     if (!actualizado) {
       return res.status(404).json({
         success: false,

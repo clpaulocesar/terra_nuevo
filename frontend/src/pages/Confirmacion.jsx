@@ -38,7 +38,7 @@ export default function Confirmacion() {
 
       const pedido = await crearPedido({
         clienteId: id,
-        items: items.map((item) => ({ productoId: item.id, cantidad: item.cantidad })),
+        items: items.map((item) => ({ productoId: item.id, cantidad: item.cantidad, color: item.color?.nombre || null })),
       });
 
       // Descarga automática directa del ticket sin abrir otra ventana
