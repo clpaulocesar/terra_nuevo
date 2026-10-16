@@ -11,7 +11,6 @@ const iniciales = (nombre) => String(nombre || '?').split(' ').slice(0, 2).map((
 export default function ClientesAdmin() {
   const [clientes, setClientes] = useState([]);
   const [buscar, setBuscar] = useState('');
-  const [seleccion, setSeleccion] = useState(null);
   const [error, setError] = useState('');
   const [eliminando, setEliminando] = useState(null);
 
@@ -35,7 +34,6 @@ export default function ClientesAdmin() {
     try {
       await eliminarCliente(cliente.id);
       setClientes((actuales) => actuales.filter((item) => item.id !== cliente.id));
-      if (seleccion?.id === cliente.id) setSeleccion(null);
     } catch (err) {
       setError(err.message || 'No se pudo eliminar el cliente.');
     } finally {
@@ -57,15 +55,14 @@ export default function ClientesAdmin() {
         <section className="clients-table">
           <header><div><h2>Registros recientes</h2><span>{lista.length} clientes reales</span></div></header>
           <div className="clients-scroll"><table><thead><tr><th>Cliente</th><th>Contacto</th><th>Compras</th><th>Gasto</th><th>Acciones</th></tr></thead><tbody>
-            {lista.map((cliente) => <tr key={cliente.id} className={seleccion?.id === cliente.id ? 'selected' : ''} onClick={() => setSeleccion(cliente)}>
+            {lista.map((cliente) => <tr key={cliente.id}>
               <td><div className="client-name"><i>{iniciales(cliente.nombre)}</i><div><b>{cliente.nombre}</b><small>{new Date(cliente.fecha_registro).toLocaleDateString('es-BO')}</small></div></div></td>
               <td><b>{cliente.telefono || 'Sin teléfono'}</b><small>{cliente.nit ? `NIT ${cliente.nit}` : 'Sin NIT'}</small></td>
               <td><b>{cliente.compras || 0} compras</b></td><td><b>{formatoMoneda(cliente.gasto || 0)}</b></td>
-              <td><div className="client-table-actions"><button type="button" title="Ver cliente" aria-label={`Ver ${cliente.nombre}`}><Eye size={18} /></button><button type="button" className="client-delete" title={cliente.compras > 0 ? 'No se puede eliminar: tiene pedidos' : 'Eliminar cliente'} aria-label={`Eliminar ${cliente.nombre}`} disabled={eliminando === cliente.id} onClick={(event) => { event.stopPropagation(); borrarCliente(cliente); }}><Trash2 size={18} /></button></div></td>
+              <td><div className="client-table-actions"><button type="button" className="client-delete" title={cliente.compras > 0 ? 'No se puede eliminar: tiene pedidos' : 'Eliminar cliente'} aria-label={`Eliminar ${cliente.nombre}`} disabled={eliminando === cliente.id} onClick={() => borrarCliente(cliente)}><Trash2 size={18} /></button></div></td>
             </tr>)}
           </tbody></table></div>
         </section>
-        {seleccion && <aside className="client-preview"><header><div className="client-profile"><i>{iniciales(seleccion.nombre)}</i><div><h2>{seleccion.nombre}</h2><small>{seleccion.nit ? `NIT ${seleccion.nit}` : 'Sin NIT'}</small></div></div><button onClick={() => setSeleccion(null)}><X size={18} /></button></header><section className="client-summary"><div><small>Gasto histórico</small><b>{formatoMoneda(seleccion.gasto || 0)}</b></div><div><small>Compras</small><b>{seleccion.compras || 0}</b></div></section>{seleccion.telefono && <section className="client-whatsapp"><b><MessageCircle size={18} />Contacto directo</b><span>{seleccion.telefono}</span><a href={`https://wa.me/${seleccion.telefono.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">Enviar WhatsApp</a></section>}<button className="client-preview-delete" type="button" disabled={eliminando === seleccion.id} onClick={() => borrarCliente(seleccion)}><Trash2 size={17} /> Eliminar cliente</button></aside>}
       </section>
     </main>
   );

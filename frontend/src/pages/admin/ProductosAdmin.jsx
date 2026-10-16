@@ -665,9 +665,6 @@ export default function ProductosAdmin() {
             <h2>Productos y stock por ubicación</h2>
             <span>Mostrando {visibles.length} de {productos.length} registros</span>
           </div>
-          <button onClick={() => window.open('/catalogo', '_blank')}>
-            <Eye size={18} /> Ver kiosco
-          </button>
         </header>
 
         <div className="products-scroll">
