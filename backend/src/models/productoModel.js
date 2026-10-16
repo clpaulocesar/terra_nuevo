@@ -79,12 +79,43 @@ export async function actualizarStockBD(id, { showroom }) {
 
 export async function eliminarProductoBD(id) {
   const idStr = String(id || '').trim();
-  const { rows } = await pool.query(
-    `UPDATE products 
-     SET activo=FALSE, is_active=FALSE, updated_at=NOW() 
-     WHERE id::text = $1 OR slug = $1 OR COALESCE(codigo_terra, internal_code) = $1 
-     RETURNING id`,
-    [idStr]
-  );
-  return rows[0] ? obtenerProductoBD(rows[0].id) : null;
+  const conexion = await pool.connect();
+  try {
+    await conexion.query('BEGIN');
+    const objetivo = await conexion.query(
+      `SELECT id FROM products
+       WHERE id::text = $1 OR slug = $1 OR COALESCE(codigo_terra, internal_code) = $1
+       LIMIT 1`,
+      [idStr]
+    );
+    if (!objetivo.rowCount) {
+      await conexion.query('ROLLBACK');
+      return null;
+    }
+    const productoId = objetivo.rows[0].id;
+
+    // inventory y cart_items referencian a las variantes con ON DELETE RESTRICT:
+    // hay que liberarlos antes de poder borrar el producto.
+    await conexion.query(
+      `DELETE FROM inventory WHERE product_variant_id IN (SELECT id FROM product_variants WHERE product_id = $1)`,
+      [productoId]
+    );
+    await conexion.query(
+      `DELETE FROM cart_items WHERE product_variant_id IN (SELECT id FROM product_variants WHERE product_id = $1)`,
+      [productoId]
+    );
+
+    // Borrado real. Borra en cascada variantes, imágenes, instrucciones y promociones.
+    // Los order_items quedan con product_variant_id = NULL pero conservan nombre/sku/precio:
+    // el historial de ventas no se pierde.
+    await conexion.query('DELETE FROM products WHERE id = $1', [productoId]);
+
+    await conexion.query('COMMIT');
+    return { id: productoId };
+  } catch (error) {
+    await conexion.query('ROLLBACK');
+    throw error;
+  } finally {
+    conexion.release();
+  }
 }

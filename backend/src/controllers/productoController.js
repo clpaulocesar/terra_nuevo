@@ -177,7 +177,7 @@ export async function eliminarProducto(req, res, next) {
 
     return res.json({
       success: true,
-      mensaje: 'Producto desactivado exitosamente',
+      mensaje: 'Producto eliminado exitosamente',
       data: eliminado,
     });
   } catch (error) {
