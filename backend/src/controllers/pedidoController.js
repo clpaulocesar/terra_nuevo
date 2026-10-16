@@ -1,10 +1,28 @@
 
 import {
   crearPedidoBD,
+  registrarPagoPedidoBD,
   obtenerPedidoBD,
   listarPedidosBD,
   actualizarEstadoPedidoBD,
 } from '../models/pedidoModel.js';
+
+export async function registrarPagoPedido(req, res, next) {
+  try {
+    const id = String(req.params.id || '').trim();
+    const metodoPago = String(req.body?.metodoPago || '').trim();
+    const comprobanteUrl = String(req.body?.comprobanteUrl || '').trim() || null;
+    if (!id || !['qr', 'efectivo', 'tarjeta'].includes(metodoPago)) {
+      return res.status(400).json({ success: false, mensaje: 'Datos de pago inválidos.' });
+    }
+    if (comprobanteUrl && (comprobanteUrl.length > 2000 || !/^https:\/\//i.test(comprobanteUrl))) {
+      return res.status(400).json({ success: false, mensaje: 'La URL del comprobante no es válida.' });
+    }
+    const pedido = await registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl });
+    if (!pedido) return res.status(404).json({ success: false, mensaje: 'Pedido no encontrado.' });
+    return res.json({ success: true, data: pedido });
+  } catch (error) { next(error); }
+}
 
 export async function actualizarEstadoPedido(req, res, next) {
   try {
@@ -22,7 +40,7 @@ export async function listarPedidos(req, res, next) {
     const limite = Number(req.query.limite ?? 100);
     if (!Number.isSafeInteger(limite) || limite < 1 || limite > 200) return res.status(400).json({ success: false, mensaje: 'Límite inválido' });
     const estado = String(req.query.estado ?? '').trim();
-    const permitidos = ['', 'pendiente_pago', 'pagado', 'cancelado', 'entregado'];
+    const permitidos = ['', 'pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'completed', 'cancelled'];
     if (!permitidos.includes(estado)) return res.status(400).json({ success: false, mensaje: 'Estado inválido' });
     const pedidos = await listarPedidosBD({ buscar: String(req.query.buscar ?? '').trim(), estado, limite });
     return res.json({ success: true, data: pedidos });

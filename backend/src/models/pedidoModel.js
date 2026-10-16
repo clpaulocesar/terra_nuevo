@@ -2,6 +2,14 @@ import { randomUUID } from 'node:crypto';
 import { pool } from '../config/database.js';
 
 const aMonto = (minor) => Number(minor || 0) / 100;
+let paymentColumnsReady;
+function asegurarColumnasPago() {
+  if (!paymentColumnsReady) paymentColumnsReady = Promise.all([
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_receipt_url TEXT'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method TEXT'),
+  ]);
+  return paymentColumnsReady;
+}
 
 export async function crearPedidoBD(clienteId, items) {
   const conexion = await pool.connect();
@@ -39,8 +47,10 @@ export async function crearPedidoBD(clienteId, items) {
 }
 
 export async function obtenerPedidoBD(id) {
+  await asegurarColumnasPago();
   const { rows } = await pool.query(
     `SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor,o.status AS estado,o.created_at AS fecha,
+            o.payment_receipt_url AS comprobante_url,o.payment_method AS metodo_pago,
             c.name AS cliente_nombre,c.phone AS cliente_telefono,c.nit AS cliente_nit
      FROM orders o LEFT JOIN customers c ON c.id=o.customer_id WHERE o.id=$1`,
     [id]
@@ -57,12 +67,25 @@ export async function obtenerPedidoBD(id) {
 }
 
 export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 } = {}) {
+  await asegurarColumnasPago();
   const valores=[]; const condiciones=[];
   if(buscar){valores.push(`%${buscar}%`);condiciones.push(`(o.ticket_number ILIKE $${valores.length} OR COALESCE(c.name,'') ILIKE $${valores.length})`);}
   if(estado){valores.push(estado);condiciones.push(`o.status=$${valores.length}`);}
   valores.push(limite); const where=condiciones.length?`WHERE ${condiciones.join(' AND ')}`:'';
-  const { rows } = await pool.query(`SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor/100.0 AS total,o.status AS estado,o.created_at AS fecha,COALESCE(c.name,'Compra como invitado') AS cliente,COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items FROM orders o LEFT JOIN customers c ON c.id=o.customer_id LEFT JOIN order_items i ON i.order_id=o.id ${where} GROUP BY o.id,c.name ORDER BY o.created_at DESC LIMIT $${valores.length}`, valores);
+  const { rows } = await pool.query(`SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor/100.0 AS total,o.status AS estado,o.created_at AS fecha,o.payment_receipt_url AS comprobante_url,o.payment_method AS metodo_pago,COALESCE(c.name,'Compra como invitado') AS cliente,COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items FROM orders o LEFT JOIN customers c ON c.id=o.customer_id LEFT JOIN order_items i ON i.order_id=o.id ${where} GROUP BY o.id,c.name ORDER BY o.created_at DESC LIMIT $${valores.length}`, valores);
   return rows;
+}
+
+export async function registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl }) {
+  await asegurarColumnasPago();
+  const { rows } = await pool.query(
+    `UPDATE orders
+     SET status='completed', payment_method=$1, payment_receipt_url=COALESCE($2, payment_receipt_url), updated_at=NOW()
+     WHERE id=$3
+     RETURNING id`,
+    [metodoPago, comprobanteUrl || null, id]
+  );
+  return rows[0] ? obtenerPedidoBD(id) : null;
 }
 
 export async function actualizarEstadoPedidoBD(id, estado) {
