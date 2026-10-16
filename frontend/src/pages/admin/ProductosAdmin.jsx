@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Plus, Search, SlidersHorizontal, Star, Store, Trash2, Truck, Warehouse, X } from 'lucide-react';
-import { listarProductos, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Plus, QrCode, Search, SlidersHorizontal, Star, Store, Trash2, Truck, Warehouse, X } from 'lucide-react';
+import QRCode from 'qrcode';
+import { listarProductos, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
+import { subirImagen } from '../../services/storageService.js';
 import './Admin.css';
 import './ProductosAdmin.css';
 import './AdminViewsColorFix.css';
@@ -114,9 +116,18 @@ export default function ProductosAdmin() {
   const [errorCarga, setErrorCarga] = useState('');
   const [buscar, setBuscar] = useState('');
   const [categoria, setCategoria] = useState('Todos');
+  const [categoriasDb, setCategoriasDb] = useState([]);
   const [soloKiosco, setSoloKiosco] = useState(false);
   const [ajuste, setAjuste] = useState(null);
   const [mensaje, setMensaje] = useState('');
+
+  // QR para ficha detalle-qr.html
+  const [qrProducto, setQrProducto] = useState(null);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const [qrCopiado, setQrCopiado] = useState(false);
+  const [qrBase, setQrBase] = useState(() => {
+    try { return localStorage.getItem('terra_qr_base') || ''; } catch { return ''; }
+  });
 
   // Modales
   const [nuevoProducto, setNuevoProducto] = useState(false);
@@ -131,12 +142,32 @@ export default function ProductosAdmin() {
   const [urlEdit, setUrlEdit] = useState('');
 
   const categorias = useMemo(() => {
-    const set = new Set(['Todos', 'Colchones', 'Sommiers', 'Espaldares', 'Camas', 'Almohadas', 'Ropa de cama', 'Muebles', 'Recamier']);
+    const base = ['Todos', 'Colchones', 'Sommiers', 'Espaldares', 'Camas', 'Living', 'Almohadas', 'Ropa de cama', 'Muebles', 'Recamier'];
+    const set = new Set(base);
+    for (const c of categoriasDb) {
+      const nombre = typeof c === 'string' ? c : c?.nombre;
+      if (nombre) set.add(nombre);
+    }
     for (const p of productos) {
       if (p.categoria) set.add(p.categoria);
     }
     return Array.from(set);
-  }, [productos]);
+  }, [productos, categoriasDb]);
+
+  // Opciones para los <select> del modal: vienen de la BD, con fallback si falla la conexión
+  const opcionesCategoria = useMemo(() => {
+    const nombresDb = categoriasDb
+      .map(c => (typeof c === 'string' ? c : c?.nombre))
+      .filter(Boolean);
+    const base = ['Colchones', 'Sommiers', 'Living', 'Almohadas', 'Ropa de cama'];
+    if (!nombresDb.length) return base;
+    const set = new Set([...nombresDb]);
+    // Mantener compatibilidad con productos viejos cuya categoría ya no esté en la BD
+    for (const p of productos) {
+      if (p.categoria) set.add(p.categoria);
+    }
+    return Array.from(set);
+  }, [categoriasDb, productos]);
 
   const avisar = texto => {
     setMensaje(texto);
@@ -164,6 +195,11 @@ export default function ProductosAdmin() {
 
   useEffect(() => {
     cargarProductos();
+    let cancelado = false;
+    listarCategorias()
+      .then(data => { if (!cancelado && Array.isArray(data) && data.length) setCategoriasDb(data); })
+      .catch(() => {});
+    return () => { cancelado = true; };
   }, []);
 
   const visibles = useMemo(() => productos.filter(p =>
@@ -214,15 +250,32 @@ export default function ProductosAdmin() {
     }
   };
 
-  // Manejo de imágenes en Nuevo Producto (igual que el original:
-  // los archivos solo son vista previa local, lo permanente son URLs https)
+  // Sube archivos a Supabase Storage: vista previa inmediata (blob:) que se
+  // reemplaza por la URL pública https cuando termina la subida.
+  const subirArchivos = async (archivos, setLista) => {
+    for (const archivo of archivos) {
+      const vistaPrevia = URL.createObjectURL(archivo);
+      setLista(prev => [...prev, vistaPrevia]);
+      try {
+        const urlPublica = await subirImagen(archivo);
+        setLista(prev => prev.map(u => (u === vistaPrevia ? urlPublica : u)));
+        URL.revokeObjectURL(vistaPrevia);
+      } catch (err) {
+        setLista(prev => prev.filter(u => u !== vistaPrevia));
+        URL.revokeObjectURL(vistaPrevia);
+        avisar(err.message || 'No se pudo subir la imagen.');
+      }
+    }
+  };
+
+  // Manejo de imágenes en Nuevo Producto (archivos se suben a Storage,
+  // también se pueden pegar URLs https manualmente)
   const agregarImagenesNuevoArchivos = event => {
     const archivos = Array.from(event.target.files || []);
     event.target.value = '';
     if (!archivos.length) return;
-    const urls = archivos.map(file => URL.createObjectURL(file));
-    setImagenesNuevo(prev => [...prev, ...urls]);
-    avisar('Vista previa lista. Pegá la URL https de la imagen para guardarla permanente.');
+    avisar('Subiendo imagen(es) a Storage...');
+    subirArchivos(archivos, setImagenesNuevo);
   };
 
   const agregarUrlNuevo = () => {
@@ -258,7 +311,11 @@ export default function ProductosAdmin() {
   const registrarProducto = async event => {
     event.preventDefault();
     const datos = new FormData(event.currentTarget);
-    // Nunca se guardan vistas previas locales (blob:) ni base64: solo URLs https reales
+    if (imagenesNuevo.some(u => typeof u === 'string' && u.startsWith('blob:'))) {
+      avisar('Esperá a que terminen de subir las imágenes antes de guardar.');
+      return;
+    }
+    // Solo se guardan URLs https reales (Storage o externas)
     const imagenesLimpias = imagenesNuevo.filter(u => typeof u === 'string' && u.startsWith('https://'));
     const payload = {
       nombre: datos.get('nombre'),
@@ -293,15 +350,13 @@ export default function ProductosAdmin() {
     }
   };
 
-  // Manejo de imágenes en Editar Producto (igual que el original:
-  // los archivos solo son vista previa local, lo permanente son URLs https)
+  // Manejo de imágenes en Editar Producto (igual que en Nuevo: subida a Storage)
   const agregarImagenesEditArchivos = event => {
     const archivos = Array.from(event.target.files || []);
     event.target.value = '';
     if (!archivos.length) return;
-    const urls = archivos.map(file => URL.createObjectURL(file));
-    setEditImagenes(prev => [...prev, ...urls]);
-    avisar('Vista previa lista. Pegá la URL https de la imagen para guardarla permanente.');
+    avisar('Subiendo imagen(es) a Storage...');
+    subirArchivos(archivos, setEditImagenes);
   };
 
   const agregarUrlEdit = () => {
@@ -338,8 +393,20 @@ export default function ProductosAdmin() {
     event.preventDefault();
     const datos = new FormData(event.currentTarget);
     const precioNumerico = Number(datos.get('precio'));
-    // Nunca se guardan vistas previas locales (blob:) ni base64: solo URLs https reales
+    if (editImagenes.some(u => typeof u === 'string' && u.startsWith('blob:'))) {
+      avisar('Esperá a que terminen de subir las imágenes antes de guardar.');
+      return;
+    }
+    // Nunca se guardan vistas previas locales (blob:) ni base64: solo URLs https reales.
+    // Si el usuario solo agregó archivos locales (blob:) sin URLs https, NO se tocan
+    // las fotos existentes; solo se borran si eliminó todas las miniaturas a propósito.
     const imagenesLimpias = editImagenes.filter(u => typeof u === 'string' && u.startsWith('https://'));
+    const fotosAnteriores = Array.isArray(editarProducto.imagenes) && editarProducto.imagenes.length
+      ? editarProducto.imagenes
+      : (editarProducto.imagen_url ? [editarProducto.imagen_url] : []);
+    const soloVistasLocales = editImagenes.length > 0 && imagenesLimpias.length === 0;
+    const imagenesFinal = soloVistasLocales ? fotosAnteriores : imagenesLimpias;
+    if (soloVistasLocales) avisar('Las fotos locales son solo vista previa: pegá la URL https para guardarlas permanente.');
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
@@ -350,8 +417,8 @@ export default function ProductosAdmin() {
       showroom: Number(datos.get('showroom')),
       bodega: Number(datos.get('bodega')),
       activo: datos.get('visible') === 'on',
-      imagen_url: imagenesLimpias[0] || null,
-      imagenes: imagenesLimpias,
+      imagen_url: imagenesFinal[0] || null,
+      imagenes: imagenesFinal,
       video_url: String(datos.get('video') || '').trim() || null,
     };
 
@@ -368,6 +435,59 @@ export default function ProductosAdmin() {
     } catch (err) {
       avisar(`Error al actualizar en servidor: ${err.message}`);
     }
+  };
+
+  // URL que lleva el QR: apunta a la ficha pública detalle-qr.html?id=...
+  // Si el admin se usa en localhost, escribí el dominio real (ej. https://mi-tienda.com)
+  // para que el QR impreso funcione en los celulares de los clientes.
+  const baseQr = (qrBase.trim().replace(/\/$/, '')) || (typeof window !== 'undefined' ? window.location.origin : '');
+  const urlQrDe = producto => `${baseQr}/detalle-qr.html?id=${producto.id}`;
+
+  useEffect(() => {
+    if (!qrProducto) return undefined;
+    setQrDataUrl('');
+    setQrCopiado(false);
+    const url = `${baseQr}/detalle-qr.html?id=${qrProducto.id}`;
+    let activo = true;
+    QRCode.toDataURL(url, { width: 440, margin: 2, errorCorrectionLevel: 'M' })
+      .then(dataUrl => { if (activo) setQrDataUrl(dataUrl); })
+      .catch(() => { if (activo) setQrDataUrl(''); });
+    return () => { activo = false; };
+  }, [qrProducto, baseQr]);
+
+  const guardarBaseQr = valor => {
+    setQrBase(valor);
+    try { localStorage.setItem('terra_qr_base', valor); } catch { /* sin almacenamiento */ }
+  };
+
+  const descargarQr = () => {
+    if (!qrDataUrl || !qrProducto) return;
+    const a = document.createElement('a');
+    a.href = qrDataUrl;
+    a.download = `qr-${qrProducto.sku || qrProducto.id}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    avisar('QR descargado como PNG, listo para imprimir.');
+  };
+
+  const copiarUrlQr = async () => {
+    if (!qrProducto) return;
+    try {
+      await navigator.clipboard.writeText(urlQrDe(qrProducto));
+      setQrCopiado(true);
+      setTimeout(() => setQrCopiado(false), 2000);
+    } catch {
+      avisar('No se pudo copiar. Copiá la URL manualmente.');
+    }
+  };
+
+  const imprimirQr = () => {
+    if (!qrDataUrl || !qrProducto) return;
+    const ventana = window.open('', '_blank');
+    if (!ventana) { avisar('El navegador bloqueó la ventana de impresión.'); return; }
+    ventana.document.write(`<!doctype html><html lang="es"><head><meta charset="UTF-8"><title>QR ${qrProducto.nombre}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:24px}img{width:320px;height:320px}small{color:#555;word-break:break-all}</style></head><body><h2>TERRA Autoservicio</h2><h3>${qrProducto.nombre}</h3><img src="${qrDataUrl}" alt="QR"><p>Escaneá para ver la ficha del producto</p><small>${urlQrDe(qrProducto)}</small><script>onload=()=>{print()}<\/script></body></html>`);
+    ventana.document.close();
   };
 
   const borrarProducto = async producto => {
@@ -561,6 +681,9 @@ export default function ProductosAdmin() {
                       <button title="Editar producto y fotos" onClick={() => abrirEdicion(p)}>
                         <Edit3 size={17} />
                       </button>
+                      <button title="Generar QR de la ficha" onClick={() => setQrProducto(p)}>
+                        <QrCode size={17} />
+                      </button>
                       <button className="product-action-delete" title="Eliminar producto" onClick={() => borrarProducto(p)}>
                         <Trash2 size={17} />
                       </button>
@@ -699,6 +822,51 @@ export default function ProductosAdmin() {
         </div>
       )}
 
+      {/* MODAL QR DE LA FICHA */}
+      {qrProducto && (
+        <div className="products-modal">
+          <section style={{ maxWidth: '460px', textAlign: 'center' }}>
+            <header>
+              <div>
+                <span><QrCode size={20} /></span>
+                <div style={{ textAlign: 'left' }}>
+                  <h2>QR del producto</h2>
+                  <p>{qrProducto.nombre} · {qrProducto.sku}</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setQrProducto(null)}><X /></button>
+            </header>
+            <div style={{ padding: '1rem 1.2rem', display: 'grid', gap: '0.7rem', justifyItems: 'center' }}>
+              {qrDataUrl ? (
+                <img src={qrDataUrl} alt={`QR de ${qrProducto.nombre}`} style={{ width: '240px', height: '240px', border: '1px solid #e5e7eb', borderRadius: '12px' }} />
+              ) : (
+                <p>Generando QR…</p>
+              )}
+              <code style={{ fontSize: '12px', wordBreak: 'break-all', background: '#f4f4f4', padding: '0.4rem 0.6rem', borderRadius: '8px' }}>
+                {urlQrDe(qrProducto)}
+              </code>
+              <label style={{ fontSize: '12px', color: '#666', display: 'grid', gap: '4px', width: '100%', textAlign: 'left' }}>
+                Dominio público de la tienda (vacío = usar este dominio)
+                <input
+                  type="url"
+                  value={qrBase}
+                  onChange={e => guardarBaseQr(e.target.value)}
+                  placeholder="https://mi-tienda.com"
+                  style={{ padding: '0.5rem 0.6rem', borderRadius: '8px', border: '1px solid #d4d4d4', width: '100%' }}
+                />
+              </label>
+            </div>
+            <footer style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
+              <button type="button" onClick={copiarUrlQr}>{qrCopiado ? '¡Copiado!' : 'Copiar enlace'}</button>
+              <button type="button" onClick={imprimirQr}>Imprimir</button>
+              <button className="primary" type="button" onClick={descargarQr} disabled={!qrDataUrl}>
+                <Download size={17} /> Descargar PNG
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
+
       {/* MODAL EDITAR PRODUCTO (INCLUYE GESTIÓN COMPLETA DE IMÁGENES) */}
       {editarProducto && (
         <div className="products-modal product-create-modal">
@@ -738,11 +906,12 @@ export default function ProductosAdmin() {
               <label>
                 Categoría
                 <select name="categoria" required defaultValue={editarProducto.categoria}>
-                  <option>Colchones</option>
-                  <option>Sommiers</option>
-                  <option>Living</option>
-                  <option>Almohadas</option>
-                  <option>Ropa de cama</option>
+                  {editarProducto.categoria && !opcionesCategoria.includes(editarProducto.categoria) && (
+                    <option value={editarProducto.categoria}>{editarProducto.categoria}</option>
+                  )}
+                  {opcionesCategoria.map(nombre => (
+                    <option key={nombre} value={nombre}>{nombre}</option>
+                  ))}
                 </select>
               </label>
 
@@ -941,11 +1110,9 @@ export default function ProductosAdmin() {
                 Categoría
                 <select name="categoria" required defaultValue="">
                   <option value="" disabled>Seleccionar categoría</option>
-                  <option>Colchones</option>
-                  <option>Sommiers</option>
-                  <option>Living</option>
-                  <option>Almohadas</option>
-                  <option>Ropa de cama</option>
+                  {opcionesCategoria.map(nombre => (
+                    <option key={nombre} value={nombre}>{nombre}</option>
+                  ))}
                 </select>
               </label>
               <label>

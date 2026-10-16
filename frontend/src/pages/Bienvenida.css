@@ -182,13 +182,13 @@
 .welcome-spot {
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid #fff;
-  border-radius: 1rem;
+  border-radius: 0.85rem;
   box-shadow: 0 10px 24px rgba(18, 24, 32, 0.18);
-  bottom: 1.25rem;
-  padding: 1rem 1.25rem;
+  bottom: 1rem;
+  padding: 0.7rem 0.95rem;
   position: absolute;
-  right: 1.25rem;
-  width: min(19rem, calc(100% - 2.5rem));
+  right: 1rem;
+  width: min(15.5rem, calc(100% - 2rem));
   z-index: 1;
 }
 
@@ -206,21 +206,21 @@
 .welcome-spot > b {
   color: #1c1917;
   display: block;
-  font-size: 1.02rem;
-  margin-top: 0.45rem;
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
 }
 
 .welcome-spot footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 0.6rem;
+  margin-top: 0.35rem;
 }
 
 .welcome-spot a {
   align-items: center;
   color: #78716c;
   display: inline-flex;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
   gap: 0.25rem;
   text-decoration: none;
@@ -265,7 +265,36 @@
   margin: 0;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1100px) and (min-width: 861px) {
+  .welcome-hero {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    min-height: 0;
+    padding: 1.75rem;
+  }
+  .welcome-copy h1 {
+    font-size: clamp(2rem, 3.4vw, 2.8rem);
+  }
+  .welcome-copy > p {
+    font-size: 0.9rem;
+    max-width: 26rem;
+  }
+  .welcome-cta {
+    min-width: min(18rem, 100%);
+    padding: 0.7rem 1.2rem 0.7rem 0.75rem;
+  }
+  .welcome-photo {
+    min-height: 360px;
+  }
+  .welcome-trust {
+    margin: 1.75rem 1.75rem 0;
+  }
+  .welcome-trust p {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 860px) {
   .welcome-hero {
     grid-template-columns: 1fr;
     min-height: 0;

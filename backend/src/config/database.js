@@ -16,7 +16,9 @@ export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: requiresSsl ? { rejectUnauthorized: false } : undefined,
   // En Vercel cada instancia puede abrir su propio pool; mantenerlo pequeño.
-  max: Number(process.env.DATABASE_POOL_MAX) || 1,
+  // (5 conexiones alcanzan para las peticiones en paralelo del admin + kiosco;
+  // con 1 sola, las peticiones simultáneas agotaban el tiempo de espera y daban 500).
+  max: Number(process.env.DATABASE_POOL_MAX) || 5,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
 });

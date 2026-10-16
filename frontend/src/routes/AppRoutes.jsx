@@ -30,6 +30,7 @@ import ClientesAdmin from '../pages/admin/ClientesAdmin.jsx';
 import LoginAdmin from '../pages/admin/LoginAdmin.jsx';
 import RutaAdmin from '../components/admin/RutaAdmin.jsx';
 import ChatAsistente from '../components/chat/ChatAsistente.jsx';
+import CarritoFlotante from '../components/cart/CarritoFlotante.jsx';
 import WebAccountModal from '../components/WebAccountModal.jsx';
 import './Layout.css';
 import './NavigationFix.css';
@@ -108,6 +109,7 @@ function Layout() {
         <small>Terminal táctil optimizado para celular, tablet y PC</small>
       </footer>
 
+      <CarritoFlotante />
       <ChatAsistente />
     </div>
   );

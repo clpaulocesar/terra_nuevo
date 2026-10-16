@@ -72,7 +72,7 @@ export async function actualizarProductoBD(id, datos) {
   const categoriaId = (typeof datos.categoria === 'string' && datos.categoria.trim() ? await resolverCategoriaId(datos.categoria) : null) ?? null;
   const cambiaVideo = 'video_url' in datos;
   const { rows } = await pool.query(
-    `UPDATE products SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), video_url=CASE WHEN $6 THEN $7 ELSE video_url END, activo=COALESCE($8,activo), internal_code=COALESCE($9,internal_code), size=COALESCE($10,size), color=COALESCE($11,color), category_id=COALESCE($12,category_id), updated_at=NOW() WHERE id=$13 RETURNING id`,
+    `UPDATE products SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), video_url=CASE WHEN $6 THEN $7 ELSE video_url END, activo=COALESCE($8,activo), is_active=COALESCE($8,is_active), internal_code=COALESCE($9,internal_code), codigo_terra=COALESCE($9,codigo_terra), size=COALESCE($10,size), color=COALESCE($11,color), category_id=COALESCE($12,category_id), updated_at=NOW() WHERE id=$13 RETURNING id`,
     [datos.nombre, datos.descripcion, datos.precio, datos.stock ?? datos.showroom, datos.imagen_url, cambiaVideo, datos.video_url || null, datos.activo, datos.sku, datos.medida, datos.detalle, categoriaId, id]
   );
   if (!rows[0]) return null;
