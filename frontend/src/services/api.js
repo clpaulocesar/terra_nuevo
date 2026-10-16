@@ -1,6 +1,10 @@
-export const API_URL = (
-  import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
-).replace(/\/$/, '');
+export const API_URL = String(
+  // public/config.js (window.TERRA_CONFIG) manda si está definido: así la app
+  // y la ficha QR (detalle-qr.html) usan la misma URL sin recompilar.
+  (typeof window !== 'undefined' && window.TERRA_CONFIG?.API_URL) ||
+  import.meta.env.VITE_API_URL ||
+  'http://localhost:3001/api'
+).trim().replace(/\/$/, '');
 
 export const MODO_DEMO = import.meta.env.VITE_MODO_DEMO === 'true';
 
