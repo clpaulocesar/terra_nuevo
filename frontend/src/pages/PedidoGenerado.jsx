@@ -38,6 +38,7 @@ export default function PedidoGenerado() {
   if (!pedido) return <Navigate to="/" replace />;
 
   const fechaGeneracion = formatoFechaPedido(pedido.fecha || pedido.fecha_creacion || pedido.created_at);
+  const clienteTicket = state?.cliente?.nombre || state?.cliente?.nit ? state.cliente : pedido.cliente;
 
   return (
     <section className="pedido-page">
@@ -49,6 +50,7 @@ export default function PedidoGenerado() {
           <header><ShoppingBag size={25} /><div><b>TERRA AUTOSERVICIO</b><span>Ticket de pago en caja</span></div></header>
           <div className="pedido-code"><span>Código de pedido</span><strong>{pedido.codigo}</strong><QrCode size={100} /></div>
           <div className="pedido-row"><span>Fecha y hora de emisión</span><b>{fechaGeneracion}</b></div>
+          {clienteTicket?.nit && <div className="pedido-row"><span>NIT</span><b>{clienteTicket.nit}</b></div>}
           <div className="pedido-row"><span>Estado</span><b>Pendiente de pago</b></div>
           <div className="pedido-row"><span>Total a pagar</span><b>{formatoMoneda(pedido.total)}</b></div>
           <footer><ReceiptText size={18} /> Conservá este código hasta finalizar tu compra.</footer>
@@ -64,7 +66,7 @@ export default function PedidoGenerado() {
       <div className="pedido-actions">
         <button
           type="button"
-          onClick={() => descargarTicket(pedido, state?.cliente, state?.items || pedido.items)}
+          onClick={() => descargarTicket(pedido, clienteTicket, state?.items || pedido.items)}
           className="pedido-download"
         >
           <Download size={20} /> Descargar ticket

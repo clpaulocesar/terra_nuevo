@@ -19,6 +19,7 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
         <td style="padding: 8px 0; border-bottom: 1px dashed #e2e8f0;">
           <div style="font-weight: 600; color: #1e293b;">${item.nombre || item.product_name || 'Producto'}</div>
           <div style="color: #64748b; font-size: 12px;">${item.cantidad} × ${formatoMoneda(item.precio || item.precioUnitario || 0)}</div>
+          ${item.color?.nombre || item.color ? `<div style="color: #64748b; font-size: 11px; margin-top: 2px;">Color: ${item.color?.nombre || item.color}</div>` : ''}
         </td>
         <td style="padding: 8px 0; text-align: right; border-bottom: 1px dashed #e2e8f0; vertical-align: bottom; font-weight: 700; color: #0f172a;">
           ${formatoMoneda(item.subtotal || (item.precio * item.cantidad) || 0)}
@@ -30,8 +31,8 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
   const ticketHtml = `
   <div style="width: 380px; background: #ffffff; padding: 28px; border-radius: 16px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a;">
     <div style="text-align: center; border-bottom: 2px dashed #a6192e; padding-bottom: 18px; margin-bottom: 20px;">
-      <div style="margin: 0; color: #a6192e; font-size: 22px; font-weight: 800; letter-spacing: 1.5px;">TERRA AUTOSERVICIO</div>
-      <div style="margin: 4px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Ticket de Pago en Caja · Kiosco Digital</div>
+      <img src="/logo-terra.png" alt="TERRA Autoservicio" style="width: 240px; max-width: 100%; height: auto; display: block; margin: 0 auto;" />
+      <div style="margin: 8px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Ticket de Pago en Caja · Kiosco Digital</div>
     </div>
 
     <div style="background: #fff1f2; border: 2px dashed #a6192e; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 20px;">
@@ -43,6 +44,7 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
       <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Fecha:</span> <b style="color: #1e293b;">${fecha}</b></div>
       <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Cliente:</span> <b style="color: #1e293b;">${cliente?.nombre || 'Invitado'}</b></div>
       ${cliente?.telefono ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Teléfono:</span> <b style="color: #1e293b;">${cliente.telefono}</b></div>` : ''}
+      ${cliente?.nit ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">NIT:</span> <b style="color: #1e293b;">${cliente.nit}</b></div>` : ''}
       <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Estado:</span> <b style="color: #1e293b;">Pendiente de pago en caja</b></div>
     </div>
 

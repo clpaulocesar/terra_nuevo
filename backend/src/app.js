@@ -7,6 +7,7 @@ import categoriaRoutes from './routes/categoriaRoutes.js';
 import pedidoRoutes from './routes/pedidoRoutes.js';
 import clienteRoutes from './routes/clienteRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import asistenteRoutes from './routes/asistenteRoutes.js';
 
 import { verificarConexion } from './config/database.js';
 
@@ -152,6 +153,7 @@ app.use('/api/categorias', categoriaRoutes);
 app.use('/api/pedidos', pedidoRoutes);
 app.use('/api/clientes', clienteRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/asistente', asistenteRoutes);
 
 // Manejo centralizado de errores.
 app.use(rutaNoEncontrada);

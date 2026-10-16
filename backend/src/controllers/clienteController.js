@@ -1,6 +1,7 @@
 
 import {
   crearClienteBD,
+  eliminarClienteBD,
   obtenerClienteBD,
   listarClientesBD,
 } from '../models/clienteModel.js';
@@ -110,6 +111,22 @@ export async function obtenerCliente(req, res, next) {
       data: cliente,
     });
   } catch (error) {
+    next(error);
+  }
+}
+
+export async function eliminarCliente(req, res, next) {
+  try {
+    const id = String(req.params.id || '').trim();
+    if (!id) return res.status(400).json({ success: false, mensaje: 'ID de cliente inválido' });
+
+    const cliente = await eliminarClienteBD(id);
+    if (!cliente) return res.status(404).json({ success: false, mensaje: 'Cliente no encontrado' });
+    return res.json({ success: true, mensaje: 'Cliente eliminado correctamente', data: cliente });
+  } catch (error) {
+    if (error.code === 'CLIENTE_CON_PEDIDOS') {
+      return res.status(409).json({ success: false, mensaje: error.message });
+    }
     next(error);
   }
 }

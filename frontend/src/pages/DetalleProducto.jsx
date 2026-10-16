@@ -6,9 +6,13 @@ import { useCarrito } from '../hooks/useCarrito.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { mediaDeVideo } from '../utils/videoEmbed.js';
 import './DetalleProducto.css';
+import './DetalleProductoSpecs.css';
+import './DetalleProductoRelated.css';
+import './DetalleProductoPalette.css';
 
 const colores = [{ nombre: 'Gris marengo', valor: '#54595f' }, { nombre: 'Gris perla', valor: '#9b9b9b' }, { nombre: 'Azul petróleo', valor: '#455a64' }, { nombre: 'Terracota', valor: '#8d5b4c' }, { nombre: 'Borgoña', valor: '#8e2828' }, { nombre: 'Verde oliva', valor: '#5d6b4f' }];
 const fallbackFotos = ['https://lh3.googleusercontent.com/aida-public/AB6AXuA_0IGZ5s0DjeFACULr5bK2zw8jNwY_4ygmGz_44Kd65Bb13xtjOAWf_fm_SD4sowQnCxMzCwU_ZD_DlXUGgV7nKlnEyI79XA31Ux46VzAsTssz8IaDziDvdlnriYJndVw-fukT_eKvBuoZjUQ7TIUvqEM4I4DJGnrYW6oGxCOdnHj9ITk2DfjrYEHNFCmMYaIS2C5r-2fvONkPGloLIafxeLD40KaqPvmWXpvg6uCzUefyXPRDfnq2'];
+const NOMBRES_COLOR = Object.fromEntries(colores.map((color) => [color.valor.toLowerCase(), color.nombre]));
 // El soporte de video (YouTube/Vimeo/MP4) vive en utils/videoEmbed.js
 
 export default function DetalleProducto() {
@@ -20,7 +24,7 @@ export default function DetalleProducto() {
   const [error, setError] = useState('');
   const [foto, setFoto] = useState(0);
   const [cantidad, setCantidad] = useState(1);
-  const [color, setColor] = useState(colores[0]);
+  const [color, setColor] = useState(null);
   const [agregado, setAgregado] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
@@ -39,6 +43,19 @@ export default function DetalleProducto() {
   }, [producto]);
 
   const fotos = useMemo(() => producto?.imagenes?.length ? producto.imagenes : (producto?.imagen_url ? [producto.imagen_url] : fallbackFotos), [producto]);
+  const coloresProducto = useMemo(() => {
+    const lista = Array.isArray(producto?.colores) ? producto.colores : [];
+    return lista.map((registro) => {
+      try {
+        const dato = typeof registro === 'object' ? registro : JSON.parse(String(registro));
+        if (dato?.nombre && dato?.valor) return { ...dato, imagenes: Array.isArray(dato.imagenes) ? dato.imagenes : [] };
+      } catch { /* Compatibilidad con colores guardados antes de asociar fotos. */ }
+      const [nombreGuardado, valorGuardado] = String(registro).split('|');
+      const valor = valorGuardado || nombreGuardado;
+      return { valor, nombre: valorGuardado ? nombreGuardado : (NOMBRES_COLOR[String(valor).toLowerCase()] || valor), imagenes: [] };
+    });
+  }, [producto]);
+  useEffect(() => { if (coloresProducto.length) setColor(coloresProducto[0]); }, [producto?.id, coloresProducto]);
   const video = useMemo(() => mediaDeVideo(producto?.video_url), [producto?.video_url]);
   // URL del video con reproducción automática (autoplay). Los navegadores
   // solo permiten autoplay en modo silenciado, por eso agregamos mute/autoplay.
@@ -49,6 +66,25 @@ export default function DetalleProducto() {
     const parametros = esVimeo ? 'autoplay=1&muted=1' : 'autoplay=1&mute=1';
     return `${video.src}${separador}${parametros}`;
   }, [video]);
+  const seleccionarColor = (opcion) => {
+    setColor(opcion);
+    const fotoDelColor = opcion.imagenes?.[0];
+    const indice = fotos.indexOf(fotoDelColor);
+    if (indice >= 0) {
+      setFoto(video ? indice + 1 : indice);
+      return;
+    }
+    // Compatibilidad con productos registrados antes de vincular fotos por color.
+    // Usa el orden de la galería hasta que el administrador haga la asociación explícita.
+    const indiceColor = coloresProducto.findIndex((item) => (item.id || item.valor) === (opcion.id || opcion.valor));
+    if (indiceColor >= 0 && fotos.length) setFoto(video ? Math.min(indiceColor + 1, fotos.length) : Math.min(indiceColor, fotos.length - 1));
+  };
+  const seleccionarFoto = (indice) => {
+    const fuente = fotos[indice];
+    const colorDeLaFoto = coloresProducto.find((opcion) => opcion.imagenes?.includes(fuente));
+    if (colorDeLaFoto) setColor(colorDeLaFoto);
+    setFoto(video ? indice + 1 : indice);
+  };
   const viendoVideo = Boolean(video) && foto === 0;
   const indiceFoto = video ? foto - 1 : foto;
   // Divide la descripción en líneas: respeta los saltos de línea ya existentes
@@ -58,7 +94,7 @@ export default function DetalleProducto() {
     .flatMap((linea) => linea.split(/(?<=\.)\s+/))
     .map((frase) => frase.trim())
     .filter(Boolean), [producto?.descripcion]);
-  const agregar = () => { for (let indice = 0; indice < cantidad; indice += 1) agregarProducto(producto); setAgregado(true); setTimeout(() => setAgregado(false), 1800); };
+  const agregar = () => { for (let indice = 0; indice < cantidad; indice += 1) agregarProducto(producto, 1, { color }); setAgregado(true); setTimeout(() => setAgregado(false), 1800); };
 
   if (cargando) return <p className="detalle-status">Cargando producto…</p>;
   if (error || !producto) return <div className="detalle-status"><p>{error || 'Producto no encontrado.'}</p><Link to="/catalogo">Volver al catálogo</Link></div>;
@@ -115,7 +151,7 @@ export default function DetalleProducto() {
             {fotos.slice(0, video ? 3 : 4).map((src, indice) => (
               <button
                 className={foto === (video ? indice + 1 : indice) ? 'active' : ''}
-                onClick={() => setFoto(video ? indice + 1 : indice)}
+                onClick={() => seleccionarFoto(indice)}
                 type="button"
                 key={`${src}-${indice}`}
               >
@@ -128,8 +164,8 @@ export default function DetalleProducto() {
         <section className="product-buy">
           <h1>{producto.nombre}</h1><div className="product-buy__rating"><span>{[1, 2, 3, 4, 5].map((n) => <Star size={15} fill="currentColor" key={n} />)}</span><small>Producto recomendado TERRA</small></div>
           <div className="product-buy__price"><strong>{formatoMoneda(producto.precio)}</strong><small>{disponible ? 'Disponible para entrega inmediata' : 'Consultar disponibilidad'}</small></div>
-          <p className="product-buy__description">{lineasDescripcion.map((linea, indice) => <span key={`${indice}-${linea}`}>{linea}</span>)}</p>
-          <div className="product-buy__choice"><b>Color:</b><div>{colores.map((opcion) => <button type="button" title={opcion.nombre} aria-label={opcion.nombre} key={opcion.nombre} onClick={() => setColor(opcion)} className={color.nombre === opcion.nombre ? 'active' : ''} style={{ backgroundColor: opcion.valor }} />)}</div><small>Tono actual: <strong>{color.nombre}</strong></small></div>
+          <p className="product-buy__description">{lineasDescripcion.length ? lineasDescripcion.slice(0, 2).map((linea, indice) => <span key={`${indice}-${linea}`}>{linea}</span>) : 'Conocé las características y dimensiones en la ficha técnica.'}</p>
+          <div className="product-buy__choice"><b>Colores disponibles:</b>{coloresProducto.length ? <><div className="product-buy__palette">{coloresProducto.map((opcion) => <button type="button" title={opcion.imagenes?.length ? `${opcion.nombre}: ver fotos` : opcion.nombre} aria-label={`Elegir color ${opcion.nombre}`} key={opcion.id || `${opcion.nombre}-${opcion.valor}`} onClick={() => seleccionarColor(opcion)} className={color?.valor === opcion.valor ? 'active' : ''}><i style={{ backgroundColor: opcion.valor }} /><span>{opcion.nombre}</span></button>)}</div><small>Tono actual: <strong>{color?.nombre || coloresProducto[0].nombre}</strong>{color?.imagenes?.length ? ' · imágenes de este color disponibles' : ''}</small></> : <small>Colores por confirmar</small>}</div>
           <div className="product-buy__quantity"><b>Cantidad:</b><div><button type="button" aria-label="Disminuir" disabled={cantidad <= 1} onClick={() => setCantidad((valor) => Math.max(1, valor - 1))}><CircleMinus size={19} /></button><span>{cantidad}</span><button type="button" aria-label="Aumentar" disabled={cantidad >= Number(producto.stock)} onClick={() => setCantidad((valor) => Math.min(Number(producto.stock), valor + 1))}><CirclePlus size={19} /></button></div></div>
           <button className="product-buy__add" disabled={!disponible} onClick={agregar} type="button">{agregado ? <><Check size={19} /> Agregado al carrito</> : <><ShoppingCart size={19} /> Agregar al carrito</>}</button><Link className="product-buy__now" to="/carrito">Comprar ahora</Link>
           <div className="product-buy__guarantees"><span><ShieldCheck size={15} /> Garantía oficial TERRA</span><span><Truck size={15} /> Envío seguro a Bolivia</span></div>
@@ -137,7 +173,7 @@ export default function DetalleProducto() {
       </div>
       <div className="product-highlights"><article><Sparkles size={23} /><b>Confort superior</b><small>Materiales seleccionados</small></article><article><Check size={23} /><b>Calidad garantizada</b><small>Respaldo TERRA</small></article><article><Truck size={23} /><b>Despacho coordinado</b><small>Atención personalizada</small></article><article><ShieldCheck size={23} /><b>Compra segura</b><small>Soporte en showroom</small></article></div>
     </section>
-    <section className="product-detail__bottom"><article><h2>Ficha técnica y dimensiones</h2><dl><dt>Modelo</dt><dd>{producto.nombre}</dd><dt>Categoría</dt><dd>{producto.categoria}</dd><dt>Medidas</dt><dd>{producto.medida || producto.detalle || 'Consultar medidas disponibles'}</dd><dt>Disponibilidad</dt><dd>{disponible ? `${producto.stock} unidades disponibles` : 'Consultar en showroom'}</dd><dt>Garantía</dt><dd>Garantía oficial de fábrica TERRA</dd></dl></article><aside><MapPin size={24} /><h2>Pruébalo en nuestro showroom</h2><p>Visitá nuestro espacio de descanso para conocer el producto y recibir asesoramiento.</p><Link to="/catalogo">Coordinar visita por WhatsApp</Link></aside></section>
-    {!!relacionados.length && <section className="product-related"><header><h2>Otros modelos que te pueden interesar</h2><Link to="/catalogo">Ver catálogo <ChevronRight size={16} /></Link></header><div>{relacionados.map((item) => <Link to={`/productos/${item.id}`} key={item.id}><figure>{item.imagen_url && <img src={item.imagen_url} alt={item.nombre} />}</figure><h3>{item.nombre}</h3><p>{item.descripcion || item.categoria}</p><strong>{formatoMoneda(item.precio)}</strong></Link>)}</div></section>}
+    <section className="product-detail__bottom"><article><h2>Ficha técnica y dimensiones</h2><dl><dt>Modelo</dt><dd>{producto.nombre}</dd><dt>Categoría</dt><dd>{producto.categoria}</dd><dt>Medidas</dt><dd>{producto.medida || producto.detalle || 'Consultar medidas disponibles'}</dd><dt>Disponibilidad</dt><dd>{disponible ? `${producto.stock} unidades disponibles` : 'Consultar en showroom'}</dd><dt>Garantía</dt><dd>Garantía oficial de fábrica TERRA</dd></dl>{lineasDescripcion.length > 0 && <details className="product-detail__specs"><summary>Descripción y características del producto</summary><div>{lineasDescripcion.map((linea, indice) => <p key={`${indice}-${linea}`}>{linea}</p>)}</div></details>}</article><aside><MapPin size={24} /><h2>Pruébalo en nuestro showroom</h2><p>Visitá nuestro espacio de descanso para conocer el producto y recibir asesoramiento.</p><Link to="/catalogo">Coordinar visita por WhatsApp</Link></aside></section>
+    {!!relacionados.length && <section className="product-related"><header><h2>Otros modelos que te pueden interesar</h2><Link to="/catalogo">Ver catálogo <ChevronRight size={16} /></Link></header><div>{relacionados.map((item) => <Link className="product-related-card" to={`/productos/${item.id}`} key={item.id}><figure>{item.imagen_url && <img src={item.imagen_url} alt={item.nombre} />}</figure><section><span className="product-related-card__category">{item.categoria}</span><h3>{item.nombre}</h3><p>{item.descripcion || 'Conocé sus características, disponibilidad y opciones de color.'}</p><div className="product-related-card__footer"><div><small className={Number(item.stock) > 0 ? 'in-stock' : 'out-stock'}>{Number(item.stock) > 0 ? 'Disponible' : 'Consultar stock'}</small><strong>{formatoMoneda(item.precio)}</strong></div><span>Ver detalle <ChevronRight size={15} /></span></div></section></Link>)}</div></section>}
   </main>;
 }

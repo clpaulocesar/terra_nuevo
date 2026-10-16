@@ -5,7 +5,7 @@ export const CarritoContext = createContext(null);
 export function CarritoProvider({ children }) {
   const [items, setItems] = useState([]);
 
-  const agregarProducto = useCallback((producto, cantidad = 1) => {
+  const agregarProducto = useCallback((producto, cantidad = 1, opcion = {}) => {
     const id = String(producto?.id || '').trim();
     const precio = Number(producto?.precio);
     const stock = Number(producto?.stock);
@@ -15,33 +15,35 @@ export function CarritoProvider({ children }) {
         !Number.isSafeInteger(unidades) || unidades < 1 ||
         !Number.isSafeInteger(stock) || stock < 1) return false;
 
-    const existente = items.find((item) => item.id === id);
+    const color = opcion?.color ? { nombre: opcion.color.nombre, valor: opcion.color.valor } : null;
+    const lineaId = `${id}::${color?.valor || color?.nombre || 'sin-color'}`;
+    const existente = items.find((item) => item.lineaId === lineaId);
     const actual = existente?.cantidad ?? 0;
     const nuevaCantidad = Math.min(Math.floor(stock), actual + unidades);
     if (nuevaCantidad === actual) return false;
 
     setItems((anterior) => {
-      const encontrado = anterior.some((item) => item.id === id);
+      const encontrado = anterior.some((item) => item.lineaId === lineaId);
       return encontrado
-        ? anterior.map((item) => item.id === id ? { ...item, cantidad: nuevaCantidad } : item)
+        ? anterior.map((item) => item.lineaId === lineaId ? { ...item, cantidad: nuevaCantidad } : item)
         : [...anterior, {
             id, nombre: producto.nombre, precio, stock: Math.floor(stock),
             categoria: producto.categoria, imagen_url: producto.imagen_url,
-            cantidad: nuevaCantidad,
+            color, lineaId, cantidad: nuevaCantidad,
           }];
     });
     return true;
   }, [items]);
 
-  const quitarProducto = useCallback((id) => {
-    setItems((anterior) => anterior.filter((item) => item.id !== String(id)));
+  const quitarProducto = useCallback((lineaId) => {
+    setItems((anterior) => anterior.filter((item) => item.lineaId !== String(lineaId)));
   }, []);
 
-  const actualizarCantidad = useCallback((id, cantidad) => {
+  const actualizarCantidad = useCallback((lineaId, cantidad) => {
     const n = Number(cantidad);
     if (!Number.isSafeInteger(n)) return;
     setItems((anterior) => anterior
-      .map((item) => item.id === String(id)
+      .map((item) => item.lineaId === String(lineaId)
         ? { ...item, cantidad: Math.min(Math.max(0, n), item.stock) }
         : item)
       .filter((item) => item.cantidad > 0));

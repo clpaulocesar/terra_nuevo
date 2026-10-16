@@ -12,6 +12,40 @@ const FIRMEZAS_CONFIG = [
   { id: 'Firme Ortopédica', label: 'Firme Ortopédica' },
 ];
 
+// Los colores llegan desde Supabase como textos JSON (o desde registros antiguos
+// como "Nombre|#hex"). El catálogo nunca inventa tonos que el administrador no
+// haya registrado para el producto.
+function obtenerColoresDisponibles(producto) {
+  const registros = Array.isArray(producto?.colores) ? producto.colores : [];
+
+  return registros
+    .map((registro, indice) => {
+      if (registro && typeof registro === 'object') {
+        return {
+          id: registro.id || `${registro.nombre || 'color'}-${indice}`,
+          nombre: registro.nombre || 'Color disponible',
+          valor: registro.valor || registro.hex || '',
+        };
+      }
+
+      const texto = String(registro || '').trim();
+      if (!texto) return null;
+
+      try {
+        const color = JSON.parse(texto);
+        return {
+          id: color.id || `${color.nombre || 'color'}-${indice}`,
+          nombre: color.nombre || 'Color disponible',
+          valor: color.valor || color.hex || '',
+        };
+      } catch {
+        const [nombre, valor] = texto.split('|');
+        return { id: `${nombre || 'color'}-${indice}`, nombre: nombre || 'Color disponible', valor: valor || '' };
+      }
+    })
+    .filter((color) => color && /^#[0-9a-f]{3,8}$/i.test(color.valor));
+}
+
 export default function Catalogo() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -495,6 +529,7 @@ export default function Catalogo() {
                 <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
                   {productosFiltrados.map((producto) => {
                     const recienAgregado = Boolean(agregados[producto.id]);
+                    const coloresDisponibles = obtenerColoresDisponibles(producto);
 
                     return (
                       <article
@@ -589,9 +624,24 @@ export default function Catalogo() {
 
                             <p className="catalog-product-description">{producto.descripcion || ''}</p>
 
-                            <div className="catalog-product-colors" aria-label="Colores disponibles">
-                              <i /><i /><i /><i /><i /><span>+6 tonos</span>
-                            </div>
+                            {coloresDisponibles.length > 0 ? (
+                              <div
+                                className="catalog-product-colors"
+                                aria-label={`Colores disponibles: ${coloresDisponibles.map((color) => color.nombre).join(', ')}`}
+                              >
+                                {coloresDisponibles.slice(0, 5).map((color) => (
+                                  <i
+                                    key={color.id}
+                                    title={color.nombre}
+                                    aria-label={color.nombre}
+                                    style={{ backgroundColor: color.valor }}
+                                  />
+                                ))}
+                                {coloresDisponibles.length > 5 && <span>+{coloresDisponibles.length - 5} tonos</span>}
+                              </div>
+                            ) : (
+                              <small className="catalog-product-no-colors">Colores por confirmar</small>
+                            )}
                           </div>
 
                           {/* Precio y Botón Táctil de Agregar */}
@@ -646,23 +696,23 @@ export default function Catalogo() {
 
           {/* BARRA FLOTANTE STICKY DE CARRITO PARA VISIBILIDAD INMEDIATA */}
           <aside className="sticky bottom-[72px] sm:bottom-4 z-30 mt-space-md mb-space-md pointer-events-none">
-            <div className="max-w-[1240px] mx-auto flex justify-end">
-              <div className="pointer-events-auto w-full sm:w-auto bg-surface-container-lowest text-on-surface rounded-2xl shadow-xl p-2 sm:p-3 sm:pl-6 flex items-center justify-between gap-3 sm:gap-6 border border-surface-container-high/60">
+            <div className="max-w-[1240px] mx-auto flex justify-end sm:pr-[170px]">
+              <div className="pointer-events-auto w-full sm:w-auto bg-surface-container-lowest text-on-surface rounded-2xl shadow-xl p-2 sm:p-2.5 sm:pl-5 lg:p-3 lg:pl-6 flex items-center justify-between gap-3 sm:gap-4 lg:gap-6 border border-surface-container-high/60">
                 {/* Resumen de items y precio */}
                 <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
-                    <span className="material-symbols-outlined text-[26px]">shopping_bag</span>
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 lg:w-12 lg:h-12 shrink-0 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
+                    <span className="material-symbols-outlined text-[22px] sm:text-[24px] lg:text-[26px]">shopping_bag</span>
                   </div>
                   <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[14px] sm:text-base font-bold text-on-surface truncate">
+                      <span className="text-[14px] sm:text-[15px] lg:text-base font-bold text-on-surface truncate">
                         {cantidadTotal} {cantidadTotal === 1 ? 'producto en orden' : 'productos en orden'}
                       </span>
                       <span className="w-2 h-2 shrink-0 rounded-full bg-secondary"></span>
                     </div>
-                    <div className="flex items-baseline gap-1">
+                    <div className="flex items-baseline gap-1 whitespace-nowrap">
                       <span className="font-body-sm text-body-sm text-on-surface-variant">Total:</span>
-                      <span className="font-title-lg text-title-lg text-primary font-extrabold">
+                      <span className="cart-bar-total font-title-lg text-title-lg text-primary font-extrabold">
                         {formatoMoneda(subtotal)}
                       </span>
                     </div>
@@ -671,11 +721,11 @@ export default function Catalogo() {
 
                 {/* Botón de checkout hacia carrito */}
                 <Link
-                  className="min-h-[48px] sm:min-h-[52px] px-4 sm:px-9 shrink-0 rounded-xl bg-secondary-container hover:bg-secondary-fixed text-on-secondary-fixed text-[15px] sm:text-base font-bold flex items-center gap-space-xs shadow-sm transition-all active:scale-95"
+                  className="min-h-[48px] sm:min-h-[48px] lg:min-h-[52px] px-4 sm:px-5 lg:px-9 shrink-0 rounded-xl bg-secondary-container hover:bg-secondary-fixed text-on-secondary-fixed text-[15px] sm:text-sm lg:text-base font-bold flex items-center gap-space-xs shadow-sm transition-all active:scale-95"
                   to="/carrito"
                 >
                   <span>Ver Carrito</span>
-                  <span className="material-symbols-outlined text-[22px]">arrow_forward</span>
+                  <span className="material-symbols-outlined text-[20px] lg:text-[22px]">arrow_forward</span>
                 </Link>
               </div>
             </div>

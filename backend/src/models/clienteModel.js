@@ -2,7 +2,10 @@ import { pool } from '../config/database.js';
 
 let nitColumnReady = null;
 function asegurarColumnaNit() {
-  if (!nitColumnReady) nitColumnReady = pool.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS nit VARCHAR(20)');
+  if (!nitColumnReady) nitColumnReady = (async () => {
+    await pool.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS nit TEXT');
+    await pool.query('ALTER TABLE customers ALTER COLUMN nit TYPE TEXT');
+  })();
   return nitColumnReady;
 }
 
@@ -19,6 +22,22 @@ export async function crearClienteBD({ nombre, telefono, email, nit }) {
 export async function obtenerClienteBD(id) {
   await asegurarColumnaNit();
   const { rows } = await pool.query(`SELECT id, name AS nombre, phone AS telefono, email, nit, created_at AS fecha_registro FROM customers WHERE id=$1`, [id]);
+  return rows[0] || null;
+}
+
+export async function eliminarClienteBD(id) {
+  await asegurarColumnaNit();
+  const ventas = await pool.query('SELECT COUNT(*)::int AS total FROM orders WHERE customer_id=$1', [id]);
+  if (ventas.rows[0].total > 0) {
+    const error = new Error('No se puede eliminar un cliente que tiene pedidos registrados. Así se conserva el historial de ventas.');
+    error.code = 'CLIENTE_CON_PEDIDOS';
+    throw error;
+  }
+
+  const { rows } = await pool.query(
+    'DELETE FROM customers WHERE id=$1 RETURNING id, name AS nombre',
+    [id]
+  );
   return rows[0] || null;
 }
 

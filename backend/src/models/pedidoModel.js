@@ -39,10 +39,21 @@ export async function crearPedidoBD(clienteId, items) {
 }
 
 export async function obtenerPedidoBD(id) {
-  const { rows } = await pool.query(`SELECT id,ticket_number AS codigo,customer_id AS cliente_id,total_minor,status AS estado,created_at AS fecha FROM orders WHERE id=$1`, [id]);
+  const { rows } = await pool.query(
+    `SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor,o.status AS estado,o.created_at AS fecha,
+            c.name AS cliente_nombre,c.phone AS cliente_telefono,c.nit AS cliente_nit
+     FROM orders o LEFT JOIN customers c ON c.id=o.customer_id WHERE o.id=$1`,
+    [id]
+  );
   if (!rows[0]) return null;
   const detalles = await pool.query(`SELECT product_variant_id AS "productoId",product_name AS nombre,quantity AS cantidad,unit_price_minor/100.0 AS "precioUnitario",total_minor/100.0 AS subtotal FROM order_items WHERE order_id=$1 ORDER BY created_at`, [id]);
-  return { ...rows[0], total: aMonto(rows[0].total_minor), items: detalles.rows };
+  const pedido = rows[0];
+  return {
+    ...pedido,
+    total: aMonto(pedido.total_minor),
+    cliente: pedido.cliente_nombre ? { nombre: pedido.cliente_nombre, telefono: pedido.cliente_telefono, nit: pedido.cliente_nit } : null,
+    items: detalles.rows,
+  };
 }
 
 export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 } = {}) {
