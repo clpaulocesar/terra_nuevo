@@ -1,0 +1,243 @@
+/* Estilos específicos para la pantalla Catálogo Kiosco TERRA */
+
+/* El encabezado y el pie únicos se renderizan desde Layout. */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+.catalogo-container > header,
+.catalogo-container > footer {
+  display: none;
+}
+
+.catalogo-container > main {
+  padding-top: 1rem !important;
+}
+
+:root {
+  --color-primary: #004230;
+  --color-primary-container: #1f5a46;
+  --color-primary-fixed: #b3efd5;
+  --color-primary-fixed-dim: #98d3b9;
+  --color-on-primary: #ffffff;
+  --color-secondary: #745a27;
+  --color-secondary-container: #ffdb9b;
+  --color-secondary-fixed: #ffdea5;
+  --color-on-secondary-fixed: #261900;
+  --color-on-secondary-container: #795f2b;
+  --color-tertiary: #5a2e00;
+  --color-tertiary-container: #7c4100;
+  --color-tertiary-fixed: #ffdcc3;
+  --color-on-tertiary-fixed: #2f1500;
+  --color-surface: #fcf9f8;
+  --color-surface-bright: #fcf9f8;
+  --color-surface-variant: #e4e2e1;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container: #f0eded;
+  --color-surface-container-high: #eae7e7;
+  --color-surface-container-highest: #e4e2e1;
+  --color-on-surface: #1b1c1c;
+  --color-on-surface-variant: #404944;
+  --color-outline: #707974;
+}
+.catalogo-container {
+  font-family: 'Manrope', -apple-system,
+BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--color-on-surface);
+  background-color: #ffffff;
+  border: 1px solid #e7e5e4;
+  border-radius: 1.5rem;
+  box-shadow: 0 14px 30px rgba(41, 37, 36, 0.08);
+  padding: 1.5rem clamp(1rem, 2.5vw, 2rem);
+  margin-bottom: 1rem;
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.catalogo-container .bg-surface { background-color: #ffffff; }
+
+@media (max-width: 640px) {
+  .catalogo-container {
+    border-radius: 1.1rem;
+    padding: 1rem 0.85rem;
+  }
+}
+
+/* Material Symbols */
+.catalogo-container .material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Spacing & Utilities */
+/* El contenedor .page-content del Layout ya aporta el margen lateral. */
+.catalogo-container .px-margin {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.catalogo-container .gap-space-xs { gap: 0.5rem; }
+.catalogo-container .gap-space-sm { gap: 0.75rem; }
+.catalogo-container .gap-space-md { gap: 1rem; }
+.catalogo-container .gap-space-lg { gap: 1.5rem; }
+
+.catalogo-container .p-space-xs { padding: 0.5rem; }
+.catalogo-container .p-space-sm { padding: 0.75rem; }
+.catalogo-container .p-space-md { padding: 1rem; }
+.catalogo-container .p-space-lg { padding: 1.5rem; }
+
+.catalogo-container .px-space-xs { padding-left: 0.5rem; padding-right: 0.5rem; }
+.catalogo-container .px-space-sm { padding-left: 0.75rem; padding-right: 0.75rem; }
+.catalogo-container .px-space-md { padding-left: 1rem; padding-right: 1rem; }
+.catalogo-container .px-space-lg { padding-left: 1.5rem; padding-right: 1.5rem; }
+.catalogo-container .px-space-xl { padding-left: 2.25rem; padding-right: 2.25rem; }
+
+.catalogo-container .py-space-xs { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.catalogo-container .py-space-sm { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+.catalogo-container .py-space-md { padding-top: 1rem; padding-bottom: 1rem; }
+
+.catalogo-container .pt-space-xs { padding-top: 0.5rem; }
+.catalogo-container .pt-space-md { padding-top: 1rem; }
+.catalogo-container .pb-space-xs { padding-bottom: 0.5rem; }
+.catalogo-container .pb-space-sm { padding-bottom: 0.75rem; }
+
+.catalogo-container .mr-space-sm { margin-right: 0.75rem; }
+.catalogo-container .ml-space-sm { margin-left: 0.75rem; }
+.catalogo-container .mt-space-md { margin-top: 1rem; }
+.catalogo-container .mb-space-md { margin-bottom: 1rem; }
+
+/* Custom Typography Helpers */
+.catalogo-container .font-label-sm { font-size: 12px; line-height: 16px; letter-spacing: 0.04em; font-weight: 600; }
+.catalogo-container .font-label-md { font-size: 14px; line-height: 18px; letter-spacing: 0.02em; font-weight: 600; }
+.catalogo-container .font-label-lg { font-size: 16px; line-height: 20px; letter-spacing: 0.01em; font-weight: 600; }
+
+.catalogo-container .font-body-sm { font-size: 14px; line-height: 20px; font-weight: 500; }
+.catalogo-container .font-body-md { font-size: 16px; line-height: 24px; font-weight: 400; }
+.catalogo-container .font-body-lg { font-size: 18px; line-height: 26px; font-weight: 400; }
+
+.catalogo-container .font-title-md { font-size: 18px; line-height: 24px; font-weight: 600; }
+.catalogo-container .font-title-lg { font-size: 20px; line-height: 26px; font-weight: 600; }
+.catalogo-container .font-headline-sm { font-size: 22px; line-height: 28px; font-weight: 600; }
+.catalogo-container .font-headline-md { font-size: 26px; line-height: 34px; letter-spacing: -0.01em; font-weight: 600; }
+.catalogo-container .font-headline-lg { font-size: 32px; line-height: 40px; letter-spacing: -0.015em; font-weight: 700; }
+
+.catalogo-container .font-price-card { font-size: 22px; line-height: 28px; font-weight: 700; }
+.catalogo-container .font-price-hero { font-size: 32px; line-height: 36px; letter-spacing: -0.02em; font-weight: 800; }
+
+/* Custom Color Helpers */
+.catalogo-container .bg-primary { background-color: var(--color-primary); }
+.catalogo-container .bg-primary-container { background-color: var(--color-primary-container); }
+.catalogo-container .bg-primary-fixed { background-color: var(--color-primary-fixed); }
+.catalogo-container .bg-primary-fixed-dim { background-color: var(--color-primary-fixed-dim); }
+.catalogo-container .text-primary { color: var(--color-primary); }
+.catalogo-container .text-primary-fixed { color: var(--color-primary-fixed); }
+.catalogo-container .text-on-primary { color: var(--color-on-primary); }
+
+.catalogo-container .bg-secondary { background-color: var(--color-secondary); }
+.catalogo-container .bg-secondary-container { background-color: var(--color-secondary-container); }
+.catalogo-container .bg-secondary-fixed { background-color: var(--color-secondary-fixed); }
+.catalogo-container .text-secondary { color: var(--color-secondary); }
+.catalogo-container .text-secondary-fixed { color: var(--color-secondary-fixed); }
+.catalogo-container .text-on-secondary-fixed { color: var(--color-on-secondary-fixed); }
+.catalogo-container .text-on-secondary-container { color: var(--color-on-secondary-container); }
+
+.catalogo-container .bg-tertiary { background-color: var(--color-tertiary); }
+.catalogo-container .bg-tertiary-fixed { background-color: var(--color-tertiary-fixed); }
+.catalogo-container .text-tertiary { color: var(--color-tertiary); }
+.catalogo-container .text-on-tertiary-fixed { color: var(--color-on-tertiary-fixed); }
+
+.catalogo-container .bg-surface { background-color: #ffffff; }
+.catalogo-container .bg-surface-bright { background-color: var(--color-surface-bright); }
+.catalogo-container .text-surface-bright { color: var(--color-surface-bright); }
+.catalogo-container .bg-surface-variant { background-color: var(--color-surface-variant); }
+.catalogo-container .text-surface-variant { color: var(--color-surface-variant); }
+.catalogo-container .bg-surface-container { background-color: var(--color-surface-container); }
+.catalogo-container .bg-surface-container-low { background-color: var(--color-surface-container-low); }
+.catalogo-container .bg-surface-container-lowest { background-color: var(--color-surface-container-lowest); }
+.catalogo-container .bg-surface-container-high { background-color: var(--color-surface-container-high); }
+.catalogo-container .bg-surface-container-highest { background-color: var(--color-surface-container-highest); }
+.catalogo-container .text-on-surface { color: var(--color-on-surface); }
+.catalogo-container .text-on-surface-variant { color: var(--color-on-surface-variant); }
+.catalogo-container .text-outline { color: var(--color-outline); }
+
+/* Scrollbars */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Loader del catálogo (HTML: <div class="loader"></div>) */
+.catalogo-loader {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 3rem 1rem;
+}
+
+.catalogo-loader .loader {
+  margin-bottom: 2.75rem;
+}
+
+.catalogo-loader p {
+  color: #707974;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.loader {
+  --s: 20px;
+  --_d: calc(0.353 * var(--s));
+  width: calc(var(--s) + var(--_d));
+  aspect-ratio: 1;
+  display: grid;
+}
+.loader:before,
+.loader:after {
+  content: "";
+  grid-area: 1/1;
+  clip-path: polygon(var(--_d) 0, 100% 0, 100% calc(100% - var(--_d)), calc(100% - var(--_d)) 100%, 0 100%, 0 var(--_d));
+  background:
+    conic-gradient(from -90deg at calc(100% - var(--_d)) var(--_d),
+      #a6192e 135deg, #d6d3d1 0 270deg, #8a948e 0);
+  animation: l6 2s infinite;
+}
+.loader:after {
+  animation-delay: -1s;
+}
+@keyframes l6 {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(30px, 0); }
+  50% { transform: translate(30px, 30px); }
+  75% { transform: translate(0, 30px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Animations */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.animate-pulse {
+  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
