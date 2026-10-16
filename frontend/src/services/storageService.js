@@ -1,6 +1,8 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-const BUCKET = 'product-images';
+// Los proyectos nuevos de Supabase usan claves publicables `sb_publishable_*`.
+// Se prioriza esa clave porque la anónima antigua puede quedar invalidada al rotar JWT.
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+const BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'product-images';
 
 export async function subirImagenProducto(archivo) {
   if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error('Falta configurar Supabase Storage en las variables del frontend.');

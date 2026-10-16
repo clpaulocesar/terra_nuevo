@@ -43,6 +43,7 @@ const normalizarNombreColor = (texto = '') => texto.trim().toLowerCase().normali
 const tonoSugerido = (nombre) => TONOS_SUGERIDOS[normalizarNombreColor(nombre)] || null;
 const TONOS_RAPIDOS = ['Blanco', 'Negro', 'Gris grafito', 'Beige arena', 'Café', 'Lila claro', 'Terracota', 'Bordó', 'Azul petróleo', 'Verde oliva'];
 const nombreColorDeImagen = (lista, imagen) => lista.map(leerColor).find((color) => color.imagenes?.includes(imagen))?.nombre || 'Galería general';
+const buscarColorPorId = (lista, id) => lista.map(leerColor).find((color) => color.id === id) || null;
 
 const productosIniciales = [
   {
@@ -260,7 +261,7 @@ export default function ProductosAdmin() {
     setEditImagenes(listaFotos);
     setUrlEdit('');
     setColoresEdit(Array.isArray(producto.colores) ? producto.colores : []);
-    setColorImagenEdit(Array.isArray(producto.colores) && producto.colores.length ? String(producto.colores[0]) : '');
+    setColorImagenEdit(Array.isArray(producto.colores) && producto.colores.length ? leerColor(producto.colores[0]).id : '');
     setNombreColorEdit('');
   };
 
@@ -281,8 +282,8 @@ export default function ProductosAdmin() {
   const asociarImagenesConColor = (setColores, colorSeleccionado, urls) => {
     if (!colorSeleccionado || !urls.length) return;
     setColores((lista) => lista.map((registro) => {
-      if (String(registro) !== colorSeleccionado) return registro;
       const color = leerColor(registro);
+      if (color.id !== colorSeleccionado) return registro;
       return guardarColor({ ...color, imagenes: [...new Set([...color.imagenes, ...urls])] });
     }));
   };
@@ -292,7 +293,7 @@ export default function ProductosAdmin() {
     setColores((lista) => lista.map((registro) => {
       const color = leerColor(registro);
       const sinImagen = color.imagenes.filter((src) => src !== imagen);
-      return guardarColor({ ...color, imagenes: String(registro) === colorSeleccionado ? [...sinImagen, imagen] : sinImagen });
+      return guardarColor({ ...color, imagenes: color.id === colorSeleccionado ? [...sinImagen, imagen] : sinImagen });
     }));
   };
 
@@ -323,7 +324,7 @@ export default function ProductosAdmin() {
     if (!/^#[0-9a-f]{6}$/i.test(valorColorNuevo) || existe) return;
     const registro = guardarColor({ id: `${nombre}-${valorColorNuevo}-${Date.now()}`, nombre, valor: valorColorNuevo, imagenes: [] });
     setColoresNuevo((lista) => [...lista, registro]);
-    setColorImagenNuevo(registro);
+    setColorImagenNuevo(leerColor(registro).id);
     setNombreColorNuevo('');
   };
 
@@ -339,10 +340,10 @@ export default function ProductosAdmin() {
       const color = leerColor(registro);
       return normalizarNombreColor(color.nombre) === normalizarNombreColor(nombre);
     });
-    if (existente) { setColorImagenNuevo(existente); return; }
+    if (existente) { setColorImagenNuevo(leerColor(existente).id); return; }
     const registro = guardarColor({ id: `${nombre}-${valor}-${Date.now()}`, nombre, valor, imagenes: [] });
     setColoresNuevo((lista) => [...lista, registro]);
-    setColorImagenNuevo(registro);
+    setColorImagenNuevo(leerColor(registro).id);
     setNombreColorNuevo('');
   };
 
@@ -360,7 +361,7 @@ export default function ProductosAdmin() {
   };
 
   const usarColorComoPortadaNuevo = () => {
-    const foto = leerColor(colorImagenNuevo).imagenes?.[0];
+    const foto = buscarColorPorId(coloresNuevo, colorImagenNuevo)?.imagenes?.[0];
     if (!foto) return avisar('Este color aún no tiene una imagen asignada.');
     setImagenesNuevo((lista) => [foto, ...lista.filter((item) => item !== foto)]);
     avisar('La primera imagen de este color ahora es la portada principal.');
@@ -370,7 +371,7 @@ export default function ProductosAdmin() {
     if (!imagenesNuevo[0]) return avisar('Primero agrega una imagen para usar como portada.');
     if (!colorImagenNuevo) return avisar('Primero selecciona una variante de color.');
     asignarImagenExistenteAColor(setColoresNuevo, colorImagenNuevo, imagenesNuevo[0]);
-    avisar(`La portada ahora pertenece a ${leerColor(colorImagenNuevo).nombre}.`);
+    avisar(`La portada ahora pertenece a ${buscarColorPorId(coloresNuevo, colorImagenNuevo)?.nombre || 'la variante elegida'}.`);
   };
 
   const moverImagenNuevo = (from, to) => {
@@ -450,7 +451,7 @@ export default function ProductosAdmin() {
     if (!/^#[0-9a-f]{6}$/i.test(valorColorEdit) || existe) return;
     const registro = guardarColor({ id: `${nombre}-${valorColorEdit}-${Date.now()}`, nombre, valor: valorColorEdit, imagenes: [] });
     setColoresEdit((lista) => [...lista, registro]);
-    setColorImagenEdit(registro);
+    setColorImagenEdit(leerColor(registro).id);
     setNombreColorEdit('');
   };
 
@@ -466,10 +467,10 @@ export default function ProductosAdmin() {
       const color = leerColor(registro);
       return normalizarNombreColor(color.nombre) === normalizarNombreColor(nombre);
     });
-    if (existente) { setColorImagenEdit(existente); return; }
+    if (existente) { setColorImagenEdit(leerColor(existente).id); return; }
     const registro = guardarColor({ id: `${nombre}-${valor}-${Date.now()}`, nombre, valor, imagenes: [] });
     setColoresEdit((lista) => [...lista, registro]);
-    setColorImagenEdit(registro);
+    setColorImagenEdit(leerColor(registro).id);
     setNombreColorEdit('');
   };
 
@@ -487,7 +488,7 @@ export default function ProductosAdmin() {
   };
 
   const usarColorComoPortadaEdit = () => {
-    const foto = leerColor(colorImagenEdit).imagenes?.[0];
+    const foto = buscarColorPorId(coloresEdit, colorImagenEdit)?.imagenes?.[0];
     if (!foto) return avisar('Este color aún no tiene una imagen asignada.');
     setEditImagenes((lista) => [foto, ...lista.filter((item) => item !== foto)]);
     avisar('La primera imagen de este color ahora es la portada principal.');
@@ -497,7 +498,7 @@ export default function ProductosAdmin() {
     if (!editImagenes[0]) return avisar('Este producto todavía no tiene imagen de portada.');
     if (!colorImagenEdit) return avisar('Primero selecciona una variante de color.');
     asignarImagenExistenteAColor(setColoresEdit, colorImagenEdit, editImagenes[0]);
-    avisar(`La portada ahora pertenece a ${leerColor(colorImagenEdit).nombre}.`);
+    avisar(`La portada ahora pertenece a ${buscarColorPorId(coloresEdit, colorImagenEdit)?.nombre || 'la variante elegida'}.`);
   };
 
   const moverImagenEdit = (from, to) => {
@@ -958,7 +959,7 @@ export default function ProductosAdmin() {
               </label>
 
               <label className="product-form-wide">
-                URL de video del producto <small>Opcional · YouTube, Vimeo o enlace directo MP4</small>
+                Video promocional del producto <small>Opcional · general para todas las variantes; no se asigna a colores.</small>
                 <input name="video_url" type="url" defaultValue={editarProducto.video_url || ''} placeholder="https://www.youtube.com/watch?v=..." />
               </label>
               <fieldset className="product-form-wide product-color-picker">
@@ -966,8 +967,8 @@ export default function ProductosAdmin() {
                 <div className="product-color-picker__create"><input aria-label="Nombre del color" list="tonos-sugeridos" value={nombreColorEdit} onChange={(event) => actualizarNombreColorEdit(event.target.value)} maxLength="40" placeholder="Ej. Beige arena" /><input aria-label="Elegir tono del color" title="Puedes ajustar manualmente el tono" type="color" value={valorColorEdit} onChange={(event) => setValorColorEdit(event.target.value)} /><button type="button" onClick={agregarColorEdit}><Plus size={16} /> Agregar color</button></div>
                 <small>Color personalizado: escribe un nombre, ajusta el tono si quieres y pulsa “Agregar color”.</small>
                 <b className="color-assistant__title">O agrega una variante rápida:</b>
-                <div className="color-assistant" aria-label="Tonos sugeridos">{TONOS_RAPIDOS.map((nombre) => { const registro = coloresEdit.find((item) => normalizarNombreColor(leerColor(item).nombre) === normalizarNombreColor(nombre)); return <button type="button" key={nombre} onClick={() => elegirTonoEdit(nombre)} title={registro ? `${nombre} ya está registrado` : `Agregar ${nombre}`} className={`${registro ? 'is-registered' : ''} ${registro === colorImagenEdit ? 'is-selected' : ''}`}><i style={{ backgroundColor: tonoSugerido(nombre) }} />{nombre}{registro && <em>Registrado</em>}</button>; })}</div>
-                <div className="product-color-picker__list">{coloresEdit.map((registro) => { const color = leerColor(registro); return <span key={registro}><i style={{ backgroundColor: color.valor }} />{color.nombre}{color.imagenes.length > 0 && <em>{color.imagenes.length} foto{color.imagenes.length > 1 ? 's' : ''}</em>}<button type="button" aria-label={`Quitar ${color.nombre}`} onClick={() => { setColoresEdit((lista) => lista.filter((item) => item !== registro)); if (colorImagenEdit === registro) setColorImagenEdit(''); }}><X size={13} /></button></span>; })}{!coloresEdit.length && <small>Aún no se registraron colores para este producto.</small>}</div>
+                <div className="color-assistant" aria-label="Tonos sugeridos">{TONOS_RAPIDOS.map((nombre) => { const registro = coloresEdit.find((item) => normalizarNombreColor(leerColor(item).nombre) === normalizarNombreColor(nombre)); return <button type="button" key={nombre} onClick={() => elegirTonoEdit(nombre)} title={registro ? `${nombre} ya está registrado` : `Agregar ${nombre}`} className={`${registro ? 'is-registered' : ''} ${leerColor(registro).id === colorImagenEdit ? 'is-selected' : ''}`}><i style={{ backgroundColor: tonoSugerido(nombre) }} />{nombre}{registro && <em>Registrado</em>}</button>; })}</div>
+                <div className="product-color-picker__list">{coloresEdit.map((registro) => { const color = leerColor(registro); return <span key={registro}><i style={{ backgroundColor: color.valor }} />{color.nombre}{color.imagenes.length > 0 && <em>{color.imagenes.length} foto{color.imagenes.length > 1 ? 's' : ''}</em>}<button type="button" aria-label={`Quitar ${color.nombre}`} onClick={() => { setColoresEdit((lista) => lista.filter((item) => item !== registro)); if (colorImagenEdit === color.id) setColorImagenEdit(''); }}><X size={13} /></button></span>; })}{!coloresEdit.length && <small>Aún no se registraron colores para este producto.</small>}</div>
               </fieldset>
             </div>
 
@@ -982,10 +983,10 @@ export default function ProductosAdmin() {
               <label className="product-color-image-target">Estoy cargando fotos para: 
                 <select value={colorImagenEdit} onChange={(event) => setColorImagenEdit(event.target.value)} disabled={!coloresEdit.length}>
                   {!coloresEdit.length && <option value="">Primero registra un color</option>}
-                  {coloresEdit.map((registro) => { const color = leerColor(registro); return <option value={registro} key={registro}>{color.nombre}</option>; })}
+                  {coloresEdit.map((registro) => { const color = leerColor(registro); return <option value={color.id} key={registro}>{color.nombre}</option>; })}
                 </select>
               </label>
-              <button className="product-color-cover" type="button" disabled={!colorImagenEdit || !leerColor(colorImagenEdit).imagenes?.length} onClick={usarColorComoPortadaEdit}>Usar la primera foto de este color como portada</button>
+              <button className="product-color-cover" type="button" disabled={!colorImagenEdit || !buscarColorPorId(coloresEdit, colorImagenEdit)?.imagenes?.length} onClick={usarColorComoPortadaEdit}>Usar la primera foto de este color como portada</button>
               <button className="product-color-cover product-color-cover--secondary" type="button" disabled={!colorImagenEdit || !editImagenes.length} onClick={asignarColorAPortadaEdit}>Asignar el color elegido a la portada actual</button>
 
               <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.8rem', flexWrap: 'wrap' }}>
@@ -1135,7 +1136,7 @@ export default function ProductosAdmin() {
                 />
               </label>
               <label className="product-form-wide">
-                URL de video del producto <small>Opcional · YouTube, Vimeo o enlace directo MP4</small>
+                Video promocional del producto <small>Opcional · general para todas las variantes; no se asigna a colores.</small>
                 <input name="video_url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
               </label>
               <fieldset className="product-form-wide product-color-picker">
@@ -1143,8 +1144,8 @@ export default function ProductosAdmin() {
                 <div className="product-color-picker__create"><input aria-label="Nombre del color" list="tonos-sugeridos" value={nombreColorNuevo} onChange={(event) => actualizarNombreColorNuevo(event.target.value)} maxLength="40" placeholder="Ej. Gris grafito" /><input aria-label="Elegir tono del color" title="Puedes ajustar manualmente el tono" type="color" value={valorColorNuevo} onChange={(event) => setValorColorNuevo(event.target.value)} /><button type="button" onClick={agregarColorNuevo}><Plus size={16} /> Agregar color</button></div>
                 <small>Color personalizado: escribe un nombre, ajusta el tono si quieres y pulsa “Agregar color”.</small>
                 <b className="color-assistant__title">O agrega una variante rápida:</b>
-                <div className="color-assistant" aria-label="Tonos sugeridos">{TONOS_RAPIDOS.map((nombre) => { const registro = coloresNuevo.find((item) => normalizarNombreColor(leerColor(item).nombre) === normalizarNombreColor(nombre)); return <button type="button" key={nombre} onClick={() => elegirTonoNuevo(nombre)} title={registro ? `${nombre} ya está registrado` : `Agregar ${nombre}`} className={`${registro ? 'is-registered' : ''} ${registro === colorImagenNuevo ? 'is-selected' : ''}`}><i style={{ backgroundColor: tonoSugerido(nombre) }} />{nombre}{registro && <em>Registrado</em>}</button>; })}</div>
-                <div className="product-color-picker__list">{coloresNuevo.map((registro) => { const color = leerColor(registro); return <span key={registro}><i style={{ backgroundColor: color.valor }} />{color.nombre}{color.imagenes.length > 0 && <em>{color.imagenes.length} foto{color.imagenes.length > 1 ? 's' : ''}</em>}<button type="button" aria-label={`Quitar ${color.nombre}`} onClick={() => { setColoresNuevo((lista) => lista.filter((item) => item !== registro)); if (colorImagenNuevo === registro) setColorImagenNuevo(''); }}><X size={13} /></button></span>; })}{!coloresNuevo.length && <small>Escribe un nombre, elige el tono y agrega el color.</small>}</div>
+                <div className="color-assistant" aria-label="Tonos sugeridos">{TONOS_RAPIDOS.map((nombre) => { const registro = coloresNuevo.find((item) => normalizarNombreColor(leerColor(item).nombre) === normalizarNombreColor(nombre)); return <button type="button" key={nombre} onClick={() => elegirTonoNuevo(nombre)} title={registro ? `${nombre} ya está registrado` : `Agregar ${nombre}`} className={`${registro ? 'is-registered' : ''} ${leerColor(registro).id === colorImagenNuevo ? 'is-selected' : ''}`}><i style={{ backgroundColor: tonoSugerido(nombre) }} />{nombre}{registro && <em>Registrado</em>}</button>; })}</div>
+                <div className="product-color-picker__list">{coloresNuevo.map((registro) => { const color = leerColor(registro); return <span key={registro}><i style={{ backgroundColor: color.valor }} />{color.nombre}{color.imagenes.length > 0 && <em>{color.imagenes.length} foto{color.imagenes.length > 1 ? 's' : ''}</em>}<button type="button" aria-label={`Quitar ${color.nombre}`} onClick={() => { setColoresNuevo((lista) => lista.filter((item) => item !== registro)); if (colorImagenNuevo === color.id) setColorImagenNuevo(''); }}><X size={13} /></button></span>; })}{!coloresNuevo.length && <small>Escribe un nombre, elige el tono y agrega el color.</small>}</div>
               </fieldset>
             </div>
 
@@ -1159,10 +1160,10 @@ export default function ProductosAdmin() {
               <label className="product-color-image-target">Estoy cargando fotos para: 
                 <select value={colorImagenNuevo} onChange={(event) => setColorImagenNuevo(event.target.value)} disabled={!coloresNuevo.length}>
                   {!coloresNuevo.length && <option value="">Primero registra un color</option>}
-                  {coloresNuevo.map((registro) => { const color = leerColor(registro); return <option value={registro} key={registro}>{color.nombre}</option>; })}
+                  {coloresNuevo.map((registro) => { const color = leerColor(registro); return <option value={color.id} key={registro}>{color.nombre}</option>; })}
                 </select>
               </label>
-              <button className="product-color-cover" type="button" disabled={!colorImagenNuevo || !leerColor(colorImagenNuevo).imagenes?.length} onClick={usarColorComoPortadaNuevo}>Usar la primera foto de este color como portada</button>
+              <button className="product-color-cover" type="button" disabled={!colorImagenNuevo || !buscarColorPorId(coloresNuevo, colorImagenNuevo)?.imagenes?.length} onClick={usarColorComoPortadaNuevo}>Usar la primera foto de este color como portada</button>
               <button className="product-color-cover product-color-cover--secondary" type="button" disabled={!colorImagenNuevo || !imagenesNuevo.length} onClick={asignarColorAPortadaNuevo}>Asignar el color elegido a la portada actual</button>
 
               <label className="product-upload">

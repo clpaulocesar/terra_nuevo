@@ -72,6 +72,12 @@ export default function DetalleProducto() {
     const indice = fotos.indexOf(fotoDelColor);
     if (indice >= 0) setFoto(video ? indice + 1 : indice);
   };
+  const seleccionarFoto = (indice) => {
+    const fuente = fotos[indice];
+    const colorDeLaFoto = coloresProducto.find((opcion) => opcion.imagenes?.includes(fuente));
+    if (colorDeLaFoto) setColor(colorDeLaFoto);
+    setFoto(video ? indice + 1 : indice);
+  };
   const viendoVideo = Boolean(video) && foto === 0;
   const indiceFoto = video ? foto - 1 : foto;
   // Divide la descripción en líneas: respeta los saltos de línea ya existentes
@@ -138,7 +144,7 @@ export default function DetalleProducto() {
             {fotos.slice(0, video ? 3 : 4).map((src, indice) => (
               <button
                 className={foto === (video ? indice + 1 : indice) ? 'active' : ''}
-                onClick={() => setFoto(video ? indice + 1 : indice)}
+                onClick={() => seleccionarFoto(indice)}
                 type="button"
                 key={`${src}-${indice}`}
               >
