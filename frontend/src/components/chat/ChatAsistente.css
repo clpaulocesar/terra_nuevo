@@ -103,6 +103,19 @@
 }
 .chat-escribiendo { color: #6b6b6b; font-style: italic; }
 
+/* Contenido markdown del asistente (imágenes y enlaces de productos) */
+.chat-imagen {
+  display: block;
+  max-width: 100%;
+  max-height: 220px;
+  margin: 0.4rem 0;
+  border-radius: 0.75rem;
+  border: 1px solid #e7e5e4;
+  object-fit: cover;
+  background: #f5f5f4;
+}
+.chat-msg-asistente a { color: #a6192e; font-weight: 600; text-decoration: underline; }
+
 .chat-form {
   display: flex;
   gap: 0.5rem;

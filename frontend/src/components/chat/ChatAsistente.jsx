@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MessageCircle, Send, X } from 'lucide-react';
 import { CHAT_HABILITADO, crearSessionId, enviarMensajeChat } from '../../services/chatService.js';
+import MensajeMarkdown from './MensajeMarkdown.jsx';
 import './ChatAsistente.css';
 
 const BIENVENIDA = {
@@ -72,7 +73,9 @@ export default function ChatAsistente() {
 
           <div className="chat-mensajes" ref={listaRef} role="log" aria-live="polite">
             {mensajes.map((m) => (
-              <div key={m.id} className={`chat-burbuja chat-msg-${m.rol}`}>{m.texto}</div>
+              <div key={m.id} className={`chat-burbuja chat-msg-${m.rol}`}>
+                {m.rol === 'asistente' ? <MensajeMarkdown texto={m.texto} /> : m.texto}
+              </div>
             ))}
             {enviando && <div className="chat-burbuja chat-msg-asistente chat-escribiendo">Escribiendo...</div>}
           </div>
