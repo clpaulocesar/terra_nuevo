@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Play, Plus, Search, SlidersHorizontal, Star, Store, Trash2, Truck, X } from 'lucide-react';
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Play, Plus, QrCode, Search, SlidersHorizontal, Star, Store, Trash2, Truck, X } from 'lucide-react';
+import QRCode from 'react-qr-code';
 import { listarProductos, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
 import { mediaDeVideo } from '../../utils/videoEmbed.js';
 import { subirImagenProducto } from '../../services/storageService.js';
@@ -162,7 +163,12 @@ export default function ProductosAdmin() {
 
   const [vistaProducto, setVistaProducto] = useState(null);
   const [fotoActivaIndex, setFotoActivaIndex] = useState(0);
-
+  // QR para la ficha pública detalle-qr.html?id=...
+  const [qrProducto, setQrProducto] = useState(null);
+  const [qrCopiado, setQrCopiado] = useState(false);
+  const [qrBase, setQrBase] = useState(() => {
+    try { return localStorage.getItem('terra_qr_base') || ''; } catch { return ''; }
+  });
   const [editarProducto, setEditarProducto] = useState(null);
   const [editImagenes, setEditImagenes] = useState([]);
   const [urlEdit, setUrlEdit] = useState('');
@@ -205,6 +211,50 @@ export default function ProductosAdmin() {
   const avisar = texto => {
     setMensaje(texto);
     setTimeout(() => setMensaje(''), 3000);
+  };
+
+  // URL que lleva el QR: apunta a la ficha pública detalle-qr.html?id=...
+  // Si qrBase está vacío se usa el mismo dominio, para que el QR impreso
+  // funcione en los celulares de los clientes.
+  const baseQr = (qrBase.trim().replace(/\/$/, '')) || (typeof window !== 'undefined' ? window.location.origin : '');
+  const urlQrDe = producto => `${baseQr}/detalle-qr.html?id=${producto.id}`;
+  const guardarBaseQr = valor => {
+    setQrBase(valor);
+    try { localStorage.setItem('terra_qr_base', valor); } catch { /* sin almacenamiento */ }
+  };
+  const copiarUrlQr = async () => {
+    if (!qrProducto) return;
+    try {
+      await navigator.clipboard.writeText(urlQrDe(qrProducto));
+      setQrCopiado(true);
+      setTimeout(() => setQrCopiado(false), 2000);
+    } catch { avisar('No se pudo copiar el enlace.'); }
+  };
+  const descargarQr = () => {
+    if (!qrProducto) return;
+    const svg = document.getElementById('qr-admin-svg');
+    if (!svg) return;
+    const datos = new XMLSerializer().serializeToString(svg);
+    const img = new Image();
+    img.onload = () => {
+      const lienzo = document.createElement('canvas');
+      lienzo.width = 440; lienzo.height = 440;
+      lienzo.getContext('2d').drawImage(img, 0, 0, 440, 440);
+      const a = document.createElement('a');
+      a.href = lienzo.toDataURL('image/png');
+      a.download = `qr-${qrProducto.sku || qrProducto.id}.png`;
+      a.click();
+      avisar('QR descargado como PNG, listo para imprimir.');
+    };
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(datos)}`;
+  };
+  const imprimirQr = () => {
+    if (!qrProducto) return;
+    const svg = document.getElementById('qr-admin-svg');
+    const ventana = window.open('', '_blank', 'width=480,height=640');
+    if (!ventana) return;
+    ventana.document.write(`<!doctype html><html lang="es"><head><meta charset="UTF-8"><title>QR ${qrProducto.nombre}</title><style>body{font-family:Arial,sans-serif;text-align:center;padding:24px}svg{width:320px;height:320px}small{color:#555;word-break:break-all}</style></head><body><h2>TERRA Autoservicio</h2><h3>${qrProducto.nombre}</h3>${svg ? svg.outerHTML : ''}<p>Escaneá para ver la ficha del producto</p><small>${urlQrDe(qrProducto)}</small><script>onload=()=>{print()}<\/script></body></html>`);
+    ventana.document.close();
   };
 
   // Cargar productos reales desde backend PostgreSQL
@@ -724,6 +774,9 @@ export default function ProductosAdmin() {
                       </button>
                       <button title="Editar producto y fotos" onClick={() => abrirEdicion(p)}>
                         <Edit3 size={17} />
+                      </button>
+                      <button title="Generar QR de la ficha" onClick={() => { setQrProducto(p); setQrCopiado(false); }}>
+                        <QrCode size={17} />
                       </button>
                       <button className="product-action-delete" title="Eliminar producto" onClick={() => borrarProducto(p)}>
                         <Trash2 size={17} />
@@ -1290,6 +1343,47 @@ export default function ProductosAdmin() {
       {mensaje && (
         <div className="products-toast">
           <CheckCircle2 size={19} />{mensaje}
+        </div>
+      )}
+
+      {/* MODAL QR DE LA FICHA */}
+      {qrProducto && (
+        <div className="products-modal">
+          <section style={{ maxWidth: '460px', textAlign: 'center' }}>
+            <header>
+              <div>
+                <span><QrCode size={20} /></span>
+                <div style={{ textAlign: 'left' }}>
+                  <h2>QR del producto</h2>
+                  <p>{qrProducto.nombre} · {qrProducto.sku}</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setQrProducto(null)}><X /></button>
+            </header>
+            <div style={{ padding: '1rem 1.2rem', display: 'grid', gap: '0.7rem', justifyItems: 'center' }}>
+              <QRCode id="qr-admin-svg" value={urlQrDe(qrProducto)} size={240} />
+              <code style={{ fontSize: '12px', wordBreak: 'break-all', background: '#f4f4f4', padding: '0.4rem 0.6rem', borderRadius: '8px' }}>
+                {urlQrDe(qrProducto)}
+              </code>
+              <label style={{ fontSize: '12px', color: '#666', display: 'grid', gap: '4px', width: '100%', textAlign: 'left' }}>
+                Dominio público de la tienda (vacío = usar este dominio)
+                <input
+                  type="url"
+                  value={qrBase}
+                  onChange={e => guardarBaseQr(e.target.value)}
+                  placeholder="https://mi-tienda.com"
+                  style={{ padding: '0.5rem 0.6rem', borderRadius: '8px', border: '1px solid #d4d4d4', width: '100%' }}
+                />
+              </label>
+            </div>
+            <footer style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
+              <button type="button" onClick={copiarUrlQr}>{qrCopiado ? '¡Copiado!' : 'Copiar enlace'}</button>
+              <button type="button" onClick={imprimirQr}>Imprimir</button>
+              <button className="primary" type="button" onClick={descargarQr}>
+                <Download size={17} /> Descargar PNG
+              </button>
+            </footer>
+          </section>
         </div>
       )}
     </main>

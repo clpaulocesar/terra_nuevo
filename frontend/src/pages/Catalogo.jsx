@@ -6,45 +6,31 @@ import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { obtenerIconoCategoria } from '../data/categorias.js';
 import './Catalogo.css';
 
+const CATEGORIAS_CONFIG = [
+  { id: '', nombre: 'Todos', icon: 'apps' },
+  { id: 'Colchones', nombre: 'Colchones', icon: 'bed' },
+  { id: 'Sommiers', nombre: 'Sommiers', icon: 'layers' },
+  { id: 'Espaldares', nombre: 'Espaldares', icon: 'vertical_split' },
+  { id: 'Camas', nombre: 'Camas', icon: 'bedroom_parent' },
+  { id: 'Almohadas', nombre: 'Almohadas', icon: 'hotel' },
+  { id: 'Ropa de cama', nombre: 'Ropa de cama', icon: 'texture' },
+  { id: 'Muebles', nombre: 'Muebles', icon: 'chair' },
+  { id: 'Recamier', nombre: 'Recamier', icon: 'weekend' },
+  { id: 'Promociones', nombre: 'Promociones', icon: 'star', especial: true },
+];
+
+const MEDIDAS_CONFIG = [
+  { id: 'King', label: 'King (200x200)' },
+  { id: 'Queen', label: 'Queen (160x200)' },
+  { id: '2 Plazas', label: '2 Plazas (140x190)' },
+  { id: '1.5 Plazas', label: '1.5 Plazas' },
+];
+
 const FIRMEZAS_CONFIG = [
   { id: 'Suave', label: 'Suave' },
   { id: 'Media', label: 'Media' },
   { id: 'Firme Ortopédica', label: 'Firme Ortopédica' },
 ];
-
-// Los colores llegan desde Supabase como textos JSON (o desde registros antiguos
-// como "Nombre|#hex"). El catálogo nunca inventa tonos que el administrador no
-// haya registrado para el producto.
-function obtenerColoresDisponibles(producto) {
-  const registros = Array.isArray(producto?.colores) ? producto.colores : [];
-
-  return registros
-    .map((registro, indice) => {
-      if (registro && typeof registro === 'object') {
-        return {
-          id: registro.id || `${registro.nombre || 'color'}-${indice}`,
-          nombre: registro.nombre || 'Color disponible',
-          valor: registro.valor || registro.hex || '',
-        };
-      }
-
-      const texto = String(registro || '').trim();
-      if (!texto) return null;
-
-      try {
-        const color = JSON.parse(texto);
-        return {
-          id: color.id || `${color.nombre || 'color'}-${indice}`,
-          nombre: color.nombre || 'Color disponible',
-          valor: color.valor || color.hex || '',
-        };
-      } catch {
-        const [nombre, valor] = texto.split('|');
-        return { id: `${nombre || 'color'}-${indice}`, nombre: nombre || 'Color disponible', valor: valor || '' };
-      }
-    })
-    .filter((color) => color && /^#[0-9a-f]{3,8}$/i.test(color.valor));
-}
 
 export default function Catalogo() {
   const [searchParams] = useSearchParams();
@@ -66,6 +52,8 @@ export default function Catalogo() {
     };
     return equivalencias[categoria] || categoria;
   });
+  const [medidaSeleccionada, setMedidaSeleccionada] = useState('');
+  const [firmezaSeleccionada, setFirmezaSeleccionada] = useState('');
   const [orden, setOrden] = useState('recomendados'); // 'recomendados' | 'precio-asc' | 'precio-desc' | 'nombre'
   const [menuOrdenAbierto, setMenuOrdenAbierto] = useState(false);
 
@@ -74,6 +62,9 @@ export default function Catalogo() {
 
   // Modal de Asesor TERRA
   const [modalAsesorAbierto, setModalAsesorAbierto] = useState(false);
+
+  // Modal Teclado Kiosco
+  const [tecladoAbierto, setTecladoAbierto] = useState(false);
 
   // Contador de sesión activa del Kiosco (3 minutos de inactividad)
   const [segundosSesion, setSegundosSesion] = useState(180);
@@ -148,6 +139,10 @@ export default function Catalogo() {
           total: conteo[cat],
         });
       }
+    } else {
+      for (const cat of CATEGORIAS_CONFIG.filter((c) => c.id && !c.especial)) {
+        lista.push(cat);
+      }
     }
 
     if (hayPromociones || productos.some((p) => p.promocion || p.descuento)) {
@@ -198,6 +193,22 @@ export default function Catalogo() {
       }
     }
 
+    // Filtro por medida
+    if (medidaSeleccionada) {
+      resultado = resultado.filter((p) =>
+        p.medida?.toLowerCase().includes(medidaSeleccionada.toLowerCase()) ||
+        p.tagMedida?.toLowerCase().includes(medidaSeleccionada.toLowerCase())
+      );
+    }
+
+    // Filtro por firmeza
+    if (firmezaSeleccionada) {
+      resultado = resultado.filter((p) =>
+        p.firmeza?.toLowerCase().includes(firmezaSeleccionada.toLowerCase()) ||
+        p.subtitulo?.toLowerCase().includes(firmezaSeleccionada.toLowerCase())
+      );
+    }
+
     // Ordenamiento
     if (orden === 'precio-asc') {
       resultado.sort((a, b) => a.precio - b.precio);
@@ -208,7 +219,7 @@ export default function Catalogo() {
     }
 
     return resultado;
-  }, [productos, buscar, categoriaSeleccionada, orden]);
+  }, [productos, buscar, categoriaSeleccionada, medidaSeleccionada, firmezaSeleccionada, orden]);
 
   // Acción de agregar al carrito con efecto visual
   const handleAgregar = (producto) => {
@@ -217,6 +228,18 @@ export default function Catalogo() {
     setTimeout(() => {
       setAgregados((prev) => ({ ...prev, [producto.id]: false }));
     }, 1800);
+  };
+
+  // Teclado virtual táctil
+  const agregarCaracter = (caracter) => {
+    setBuscar((prev) => prev + caracter);
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  };
+
+  const borrarCaracter = () => {
+    setBuscar((prev) => prev.slice(0, -1));
   };
 
   const nombreOrdenActual = {
@@ -248,8 +271,8 @@ export default function Catalogo() {
             <div className="hidden lg:flex items-center gap-space-xs bg-primary/40 px-space-md py-space-xs rounded-full border border-primary-fixed/20">
               <span className="material-symbols-outlined text-[18px] text-secondary-fixed">storefront</span>
               <span className="font-label-sm text-label-sm text-surface-bright">
-                Sucursal Equipetrol • Santa Cruz de la Sierra
-              </span>
+                Sucursal 1 Central • Santa Cruz de la Sierra
+              </span>r
             </div>
 
             <div className="flex items-center gap-space-xs bg-surface-container-lowest/10 px-space-sm py-space-xs rounded-full">
@@ -317,7 +340,7 @@ export default function Catalogo() {
                       ref={searchInputRef}
                       className="w-full bg-transparent border-none outline-none font-body-lg text-body-lg text-on-surface placeholder:text-outline/70 py-2"
                       id="kiosk-search"
-                      placeholder="Buscar colchones, sommiers, almohadas..."
+                      placeholder="Buscar poltronas y sofa cama"
                       type="text"
                       value={buscar}
                       onChange={(e) => setBuscar(e.target.value)}
@@ -336,6 +359,19 @@ export default function Catalogo() {
                         <span className="material-symbols-outlined text-[20px]">close</span>
                       </button>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => setTecladoAbierto((prev) => !prev)}
+                      className={`hidden sm:flex items-center gap-space-xs ml-space-sm pl-space-sm px-space-sm py-1.5 rounded-lg cursor-pointer transition-colors ${
+                        tecladoAbierto ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant'
+                      }`}
+                      title="Abrir teclado táctil para kiosco"
+                    >
+                      <span className={`material-symbols-outlined text-[18px] ${tecladoAbierto ? 'text-on-primary' : 'text-primary'}`}>
+                        keyboard
+                      </span>
+                      <span className="font-label-sm text-label-sm uppercase tracking-wider">Teclado</span>
+                    </button>
                   </div>
                 </div>
 
@@ -398,10 +434,81 @@ export default function Catalogo() {
                 </div>
               </div>
 
+              {/* Teclado en pantalla táctil (Touch Virtual Keyboard) */}
+              {tecladoAbierto && (
+                <div className="w-full bg-surface-container-high p-3 rounded-2xl shadow-inner flex flex-col gap-2">
+                  <div className="flex justify-between items-center px-2">
+                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+                      Teclado Táctil TERRA
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setTecladoAbierto(false)}
+                      className="text-xs font-semibold text-primary hover:underline"
+                    >
+                      Cerrar teclado
+                    </button>
+                  </div>
+                  {[
+                    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+                    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ'],
+                    ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+                  ].map((row, i) => (
+                    <div key={i} className="flex justify-center gap-1 sm:gap-1.5 w-full">
+                      {row.map((letra) => (
+                        <button
+                          key={letra}
+                          type="button"
+                          onClick={() => agregarCaracter(letra)}
+                          className="flex-1 min-w-[26px] sm:min-w-[36px] max-w-[44px] h-10 sm:h-12 rounded-lg bg-surface-container-lowest text-on-surface font-bold text-sm sm:text-base shadow-sm active:scale-95 active:bg-primary-container active:text-on-primary transition-all flex items-center justify-center"
+                        >
+                          {letra}
+                        </button>
+                      ))}
+                      {i === 2 && (
+                        <button
+                          type="button"
+                          onClick={borrarCaracter}
+                          className="px-2 sm:px-3 h-10 sm:h-12 rounded-lg bg-error-container text-on-error-container font-bold text-xs sm:text-sm shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1"
+                        >
+                          <span className="material-symbols-outlined text-[16px] sm:text-[18px]">backspace</span>
+                          <span className="hidden sm:inline">Borrar</span>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <div className="flex justify-center gap-1.5 sm:gap-2 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => agregarCaracter(' ')}
+                      className="flex-1 max-w-[340px] h-10 sm:h-12 rounded-lg bg-surface-container-lowest text-on-surface font-semibold text-xs sm:text-sm shadow-sm active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      Espacio
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBuscar('')}
+                      className="px-3 sm:px-4 h-10 sm:h-12 rounded-lg bg-surface-variant text-on-surface-variant font-semibold text-xs sm:text-sm shadow-sm active:scale-95 flex items-center justify-center"
+                    >
+                      Limpiar todo
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Riel desplazable horizontal de categorías */}
               <div className="w-full overflow-x-auto no-scrollbar py-1">
                 <div className="flex items-center gap-space-sm min-w-max">
-                  {categoriasDinamicas.map((cat) => {
+                  {cargando
+                    ? [110, 150, 130, 140].map((ancho, i) => (
+                        <span
+                          key={i}
+                          aria-hidden="true"
+                          style={{ width: ancho }}
+                          className="min-h-[52px] rounded-full bg-surface-container-low animate-pulse"
+                        />
+                      ))
+                    : categoriasDinamicas.map((cat) => {
                     const activa =
                       (!categoriaSeleccionada && cat.id === '') ||
                       (Boolean(categoriaSeleccionada) && Boolean(cat.id) && categoriaSeleccionada.toLowerCase() === cat.id.toLowerCase());
@@ -458,42 +565,6 @@ export default function Catalogo() {
                 </div>
               </div>
 
-              {/* Filtros táctiles secundarios: Medidas y Firmeza */}
-              <div className="hidden">
-                {/* Riel táctil rápido de medidas */}
-                {/* Riel táctil rápido de firmeza */}
-                <div className="flex items-center gap-space-xs flex-wrap">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mr-1">
-                    <span className="sr-only">Firmeza eliminada</span>
-                  </span>
-                  {[].map((firmeza) => {
-                    const activa = firmezaSeleccionada === firmeza.id;
-                    return (
-                      <button
-                        key={firmeza.id}
-                        type="button"
-                        onClick={() => setFirmezaSeleccionada(activa ? '' : firmeza.id)}
-                        className={`min-h-[46px] px-space-md rounded-lg font-label-md text-label-md transition-colors ${
-                          activa
-                            ? 'bg-surface-container-highest text-on-surface font-bold ring-1 ring-outline'
-                            : 'bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant'
-                        }`}
-                      >
-                        {firmeza.label}
-                      </button>
-                    );
-                  })}
-                  {false && (
-                    <button
-                      type="button"
-                      onClick={() => setFirmezaSeleccionada('')}
-                      className="text-xs text-outline underline ml-1"
-                    >
-                      Todas
-                    </button>
-                  )}
-                </div>
-              </div>
             </div>
           </section>
 
@@ -501,9 +572,9 @@ export default function Catalogo() {
           <section className="w-full px-margin py-space-md flex-1">
             <div className="max-w-[1240px] mx-auto">
               {cargando ? (
-                <div className="bg-surface-container-lowest rounded-2xl p-6 sm:p-12 text-center flex flex-col items-center justify-center gap-4 my-8 shadow-sm">
-                  <span className="material-symbols-outlined text-[48px] text-primary animate-spin">progress_activity</span>
-                  <p className="font-body-md text-body-md text-on-surface-variant">Cargando productos…</p>
+                <div className="catalogo-loader">
+                  <div className="loader" role="status" aria-label="Cargando productos" />
+                  <p>Cargando productos...</p>
                 </div>
               ) : productosFiltrados.length === 0 ? (
                 <div className="bg-surface-container-lowest rounded-2xl p-6 sm:p-12 text-center flex flex-col items-center justify-center gap-4 my-8 shadow-sm">
@@ -519,6 +590,8 @@ export default function Catalogo() {
                     onClick={() => {
                       setBuscar('');
                       setCategoriaSeleccionada('');
+                      setMedidaSeleccionada('');
+                      setFirmezaSeleccionada('');
                     }}
                     className="min-h-[50px] px-6 rounded-xl bg-primary text-on-primary font-bold shadow-sm active:scale-95"
                   >
@@ -529,12 +602,11 @@ export default function Catalogo() {
                 <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
                   {productosFiltrados.map((producto) => {
                     const recienAgregado = Boolean(agregados[producto.id]);
-                    const coloresDisponibles = obtenerColoresDisponibles(producto);
 
                     return (
                       <article
                         key={producto.id}
-                        className="catalog-product-card flex flex-col bg-surface-container-lowest rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden relative cursor-pointer"
+                        className="flex flex-col bg-surface-container-lowest rounded-[1.75rem] shadow-sm hover:shadow-md transition-all overflow-hidden relative cursor-pointer"
                         onClick={(event) => {
                           if (!event.target.closest('button, a')) {
                             navigate(`/productos/${producto.id}`);
@@ -542,7 +614,7 @@ export default function Catalogo() {
                         }}
                       >
                         {/* Contenedor de Imagen y Badges */}
-                        <div className="catalog-product-image relative w-full aspect-[4/3] bg-surface-container overflow-hidden">
+                        <div className="relative w-full aspect-square bg-surface-container-lowest overflow-hidden m-3 mb-0 rounded-2xl" style={{ width: 'calc(100% - 1.5rem)' }}>
                           <img
                             className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
                             alt={producto.nombre}
@@ -599,18 +671,27 @@ export default function Catalogo() {
                         </div>
 
                         {/* Cuerpo de la Tarjeta */}
-                        <div className="catalog-product-body p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
+                        <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
                           <div className="flex flex-col gap-space-xs">
-                            <div className="catalog-product-rating" aria-label="Valoración del producto">
-                              <span>★★★★★</span><b>(32 reseñas)</b><em>Entrega inmediata</em>
+                            {/* Fila de reseñas y entrega */}
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-label-sm text-label-sm text-on-surface-variant">
+                                <span className="text-amber-500 tracking-tight">★★★★★</span>{' '}
+                                (32 reseñas)
+                              </span>
+                              <span className={`font-label-sm text-label-sm font-bold ${producto.stock > 0 ? 'text-on-surface' : 'text-error'}`}>
+                                {producto.stock > 0 ? 'Entrega inmediata' : 'Agotado'}
+                              </span>
                             </div>
 
                             <Link
-                              className="flex items-center gap-1.5 w-fit opacity-60 text-on-surface-variant font-body-sm text-body-sm hover:opacity-100 hover:underline transition-opacity"
                               to={`/productos/${producto.id}`}
+                              className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors"
                             >
-                              <span className="material-symbols-outlined text-[16px]">visibility</span>
-                              Ver detalles del producto
+                              <span className="material-symbols-outlined text-[18px]">
+                                visibility
+                              </span>
+                              <span>Ver detalles del producto</span>
                             </Link>
 
                             <h2 className="font-title-md text-title-md text-on-surface font-bold leading-snug">
@@ -622,30 +703,30 @@ export default function Catalogo() {
                               </Link>
                             </h2>
 
-                            <p className="catalog-product-description">{producto.descripcion || ''}</p>
-
-                            {coloresDisponibles.length > 0 ? (
-                              <div
-                                className="catalog-product-colors"
-                                aria-label={`Colores disponibles: ${coloresDisponibles.map((color) => color.nombre).join(', ')}`}
-                              >
-                                {coloresDisponibles.slice(0, 5).map((color) => (
-                                  <i
-                                    key={color.id}
-                                    title={color.nombre}
-                                    aria-label={color.nombre}
-                                    style={{ backgroundColor: color.valor }}
-                                  />
-                                ))}
-                                {coloresDisponibles.length > 5 && <span>+{coloresDisponibles.length - 5} tonos</span>}
-                              </div>
-                            ) : (
-                              <small className="catalog-product-no-colors">Colores por confirmar</small>
+                            {Boolean(producto.descripcion) && (
+                              <p className="text-on-surface-variant font-body-sm text-body-sm leading-relaxed line-clamp-2">
+                                {producto.descripcion}
+                              </p>
                             )}
+
+                            {/* Tonos disponibles */}
+                            <div className="flex items-center gap-1.5">
+                              {['#9ca3af', '#7f1d1d', '#b91c1c', '#374151'].map((tono) => (
+                                <span
+                                  key={tono}
+                                  aria-hidden="true"
+                                  style={{ backgroundColor: tono }}
+                                  className="w-3.5 h-3.5 rounded-full border border-surface-container-high"
+                                />
+                              ))}
+                              <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">
+                                +6 tonos
+                              </span>
+                            </div>
                           </div>
 
                           {/* Precio y Botón Táctil de Agregar */}
-                          <div className="catalog-product-buy flex flex-col gap-space-sm pt-space-xs bg-surface-container-low/50 p-3 sm:p-4 rounded-xl">
+                          <div className="flex flex-col gap-space-sm pt-space-xs bg-surface-container-low/50 p-3 sm:p-4 rounded-xl">
                             <div className="flex items-baseline justify-between gap-2">
                               <div className="min-w-0">
                                 {producto.precioOriginal ? (
@@ -694,42 +775,8 @@ export default function Catalogo() {
             </div>
           </section>
 
-          {/* BARRA FLOTANTE STICKY DE CARRITO PARA VISIBILIDAD INMEDIATA */}
-          <aside className="sticky bottom-[72px] sm:bottom-4 z-30 mt-space-md mb-space-md pointer-events-none">
-            <div className="max-w-[1240px] mx-auto flex justify-end sm:pr-[170px]">
-              <div className="pointer-events-auto w-full sm:w-auto bg-surface-container-lowest text-on-surface rounded-2xl shadow-xl p-2 sm:p-2.5 sm:pl-5 lg:p-3 lg:pl-6 flex items-center justify-between gap-3 sm:gap-4 lg:gap-6 border border-surface-container-high/60">
-                {/* Resumen de items y precio */}
-                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 lg:w-12 lg:h-12 shrink-0 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
-                    <span className="material-symbols-outlined text-[22px] sm:text-[24px] lg:text-[26px]">shopping_bag</span>
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[14px] sm:text-[15px] lg:text-base font-bold text-on-surface truncate">
-                        {cantidadTotal} {cantidadTotal === 1 ? 'producto en orden' : 'productos en orden'}
-                      </span>
-                      <span className="w-2 h-2 shrink-0 rounded-full bg-secondary"></span>
-                    </div>
-                    <div className="flex items-baseline gap-1 whitespace-nowrap">
-                      <span className="font-body-sm text-body-sm text-on-surface-variant">Total:</span>
-                      <span className="cart-bar-total font-title-lg text-title-lg text-primary font-extrabold">
-                        {formatoMoneda(subtotal)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                    {/* Carrito flotante global en el borde derecho (CarritoFlotante) */}
 
-                {/* Botón de checkout hacia carrito */}
-                <Link
-                  className="min-h-[48px] sm:min-h-[48px] lg:min-h-[52px] px-4 sm:px-5 lg:px-9 shrink-0 rounded-xl bg-secondary-container hover:bg-secondary-fixed text-on-secondary-fixed text-[15px] sm:text-sm lg:text-base font-bold flex items-center gap-space-xs shadow-sm transition-all active:scale-95"
-                  to="/carrito"
-                >
-                  <span>Ver Carrito</span>
-                  <span className="material-symbols-outlined text-[20px] lg:text-[22px]">arrow_forward</span>
-                </Link>
-              </div>
-            </div>
-          </aside>
         </div>
       </main>
 
@@ -779,7 +826,7 @@ export default function Catalogo() {
               ¡Asesor TERRA Notificado!
             </h3>
             <p className="font-body-md text-body-md text-on-surface-variant">
-              Un especialista en descanso de la <strong>Sucursal Equipetrol</strong> se está acercando a tu <strong>Terminal Kiosco #02</strong> para asistirte con modelos, medidas y pruebas de firmeza.
+              Un especialista en descanso de la <strong>Sucursal 1central</strong> se está acercando a tu <strong>Terminal Kiosco #02</strong> para asistirte con modelos, medidas y pruebas de firmeza.
             </p>
             <div className="w-full bg-surface-container-low p-3 rounded-xl flex items-center justify-center gap-2 text-primary font-bold text-sm">
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
