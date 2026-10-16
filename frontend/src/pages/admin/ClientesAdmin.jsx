@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Eye, MessageCircle, Search, Trash2, Users, X } from 'lucide-react';
 import { eliminarCliente, listarClientes } from '../../services/clienteService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
-import { avisoAviso, avisoEliminado, avisoError, confirmarEliminacion } from '../../utils/alertas.js';
+import { avisoEliminado, avisoError, confirmarEliminacion } from '../../utils/alertas.js';
 import './Admin.css';
 import './ClientesAdmin.css';
 import './AdminViewsColorFix.css';
@@ -24,16 +24,12 @@ export default function ClientesAdmin() {
   )), [clientes, buscar]);
 
   const borrarCliente = async (cliente) => {
-    if (cliente.compras > 0) {
-      await avisoAviso({
-        titulo: 'No se puede eliminar',
-        texto: 'Este cliente tiene pedidos registrados. El historial de ventas se conserva.',
-      });
-      return;
-    }
+    const tienePedidos = Number(cliente.compras) > 0;
     const confirmado = await confirmarEliminacion({
       titulo: `¿Eliminar a ${cliente.nombre}?`,
-      texto: 'Se borrará de la base de datos. No podrás revertir esta acción.',
+      texto: tienePedidos
+        ? `Se borrará de la base de datos. Sus ${cliente.compras} pedido(s) se conservan, pero quedarán como "Compra como invitado". No podrás revertir esta acción.`
+        : 'Se borrará de la base de datos. No podrás revertir esta acción.',
     });
     if (!confirmado) return;
 
@@ -42,7 +38,11 @@ export default function ClientesAdmin() {
     try {
       await eliminarCliente(cliente.id);
       setClientes((actuales) => actuales.filter((item) => item.id !== cliente.id));
-      await avisoEliminado(`Cliente ${cliente.nombre} eliminado.`);
+      await avisoEliminado(
+        tienePedidos
+          ? `Cliente ${cliente.nombre} eliminado. Sus pedidos quedaron como "Compra como invitado".`
+          : `Cliente ${cliente.nombre} eliminado.`
+      );
     } catch (err) {
       await avisoError(err.message || 'No se pudo eliminar el cliente.');
     } finally {
@@ -68,7 +68,7 @@ export default function ClientesAdmin() {
               <td><div className="client-name"><i>{iniciales(cliente.nombre)}</i><div><b>{cliente.nombre}</b><small>{new Date(cliente.fecha_registro).toLocaleDateString('es-BO')}</small></div></div></td>
               <td><b>{cliente.telefono || 'Sin teléfono'}</b><small>{cliente.nit ? `NIT ${cliente.nit}` : 'Sin NIT'}</small></td>
               <td><b>{cliente.compras || 0} compras</b></td><td><b>{formatoMoneda(cliente.gasto || 0)}</b></td>
-              <td><div className="client-table-actions"><button type="button" className="client-delete" title={cliente.compras > 0 ? 'No se puede eliminar: tiene pedidos' : 'Eliminar cliente'} aria-label={`Eliminar ${cliente.nombre}`} disabled={eliminando === cliente.id} onClick={() => borrarCliente(cliente)}><Trash2 size={18} /></button></div></td>
+              <td><div className="client-table-actions"><button type="button" className="client-delete" title="Eliminar cliente" aria-label={`Eliminar ${cliente.nombre}`} disabled={eliminando === cliente.id} onClick={() => borrarCliente(cliente)}><Trash2 size={18} /></button></div></td>
             </tr>)}
           </tbody></table></div>
         </section>

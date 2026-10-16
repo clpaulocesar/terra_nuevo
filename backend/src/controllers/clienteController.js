@@ -124,9 +124,6 @@ export async function eliminarCliente(req, res, next) {
     if (!cliente) return res.status(404).json({ success: false, mensaje: 'Cliente no encontrado' });
     return res.json({ success: true, mensaje: 'Cliente eliminado correctamente', data: cliente });
   } catch (error) {
-    if (error.code === 'CLIENTE_CON_PEDIDOS') {
-      return res.status(409).json({ success: false, mensaje: error.message });
-    }
     next(error);
   }
 }

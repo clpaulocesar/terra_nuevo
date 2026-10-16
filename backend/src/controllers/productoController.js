@@ -109,6 +109,12 @@ export async function crearProducto(req, res, next) {
       data: nuevo,
     });
   } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({
+        success: false,
+        mensaje: 'Ya existe un producto con ese SKU / código.',
+      });
+    }
     next(error);
   }
 }
@@ -137,6 +143,12 @@ export async function actualizarProducto(req, res, next) {
       data: actualizado,
     });
   } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({
+        success: false,
+        mensaje: 'Ya existe un producto con ese SKU / código.',
+      });
+    }
     next(error);
   }
 }

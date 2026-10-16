@@ -57,7 +57,7 @@ export async function actualizarProductoBD(id, datos) {
   await asegurarColumnaVideo();
   const { rows } = await pool.query(
     `UPDATE products 
-     SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), image_urls=$6, activo=COALESCE($7,activo), internal_code=COALESCE($8,internal_code), size=COALESCE($9,size), color=COALESCE($10,color), video_url=$11, colors=$12, category_id=COALESCE((SELECT id FROM categories WHERE LOWER(name)=LOWER($13) AND is_active=TRUE LIMIT 1),category_id), updated_at=NOW() 
+     SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), image_urls=$6, activo=COALESCE($7,activo), internal_code=COALESCE($8,internal_code), codigo_terra=COALESCE($8,codigo_terra), size=COALESCE($9,size), color=COALESCE($10,color), video_url=$11, colors=$12, category_id=COALESCE((SELECT id FROM categories WHERE LOWER(name)=LOWER($13) AND is_active=TRUE LIMIT 1),category_id), updated_at=NOW() 
      WHERE id::text = $14 OR slug = $14 OR COALESCE(codigo_terra, internal_code) = $14 
      RETURNING id`,
     [datos.nombre, datos.descripcion, datos.precio, datos.stock ?? datos.showroom, datos.imagen_url, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.activo, datos.sku, datos.medida, datos.detalle, datos.video_url ?? null, Array.isArray(datos.colores) ? datos.colores : [], datos.categoria, idStr]

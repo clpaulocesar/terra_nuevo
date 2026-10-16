@@ -27,18 +27,15 @@ export async function obtenerClienteBD(id) {
 
 export async function eliminarClienteBD(id) {
   await asegurarColumnaNit();
-  const ventas = await pool.query('SELECT COUNT(*)::int AS total FROM orders WHERE customer_id=$1', [id]);
-  if (ventas.rows[0].total > 0) {
-    const error = new Error('No se puede eliminar un cliente que tiene pedidos registrados. Así se conserva el historial de ventas.');
-    error.code = 'CLIENTE_CON_PEDIDOS';
-    throw error;
-  }
-
+  // Los pedidos del cliente se conservan: orders.customer_id es ON DELETE SET NULL,
+  // por lo que quedan sin cliente asociado (se muestran como "Compra como invitado").
+  const pedidos = await pool.query('SELECT COUNT(*)::int AS total FROM orders WHERE customer_id=$1', [id]);
   const { rows } = await pool.query(
     'DELETE FROM customers WHERE id=$1 RETURNING id, name AS nombre',
     [id]
   );
-  return rows[0] || null;
+  if (!rows[0]) return null;
+  return { ...rows[0], pedidos_desvinculados: pedidos.rows[0].total };
 }
 
 export async function listarClientesBD({ buscar = '', limite = 100 } = {}) {
