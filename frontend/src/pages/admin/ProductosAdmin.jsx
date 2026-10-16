@@ -123,6 +123,9 @@ export default function ProductosAdmin() {
   const [nuevoProducto, setNuevoProducto] = useState(false);
   const [imagenesNuevo, setImagenesNuevo] = useState([]);
   const [urlNuevo, setUrlNuevo] = useState('');
+  const [coloresNuevo, setColoresNuevo] = useState([]);
+  const [valorColorNuevo, setValorColorNuevo] = useState('#54595f');
+  const [nombreColorNuevo, setNombreColorNuevo] = useState('');
 
   const [vistaProducto, setVistaProducto] = useState(null);
   const [fotoActivaIndex, setFotoActivaIndex] = useState(0);
@@ -130,6 +133,7 @@ export default function ProductosAdmin() {
   const [editarProducto, setEditarProducto] = useState(null);
   const [editImagenes, setEditImagenes] = useState([]);
   const [urlEdit, setUrlEdit] = useState('');
+  const [categoriasDisponibles, setCategoriasDisponibles] = useState([]);
 
   const [categoriasApi, setCategoriasApi] = useState([]);
 
@@ -188,6 +192,7 @@ export default function ProductosAdmin() {
 
   useEffect(() => {
     cargarProductos();
+    listarCategorias().then((lista) => setCategoriasDisponibles(Array.isArray(lista) ? lista : [])).catch(() => setCategoriasDisponibles([]));
   }, []);
 
   const visibles = useMemo(() => productos.filter(p =>
@@ -251,6 +256,13 @@ export default function ProductosAdmin() {
     }
   };
 
+  const agregarColorNuevo = () => {
+    const registro = `${nombreColorNuevo.trim() || 'Color'}|${valorColorNuevo}`;
+    if (!/^#[0-9a-f]{6}$/i.test(valorColorNuevo) || coloresNuevo.includes(registro)) return;
+    setColoresNuevo((lista) => [...lista, registro]);
+    setNombreColorNuevo('');
+  };
+
   const eliminarImagenNuevo = index => {
     setImagenesNuevo(prev => prev.filter((_, i) => i !== index));
   };
@@ -290,6 +302,7 @@ export default function ProductosAdmin() {
       imagen_url: imagenesNuevo[0] || null,
       imagenes: imagenesNuevo,
       video_url: String(datos.get('video_url') || '').trim() || null,
+      colores: coloresNuevo,
     };
 
     try {
@@ -303,6 +316,8 @@ export default function ProductosAdmin() {
       setNuevoProducto(false);
       setImagenesNuevo([]);
       setUrlNuevo('');
+      setColoresNuevo([]);
+      setNombreColorNuevo('');
       setCategoria('Todos');
       avisar(`Producto ${payload.sku} guardado exitosamente en base de datos.`);
     } catch (err) {
@@ -763,9 +778,13 @@ export default function ProductosAdmin() {
               <label>
                 Categoría
                 <select name="categoria" required defaultValue={editarProducto.categoria}>
+<<<<<<< .merge_file_Tt5UWn
                   {opcionesCategoria.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
+=======
+                  {categoriasDisponibles.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}
+>>>>>>> .merge_file_eekQM0
                 </select>
               </label>
 
@@ -954,11 +973,15 @@ export default function ProductosAdmin() {
               </label>
               <label>
                 Categoría
-                <select name="categoria" required defaultValue="">
+                <select name="categoria" required defaultValue="" disabled={!categoriasDisponibles.length}>
                   <option value="" disabled>Seleccionar categoría</option>
+<<<<<<< .merge_file_Tt5UWn
                   {opcionesCategoria.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
+=======
+                  {categoriasDisponibles.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}
+>>>>>>> .merge_file_eekQM0
                 </select>
               </label>
               <label>
@@ -988,6 +1011,11 @@ export default function ProductosAdmin() {
                 URL de video del producto <small>Opcional · YouTube, Vimeo o enlace directo MP4</small>
                 <input name="video_url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
               </label>
+              <fieldset className="product-form-wide product-color-picker">
+                <legend>Colores disponibles <small>Selecciona los tonos que el cliente podrá elegir</small></legend>
+                <div className="product-color-picker__create"><input aria-label="Nombre del color" value={nombreColorNuevo} onChange={(event) => setNombreColorNuevo(event.target.value)} maxLength="40" placeholder="Ej. Gris grafito" /><input aria-label="Elegir tono del color" type="color" value={valorColorNuevo} onChange={(event) => setValorColorNuevo(event.target.value)} /><button type="button" onClick={agregarColorNuevo}><Plus size={16} /> Agregar color</button></div>
+                <div className="product-color-picker__list">{coloresNuevo.map((registro) => { const [nombre, valor] = registro.split('|'); return <span key={registro}><i style={{ backgroundColor: valor }} />{nombre}<button type="button" aria-label={`Quitar ${nombre}`} onClick={() => setColoresNuevo((lista) => lista.filter((color) => color !== registro))}><X size={13} /></button></span>; })}{!coloresNuevo.length && <small>Escribe un nombre, elige el tono y agrega el color.</small>}</div>
+              </fieldset>
             </div>
 
             <section className="product-gallery">

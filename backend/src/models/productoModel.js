@@ -3,11 +3,11 @@ import { pool } from '../config/database.js';
 const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, p.slug AS slug,
   p.name AS nombre, p.description AS descripcion, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
   COALESCE(p.public_price, 0) AS precio, p.stock_quantity::integer AS stock,
-  p.size AS medida, p.color AS detalle, p.imagen_url, p.video_url, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
+  p.size AS medida, p.color AS detalle, p.imagen_url, p.video_url, p.colors AS colores, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
 
 let videoColumnReady;
 function asegurarColumnaVideo() {
-  if (!videoColumnReady) videoColumnReady = pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS video_url TEXT');
+  if (!videoColumnReady) videoColumnReady = Promise.all([pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS video_url TEXT'), pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS colors TEXT[]')]);
   return videoColumnReady;
 }
 
@@ -45,9 +45,9 @@ export async function crearProductoBD(datos) {
   const codigo = String(datos.sku || `TRR-${Date.now()}`).trim();
   await asegurarColumnaVideo();
   const { rows } = await pool.query(
-    `INSERT INTO products (name, slug, codigo_terra, description, public_price, stock_quantity, imagen_url, video_url, activo, is_active, internal_code, size, color)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$3,$10,$11) RETURNING id`,
-    [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, datos.video_url || null, datos.activo ?? true, datos.medida || null, datos.detalle || null]
+    `INSERT INTO products (name, slug, codigo_terra, description, public_price, stock_quantity, imagen_url, video_url, colors, activo, is_active, internal_code, size, color)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10,$3,$11,$12) RETURNING id`,
+    [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, datos.video_url || null, Array.isArray(datos.colores) ? datos.colores : [], datos.activo ?? true, datos.medida || null, datos.detalle || null]
   );
   return obtenerProductoBD(rows[0].id);
 }

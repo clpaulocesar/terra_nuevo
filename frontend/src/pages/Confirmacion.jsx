@@ -63,7 +63,7 @@ export default function Confirmacion() {
       <div className="confirm-layout">
         <div className="confirm-card">
           <h2>Datos del pedido</h2>
-          <div className="confirm-client"><ShieldCheck size={23} /><div><b>{cliente.nombre || 'Compra como invitado'}</b><span>{cliente.telefono || 'Sin teléfono registrado'} {cliente.email && `· ${cliente.email}`}</span></div></div>
+          <div className="confirm-client"><ShieldCheck size={23} /><div><b>{cliente.nombre || 'Compra como invitado'}</b><span>{cliente.telefono || 'Sin teléfono registrado'} {cliente.nit && `· NIT ${cliente.nit}`}</span></div></div>
           <h2>Artículos seleccionados ({items.length})</h2>
           {items.map((item) => <div className="confirm-item" key={item.id}><span>{item.cantidad} ×</span><div><b>{item.nombre}</b><small>{item.categoria}</small></div><strong>{formatoMoneda(item.precio * item.cantidad)}</strong></div>)}
         </div>
