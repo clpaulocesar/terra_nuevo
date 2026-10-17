@@ -25,7 +25,8 @@
     .qr-top img { height: 38px; background: #fff; border-radius: 10px; padding: 4px 8px; }
     .qr-top small { display: block; opacity: .85; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
     .qr-top b { font-size: 1rem; }
-    .wrap { max-width: 560px; margin: 0 auto; padding: 18px 14px 40px; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 18px 14px 40px; }
+    .qr-product-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, .8fr); align-items: start; gap: 18px; }
     .qr-badge {
       display: flex; align-items: center; gap: 10px; background: #fff;
       border: 1px dashed var(--vino); border-radius: 14px; padding: 10px 14px; margin: 14px 0;
@@ -35,6 +36,31 @@
       width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
       background: var(--vino); color: #fff; font-size: 1.2rem; flex: none;
     }
+    .qr-cart-panel { position: sticky; top: 12px; background: #fff; border: 1px solid var(--linea); border-radius: var(--radius); padding: 16px; box-shadow: 0 12px 32px rgba(35,26,22,.08); }
+    .qr-cart-panel h2 { margin: 0 0 4px; font-size: 1.05rem; }
+    .qr-cart-panel > p { margin: 0; color: var(--muted); font-size: .78rem; }
+    .qr-cart-confirm { flex: none; background: var(--vino); border: 0; border-radius: 10px; color: #fff; cursor: pointer; font: inherit; font-size: .75rem; font-weight: 800; padding: 10px 12px; }
+    .qr-cart-confirm:disabled { background: #c8c0ba; cursor: not-allowed; }
+    .qr-cart-items { display: grid; gap: 9px; margin: 14px 0; max-height: 330px; overflow: auto; }
+    .qr-cart-item { display: grid; grid-template-columns: minmax(0, 1fr) 34px; align-items: stretch; gap: 6px; border: 1px solid #f0e9e2; border-radius: 12px; padding: 7px; background: #fff; }
+    .qr-cart-select { width: 100%; display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; align-items: center; gap: 9px; border: 0; border-radius: 8px; padding: 2px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .qr-cart-select:hover, .qr-cart-item.seleccionado .qr-cart-select { background: #fffafa; }
+    .qr-cart-select:focus-visible, .qr-cart-remove:focus-visible { outline: 3px solid rgba(166,25,46,.24); outline-offset: 2px; }
+    .qr-cart-remove { align-self: center; width: 34px; height: 34px; border: 0; border-radius: 9px; background: #fff0f1; color: var(--vino); font-size: 1.35rem; line-height: 1; cursor: pointer; }
+    .qr-cart-remove:hover { background: #fbdde1; }
+    .qr-cart-item:hover, .qr-cart-item.seleccionado { border-color: var(--vino); background: #fffafa; }
+    .qr-cart-item img, .qr-cart-item-placeholder { width: 54px; height: 54px; border-radius: 9px; object-fit: cover; background: #f6f1ea; }
+    .qr-cart-item-placeholder { display: grid; place-items: center; color: #a89d92; font-size: 1.2rem; }
+    .qr-cart-item-info { min-width: 0; display: grid; gap: 3px; }
+    .qr-cart-item-info b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; }
+    .qr-cart-item-info small, .qr-cart-select > strong { color: var(--muted); font-size: .72rem; }
+    .qr-cart-empty { border: 1px dashed var(--linea); border-radius: 12px; padding: 16px 12px; text-align: center; color: var(--muted); font-size: .8rem; }
+    .qr-cart-actions { display: grid; gap: 8px; }
+    .qr-cart-actions .btn { width: 100%; font-size: .82rem; }
+    .qr-cart-total { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid var(--linea); margin: 0 0 12px; padding-top: 12px; font-size: .82rem; }
+    .qr-cart-total b { color: var(--vino); font-size: 1rem; }
+    .qr-cart-status { color: var(--ok); font-size: .78rem; font-weight: 700; margin: 8px 2px; }
+    .qr-cart-status.error { color: var(--vino); }
     .card {
       background: #fff; border: 1px solid var(--linea); border-radius: var(--radius);
       overflow: hidden; box-shadow: 0 12px 32px rgba(166,25,46,.10);
@@ -57,11 +83,16 @@
     .stock.ok { background: #e4f4e9; color: var(--ok); }
     .stock.no { background: #fbe3e6; color: var(--vino); }
     .desc { color: #4c443d; font-size: .9rem; line-height: 1.6; white-space: pre-line; }
+    .instrucciones { margin-top: 14px; padding: 14px; border: 1px solid #eadfd3; border-radius: 12px; background: #fffaf5; }
+    .instrucciones h2 { margin: 0 0 10px; color: var(--vino); font-size: .95rem; }
+    .instrucciones-galeria { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+    .instrucciones-galeria img { display: block; width: 100%; max-height: 280px; aspect-ratio: 4/3; object-fit: contain; border-radius: 9px; background: #fff; }
     .ficha { margin: 14px 0 0; border-top: 1px solid var(--linea); }
     .ficha div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #f2ece3; font-size: .83rem; }
     .ficha dt { color: var(--muted); } .ficha dd { margin: 0; font-weight: 700; text-align: right; }
     .video-box { margin: 14px 0 0; border-radius: 12px; overflow: hidden; background: #000; aspect-ratio: 16/9; }
     .video-box iframe, .video-box video { width: 100%; height: 100%; border: 0; display: block; }
+    .acciones-producto { display: grid; gap: 9px; margin-top: 16px; }
     .botones { display: grid; gap: 10px; margin-top: 16px; }
     .btn {
       display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -69,6 +100,7 @@
     }
     .btn.principal { background: var(--vino); color: #fff; }
     .btn.sec { background: #fff; color: var(--vino); border: 2px solid var(--vino); }
+    .btn[aria-disabled="true"] { background: #eee9e4; border-color: #eee9e4; color: #8b8179; cursor: not-allowed; pointer-events: none; }
     .btn.ghost { background: transparent; color: var(--muted); font-weight: 600; font-size: .82rem; }
     .estado { text-align: center; padding: 50px 20px; color: var(--muted); }
     .estado .spin {
@@ -79,6 +111,7 @@
     .error-box { background: #fdecec; border: 1px solid #f3c1c7; color: #7e1122; border-radius: 12px; padding: 12px 14px; font-size: .85rem; }
     footer { text-align: center; color: var(--muted); font-size: .75rem; margin-top: 18px; }
     code.url { background: #fff; border: 1px solid var(--linea); border-radius: 8px; padding: 2px 8px; font-size: .75rem; }
+    @media (max-width: 760px) { .qr-product-layout { grid-template-columns: 1fr; } .qr-cart-panel { position: static; } }
   </style>
 </head>
 <body>
@@ -89,7 +122,20 @@
 
   <div class="wrap">
     <div class="qr-badge"><span class="qr-ico">▦</span><span><b>Ficha rápida del producto.</b><br />Datos en vivo desde la base de datos.</span></div>
-    <main id="contenido"><div class="estado"><div class="spin"></div>Cargando datos del producto…</div></main>
+    <p class="qr-cart-status" id="qrCartEstado" role="status" aria-live="polite" hidden></p>
+    <div class="qr-product-layout">
+      <main id="contenido"><div class="estado"><div class="spin"></div>Cargando datos del producto…</div></main>
+      <aside class="qr-cart-panel" aria-label="Resumen de compra QR">
+        <h2>Tu compra por QR</h2>
+        <p id="qrCartResumen">0 unidades · seguí escaneando productos</p>
+        <div class="qr-cart-items" id="qrCartProductos" aria-live="polite"></div>
+        <div class="qr-cart-total"><span>Total estimado</span><b id="qrCartTotal">Bs 0,00</b></div>
+        <div class="qr-cart-actions">
+          <a class="btn sec" id="btnCamara" href="/catalogo?abrirQr=1">Volver a comprar con cámara</a>
+          <button class="qr-cart-confirm" id="qrCartConfirmar" type="button" disabled>Confirmar compra</button>
+        </div>
+      </aside>
+    </div>
     <div class="botones">
       <!-- Botón pedido: vuelve a la página principal -->
       <a class="btn principal" href="/">← Ir a la página principal</a>
@@ -107,16 +153,120 @@
       var apiParam = (params.get('api') || '').replace(/\/$/, '');
       var contenido = document.getElementById('contenido');
       var btnFicha = document.getElementById('btnFicha');
+      var productoSeleccionadoId = id;
+      var secuenciaCargaDetalle = 0;
+      var qrCartKey = 'terra_qr_cart_v1';
+      var qrCartTtl = 2 * 60 * 60 * 1000;
+
+      function leerCompraQr() {
+        var guardado = localStorage.getItem(qrCartKey);
+        if (!guardado) return [];
+        var borrador;
+        try { borrador = JSON.parse(guardado); } catch {
+          localStorage.removeItem(qrCartKey);
+          return [];
+        }
+        var edad = Date.now() - Number(borrador && borrador.actualizadoEn);
+        if (borrador?.version !== 1 || !Number.isFinite(edad) || edad < 0 || edad > qrCartTtl || !Array.isArray(borrador.items)) {
+          localStorage.removeItem(qrCartKey);
+          return [];
+        }
+        return borrador.items.filter(function (item) {
+          return item && typeof item.id === 'string' && typeof item.nombre === 'string' &&
+            Number.isFinite(Number(item.precio)) && Number.isSafeInteger(Number(item.stock)) &&
+            Number(item.stock) > 0 && Number.isSafeInteger(Number(item.cantidad)) &&
+            Number(item.cantidad) > 0 && Number(item.cantidad) <= Number(item.stock);
+        });
+      }
+
+      function guardarCompraQr(items) {
+        localStorage.setItem(qrCartKey, JSON.stringify({ version: 1, actualizadoEn: Date.now(), items: items }));
+      }
+
+      function actualizarResumenQr() {
+        var items = leerCompraQr();
+        var unidades = items.reduce(function (total, item) { return total + Number(item.cantidad); }, 0);
+        var total = items.reduce(function (suma, item) { return suma + Number(item.precio) * Number(item.cantidad); }, 0);
+        document.getElementById('qrCartResumen').textContent = unidades
+          ? unidades + (unidades === 1 ? ' unidad' : ' unidades') + ' · ' + items.length + (items.length === 1 ? ' producto' : ' productos')
+          : '0 unidades · seguí escaneando productos';
+        document.getElementById('qrCartConfirmar').disabled = unidades === 0;
+        document.getElementById('qrCartTotal').textContent = formatoBs(total);
+        document.getElementById('qrCartProductos').innerHTML = items.length
+          ? items.map(function (item) {
+            var imagen = item.imagen_url
+              ? '<img src="' + esc(item.imagen_url) + '" alt="">'
+              : '<span class="qr-cart-item-placeholder" aria-hidden="true">▦</span>';
+            return '<article class="qr-cart-item' + (String(item.id) === productoSeleccionadoId ? ' seleccionado' : '') + '">'
+              + '<button class="qr-cart-select" type="button" data-producto-id="' + esc(item.id) + '" aria-pressed="' + (String(item.id) === productoSeleccionadoId) + '">' + imagen
+              + '<span class="qr-cart-item-info"><b>' + esc(item.nombre) + '</b>'
+              + '<small>' + esc(item.categoria || 'TERRA') + ' · ' + esc(formatoBs(item.precio)) + ' × ' + esc(item.cantidad) + '</small></span>'
+              + '<strong>' + esc(formatoBs(Number(item.precio) * Number(item.cantidad))) + '</strong></button>'
+              + '<button class="qr-cart-remove" type="button" data-eliminar-producto-id="' + esc(item.id) + '" aria-label="Eliminar ' + esc(item.nombre) + '" title="Eliminar producto">×</button></article>';
+          }).join('')
+          : '<div class="qr-cart-empty">Agregá este producto u otro código QR para armar tu compra.</div>';
+        return items;
+      }
+
+      document.getElementById('qrCartProductos').addEventListener('click', function (event) {
+        var botonEliminar = event.target.closest('button[data-eliminar-producto-id]');
+        if (botonEliminar) {
+          try {
+            var idEliminar = botonEliminar.dataset.eliminarProductoId;
+            var itemsRestantes = leerCompraQr().filter(function (item) { return item.id !== idEliminar; });
+            guardarCompraQr(itemsRestantes);
+            var eliminarDetalleSeleccionado = productoSeleccionadoId === idEliminar;
+            if (eliminarDetalleSeleccionado) {
+              productoSeleccionadoId = itemsRestantes.length ? itemsRestantes[0].id : '';
+            }
+            actualizarResumenQr();
+            if (eliminarDetalleSeleccionado) {
+              if (productoSeleccionadoId) {
+                cargar(productoSeleccionadoId);
+              } else {
+                secuenciaCargaDetalle += 1;
+                contenido.innerHTML = '<div class="qr-cart-empty">Seleccioná un producto de tu compra QR para ver su detalle.</div>';
+                btnFicha.style.display = 'none';
+              }
+            }
+            mostrarEstadoQr('Producto eliminado de tu compra por QR.');
+          } catch {
+            mostrarEstadoQr('No se pudo eliminar el producto. Habilitá el almacenamiento del sitio e intentá nuevamente.', true);
+          }
+          return;
+        }
+
+        var botonProducto = event.target.closest('button[data-producto-id]');
+        if (!botonProducto) return;
+        productoSeleccionadoId = botonProducto.dataset.productoId;
+        actualizarResumenQr();
+        cargar(productoSeleccionadoId);
+      });
+
+      function mostrarEstadoQr(mensaje, error) {
+        var estado = document.getElementById('qrCartEstado');
+        estado.textContent = mensaje;
+        estado.classList.toggle('error', Boolean(error));
+        estado.hidden = !mensaje;
+      }
+
+      document.getElementById('qrCartConfirmar').addEventListener('click', function () {
+        try {
+          if (actualizarResumenQr().length) location.href = '/carrito?confirmarQr=1';
+        } catch {
+          mostrarEstadoQr('No se pudo leer la compra en este navegador. Habilitá el almacenamiento del sitio para continuar.', true);
+        }
+      });
 
       function basesApi() {
         var lista = [];
         if (apiParam) lista.push(apiParam);
-        try {
-          var cfg = (window.TERRA_CONFIG && window.TERRA_CONFIG.API_URL) || '';
-          if (cfg.trim()) lista.push(cfg.trim().replace(/\/$/, ''));
-        } catch (e) {}
-        lista.push(location.origin + '/api');          // mismo dominio (producción)
-        lista.push('http://localhost:3001/api');       // desarrollo local
+        var cfg = (window.TERRA_CONFIG && window.TERRA_CONFIG.API_URL) || '';
+        if (cfg.trim()) lista.push(cfg.trim().replace(/\/$/, ''));
+        lista.push(location.origin + '/api');
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          lista.push('http://localhost:3001/api');
+        }
         return [...new Set(lista)];
       }
 
@@ -126,9 +276,22 @@
         return 'Bs ' + n.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       }
 
-      function youtubeEmbed(url) {
-        var m = String(url || '').match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/);
-        return m ? 'https://www.youtube.com/embed/' + m[1] : null;
+      function mediaDeVideo(url) {
+        var valor = String(url || '').trim();
+        if (!valor) return null;
+        var youtubeShorts = valor.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/i);
+        var youtube = valor.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/i);
+        var vimeo = valor.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+        if (youtubeShorts) return { tipo: 'embed', src: 'https://www.youtube-nocookie.com/embed/' + youtubeShorts[1] + '?rel=0' };
+        if (youtube) return { tipo: 'embed', src: 'https://www.youtube-nocookie.com/embed/' + youtube[1] + '?rel=0' };
+        if (vimeo) return { tipo: 'embed', src: 'https://player.vimeo.com/video/' + vimeo[1] };
+        if (/^https?:\/\//i.test(valor)) {
+          var mime = /\.webm(\?.*)?$/i.test(valor) ? 'video/webm'
+            : /\.ogg(\?.*)?$/i.test(valor) ? 'video/ogg'
+              : /\.mov(\?.*)?$/i.test(valor) ? 'video/quicktime' : 'video/mp4';
+          return { tipo: 'archivo', src: valor, mime: mime };
+        }
+        return null;
       }
 
       function esc(s) {
@@ -137,17 +300,40 @@
         });
       }
 
-      async function cargar() {
-        if (!id) {
+      function imagenesDeInstrucciones(valor) {
+        if (Array.isArray(valor)) return valor.filter(function (url) { return typeof url === 'string' && url.trim(); });
+        if (typeof valor !== 'string' || !valor.trim()) return [];
+        try {
+          var parseado = JSON.parse(valor);
+          if (Array.isArray(parseado)) {
+            return parseado.filter(function (url) { return typeof url === 'string' && url.trim(); });
+          }
+        } catch {
+          // El campo actual suele contener una URL única en texto.
+        }
+        return [valor.trim()];
+      }
+
+      try {
+        actualizarResumenQr();
+      } catch {
+        mostrarEstadoQr('El navegador no permite guardar esta compra. Revisá la configuración de privacidad del sitio.', true);
+      }
+
+      async function cargar(productoId) {
+        var idDetalle = String(productoId || id || '').trim();
+        var secuencia = ++secuenciaCargaDetalle;
+        if (!idDetalle) {
           contenido.innerHTML = '<div class="error-box">Falta el <b>?id=</b> en la URL del QR.<br>Ejemplo: <code class="url">/detalle-qr.html?id=3</code></div>';
           btnFicha.style.display = 'none';
           return;
         }
-        btnFicha.href = '/productos/' + encodeURIComponent(id);
-        var ultimoError = '';
+        contenido.innerHTML = '<div class="estado"><div class="spin"></div>Cargando datos del producto…</div>';
+        btnFicha.href = '/productos/' + encodeURIComponent(idDetalle);
+        var errores = [];
         for (var base of basesApi()) {
           try {
-            var r = await fetch(base + '/productos/' + encodeURIComponent(id));
+            var r = await fetch(base + '/productos/' + encodeURIComponent(idDetalle));
             var j = await r.json().catch(() => null);
             if (!r.ok || (j && j.success === false)) throw new Error((j && j.mensaje) || ('HTTP ' + r.status));
             var p = j && j.data !== undefined ? j.data : j;
@@ -156,18 +342,26 @@
             if (!p || typeof p !== 'object' || (p.id === undefined && p.nombre === undefined)) {
               throw new Error('Respuesta inválida desde ' + base);
             }
+            if (secuencia !== secuenciaCargaDetalle) return;
             pintar(p);
             return;
-          } catch (e) { ultimoError = e.message; }
+          } catch (e) { errores.push(base + ': ' + e.message); }
         }
-        contenido.innerHTML = '<div class="error-box"><b>No se pudo cargar el producto.</b><br>' + esc(ultimoError || 'Sin conexión al backend.') + '<br><br>Verificá que el backend esté encendido y que el QR apunte a <code class="url">?id=' + esc(id) + '</code></div>';
+        if (secuencia !== secuenciaCargaDetalle) return;
+        var apiConfigurada = Boolean((window.TERRA_CONFIG && window.TERRA_CONFIG.API_URL) || apiParam);
+        var detalleErrores = errores.map(esc).join('<br>');
+        var ayuda = apiConfigurada
+          ? 'Comprobá que la URL de API apunte al backend público, que esté activo y que permita CORS desde este sitio.'
+          : 'No hay una URL pública de backend configurada. Definí API_URL en <code class="url">/config.js</code> con la dirección del backend terminada en <code class="url">/api</code>.';
+        contenido.innerHTML = '<div class="error-box"><b>No se pudo cargar el producto.</b><br>' + ayuda + '<br><br><b>Diagnóstico de conexión:</b><br>' + detalleErrores + '<br><br>El QR sí recibió el ID <code class="url">' + esc(idDetalle) + '</code>; verificá que exista en la base de datos.</div>';
       }
 
       function pintar(p) {
         if (!p) { contenido.innerHTML = '<div class="error-box">Producto no encontrado.</div>'; return; }
         var imgs = Array.isArray(p.imagenes) && p.imagenes.length ? p.imagenes : (p.imagen_url ? [p.imagen_url] : []);
+        var imagenesInstrucciones = imagenesDeInstrucciones(p.instrucciones_imagenes);
         var disponible = Number(p.stock) > 0;
-        var embed = p.video_url ? youtubeEmbed(p.video_url) : null;
+        var video = mediaDeVideo(p.video_url);
 
         var html = '<article class="card">';
         if (imgs.length) {
@@ -187,19 +381,61 @@
           + '<div class="precio-row"><span class="precio">' + esc(formatoBs(p.precio)) + '</span>'
           + '<span class="stock ' + (disponible ? 'ok' : 'no') + '">' + (disponible ? '● ' + esc(p.stock) + ' disponibles' : '○ Consultar disponibilidad') + '</span></div>'
           + (p.descripcion ? '<p class="desc">' + esc(p.descripcion) + '</p>' : '')
+          + (imagenesInstrucciones.length
+            ? '<section class="instrucciones"><h2>Instrucciones del producto</h2><div class="instrucciones-galeria">'
+              + imagenesInstrucciones.map(function (src, index) {
+                return '<img src="' + esc(src) + '" alt="Instrucción ' + (index + 1) + ' para ' + esc(p.nombre) + '" loading="lazy">';
+              }).join('')
+              + '</div></section>'
+            : '')
           + '<dl class="ficha">'
           + '<div><dt>Modelo</dt><dd>' + esc(p.nombre) + '</dd></div>'
           + '<div><dt>Categoría</dt><dd>' + esc(p.categoria || '—') + '</dd></div>'
           + '<div><dt>Medidas</dt><dd>' + esc(p.medida || p.detalle || 'Consultar en showroom') + '</dd></div>'
           + '<div><dt>Garantía</dt><dd>Garantía oficial TERRA</dd></div>'
           + '</dl>';
-        if (p.video_url) {
-          html += '<div class="video-box">' + (embed
-            ? '<iframe src="' + embed + '" title="Video" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>'
-            : '<video src="' + esc(p.video_url) + '" controls playsinline preload="metadata"></video>') + '</div>';
+        if (video) {
+          html += '<div class="video-box">' + (video.tipo === 'embed'
+            ? '<iframe src="' + esc(video.src) + '" title="Video de ' + esc(p.nombre) + '" loading="lazy" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>'
+            : '<video controls playsinline preload="metadata"><source src="' + esc(video.src) + '" type="' + esc(video.mime) + '">Tu navegador no puede reproducir este video.</video>') + '</div>';
         }
+        html += '<div class="acciones-producto"><button class="btn principal" id="agregarProductoQr" type="button"' + (disponible ? '' : ' disabled') + '>' + (disponible ? '🛒 Agregar a mi compra QR' : 'Consultar disponibilidad') + '</button></div>';
         html += '</div></article>';
         contenido.innerHTML = html;
+
+        var botonAgregarQr = document.getElementById('agregarProductoQr');
+        if (botonAgregarQr && disponible) {
+          botonAgregarQr.addEventListener('click', function () {
+            try {
+              var items = leerCompraQr();
+              var existente = items.find(function (item) { return item.id === String(p.id) && !item.color; });
+              var cantidadActual = existente ? Number(existente.cantidad) : 0;
+              if (cantidadActual >= Number(p.stock)) {
+                mostrarEstadoQr('Ya agregaste todas las unidades disponibles de este producto.', true);
+                return;
+              }
+              if (existente) {
+                existente.cantidad = cantidadActual + 1;
+              } else {
+                items.push({
+                  id: String(p.id),
+                  nombre: String(p.nombre),
+                  precio: Number(p.precio),
+                  stock: Math.floor(Number(p.stock)),
+                  categoria: String(p.categoria || 'Sin categoría'),
+                  imagen_url: imgs[0] || p.imagen_url || null,
+                  color: null,
+                  cantidad: 1,
+                });
+              }
+              guardarCompraQr(items);
+              actualizarResumenQr();
+              mostrarEstadoQr(String(p.nombre) + ' se agregó a tu compra. Podés seguir escaneando otros productos.');
+            } catch {
+              mostrarEstadoQr('No se pudo guardar el producto. Habilitá el almacenamiento del sitio e intentá nuevamente.', true);
+            }
+          });
+        }
 
         var main = document.getElementById('fotoMain');
         contenido.querySelectorAll('.thumbs button').forEach(function (b) {
@@ -211,7 +447,7 @@
         });
       }
 
-      cargar();
+      cargar(id);
     })();
   </script>
 </body>

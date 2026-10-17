@@ -16,8 +16,9 @@
 - `backend/.env` (required keys: `DATABASE_URL`, `PORT`, `FRONTEND_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_TOKEN_SECRET`). Loaded via `dotenv/config`; `src/config/database.js` throws if `DATABASE_URL` missing. Run backend from `backend/` so `.env` resolves. CORS origin = `FRONTEND_URL` (default `http://localhost:5173`).
 
 ## Conventions & gotchas
-- Orders (`backend/src/models/pedidoModel.js` `crearPedidoBD`): recompute price/total from DB inside a transaction with `SELECT ... FOR SHARE`, validate stock, never trust client totals. Does NOT decrement stock. Cart is memory-only.
+- Orders (`backend/src/models/pedidoModel.js` `crearPedidoBD`): recompute price/total from DB inside a transaction with `SELECT ... FOR SHARE`, validate stock, never trust client totals. Does NOT decrement stock. Normal cart state is memory-only; the QR-only draft in `frontend/public/detalle-qr.html` uses `localStorage` for cross-scan continuity and expires after 2 hours before being imported into the React cart.
+- The QR detail page shows the current product beside the accumulated QR draft; “Volver a comprar con cámara” returns to `/catalogo?abrirQr=1` and preserves that draft.
 - Admin auth (`backend/src/middlewares/authAdmin.js`, HMAC-SHA256, 8h expiry): login `POST /api/admin/auth/login`. Frontend stores token in `sessionStorage` as `terra_admin_token` (not `localStorage`); generic `apiRequest` does NOT attach it — callers add the `Authorization: Bearer` header manually.
-- Privacy (shared tablet): personal data stays in React state only (`frontend/src/context/ClienteContext.jsx`) — never persist to `localStorage`.
+- Privacy (shared tablet): personal data stays in React state only (`frontend/src/context/ClienteContext.jsx`) — never persist to `localStorage`. The temporary QR draft contains product lines only, no customer data.
 - No test runner in either package (`backend` `npm test` intentionally exits 1). Verify with `npm run lint` + `npm run build` (frontend), backend startup, and `/api/health`.
 - Tailwind v4 is configured only through `@tailwindcss/vite` in `frontend/vite.config.js`; there is no tailwind config file. `express.json` limit is `50kb`.
