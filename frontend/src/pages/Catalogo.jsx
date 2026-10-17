@@ -8,15 +8,6 @@ import './Catalogo.css';
 
 const CATEGORIAS_CONFIG = [
   { id: '', nombre: 'Todos', icon: 'apps' },
-  { id: 'Colchones', nombre: 'Colchones', icon: 'bed' },
-  { id: 'Sommiers', nombre: 'Sommiers', icon: 'layers' },
-  { id: 'Espaldares', nombre: 'Espaldares', icon: 'vertical_split' },
-  { id: 'Camas', nombre: 'Camas', icon: 'bedroom_parent' },
-  { id: 'Almohadas', nombre: 'Almohadas', icon: 'hotel' },
-  { id: 'Ropa de cama', nombre: 'Ropa de cama', icon: 'texture' },
-  { id: 'Muebles', nombre: 'Muebles', icon: 'chair' },
-  { id: 'Recamier', nombre: 'Recamier', icon: 'weekend' },
-  { id: 'Promociones', nombre: 'Promociones', icon: 'star', especial: true },
 ];
 
 const MEDIDAS_CONFIG = [
