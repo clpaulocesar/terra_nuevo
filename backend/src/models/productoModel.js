@@ -83,7 +83,7 @@ export async function obtenerProductoBD(id) {
 export async function obtenerVariantesBD(productoId) {
   try {
     const { rows } = await pool.query(
-      `SELECT id, name, sku, size, color, price_minor, currency
+      `SELECT id, name, sku, size, color, price_publico AS price_minor, currency
        FROM product_variants
        WHERE product_id = $1::uuid AND COALESCE(is_active, TRUE) = TRUE
        ORDER BY created_at ASC`,

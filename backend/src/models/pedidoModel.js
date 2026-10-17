@@ -23,7 +23,7 @@ export async function crearPedidoBD(clienteId, items) {
     for (const item of items) {
       const producto = await conexion.query(
         `SELECT p.id AS product_id, p.name, p.stock_quantity, v.id AS variant_id, v.sku,
-                COALESCE(v.price_minor, ROUND(COALESCE(p.public_price,0)*100)::bigint) AS price_minor
+                COALESCE(v.price_publico, ROUND(COALESCE(p.public_price,0)*100)::bigint) AS price_minor
          FROM products p LEFT JOIN product_variants v ON v.product_id=p.id AND v.is_active=TRUE
          WHERE p.id=$1 AND COALESCE(p.activo,p.is_active,TRUE)=TRUE LIMIT 1`, [item.productoId]);
       if (!producto.rowCount) throw new Error('Producto no encontrado o inactivo en Supabase');
