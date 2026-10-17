@@ -9,6 +9,34 @@
   box-sizing: border-box;
 }
 
+/* Pila de botones flotantes (carrito + asistente): una sola columna fija
+   con 10px de separación para que nunca se encimen. */
+.fabs-stack {
+  position: fixed;
+  right: 1rem;
+  bottom: 2rem;
+  z-index: 75;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.fabs-stack .chat-widget,
+.fabs-stack .cart-widget {
+  position: static;
+}
+.fabs-stack .cart-fab {
+  margin-right: 0;
+}
+@media (max-width: 1023px) {
+  .fabs-stack { bottom: 2.5rem; }
+}
+@media (max-width: 639px) {
+  .fabs-stack { right: 0.75rem; bottom: 6rem; }
+  /* En el catálogo la barra del pedido ocupa la zona baja: la pila sube por encima */
+  .app-shell:has(.catalogo-container) .fabs-stack { bottom: 8.5rem; }
+}
+
 .site-header.terra-header {
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(8px);

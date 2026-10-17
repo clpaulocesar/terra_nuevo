@@ -216,3 +216,120 @@
   .cart-widget { bottom: 7.5rem; }
   .cart-fab { margin-right: 0.75rem; }
 }
+
+/* Boton escanear QR al lado del carrito (palpita) */
+.cart-fabs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.cart-qr {
+  width: 3.4rem;
+  height: 3.4rem;
+  border: none;
+  border-radius: 999px;
+  background: #a6192e;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(166, 25, 46, 0.35);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.cart-qr:hover { background: #8e1527; transform: translateY(-1px); }
+.cart-qr:active { transform: scale(0.97); }
+@keyframes qrPulse {
+  0% { box-shadow: 0 0 0 0 rgba(166, 25, 46, 0.55); }
+  40% { box-shadow: 0 0 0 10px rgba(166, 25, 46, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(166, 25, 46, 0); }
+}
+.cart-qr { animation: qrPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.cart-qr svg { animation: none; }
+
+/* Modal escáner QR */
+.qr-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.qr-modal__panel {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow: auto;
+  position: relative;
+  animation: qrFade 0.25s ease-out;
+}
+@keyframes qrFade {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.qr-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: #f2f2f2;
+  border: 0;
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.qr-modal__title { margin: 22px 20px 4px; font-size: 1.15rem; font-weight: 800; }
+.qr-modal__sub { margin: 0 20px 16px; color: #6b6b6b; font-size: 0.88rem; text-align: center; }
+.qr-modal__view {
+  background: #000;
+  border: 1px solid #111;
+  border-radius: 12px;
+  margin: 0 20px 10px;
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qr-modal__view #qr-reader { width: 100%; height: 100%; display: block; }
+.qr-modal__frame {
+  position: absolute;
+  inset: 0;
+  margin: 0 20px;
+  border: 2.5px solid #a6192e;
+  border-radius: 12px;
+  box-shadow: inset 0 0 18px rgba(166, 25, 46, 0.15);
+  pointer-events: none;
+  animation: qrFrame 1.6s ease-in-out infinite;
+}
+@keyframes qrFrame {
+  0%, 100% { border-color: #a6192e; box-shadow: inset 0 0 14px rgba(166, 25, 46, 0.12); }
+  50% { border-color: #E85A6A; box-shadow: inset 0 0 22px rgba(166, 25, 46, 0.25), 0 0 14px rgba(166, 25, 46, 0.35); }
+}
+.qr-modal__ok { margin: 10px 20px 18px; color: #1e7e46; font-weight: 800; font-size: 0.88rem; text-align: center; }
+
+/* Aviso flotante: solo disponible en dispositivos con camara */
+.qr-aviso-flotante {
+  position: fixed;
+  right: 1rem;
+  bottom: 12.5rem;
+  z-index: 90;
+  background: #1b1c1c;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 0.9rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(27, 28, 28, 0.35);
+  animation: avisoFade 0.25s ease-out, avisoOut 0.25s ease-out 2.75s forwards;
+}
+@keyframes avisoFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes avisoOut { to { opacity: 0; transform: translateY(10px); pointer-events: none; } }

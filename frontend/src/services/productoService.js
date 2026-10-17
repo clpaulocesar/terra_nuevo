@@ -20,7 +20,10 @@ export function normalizarProducto(producto) {
     activo: producto.activo !== false,
     detalle: producto.detalle || producto.medida || '',
     descripcion: producto.descripcion || '',
-    categoria: producto.categoria || 'Sin categoría'
+    categoria: producto.categoria || 'Sin categoría',
+    variantes: Array.isArray(producto.variantes) ? producto.variantes : [],
+    totalVendido: Number(producto.total_vendido ?? 0),
+    esMasVendido: producto.es_mas_vendido === true,
   };
 }
 function exigirConexionReal() { if (MODO_DEMO) throw new Error('El modo demostración está activo. Configura VITE_MODO_DEMO=false para usar PostgreSQL.'); }

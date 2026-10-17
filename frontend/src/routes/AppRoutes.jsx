@@ -110,8 +110,10 @@ function Layout() {
         <small>Terminal táctil optimizado para celular, tablet y PC</small>
       </footer>
 
-      <CarritoFlotante />
-      <ChatAsistente />
+      <div className="fabs-stack">
+        <CarritoFlotante />
+        <ChatAsistente />
+      </div>
     </div>
   );
 }

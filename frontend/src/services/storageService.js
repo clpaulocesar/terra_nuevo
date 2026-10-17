@@ -9,20 +9,20 @@ export async function subirImagenProducto(archivo) {
   if (!archivo?.type?.startsWith('image/')) throw new Error('Selecciona un archivo de imagen válido.');
   if (archivo.size > 8 * 1024 * 1024) throw new Error(`“${archivo.name}” supera el límite de 8 MB.`);
 
-  // Normaliza la foto (máx 1600px, JPEG q0.85) para que pese menos y siempre
-  // tenga el mismo formato en el kiosco.
-  const normalizada = await normalizarImagen(archivo);
-  const nombreSeguro = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.jpg`;
+  // Normaliza la foto (máx 1600px). PNG conserva transparencia; JPEG se aplaná sobre blanco.
+  const { blob, mime } = await normalizarImagen(archivo);
+  const ext = mime === 'image/png' ? '.png' : '.jpg';
+  const nombreSeguro = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}${ext}`;
   const ruta = `productos/${nombreSeguro}`;
   const respuesta = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${ruta}`, {
     method: 'POST',
     headers: {
       apikey: SUPABASE_KEY,
       Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'image/jpeg',
+      'Content-Type': mime,
       'x-upsert': 'false',
     },
-    body: normalizada,
+    body: blob,
   });
   if (!respuesta.ok) {
     const detalle = await respuesta.text();
@@ -33,6 +33,7 @@ export async function subirImagenProducto(archivo) {
 
 function normalizarImagen(archivo) {
   return new Promise((resolve, reject) => {
+    const esPng = archivo.type === 'image/png' || archivo.name.toLowerCase().endsWith('.png');
     const lector = new FileReader();
     lector.onerror = () => reject(new Error(`No se pudo leer "${archivo.name}"`));
     lector.onload = () => {
@@ -47,13 +48,20 @@ function normalizarImagen(archivo) {
         lienzo.width = w;
         lienzo.height = h;
         const ctx = lienzo.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, w, h);
+        if (!esPng) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, w, h);
+        }
         ctx.drawImage(img, 0, 0, w, h);
+        const mime = esPng ? 'image/png' : 'image/jpeg';
+        const calidad = esPng ? undefined : 0.85;
         lienzo.toBlob(
-          (blob) => (blob ? resolve(blob) : reject(new Error(`No se pudo procesar "${archivo.name}"`))),
-          'image/jpeg',
-          0.85,
+          (blob) => {
+            if (!blob) return reject(new Error(`No se pudo procesar "${archivo.name}"`));
+            resolve({ blob, mime });
+          },
+          mime,
+          calidad,
         );
       };
       img.src = lector.result;

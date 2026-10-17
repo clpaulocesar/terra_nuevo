@@ -1,13 +1,64 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Minus, Plus, QrCode, ShoppingCart, Trash2, X } from 'lucide-react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useCarrito } from '../../hooks/useCarrito.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import './CarritoFlotante.css';
 
+function esDispositivoMovil() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 export default function CarritoFlotante() {
   const [abierto, setAbierto] = useState(false);
+  const [escaneoAbierto, setEscaneoAbierto] = useState(false);
+  const [qrLeido, setQrLeido] = useState(null);
+  const [mostrarAvisoCamara, setMostrarAvisoCamara] = useState(false);
+  const scannerRef = useRef(null);
+  const navigate = useNavigate();
   const { items, cantidadTotal, subtotal, actualizarCantidad, quitarProducto, vaciarCarrito } = useCarrito();
+
+  const abrirEscaneo = () => {
+    if (!esDispositivoMovil()) {
+      setMostrarAvisoCamara(true);
+      setTimeout(() => setMostrarAvisoCamara(false), 3000);
+      return;
+    }
+    setEscaneoAbierto(true);
+  };
+
+  useEffect(() => {
+    if (!escaneoAbierto) return undefined;
+    const scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 }, false);
+    scannerRef.current = scanner;
+    scanner.render(
+      (decodedText) => { setQrLeido(decodedText); },
+      () => {}
+    );
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear().then(() => { scannerRef.current = null; });
+      }
+    };
+  }, [escaneoAbierto]);
+
+  useEffect(() => {
+    if (!qrLeido) return;
+    let id = null;
+    try {
+      const url = new URL(qrLeido);
+      id = url.searchParams.get('id') || url.searchParams.get('producto') || url.searchParams.get('p');
+    } catch {
+      const m = String(qrLeido).match(/[?&](?:id|producto|p)=([^&]+)/);
+      id = m ? m[1] : null;
+    }
+    if (id) {
+      setEscaneoAbierto(false);
+      setQrLeido(null);
+      navigate(`/productos/${id}`);
+    }
+  }, [qrLeido, navigate]);
 
   return (
     <div className={`cart-widget ${abierto ? 'abierto' : ''}`}>
@@ -79,16 +130,40 @@ export default function CarritoFlotante() {
         </footer>
       </aside>
 
-      <button
-        type="button"
-        className="cart-fab"
-        onClick={() => setAbierto((v) => !v)}
-        aria-expanded={abierto}
-        aria-label={abierto ? 'Cerrar carrito' : 'Abrir carrito'}
-      >
-        {abierto ? <X size={24} /> : <ShoppingCart size={24} />}
-        {!abierto && cantidadTotal > 0 && <b className="cart-fab-badge">{cantidadTotal}</b>}
-      </button>
+      <div className="cart-fabs">
+        <button
+          type="button"
+          className="cart-fab"
+          onClick={() => setAbierto((v) => !v)}
+          aria-expanded={abierto}
+          aria-label={abierto ? 'Cerrar carrito' : 'Abrir carrito'}
+        >
+          {abierto ? <X size={24} /> : <ShoppingCart size={24} />}
+          {!abierto && cantidadTotal > 0 && <b className="cart-fab-badge">{cantidadTotal}</b>}
+        </button>
+        {!abierto && (
+          <button type="button" className="cart-qr" onClick={abrirEscaneo} aria-label="Escanear código QR">
+            <QrCode size={20} />
+          </button>
+        )}
+      </div>
+      {mostrarAvisoCamara && (
+        <div className="qr-aviso-flotante">
+          Usá un dispositivo con cámara (celular o tablet) para escanear el QR.
+        </div>
+      )}
+      {escaneoAbierto && (
+        <div className="qr-modal" role="dialog" aria-modal="true" aria-label="Escanear código QR" onClick={() => setEscaneoAbierto(false)}>
+          <div className="qr-modal__panel" onClick={e => e.stopPropagation()}>
+            <button type="button" className="qr-modal__close" onClick={() => setEscaneoAbierto(false)} aria-label="Cerrar escáner"><X size={20} /></button>
+            <h2 className="qr-modal__title">Escanear código QR</h2>
+            <p className="qr-modal__sub">Enfocá el código del producto con la cámara</p>
+            <div className="qr-modal__view"><div id="qr-reader" /></div>
+            <div className="qr-modal__frame" />
+            {qrLeido && <p className="qr-modal__ok">Código leído: <b>{qrLeido}</b></p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

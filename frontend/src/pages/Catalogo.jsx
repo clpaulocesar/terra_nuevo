@@ -32,6 +32,40 @@ const FIRMEZAS_CONFIG = [
   { id: 'Firme Ortopédica', label: 'Firme Ortopédica' },
 ];
 
+// Tonos registrados por el admin en products.colors (JSON {nombre, valor,...}).
+// Si el producto no tiene colores, devuelve [] para no mostrar la fila de tonos.
+const coloresDeProducto = (producto) => {
+  const registros = Array.isArray(producto?.colores) ? producto.colores : [];
+  const lista = [];
+  const vistos = new Set();
+  for (const registro of registros) {
+    let nombre = '';
+    let valor = '';
+    if (registro && typeof registro === 'object') {
+      nombre = String(registro.nombre || registro.name || '').trim();
+      valor = String(registro.valor || registro.color || '').trim();
+    } else {
+      const texto = String(registro || '').trim();
+      try {
+        const dato = JSON.parse(texto);
+        nombre = String(dato?.nombre || dato?.name || '').trim();
+        valor = String(dato?.valor || dato?.color || '').trim();
+      } catch {
+        const [parte1, parte2] = texto.split('|');
+        nombre = (parte2 ? parte1 : parte1) || 'Color';
+        valor = parte2 || parte1;
+      }
+    }
+    const hex = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(valor) ? valor : '';
+    if (!hex) continue;
+    const clave = (nombre || hex).toLowerCase();
+    if (vistos.has(clave)) continue;
+    vistos.add(clave);
+    lista.push({ nombre: nombre || 'Color', valor: hex });
+  }
+  return lista;
+};
+
 export default function Catalogo() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -233,9 +267,6 @@ export default function Catalogo() {
   // Teclado virtual táctil
   const agregarCaracter = (caracter) => {
     setBuscar((prev) => prev + caracter);
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
   };
 
   const borrarCaracter = () => {
@@ -343,6 +374,8 @@ export default function Catalogo() {
                       placeholder="Buscar poltronas y sofa cama"
                       type="text"
                       value={buscar}
+                      readOnly
+                      onFocus={(e) => e.target.blur()}
                       onChange={(e) => setBuscar(e.target.value)}
                     />
                     {buscar && (
@@ -352,7 +385,6 @@ export default function Catalogo() {
                         id="clear-search-btn"
                         onClick={() => {
                           setBuscar('');
-                          if (searchInputRef.current) searchInputRef.current.focus();
                         }}
                         type="button"
                       >
@@ -602,6 +634,7 @@ export default function Catalogo() {
                 <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
                   {productosFiltrados.map((producto) => {
                     const recienAgregado = Boolean(agregados[producto.id]);
+                    const tonosColores = coloresDeProducto(producto);
 
                     return (
                       <article
@@ -709,20 +742,24 @@ export default function Catalogo() {
                               </p>
                             )}
 
-                            {/* Tonos disponibles */}
-                            <div className="flex items-center gap-1.5">
-                              {['#9ca3af', '#7f1d1d', '#b91c1c', '#374151'].map((tono) => (
-                                <span
-                                  key={tono}
-                                  aria-hidden="true"
-                                  style={{ backgroundColor: tono }}
-                                  className="w-3.5 h-3.5 rounded-full border border-surface-container-high"
-                                />
-                              ))}
-                              <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">
-                                +6 tonos
-                              </span>
-                            </div>
+                            {/* Tonos disponibles (solo los registrados por el admin) */}
+                            {tonosColores.length > 0 && (
+                              <div className="flex items-center gap-1.5">
+                                {tonosColores.slice(0, 4).map((tono) => (
+                                  <span
+                                    key={`${tono.nombre}-${tono.valor}`}
+                                    title={tono.nombre}
+                                    style={{ backgroundColor: tono.valor }}
+                                    className="w-3.5 h-3.5 rounded-full border border-surface-container-high"
+                                  />
+                                ))}
+                                {tonosColores.length > 4 && (
+                                  <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">
+                                    +{tonosColores.length - 4} tonos
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
 
                           {/* Precio y Botón Táctil de Agregar */}

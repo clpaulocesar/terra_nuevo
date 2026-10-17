@@ -7,6 +7,17 @@ import './CarritoPage.css';
 
 export default function CarritoPage() {
   const { items, subtotal, cantidadTotal, actualizarCantidad, quitarProducto, vaciarCarrito } = useCarrito();
-  if (!items.length) return <section className="cart-page cart-empty"><PackageOpen size={58}/><h1>Tu carrito está vacío</h1><p>Explorá el catálogo y elegí los productos que más te gusten.</p><Link to="/catalogo">Explorar productos <ArrowRight size={19}/></Link></section>;
+  if (!items.length) {
+    return (
+      <section className="cart-page cart-empty">
+        <div className="cart-empty__wrap">
+          <div className="cart-empty__icon"><PackageOpen size={64}/></div>
+          <h1 className="cart-empty__title">Tu carrito está vacío</h1>
+          <p className="cart-empty__subtitle">Explorá el catálogo y elegí los productos que más te gusten.</p>
+          <Link to="/catalogo" className="cart-empty__cta">Explorar productos <ArrowRight size={18}/></Link>
+        </div>
+      </section>
+    );
+  }
   return <section className="cart-page"><header className="cart-heading"><div><span><ShoppingBag size={16}/> Paso 3 · Resumen de compra</span><h1>Revisá tu pedido</h1><p>Verificá tus artículos antes de generar el ticket para pagar en caja.</p></div></header><div className="cart-notice"><ShoppingBag size={28}/><div><b>Pago en mostrador presencial</b><p>Tu pedido se generará para pagar en caja. No se realizará ningún cobro en este kiosco.</p></div></div><div className="cart-layout"><div className="cart-list-card"><div className="cart-list-title"><h2>Detalle de artículos ({cantidadTotal})</h2><button onClick={vaciarCarrito} type="button">Vaciar carrito</button></div>{items.map((item) => <article className="cart-item" key={item.lineaId}><div className="cart-item-image">{item.imagen_url ? <img src={item.imagen_url} alt=""/> : emojiCategoria(item.categoria)}</div><div className="cart-item-info"><span>{item.categoria}</span><h3>{item.nombre}</h3>{item.color && <small className="cart-item-color"><i style={{ backgroundColor: item.color.valor }} />Color: {item.color.nombre}</small>}<p>{formatoMoneda(item.precio)} por unidad</p></div><div className="cart-quantity"><button aria-label="Restar" onClick={() => actualizarCantidad(item.lineaId, item.cantidad - 1)} type="button"><Minus size={17}/></button><b>{item.cantidad}</b><button aria-label="Sumar" disabled={item.cantidad >= item.stock} onClick={() => actualizarCantidad(item.lineaId, item.cantidad + 1)} type="button"><Plus size={17}/></button></div><strong>{formatoMoneda(item.precio * item.cantidad)}</strong><button className="cart-delete" onClick={() => quitarProducto(item.lineaId)} type="button" aria-label={`Quitar ${item.nombre}`}><Trash2 size={19}/></button></article>)}</div><aside className="cart-summary"><h2>Liquidación final</h2><div className="cart-summary-box"><p><span>Subtotal de artículos</span><b>{formatoMoneda(subtotal)}</b></p><p><span>Impuestos</span><b>Incluidos</b></p><hr/><p className="cart-total"><span>Total a pagar en caja</span><b>{formatoMoneda(subtotal)}</b></p></div><div className="cart-payments"><span>Efectivo (Bs)</span><span>QR Simple</span><span>Tarjetas</span></div><Link className="cart-confirm" to="/identificacion"><PackageOpen size={23}/> Continuar y generar pedido</Link><Link className="cart-back" to="/catalogo">Seguir comprando</Link><small>Terminal seguro · Ticket inmediato en caja</small></aside></div></section>;
 }

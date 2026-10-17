@@ -24,6 +24,36 @@ export async function listarProductosBD({ buscar = '', categoria = '', pagina = 
   return rows;
 }
 
+const ESTADOS_VENTA = "('completed','entregado')";
+
+async function calcularVentasProducto(productoId) {
+  const { rows } = await pool.query(
+    `SELECT COALESCE(SUM(oi.quantity), 0) AS total_vendido
+     FROM order_items oi
+     JOIN orders o ON o.id = oi.order_id
+     JOIN product_variants pv ON pv.id = oi.product_variant_id
+     WHERE pv.product_id = $1::uuid
+       AND o.status IN ${ESTADOS_VENTA}`,
+    [productoId]
+  );
+  return Number(rows[0]?.total_vendido || 0);
+}
+
+async function calcularMaximoVentas() {
+  const { rows } = await pool.query(
+    `SELECT COALESCE(MAX(sub.total), 0) AS max_vendido
+     FROM (
+       SELECT pv.product_id, COALESCE(SUM(oi.quantity), 0) AS total
+       FROM order_items oi
+       JOIN orders o ON o.id = oi.order_id
+       JOIN product_variants pv ON pv.id = oi.product_variant_id
+       WHERE o.status IN ${ESTADOS_VENTA}
+       GROUP BY pv.product_id
+     ) sub`
+  );
+  return Number(rows[0]?.max_vendido || 0);
+}
+
 export async function obtenerProductoBD(id) {
   await asegurarColumnaVideo();
   const idStr = String(id || '').trim();
@@ -37,7 +67,31 @@ export async function obtenerProductoBD(id) {
      LIMIT 1`,
     [idStr]
   );
-  return rows[0] || null;
+  const producto = rows[0] || null;
+  if (!producto) return null;
+  producto.variantes = await obtenerVariantesBD(producto.id);
+  const totalVendido = await calcularVentasProducto(producto.id);
+  const maxVendido = await calcularMaximoVentas();
+  producto.total_vendido = totalVendido;
+  producto.es_mas_vendido = totalVendido > 0 && totalVendido === maxVendido;
+  return producto;
+}
+
+// Variantes de color/talla ligadas al producto (tabla product_variants).
+// Si la tabla no existe en el entorno, devuelve lista vacía sin romper el detalle.
+export async function obtenerVariantesBD(productoId) {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, name, sku, size, color, price_minor, currency
+       FROM product_variants
+       WHERE product_id = $1::uuid AND COALESCE(is_active, TRUE) = TRUE
+       ORDER BY created_at ASC`,
+      [productoId]
+    );
+    return rows;
+  } catch {
+    return [];
+  }
 }
 
 export async function crearProductoBD(datos) {

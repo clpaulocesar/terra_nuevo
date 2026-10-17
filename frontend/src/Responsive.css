@@ -107,9 +107,8 @@ img{max-width:100%}
   .welcome-spot>b{font-size:.82rem!important}
   .welcome-trust{margin-top:1.5rem!important}
 
-  /* FABs en teléfono: más chicos y bajos, sin tapar el contenido central */
-  .chat-widget{bottom:8.6rem!important;gap:.6rem!important;right:.6rem!important}
+  /* FABs en teléfono: pila más chica y baja, sin tapar el contenido central */
+  .fabs-stack{bottom:6rem!important;gap:10px!important;right:.6rem!important}
   .chat-fab{padding:.75rem!important}
-  .cart-widget{bottom:5.2rem!important}
-  .cart-fab{height:3rem!important;margin-right:.6rem!important;width:3rem!important}
+  .cart-fab{height:3rem!important;margin-right:0!important;width:3rem!important}
 }
