@@ -1,14 +1,5 @@
 export const categorias = [
   { id: '', nombre: 'Todos', icon: 'apps', emoji: '✨' },
-  { id: 'Colchones', nombre: 'Colchones', icon: 'bed', emoji: '🛏️' },
-  { id: 'Sommiers', nombre: 'Sommiers', icon: 'layers', emoji: '🛋️' },
-  { id: 'Espaldares', nombre: 'Espaldares', icon: 'vertical_split', emoji: '🖼️' },
-  { id: 'Camas', nombre: 'Camas', icon: 'bedroom_parent', emoji: '🛏️' },
-  { id: 'Almohadas', nombre: 'Almohadas', icon: 'hotel', emoji: '☁️' },
-  { id: 'Ropa de cama', nombre: 'Ropa de cama', icon: 'texture', emoji: '🧺' },
-  { id: 'Muebles', nombre: 'Muebles', icon: 'chair', emoji: '🪑' },
-  { id: 'Recamier', nombre: 'Recamier', icon: 'weekend', emoji: '🛋️' },
-  { id: 'Promociones', nombre: 'Promociones', icon: 'star', emoji: '⭐', especial: true },
 ];
 
 export function obtenerIconoCategoria(nombre) {
@@ -37,5 +28,5 @@ export function emojiCategoria(nombre) {
   if (n.includes('espald') || n.includes('respald')) return '🖼️';
   if (n.includes('recamier')) return '🛋️';
   if (n.includes('promo')) return '⭐';
-  return categorias.find((item) => item.id.toLowerCase() === n)?.emoji || '📦';
+  return '📦';
 }
