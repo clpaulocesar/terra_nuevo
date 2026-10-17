@@ -335,14 +335,44 @@
 @keyframes avisoFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes avisoOut { to { opacity: 0; transform: translateY(10px); pointer-events: none; } }
 
-/* Movil: FABs y QR mas pequeños, y escaner QR que ocupe bien la pantalla */
+/* Feedback de estado de camara */
+.camara-error {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #b91c1c;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0 1rem 1rem;
+}
+
+.camara-activa {
+  background: #dcfce7;
+  border: 1px solid #22c55e;
+  color: #15803d;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin: 0 1rem 1rem;
+}
+
+/* Escaner QR en movil: ocupa bien la pantalla */
 @media (max-width: 639px) {
-  .cart-widget { bottom: 8rem; }
+  .cart-widget { bottom: 9rem; }
   .cart-fab { width: 2.6rem; height: 2.6rem; }
   .cart-fab svg { width: 20px; height: 20px; }
   .cart-qr { width: 2.6rem; height: 2.6rem; }
   .cart-qr svg { width: 18px; height: 18px; }
+
   .qr-modal { padding: 10px; }
-  .qr-modal__panel { max-width: 100%; max-height: 92vh; }
-  .qr-modal__view { margin: 0 12px 8px; }
+  .qr-modal__panel { max-width: 100%; max-height: 95vh; border-radius: 12px; }
+  .qr-modal__view { margin: 0 12px 8px; border-radius: 10px; }
+  .qr-modal__frame { margin: 0 12px; border-radius: 10px; }
+  .qr-modal__title { font-size: 1.1rem; margin: 16px 12px 4px; }
+  .qr-modal__sub { font-size: 0.8rem; margin: 0 12px 10px; }
+  .qr-modal__ok { font-size: 0.8rem; margin: 8px 12px 12px; }
 }

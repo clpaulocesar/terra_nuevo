@@ -15,6 +15,8 @@ export default function CarritoFlotante() {
   const [escaneoAbierto, setEscaneoAbierto] = useState(false);
   const [qrLeido, setQrLeido] = useState(null);
   const [mostrarAvisoCamara, setMostrarAvisoCamara] = useState(false);
+  const [camaraActiva, setCamaraActiva] = useState(false);
+  const [camaraError, setCamaraError] = useState(null);
   const scannerRef = useRef(null);
   const navigate = useNavigate();
   const { items, cantidadTotal, subtotal, actualizarCantidad, quitarProducto, vaciarCarrito } = useCarrito();
@@ -30,22 +32,29 @@ export default function CarritoFlotante() {
 
   useEffect(() => {
     if (!escaneoAbierto) return undefined;
+    setCamaraActiva(false);
+    setCamaraError(null);
     const scanner = new Html5QrcodeScanner("qr-reader", {
       fps: 20,
-      qrbox: 220,
+      qrbox: 200,
       aspectRatio: 1.0,
       showTorchButton: true,
       showFlipCameraButton: true,
+      disableFlip: false,
     }, false);
     scannerRef.current = scanner;
     scanner.render(
       (decodedText) => { setQrLeido(decodedText); },
-      (errorMessage) => {}
+      (errorMessage) => {
+        setCamaraError("No se pudo acceder a la cámara. Verifica los permisos.");
+      }
     );
+    setCamaraActiva(true);
     return () => {
       if (scannerRef.current) {
         scannerRef.current.clear().then(() => { scannerRef.current = null; });
       }
+      setCamaraActiva(false);
     };
   }, [escaneoAbierto]);
 
@@ -164,6 +173,8 @@ export default function CarritoFlotante() {
             <button type="button" className="qr-modal__close" onClick={() => setEscaneoAbierto(false)} aria-label="Cerrar escáner"><X size={20} /></button>
             <h2 className="qr-modal__title">Escanear código QR</h2>
             <p className="qr-modal__sub">Enfocá el código del producto con la cámara</p>
+            {camaraError && <div className="camara-error">⚠️ {camaraError}</div>}
+            {!camaraError && camaraActiva && <div className="camara-activa">✅ Cámara activa</div>}
             <div className="qr-modal__view"><div id="qr-reader" /></div>
             <div className="qr-modal__frame" />
             {qrLeido && <p className="qr-modal__ok">Código leído: <b>{qrLeido}</b></p>}
