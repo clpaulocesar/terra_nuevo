@@ -343,6 +343,15 @@ export default function ProductosAdmin() {
     }));
   };
 
+  // Una pieza multicolor tiene una sola galería: sus fotos representan toda la paleta.
+  const asociarImagenesConPaleta = (setColores, urls) => {
+    if (!urls.length) return;
+    setColores((lista) => lista.map((registro) => {
+      const color = leerColor(registro);
+      return guardarColor({ ...color, imagenes: [...new Set([...color.imagenes, ...urls])] });
+    }));
+  };
+
   const asignarImagenExistenteAColor = (setColores, colorSeleccionado, imagen) => {
     if (!colorSeleccionado || !imagen) return;
     setColores((lista) => lista.map((registro) => {
@@ -359,7 +368,8 @@ export default function ProductosAdmin() {
       avisar(`Subiendo ${archivos.length} imagen${archivos.length > 1 ? 'es' : ''} a Supabase...`);
       const urls = await Promise.all(archivos.map(subirImagenProducto));
       setImagenesNuevo(prev => [...prev, ...urls]);
-      asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, urls);
+      if (paletaMulticolorNuevo) asociarImagenesConPaleta(setColoresNuevo, urls);
+      else asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, urls);
       avisar('Imágenes guardadas permanentemente en Supabase.');
     } catch (err) { avisar(err.message || 'No se pudieron subir las imágenes.'); }
     finally { event.target.value = ''; }
@@ -368,7 +378,8 @@ export default function ProductosAdmin() {
   const agregarUrlNuevo = () => {
     if (urlNuevo.trim()) {
       setImagenesNuevo(prev => [...prev, urlNuevo.trim()]);
-      asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, [urlNuevo.trim()]);
+      if (paletaMulticolorNuevo) asociarImagenesConPaleta(setColoresNuevo, [urlNuevo.trim()]);
+      else asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, [urlNuevo.trim()]);
       setUrlNuevo('');
     }
   };
@@ -487,7 +498,8 @@ export default function ProductosAdmin() {
       avisar(`Subiendo ${archivos.length} imagen${archivos.length > 1 ? 'es' : ''} a Supabase...`);
       const urls = await Promise.all(archivos.map(subirImagenProducto));
       setEditImagenes(prev => [...prev, ...urls]);
-      asociarImagenesConColor(setColoresEdit, colorImagenEdit, urls);
+      if (paletaMulticolorEdit) asociarImagenesConPaleta(setColoresEdit, urls);
+      else asociarImagenesConColor(setColoresEdit, colorImagenEdit, urls);
       avisar('Imágenes guardadas permanentemente en Supabase.');
     } catch (err) { avisar(err.message || 'No se pudieron subir las imágenes.'); }
     finally { event.target.value = ''; }
@@ -496,7 +508,8 @@ export default function ProductosAdmin() {
   const agregarUrlEdit = () => {
     if (urlEdit.trim()) {
       setEditImagenes(prev => [...prev, urlEdit.trim()]);
-      asociarImagenesConColor(setColoresEdit, colorImagenEdit, [urlEdit.trim()]);
+      if (paletaMulticolorEdit) asociarImagenesConPaleta(setColoresEdit, [urlEdit.trim()]);
+      else asociarImagenesConColor(setColoresEdit, colorImagenEdit, [urlEdit.trim()]);
       setUrlEdit('');
     }
   };
@@ -1034,11 +1047,11 @@ export default function ProductosAdmin() {
             </div>
 
             {/* Galería de Imágenes en Edición */}
-            <section className="product-gallery">
+            <section className={paletaMulticolorEdit ? 'product-gallery is-multicolor' : 'product-gallery'}>
               <div>
-                <b>Fotos de la variante ({editImagenes.length})</b>
+                <b>{paletaMulticolorEdit ? 'Fotos del producto multicolor' : 'Fotos de la variante'} ({editImagenes.length})</b>
                 <small>
-                  Elige un color y sus fotos se mostrarán al cliente cuando lo seleccione. La primera foto sigue siendo la portada general.
+                  {paletaMulticolorEdit ? 'Estas fotos muestran la pieza completa y se asignarán a toda su paleta de colores.' : 'Elige un color y sus fotos se mostrarán al cliente cuando lo seleccione. La primera foto sigue siendo la portada general.'}
                 </small>
               </div>
               <label className="product-color-image-target">Estoy cargando fotos para: 
@@ -1211,11 +1224,11 @@ export default function ProductosAdmin() {
               </fieldset>
             </div>
 
-            <section className="product-gallery">
+            <section className={paletaMulticolorNuevo ? 'product-gallery is-multicolor' : 'product-gallery'}>
               <div>
-                <b>Fotos de la variante ({imagenesNuevo.length})</b>
+                <b>{paletaMulticolorNuevo ? 'Fotos del producto multicolor' : 'Fotos de la variante'} ({imagenesNuevo.length})</b>
                 <small>
-                  Primero elige el color y luego carga sus fotos. Al seleccionarlo, el cliente verá esas imágenes en el detalle.
+                  {paletaMulticolorNuevo ? 'Carga fotos de la pieza completa: se asociarán a todos los tonos de la paleta.' : 'Primero elige el color y luego carga sus fotos. Al seleccionarlo, el cliente verá esas imágenes en el detalle.'}
                 </small>
               </div>
 

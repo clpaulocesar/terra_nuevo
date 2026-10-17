@@ -42,12 +42,23 @@ import './HeaderOptionsHidden.css';
 function Layout() {
   const { cantidadTotal } = useCarrito();
   const [cuentaAbierta, setCuentaAbierta] = useState(false);
+  const navigate = useNavigate();
+  const pulsacionesLogo = useRef([]);
+
+  const abrirAdminConLogo = (event) => {
+    const ahora = Date.now();
+    pulsacionesLogo.current = [...pulsacionesLogo.current, ahora].filter((marca) => ahora - marca < 2500);
+    if (pulsacionesLogo.current.length < 5) return;
+    event.preventDefault();
+    pulsacionesLogo.current = [];
+    navigate('/admin/login');
+  };
 
   return (
     <div className="app-shell">
       <header className="site-header terra-header">
         <div className="terra-header-left">
-          <Link to="/" className="brand terra-logo" title="TERRA Autoservicio">
+          <Link to="/" className="brand terra-logo" title="TERRA Autoservicio" onClick={abrirAdminConLogo}>
             <img src="/logo-terra.png" alt="TERRA Autoservicio" />
           </Link>
         </div>
