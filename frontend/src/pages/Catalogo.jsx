@@ -397,7 +397,7 @@ export default function Catalogo() {
   }[orden];
 
   return (
-    <div className="catalogo-container bg-surface font-body-md text-on-surface select-none antialiased flex flex-col">
+    <div className="catalogo-container notranslate bg-surface font-body-md text-on-surface select-none antialiased flex flex-col" translate="no">
       {/* HEADER TÁCTIL FIJO */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-primary-container text-on-primary shadow-[0_4px_20px_rgba(0,66,48,0.15)]">
         <div className="h-20 w-full px-margin flex items-center justify-between">
