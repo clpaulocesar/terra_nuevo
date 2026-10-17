@@ -17,6 +17,7 @@ export default function CarritoFlotante() {
   const [mostrarAvisoCamara, setMostrarAvisoCamara] = useState(false);
   const [camaraActiva, setCamaraActiva] = useState(false);
   const [camaraError, setCamaraError] = useState(null);
+  const [camaraIniciada, setCamaraIniciada] = useState(false);
   const scannerRef = useRef(null);
   const navigate = useNavigate();
   const { items, cantidadTotal, subtotal, actualizarCantidad, quitarProducto, vaciarCarrito } = useCarrito();
@@ -31,7 +32,7 @@ export default function CarritoFlotante() {
   };
 
   useEffect(() => {
-    if (!escaneoAbierto) return undefined;
+    if (!escaneoAbierto || !camaraIniciada) return undefined;
     setCamaraActiva(false);
     setCamaraError(null);
     const scanner = new Html5QrcodeScanner("qr-reader", {
@@ -56,7 +57,7 @@ export default function CarritoFlotante() {
       }
       setCamaraActiva(false);
     };
-  }, [escaneoAbierto]);
+  }, [escaneoAbierto, camaraIniciada]);
 
   useEffect(() => {
     if (!qrLeido) return;
@@ -173,9 +174,27 @@ export default function CarritoFlotante() {
             <button type="button" className="qr-modal__close" onClick={() => setEscaneoAbierto(false)} aria-label="Cerrar escáner"><X size={20} /></button>
             <h2 className="qr-modal__title">Escanear código QR</h2>
             <p className="qr-modal__sub">Enfocá el código del producto con la cámara</p>
+            {!camaraIniciada && (
+              <button
+                type="button"
+                className="camara-iniciar-btn"
+                onClick={() => setCamaraIniciada(true)}
+                aria-label="Iniciar cámara"
+              >
+                <span className="material-symbols-outlined text-[20px]">camera_alt</span>
+                Iniciar cámara
+              </button>
+            )}
+            {camaraIniciada && !camaraError && !camaraActiva && (
+              <div className="camara-activa">⏳ Iniciando cámara...</div>
+            )}
             {camaraError && <div className="camara-error">⚠️ {camaraError}</div>}
-            {!camaraError && camaraActiva && <div className="camara-activa">✅ Cámara activa</div>}
-            <div className="qr-modal__view"><div id="qr-reader" /></div>
+            {camaraIniciada && !camaraError && camaraActiva && (
+              <>
+                <div className="camara-activa">✅ Cámara activa</div>
+                <div className="qr-modal__view"><div id="qr-reader" /></div>
+              </>
+            )}
             <div className="qr-modal__frame" />
             {qrLeido && <p className="qr-modal__ok">Código leído: <b>{qrLeido}</b></p>}
           </div>

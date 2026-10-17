@@ -360,6 +360,27 @@
   margin: 0 1rem 1rem;
 }
 
+.camara-iniciar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #a6192e;
+  color: #fff;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(166, 25, 46, 0.35);
+  transition: transform 0.15s ease, background 0.15s ease;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto 1rem;
+}
+.camara-iniciar-btn:hover { background: #8e1527; transform: translateY(-1px); }
+.camara-iniciar-btn:active { transform: scale(0.97); }
+
 /* Escaner QR en movil: ocupa bien la pantalla */
 @media (max-width: 639px) {
   .cart-widget { bottom: 9rem; }
