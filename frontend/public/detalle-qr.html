@@ -111,12 +111,12 @@
       function basesApi() {
         var lista = [];
         if (apiParam) lista.push(apiParam);
-        try {
-          var cfg = (window.TERRA_CONFIG && window.TERRA_CONFIG.API_URL) || '';
-          if (cfg.trim()) lista.push(cfg.trim().replace(/\/$/, ''));
-        } catch (e) {}
-        lista.push(location.origin + '/api');          // mismo dominio (producción)
-        lista.push('http://localhost:3001/api');       // desarrollo local
+        var cfg = (window.TERRA_CONFIG && window.TERRA_CONFIG.API_URL) || '';
+        if (cfg.trim()) lista.push(cfg.trim().replace(/\/$/, ''));
+        lista.push(location.origin + '/api');
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+          lista.push('http://localhost:3001/api');
+        }
         return [...new Set(lista)];
       }
 
@@ -144,7 +144,7 @@
           return;
         }
         btnFicha.href = '/productos/' + encodeURIComponent(id);
-        var ultimoError = '';
+        var errores = [];
         for (var base of basesApi()) {
           try {
             var r = await fetch(base + '/productos/' + encodeURIComponent(id));
@@ -158,9 +158,14 @@
             }
             pintar(p);
             return;
-          } catch (e) { ultimoError = e.message; }
+          } catch (e) { errores.push(base + ': ' + e.message); }
         }
-        contenido.innerHTML = '<div class="error-box"><b>No se pudo cargar el producto.</b><br>' + esc(ultimoError || 'Sin conexión al backend.') + '<br><br>Verificá que el backend esté encendido y que el QR apunte a <code class="url">?id=' + esc(id) + '</code></div>';
+        var apiConfigurada = Boolean((window.TERRA_CONFIG && window.TERRA_CONFIG.API_URL) || apiParam);
+        var detalleErrores = errores.map(esc).join('<br>');
+        var ayuda = apiConfigurada
+          ? 'Comprobá que la URL de API apunte al backend público, que esté activo y que permita CORS desde este sitio.'
+          : 'No hay una URL pública de backend configurada. Definí API_URL en <code class="url">/config.js</code> con la dirección del backend terminada en <code class="url">/api</code>.';
+        contenido.innerHTML = '<div class="error-box"><b>No se pudo cargar el producto.</b><br>' + ayuda + '<br><br><b>Diagnóstico de conexión:</b><br>' + detalleErrores + '<br><br>El QR sí recibió el ID <code class="url">' + esc(id) + '</code>; verificá que exista en la base de datos.</div>';
       }
 
       function pintar(p) {

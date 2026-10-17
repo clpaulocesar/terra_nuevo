@@ -9,7 +9,7 @@ window.TERRA_CONFIG = {
   // Ejemplo: "https://tu-backend.onrender.com/api"
   // - Debe terminar en /api
   // - En tu PC (localhost) podés dejarla vacía: se usa VITE_API_URL o http://localhost:3001/api
-  API_URL: "",
+  API_URL: "https://terratabletv2-0.vercel.app/api",
   // Webhook del nodo "When chat message received" de n8n (workflow publicado/activo).
   // Ejemplo producción: "https://n8n.midominio.com/webhook/xxxx-xxxx/chat"
   N8N_CHAT_URL: "https://ranked-oxide-seller-stood.trycloudflare.com/webhook/cf2f2ecb-49f1-4287-9704-7f2214849274/chat",
