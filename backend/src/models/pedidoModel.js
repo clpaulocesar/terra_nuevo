@@ -22,7 +22,8 @@ export async function crearPedidoBD(clienteId, items) {
     const detalles = []; let totalMinor = 0;
     for (const item of items) {
       const producto = await conexion.query(
-        `SELECT p.id AS product_id, p.name, p.stock_quantity, v.id AS variant_id, v.sku,
+        `SELECT p.id AS product_id, p.name, p.stock_quantity, v.id AS variant_id,
+                COALESCE(v.sku, p.codigo_terra, p.internal_code, p.slug, p.id::text) AS sku,
                 COALESCE(v.price_minor, ROUND(COALESCE(p.public_price,0)*100)::bigint) AS price_minor
          FROM products p LEFT JOIN product_variants v ON v.product_id=p.id AND v.is_active=TRUE
          WHERE p.id=$1 AND COALESCE(p.activo,p.is_active,TRUE)=TRUE LIMIT 1`, [item.productoId]);
