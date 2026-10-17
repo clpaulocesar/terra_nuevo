@@ -1,13 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Minus, Plus, QrCode, ShoppingCart, Trash2, X } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useCarrito } from '../../hooks/useCarrito.js';
+import { obtenerProducto } from '../../services/productoService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import './CarritoFlotante.css';
 
 function esDispositivoMovil() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+// Extrae el id/param del contenido del QR (URL de la ficha o texto con ?id=).
+function idDeCodigoQr(texto) {
+  try {
+    const url = new URL(texto);
+    return url.searchParams.get('id') || url.searchParams.get('producto') || url.searchParams.get('p');
+  } catch {
+    const m = String(texto).match(/[?&](?:id|producto|p)=([^&]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
 }
 
 const LECTOR_ID = 'qr-reader';
@@ -20,9 +32,14 @@ export default function CarritoFlotante() {
   // inactiva | iniciando | activa | error
   const [camaraEstado, setCamaraEstado] = useState('inactiva');
   const [camaraError, setCamaraError] = useState(null);
+  const [mensajeQr, setMensajeQr] = useState(null);
+  const [agregandoScan, setAgregandoScan] = useState(false);
   const lectorRef = useRef(null);
-  const navigate = useNavigate();
-  const { items, cantidadTotal, subtotal, actualizarCantidad, quitarProducto, vaciarCarrito } = useCarrito();
+  // Código ya procesado: evita que la cámara lo repita en cada frame.
+  const codigoRef = useRef(null);
+  const { items, cantidadTotal, subtotal, actualizarCantidad, quitarProducto, vaciarCarrito, agregarProducto } = useCarrito();
+  const agregarRef = useRef(agregarProducto);
+  useEffect(() => { agregarRef.current = agregarProducto; });
 
   const detenerCamara = async () => {
     const lector = lectorRef.current;
@@ -40,6 +57,9 @@ export default function CarritoFlotante() {
       setTimeout(() => setMostrarAvisoCamara(false), 3000);
       return;
     }
+    codigoRef.current = null;
+    setMensajeQr(null);
+    setAgregandoScan(false);
     setCamaraEstado('inactiva');
     setCamaraError(null);
     setEscaneoAbierto(true);
@@ -61,7 +81,11 @@ export default function CarritoFlotante() {
       await lector.start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1.0 },
-        (texto) => setQrLeido(texto),
+        (texto) => {
+          if (texto === codigoRef.current) return;
+          codigoRef.current = texto;
+          setQrLeido(texto);
+        },
         () => {}
       );
       setCamaraEstado('activa');
@@ -75,6 +99,9 @@ export default function CarritoFlotante() {
   useEffect(() => {
     if (escaneoAbierto) return undefined;
     detenerCamara();
+    codigoRef.current = null;
+    setMensajeQr(null);
+    setAgregandoScan(false);
     setCamaraEstado('inactiva');
     setCamaraError(null);
     return undefined;
@@ -83,21 +110,28 @@ export default function CarritoFlotante() {
   useEffect(() => () => { detenerCamara(); }, []);
 
   useEffect(() => {
-    if (!qrLeido) return;
-    let id = null;
-    try {
-      const url = new URL(qrLeido);
-      id = url.searchParams.get('id') || url.searchParams.get('producto') || url.searchParams.get('p');
-    } catch {
-      const m = String(qrLeido).match(/[?&](?:id|producto|p)=([^&]+)/);
-      id = m ? m[1] : null;
-    }
-    if (!id) return;
-    detenerCamara();
-    setEscaneoAbierto(false);
+    if (!qrLeido) return undefined;
+    const id = idDeCodigoQr(qrLeido);
     setQrLeido(null);
-    navigate(`/productos/${id}`);
-  }, [qrLeido, navigate]);
+    if (!id) {
+      setMensajeQr('⚠️ Ese código no corresponde a un producto.');
+      return undefined;
+    }
+    let activo = true;
+    setMensajeQr(null);
+    setAgregandoScan(true);
+    obtenerProducto(id)
+      .then((producto) => {
+        if (!activo) return;
+        const ok = agregarRef.current(producto, 1);
+        setMensajeQr(ok
+          ? `✅ ${producto.nombre} agregado al carrito`
+          : '⚠️ No se pudo agregar (sin stock).');
+      })
+      .catch(() => { if (activo) setMensajeQr('⚠️ Producto no encontrado.'); })
+      .finally(() => { if (activo) setAgregandoScan(false); });
+    return () => { activo = false; };
+  }, [qrLeido]);
 
   return (
     <div className={`cart-widget ${abierto ? 'abierto' : ''}`}>
@@ -227,7 +261,8 @@ export default function CarritoFlotante() {
                 Reintentar
               </button>
             )}
-            {qrLeido && <p className="qr-modal__ok">Código leído: <b>{qrLeido}</b></p>}
+            {agregandoScan && <div className="camara-activa">⏳ Agregando al carrito...</div>}
+            {mensajeQr && <p className="qr-modal__ok">{mensajeQr}</p>}
           </div>
         </div>
       )}
