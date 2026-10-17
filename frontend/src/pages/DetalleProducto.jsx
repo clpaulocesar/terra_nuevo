@@ -31,7 +31,7 @@ function valorDeColor(nombre) {
 
 export default function DetalleProducto() {
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const autoAgregar = searchParams.get('agregar') === '1';
   const { agregarProducto } = useCarrito();
   const [producto, setProducto] = useState(null);
@@ -139,7 +139,13 @@ export default function DetalleProducto() {
     if (!producto || Number(producto.stock) <= 0) return;
     autoAgregadoRef.current = true;
     agregarProducto(producto, 1, color ? { color } : {});
-  }, [autoAgregar, producto, color, agregarProducto]);
+    // Quita ?agregar=1 de la URL: si no, al refrescar la página se vuelve a agregar solo.
+    setSearchParams((previos) => {
+      const siguientes = new URLSearchParams(previos);
+      siguientes.delete('agregar');
+      return siguientes;
+    }, { replace: true });
+  }, [autoAgregar, producto, color, agregarProducto, setSearchParams]);
 
   if (cargando) return <p className="detalle-status">Cargando producto…</p>;
   if (error || !producto) return <div className="detalle-status"><p>{error || 'Producto no encontrado.'}</p><Link to="/catalogo">Volver al catálogo</Link></div>;
