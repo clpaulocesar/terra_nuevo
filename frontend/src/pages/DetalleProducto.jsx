@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Check, ChevronDown, ChevronRight, CircleMinus, CirclePlus, MapPin, Play, ShieldCheck, ShoppingCart, Sparkles, Star, Truck } from 'lucide-react';
 import { obtenerProducto, listarProductos } from '../services/productoService.js';
 import { useCarrito } from '../hooks/useCarrito.js';
@@ -17,6 +17,8 @@ const NOMBRES_COLOR = Object.fromEntries(colores.map((color) => [color.valor.toL
 
 export default function DetalleProducto() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { agregarProducto } = useCarrito();
   const [producto, setProducto] = useState(null);
   const [relacionados, setRelacionados] = useState([]);
@@ -27,6 +29,7 @@ export default function DetalleProducto() {
   const [color, setColor] = useState(null);
   const [menuColoresAbierto, setMenuColoresAbierto] = useState(false);
   const selectorColorRef = useRef(null);
+  const autoAgregarProcesadoRef = useRef(null);
   const [agregado, setAgregado] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
@@ -128,6 +131,18 @@ export default function DetalleProducto() {
     if (indiceColor >= 0 && fotos.length) setFoto(video ? Math.min(indiceColor + 1, fotos.length) : Math.min(indiceColor, fotos.length - 1));
   };
   const nombreSeleccionado = color?.modo === 'paleta' ? 'Multicolor' : (color?.nombre || coloresUnicos[0]?.nombre || 'Sin color');
+  const autoAgregarSolicitado = searchParams.get('agregar') === '1';
+  useEffect(() => {
+    if (!autoAgregarSolicitado) {
+      autoAgregarProcesadoRef.current = null;
+      return;
+    }
+    if (!producto || String(producto.id) !== String(id) || autoAgregarProcesadoRef.current === String(id)) return;
+    autoAgregarProcesadoRef.current = String(id);
+    const colorInicial = color || coloresUnicos[0] || coloresProducto[0];
+    const agregadoAlCarrito = agregarProducto(producto, 1, { color: colorInicial });
+    navigate(agregadoAlCarrito ? '/carrito' : `/productos/${encodeURIComponent(id)}`, { replace: true });
+  }, [agregarProducto, autoAgregarSolicitado, color, coloresProducto, coloresUnicos, id, navigate, producto]);
   const opcionesColores = [
     ...coloresUnicos,
     ...(coloresPaleta.length ? [{ id: '__paleta__', nombre: 'Multicolor', valor: 'multicolor', modo: 'paleta', imagenes: [] }] : []),

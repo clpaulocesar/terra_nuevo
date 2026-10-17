@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Camera, Check, ExternalLink, QrCode, ShoppingCart, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
-import { listarProductos, listarCategorias } from '../services/productoService.js';
+import { listarProductos, listarCategorias, obtenerProducto } from '../services/productoService.js';
+import { agregarProductoCarritoQr, leerCarritoQr } from '../services/qrCartService.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { obtenerIconoCategoria } from '../data/categorias.js';
 import './Catalogo.css';
@@ -57,6 +59,7 @@ function coloresDelProducto(producto) {
 export default function Catalogo() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const abrirCamaraAlEntrar = searchParams.get('abrirQr') === '1';
   const { cantidadTotal, subtotal, agregarProducto } = useCarrito();
 
   // Estados de datos reales
@@ -84,6 +87,13 @@ export default function Catalogo() {
 
   // Modal de Asesor TERRA
   const [modalAsesorAbierto, setModalAsesorAbierto] = useState(false);
+  const [escanerAbierto, setEscanerAbierto] = useState(abrirCamaraAlEntrar);
+  const [carritoQr, setCarritoQr] = useState(() => {
+    try { return leerCarritoQr(); } catch { return []; }
+  });
+  const [estadoEscaner, setEstadoEscaner] = useState('');
+  const [errorEscaner, setErrorEscaner] = useState(false);
+  const [ultimoProductoQrId, setUltimoProductoQrId] = useState('');
 
   // Modal Teclado Kiosco
   const [tecladoAbierto, setTecladoAbierto] = useState(false);
@@ -92,6 +102,12 @@ export default function Catalogo() {
   const [segundosSesion, setSegundosSesion] = useState(180);
 
   const searchInputRef = useRef(null);
+  const videoEscanerRef = useRef(null);
+  const escanerProcesandoRef = useRef(false);
+
+  useEffect(() => {
+    if (abrirCamaraAlEntrar) navigate('/catalogo', { replace: true });
+  }, [abrirCamaraAlEntrar, navigate]);
 
   // Carga de productos reales desde backend PostgreSQL
   useEffect(() => {
@@ -251,6 +267,115 @@ export default function Catalogo() {
       setAgregados((prev) => ({ ...prev, [producto.id]: false }));
     }, 1800);
   };
+
+  const unidadesQr = carritoQr.reduce((total, item) => total + Number(item.cantidad), 0);
+  const totalQr = carritoQr.reduce((total, item) => total + Number(item.precio) * Number(item.cantidad), 0);
+
+  const obtenerIdDelQr = (texto) => {
+    const valor = String(texto || '').trim();
+    try {
+      const url = new URL(valor, window.location.origin);
+      const id = url.searchParams.get('id') || url.searchParams.get('producto') || url.searchParams.get('p');
+      if (id) return id.trim();
+    } catch {
+      // El QR también puede contener el ID sin una URL.
+    }
+    return /^[a-zA-Z0-9_-]{1,100}$/.test(valor) ? valor : null;
+  };
+
+  const confirmarCompraQr = () => {
+    if (!unidadesQr) return;
+    setEscanerAbierto(false);
+    navigate('/carrito?confirmarQr=1');
+  };
+
+  useEffect(() => {
+    if (!escanerAbierto || !videoEscanerRef.current) return undefined;
+
+    let cancelado = false;
+    let controlesCamara;
+    escanerProcesandoRef.current = false;
+    setEstadoEscaner('Solicitando acceso a la cámara…');
+    setErrorEscaner(false);
+
+    const mostrarErrorCamara = (error) => {
+      if (cancelado) return;
+      const mensaje = error?.name === 'NotAllowedError'
+        ? 'Permite el acceso a la cámara en tu navegador para escanear los productos.'
+        : error?.name === 'NotFoundError'
+          ? 'No se encontró una cámara disponible en este dispositivo.'
+          : 'No se pudo iniciar la cámara. Verificá los permisos del navegador y volvé a intentar.';
+      setEstadoEscaner(mensaje);
+      setErrorEscaner(true);
+    };
+    const iniciarEscaner = async () => {
+      try {
+        const { BrowserQRCodeReader } = await import('@zxing/browser');
+        if (cancelado || !videoEscanerRef.current) return;
+        const lector = new BrowserQRCodeReader();
+        const controles = await lector.decodeFromConstraints(
+          { video: { facingMode: { ideal: 'environment' } } },
+          videoEscanerRef.current,
+          async (resultado) => {
+            if (cancelado || !resultado || escanerProcesandoRef.current) return;
+
+            escanerProcesandoRef.current = true;
+            const idProducto = obtenerIdDelQr(resultado.getText());
+            if (!idProducto) {
+              setEstadoEscaner('El código no contiene un QR válido de producto TERRA.');
+              setErrorEscaner(true);
+              window.setTimeout(() => { escanerProcesandoRef.current = false; }, 1200);
+              return;
+            }
+
+            setEstadoEscaner('Buscando producto…');
+            setErrorEscaner(false);
+            try {
+              const producto = await obtenerProducto(idProducto);
+              if (cancelado) return;
+              setUltimoProductoQrId(String(producto.id));
+              const resultadoAgregar = agregarProductoCarritoQr(producto);
+              setCarritoQr(resultadoAgregar.items);
+              if (!resultadoAgregar.agregado) {
+                setEstadoEscaner(resultadoAgregar.motivo === 'stock-maximo'
+                  ? `Ya agregaste todas las unidades disponibles de ${producto.nombre}.`
+                  : `${producto.nombre} no está disponible para la compra.`);
+                setErrorEscaner(true);
+              } else {
+                setEstadoEscaner(`${producto.nombre} agregado. Escaneá otro producto o confirmá la compra.`);
+              }
+            } catch (err) {
+              if (!cancelado) {
+                setEstadoEscaner(err.message || 'No se pudo cargar el producto del QR.');
+                setErrorEscaner(true);
+              }
+            } finally {
+              window.setTimeout(() => { escanerProcesandoRef.current = false; }, 1200);
+            }
+          },
+        );
+        if (cancelado) controles.stop();
+        else controlesCamara = controles;
+      } catch (error) {
+        mostrarErrorCamara(error);
+      }
+    };
+    iniciarEscaner();
+
+    return () => {
+      cancelado = true;
+      controlesCamara?.stop();
+    };
+  }, [escanerAbierto]);
+
+  useEffect(() => {
+    if (!escanerAbierto) return undefined;
+    const cerrarConEscape = (event) => {
+      if (event.key === 'Escape') setEscanerAbierto(false);
+    };
+    document.addEventListener('keydown', cerrarConEscape);
+    return () => document.removeEventListener('keydown', cerrarConEscape);
+  }, [escanerAbierto]);
 
   // Teclado virtual táctil
   const agregarCaracter = (caracter) => {
@@ -856,6 +981,67 @@ export default function Catalogo() {
           </div>
         </div>
       </footer>
+
+      <button
+        type="button"
+        className="catalog-qr-fab"
+        onClick={() => setEscanerAbierto(true)}
+        aria-label={unidadesQr ? `Comprar por QR, ${unidadesQr} unidades agregadas` : 'Comprar por QR, abrir cámara'}
+      >
+        <QrCode size={21} />
+        <span>Comprar por QR</span>
+        {unidadesQr > 0 && <b>{unidadesQr}</b>}
+      </button>
+
+      {escanerAbierto && (
+        <div className="catalog-qr-overlay" onClick={() => setEscanerAbierto(false)}>
+          <section
+            className="catalog-qr-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="catalog-qr-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header>
+              <div className="catalog-qr-icon"><Camera size={22} /></div>
+              <button type="button" onClick={() => setEscanerAbierto(false)} aria-label="Cerrar cámara">
+                <X size={20} />
+              </button>
+            </header>
+            <h2 id="catalog-qr-title">Escaneá un producto</h2>
+            <p>Apuntá la cámara al código QR de un producto. Podés escanear varios antes de confirmar.</p>
+            <div className="catalog-qr-camera">
+              <video ref={videoEscanerRef} autoPlay muted playsInline aria-label="Vista de cámara para escanear códigos QR" />
+              <span className="catalog-qr-camera-frame" aria-hidden="true" />
+            </div>
+            <p className={`catalog-qr-status${errorEscaner ? ' is-error' : ''}`} role="status" aria-live="polite">
+              {estadoEscaner || 'La cámara se activará para leer el código.'}
+            </p>
+            <div className="catalog-qr-summary">
+              <div>
+                <b><ShoppingCart size={16} /> {unidadesQr} {unidadesQr === 1 ? 'unidad' : 'unidades'}</b>
+                <small>{carritoQr.length} {carritoQr.length === 1 ? 'producto' : 'productos'} · {formatoMoneda(totalQr)}</small>
+              </div>
+              <div className="catalog-qr-summary-actions">
+                {ultimoProductoQrId && (
+                  <a
+                    className="catalog-qr-product-link"
+                    href={`/detalle-qr.html?id=${encodeURIComponent(ultimoProductoQrId)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink size={16} /> Ver detalle
+                  </a>
+                )}
+                <button type="button" onClick={confirmarCompraQr} disabled={!unidadesQr}>
+                  <Check size={17} /> Confirmar compra
+                </button>
+              </div>
+            </div>
+            <small className="catalog-qr-hint">La cámara permanece abierta para escanear el siguiente producto.</small>
+          </section>
+        </div>
+      )}
 
       {/* MODAL: SOLICITUD DE ASESOR EN SALA */}
       {modalAsesorAbierto && (

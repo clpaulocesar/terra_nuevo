@@ -51,6 +51,48 @@ export function CarritoProvider({ children }) {
 
   const vaciarCarrito = useCallback(() => setItems([]), []);
 
+  const importarProductosQr = useCallback((productos) => {
+    if (!Array.isArray(productos)) return;
+
+    setItems((anterior) => {
+      const siguientes = [...anterior];
+      for (const producto of productos) {
+        const id = String(producto?.id || '').trim();
+        const precio = Number(producto?.precio);
+        const stock = Number(producto?.stock);
+        const cantidad = Number(producto?.cantidad);
+        if (!id || !Number.isFinite(precio) ||
+            !Number.isSafeInteger(stock) || stock < 1 ||
+            !Number.isSafeInteger(cantidad) || cantidad < 1) continue;
+
+        const color = producto.color
+          ? { nombre: producto.color.nombre, valor: producto.color.valor }
+          : null;
+        const lineaId = `${id}::${color?.valor || color?.nombre || 'sin-color'}`;
+        const existente = siguientes.find((item) => item.lineaId === lineaId);
+        const actual = existente?.cantidad ?? 0;
+        const nuevaCantidad = Math.min(stock, actual + cantidad);
+        if (nuevaCantidad === actual) continue;
+        if (existente) {
+          existente.cantidad = nuevaCantidad;
+        } else {
+          siguientes.push({
+            id,
+            nombre: String(producto.nombre),
+            precio,
+            stock,
+            categoria: producto.categoria || 'Sin categoría',
+            imagen_url: producto.imagen_url || null,
+            color,
+            lineaId,
+            cantidad: nuevaCantidad,
+          });
+        }
+      }
+      return siguientes;
+    });
+  }, []);
+
   const valor = useMemo(() => {
     const cantidadTotal = items.reduce((suma, item) => suma + item.cantidad, 0);
     const centavos = items.reduce(
@@ -59,9 +101,9 @@ export function CarritoProvider({ children }) {
     const subtotal = centavos / 100;
     return {
       items, cantidadTotal, subtotal, total: subtotal,
-      agregarProducto, quitarProducto, actualizarCantidad, vaciarCarrito,
+      agregarProducto, importarProductosQr, quitarProducto, actualizarCantidad, vaciarCarrito,
     };
-  }, [items, agregarProducto, quitarProducto, actualizarCantidad, vaciarCarrito]);
+  }, [items, agregarProducto, importarProductosQr, quitarProducto, actualizarCantidad, vaciarCarrito]);
 
   return <CarritoContext.Provider value={valor}>{children}</CarritoContext.Provider>;
 }

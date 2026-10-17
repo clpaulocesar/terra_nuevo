@@ -3,7 +3,7 @@ import { pool } from '../config/database.js';
 const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, p.slug AS slug,
   p.name AS nombre, p.description AS descripcion, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
   COALESCE(p.public_price, 0) AS precio, p.stock_quantity::integer AS stock,
-  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
+  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
 
 let videoColumnReady;
 function asegurarColumnaVideo() {
@@ -20,7 +20,7 @@ export async function listarProductosBD({ buscar = '', categoria = '', pagina = 
   if (categoria && categoria !== 'Todos') { valores.push(categoria); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
   valores.push(limite, (pagina - 1) * limite);
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
-  const { rows } = await pool.query(`SELECT ${campos} FROM products p LEFT JOIN categories c ON c.id=p.category_id ${where} ORDER BY p.created_at DESC LIMIT $${valores.length - 1} OFFSET $${valores.length}`, valores);
+  const { rows } = await pool.query(`SELECT ${campos} FROM products p LEFT JOIN categories c ON c.id=p.category_id LEFT JOIN product_instructions pi ON pi.product_id=p.id ${where} ORDER BY p.created_at DESC LIMIT $${valores.length - 1} OFFSET $${valores.length}`, valores);
   return rows;
 }
 
@@ -31,6 +31,7 @@ export async function obtenerProductoBD(id) {
     `SELECT ${campos} 
      FROM products p 
      LEFT JOIN categories c ON c.id=p.category_id 
+     LEFT JOIN product_instructions pi ON pi.product_id=p.id
      WHERE p.id::text = $1 
         OR p.slug = $1 
         OR COALESCE(p.codigo_terra, p.internal_code) = $1
