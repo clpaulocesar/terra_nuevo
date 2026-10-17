@@ -5,7 +5,4 @@
 @media (min-width:701px) and (max-width:1100px){.product-create-modal{align-items:flex-start!important;padding:16px!important}.product-create-modal>form{max-width:calc(100vw - 32px)!important;width:100%!important}.product-create-modal>form>header{padding:16px 20px}.product-create-modal .product-form-grid{gap:12px 14px;padding:18px 20px 6px}.product-create-modal .product-gallery{margin:0 20px}.product-create-modal .product-kiosk-check{margin:14px 20px}.product-create-modal>form>footer{padding:12px 20px}}
 /* Productos con varios tonos en una sola pieza, no variantes separadas. */
 .product-palette-mode{align-items:flex-start;background:#fff7f8;border:1px solid #f1d8dd;border-radius:9px;display:flex!important;gap:9px;margin:12px 0 4px;padding:10px 12px}.product-palette-mode input{accent-color:#a6192e;flex:0 0 auto;margin:3px 0 0;min-height:auto!important}.product-palette-mode span{display:grid;gap:2px}.product-palette-mode b{color:#7d1327;font-size:.75rem}.product-palette-mode small{color:#69737c;font-size:.69rem;font-weight:500;line-height:1.4}
-<<<<<<< HEAD
-=======
 .product-gallery.is-multicolor .product-color-image-target,.product-gallery.is-multicolor .product-color-cover{display:none}
->>>>>>> main

@@ -49,7 +49,7 @@ function coloresDelProducto(producto) {
     const valor = String(color?.valor || color?.color || '').trim();
     if (!valor || vistos.has(valor.toLowerCase())) return lista;
     vistos.add(valor.toLowerCase());
-    lista.push({ nombre: String(color?.nombre || valor), valor });
+    lista.push({ nombre: String(color?.nombre || valor), valor, modo: color?.modo || 'variante' });
     return lista;
   }, []);
 }
@@ -742,6 +742,15 @@ export default function Catalogo() {
                               const visibles = colores.slice(0, 4);
                               const restantes = colores.length - visibles.length;
                               if (!colores.length) return null;
+                              const esMulticolor = colores.some((color) => color.modo === 'paleta');
+                              if (esMulticolor) {
+                                const paso = 100 / colores.length;
+                                const fondo = `conic-gradient(${colores.map((color, indice) => `${color.valor} ${(indice * paso).toFixed(2)}% ${((indice + 1) * paso).toFixed(2)}%`).join(', ')})`;
+                                return <div className="flex items-center gap-2" aria-label={`Paleta multicolor: ${colores.map((color) => color.nombre).join(', ')}`} title={`Paleta multicolor: ${colores.map((color) => color.nombre).join(', ')}`}>
+                                  <span className="w-5 h-5 rounded-full border-2 border-white shadow-sm ring-1 ring-surface-container-high" style={{ background: fondo }} />
+                                  <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">Paleta multicolor</span>
+                                </div>;
+                              }
                               return <div className="flex items-center gap-1.5" aria-label={`${colores.length} colores disponibles`}>
                                 {visibles.map((color) => (
                                   <span
