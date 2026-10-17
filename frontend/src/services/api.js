@@ -15,6 +15,12 @@ export const N8N_CHAT_URL = String(
   (typeof window !== 'undefined' && window.TERRA_CONFIG?.N8N_CHAT_URL) || ''
 ).trim().replace(/\/$/, '');
 
+// Número de atención que recibe las solicitudes de comprobante por WhatsApp.
+// Se configura en public/config.js para poder cambiarlo sin recompilar la app.
+export const WHATSAPP_COMPROBANTES = String(
+  (typeof window !== 'undefined' && window.TERRA_CONFIG?.WHATSAPP_COMPROBANTES) || '59167876489'
+).replace(/\D/g, '');
+
 export async function apiRequest(ruta, { method = 'GET', body, signal } = {}) {
   let respuesta;
   try {

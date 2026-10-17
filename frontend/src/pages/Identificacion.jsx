@@ -34,6 +34,9 @@ export default function Identificacion() {
   const seguir = (event) => {
     event.preventDefault();
     const erroresNuevos = validarDatosCliente(datos);
+    if (whatsapp && !datos.telefono.trim()) {
+      erroresNuevos.telefono = 'Ingresa tu número para recibir el comprobante por WhatsApp';
+    }
     setErrores(erroresNuevos);
     if (Object.keys(erroresNuevos).length) return;
 
@@ -118,7 +121,7 @@ export default function Identificacion() {
             </section>
             <button className="ident-whatsapp" type="button" onClick={() => setWhatsapp(!whatsapp)}>
               <span>{whatsapp && <Check size={17} />}</span>
-              <div><b>Deseo recibir mi comprobante por WhatsApp</b><small>Notificación instantánea con link de seguimiento</small></div>
+              <div><b>Deseo recibir mi comprobante por WhatsApp</b><small>Lo solicitarás al WhatsApp TERRA: 67876489</small></div>
             </button>
             <button className="ident-next" type="submit">Continuar a confirmación <ArrowRight size={20} /></button>
             <button className="ident-guest" type="button" onClick={() => { limpiarCliente(); nav('/confirmacion'); }}>Continuar como invitado</button>
