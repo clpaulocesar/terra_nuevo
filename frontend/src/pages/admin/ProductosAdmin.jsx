@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Play, Plus, QrCode, Search, SlidersHorizontal, Star, Store, Trash2, Truck, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Palette, Play, Plus, QrCode, Search, SlidersHorizontal, Star, Store, Tag, Trash2, Truck, X } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { listarProductos, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
 import { mediaDeVideo } from '../../utils/videoEmbed.js';
@@ -16,13 +16,24 @@ import './ColorAssistant.css';
 import './ProductosModalReference.css';
 
 const leerColor = (registro) => {
-  if (registro && typeof registro === 'object') return registro;
+  const normalizar = (color) => ({
+    ...color,
+    id: color.id || `${color.nombre}-${color.valor}`,
+    nombre: String(color.nombre),
+    valor: String(color.valor),
+    imagenes: Array.isArray(color.imagenes) ? color.imagenes : [],
+    modo: color.modo === 'paleta' ? 'paleta' : 'variante',
+  });
+  if (registro && typeof registro === 'object') {
+    if (registro.nombre && registro.valor) return normalizar(registro);
+    return normalizar({ nombre: 'Color', valor: '#54595f' });
+  }
   try {
     const dato = JSON.parse(String(registro));
-    if (dato?.nombre && dato?.valor) return { ...dato, imagenes: Array.isArray(dato.imagenes) ? dato.imagenes : [] };
+    if (dato?.nombre && dato?.valor) return normalizar(dato);
   } catch { /* formato anterior Nombre|#hex */ }
   const [nombre, valor] = String(registro).split('|');
-  return { id: String(registro), nombre: valor ? nombre : (nombre || 'Color'), valor: valor || nombre, imagenes: [] };
+  return normalizar({ id: String(registro), nombre: valor ? nombre : (nombre || 'Color'), valor: valor || nombre || '#54595f' });
 };
 
 const guardarColor = (color) => JSON.stringify({
@@ -45,8 +56,311 @@ const TONOS_SUGERIDOS = {
 const normalizarNombreColor = (texto = '') => texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const tonoSugerido = (nombre) => TONOS_SUGERIDOS[normalizarNombreColor(nombre)] || null;
 const TONOS_RAPIDOS = ['Blanco', 'Negro', 'Gris grafito', 'Beige arena', 'Café', 'Lila claro', 'Terracota', 'Bordó', 'Azul petróleo', 'Verde oliva'];
-const nombreColorDeImagen = (lista, imagen) => lista.map(leerColor).find((color) => color.imagenes?.includes(imagen))?.nombre || 'Galería general';
-const buscarColorPorId = (lista, id) => lista.map(leerColor).find((color) => color.id === id) || null;
+// Un mismo producto puede combinar colores únicos (variantes separadas) y una
+// paleta multicolor (varios tonos dentro de la misma pieza). El modo vive en
+// cada registro de color, así que la base de datos no necesita cambios.
+const PALETA_ID = '__paleta__';
+const esColorPaleta = (color) => (color?.modo || 'variante') === 'paleta';
+const esDestinoPaleta = (destino) => destino === PALETA_ID;
+const coloresDePaleta = (lista) => lista.map(leerColor).filter(esColorPaleta);
+const coloresUnicos = (lista) => lista.map(leerColor).filter((color) => !esColorPaleta(color));
+const coincideDestino = (color, destino) => (esDestinoPaleta(destino) ? esColorPaleta(color) : color.id === destino);
+
+// Asocia fotos nuevas al destino elegido: un color único o todos los tonos de la paleta.
+const asociarImagenesConDestino = (setColores, destino, urls) => {
+  if (!destino || !urls.length) return;
+  setColores((lista) => lista.map((registro) => {
+    const color = leerColor(registro);
+    if (!coincideDestino(color, destino)) return registro;
+    return guardarColor({ ...color, imagenes: [...new Set([...color.imagenes, ...urls])] });
+  }));
+};
+
+const asignarImagenExistenteADestino = (setColores, destino, imagen) => {
+  if (!destino || !imagen) return;
+  setColores((lista) => lista.map((registro) => {
+    const color = leerColor(registro);
+    const sinImagen = color.imagenes.filter((src) => src !== imagen);
+    return guardarColor({ ...color, imagenes: coincideDestino(color, destino) ? [...sinImagen, imagen] : sinImagen });
+  }));
+};
+
+const fotosDeDestino = (lista, destino) => lista.map(leerColor).filter((color) => coincideDestino(color, destino)).flatMap((color) => color.imagenes || []);
+
+const nombreDeDestino = (lista, destino) => {
+  if (!destino) return '';
+  if (esDestinoPaleta(destino)) return 'la paleta multicolor';
+  return lista.map(leerColor).find((color) => color.id === destino)?.nombre || 'este color';
+};
+
+const nombreColorDeImagen = (lista, imagen) => {
+  const conFoto = lista.map(leerColor).filter((color) => color.imagenes?.includes(imagen));
+  if (!conFoto.length) return 'Galería general';
+  const unico = conFoto.find((color) => !esColorPaleta(color));
+  if (unico) return unico.nombre;
+  return `Paleta: ${conFoto.map((color) => color.nombre).join(', ')}`;
+};
+
+// Bloque compartido por los modales de "Nuevo producto" y "Editar producto":
+// registra colores únicos y tonos de la paleta multicolor sobre la misma ficha,
+// y asigna la galería al destino elegido (un color o la paleta completa).
+function SelectorColores({ colores, setColores, destino, setDestino }) {
+  const siguienteId = useRef(0);
+  const [tipo, setTipo] = useState('variante');
+  const [nombre, setNombre] = useState('');
+  const [valor, setValor] = useState('#54595f');
+
+  const registrosPaleta = colores.filter((registro) => esColorPaleta(leerColor(registro)));
+  const registrosUnicos = colores.filter((registro) => !esColorPaleta(leerColor(registro)));
+  const esPaleta = tipo === 'paleta';
+
+  const escribirNombre = (texto) => {
+    setNombre(texto);
+    const tono = tonoSugerido(texto);
+    if (tono) setValor(tono);
+  };
+
+  const crearColor = (nombreColor, valorColor, tipoColor) => {
+    const nuevo = { id: `${nombreColor}-${valorColor}-${siguienteId.current++}`, nombre: nombreColor, valor: valorColor, imagenes: [], modo: tipoColor };
+    setColores((lista) => [...lista, guardarColor(nuevo)]);
+    setDestino(tipoColor === 'paleta' ? PALETA_ID : nuevo.id);
+    setNombre('');
+  };
+
+  const agregarColor = () => {
+    const nombreColor = nombre.trim() || 'Color';
+    const repetido = colores.some((registro) => {
+      const color = leerColor(registro);
+      return color.valor.toLowerCase() === valor.toLowerCase() && color.nombre.toLowerCase() === nombreColor.toLowerCase() && (color.modo || 'variante') === tipo;
+    });
+    if (!/^#[0-9a-f]{6}$/i.test(valor) || repetido) return;
+    crearColor(nombreColor, valor, tipo);
+  };
+
+  const elegirTono = (nombreTono) => {
+    const existente = colores.find((registro) => {
+      const color = leerColor(registro);
+      return (color.modo || 'variante') === tipo && normalizarNombreColor(color.nombre) === normalizarNombreColor(nombreTono);
+    });
+    if (existente) {
+      setDestino(esPaleta ? PALETA_ID : leerColor(existente).id);
+      return;
+    }
+    crearColor(nombreTono, tonoSugerido(nombreTono) || '#54595f', tipo);
+  };
+
+  const quitarColor = (registro) => {
+    const color = leerColor(registro);
+    const restantes = colores.filter((item) => item !== registro);
+    setColores(restantes);
+    const restantesPaleta = coloresDePaleta(restantes);
+    const restantesUnicos = coloresUnicos(restantes);
+    if (esDestinoPaleta(destino) && !restantesPaleta.length) {
+      setDestino(restantesUnicos[0]?.id || '');
+    } else if (!esDestinoPaleta(destino) && destino === color.id) {
+      setDestino(restantesUnicos[0]?.id || (restantesPaleta.length ? PALETA_ID : ''));
+    }
+  };
+
+  const chipColor = (registro) => {
+    const color = leerColor(registro);
+    return (
+      <span key={color.id || `${color.nombre}-${color.valor}`}>
+        <i style={{ backgroundColor: color.valor }} />
+        {color.nombre}
+        {color.imagenes.length > 0 && <em>{color.imagenes.length} foto{color.imagenes.length > 1 ? 's' : ''}</em>}
+        <button type="button" aria-label={`Quitar ${color.nombre}`} onClick={() => quitarColor(registro)}><X size={13} /></button>
+      </span>
+    );
+  };
+
+  return (
+    <fieldset className="product-form-wide product-color-picker">
+      <legend>Colores del producto <small>Podés registrar colores únicos y una paleta multicolor en la misma ficha.</small></legend>
+      <div className="product-color-type" role="group" aria-label="Tipo de color a registrar">
+        <button type="button" className={esPaleta ? '' : 'active'} onClick={() => setTipo('variante')}>
+          <b><Tag size={14} /> Color único</b>
+          <small>Cada tono es una variante que el cliente elige por separado.</small>
+        </button>
+        <button type="button" className={esPaleta ? 'active' : ''} onClick={() => setTipo('paleta')}>
+          <b><Palette size={14} /> Paleta multicolor</b>
+          <small>Varios tonos combinados dentro de una sola pieza.</small>
+        </button>
+      </div>
+      <div className="product-color-picker__create">
+        <input aria-label="Nombre del color" list="tonos-sugeridos" value={nombre} onChange={(event) => escribirNombre(event.target.value)} maxLength="40" placeholder={esPaleta ? 'Ej. Verde turquesa' : 'Ej. Beige arena'} />
+        <input aria-label="Elegir tono del color" title="Puedes ajustar manualmente el tono" type="color" value={valor} onChange={(event) => setValor(event.target.value)} />
+        <button type="button" onClick={agregarColor}><Plus size={16} /> {esPaleta ? 'Agregar a la paleta' : 'Agregar color'}</button>
+      </div>
+      <small>{esPaleta ? 'Cada tono que agregues forma parte de la misma pieza multicolor.' : 'Cada color que agregues será una variante independiente con sus propias fotos.'} Escribe el nombre, ajusta el tono si quieres y pulsa el botón.</small>
+      <b className="color-assistant__title">O agrega un tono rápido {esPaleta ? 'a la paleta:' : 'a los colores únicos:'}</b>
+      <div className="color-assistant" aria-label="Tonos sugeridos">{TONOS_RAPIDOS.map((nombreTono) => {
+        const registro = colores.find((item) => { const color = leerColor(item); return (color.modo || 'variante') === tipo && normalizarNombreColor(color.nombre) === normalizarNombreColor(nombreTono); });
+        const seleccionado = registro ? (esPaleta ? destino === PALETA_ID : leerColor(registro).id === destino) : false;
+        return <button type="button" key={nombreTono} onClick={() => elegirTono(nombreTono)} title={registro ? `${nombreTono} ya está registrado` : `Agregar ${nombreTono}`} className={`${registro ? 'is-registered' : ''} ${seleccionado ? 'is-selected' : ''}`}><i style={{ backgroundColor: tonoSugerido(nombreTono) }} />{nombreTono}{registro && <em>Registrado</em>}</button>;
+      })}</div>
+      <div className="product-color-groups">
+        {registrosPaleta.length > 0 && <div className="product-color-group product-color-group--palette">
+          <span>Paleta multicolor · {registrosPaleta.length} tono{registrosPaleta.length > 1 ? 's' : ''}</span>
+          <div className="product-color-picker__list">{registrosPaleta.map(chipColor)}</div>
+        </div>}
+        {registrosUnicos.length > 0 && <div className="product-color-group">
+          <span>Colores únicos · {registrosUnicos.length}</span>
+          <div className="product-color-picker__list">{registrosUnicos.map(chipColor)}</div>
+        </div>}
+        {!colores.length && <small>Todavía no registraste colores para este producto.</small>}
+      </div>
+    </fieldset>
+  );
+}
+
+function GaleriaProducto({ colores, setColores, imagenes, setImagenes, destino, setDestino, avisar }) {
+  const [enlace, setEnlace] = useState('');
+  const [subiendo, setSubiendo] = useState(false);
+
+  const paleta = coloresDePaleta(colores);
+  const unicos = coloresUnicos(colores);
+  const destinoTexto = nombreDeDestino(colores, destino);
+  const fotosDestino = fotosDeDestino(colores, destino);
+
+  const subirArchivos = async (event) => {
+    const archivos = Array.from(event.target.files || []);
+    if (!archivos.length) return;
+    setSubiendo(true);
+    try {
+      avisar(`Subiendo ${archivos.length} imagen${archivos.length > 1 ? 'es' : ''} a Supabase...`);
+      const urls = await Promise.all(archivos.map(subirImagenProducto));
+      setImagenes((prev) => [...prev, ...urls]);
+      asociarImagenesConDestino(setColores, destino, urls);
+      avisar('Imágenes guardadas permanentemente en Supabase.');
+    } catch (err) {
+      avisar(err.message || 'No se pudieron subir las imágenes.');
+    } finally {
+      setSubiendo(false);
+      event.target.value = '';
+    }
+  };
+
+  const agregarEnlace = () => {
+    const url = enlace.trim();
+    if (!url) return;
+    setImagenes((prev) => [...prev, url]);
+    asociarImagenesConDestino(setColores, destino, [url]);
+    setEnlace('');
+  };
+
+  const eliminarImagen = (index) => {
+    const imagenEliminada = imagenes[index];
+    const restantes = imagenes.filter((_, i) => i !== index);
+    setImagenes(restantes);
+    if (imagenEliminada && !restantes.includes(imagenEliminada)) {
+      setColores((lista) => lista.map((registro) => {
+        const color = leerColor(registro);
+        return guardarColor({ ...color, imagenes: color.imagenes.filter((src) => src !== imagenEliminada) });
+      }));
+    }
+  };
+
+  const establecerPortada = (index) => {
+    setImagenes((prev) => {
+      const nueva = [...prev];
+      const [item] = nueva.splice(index, 1);
+      return [item, ...nueva];
+    });
+    avisar('Imagen fijada como portada del producto.');
+  };
+
+  const moverImagen = (from, to) => {
+    setImagenes((prev) => {
+      const arr = [...prev];
+      if (to < 0 || to >= arr.length) return arr;
+      const [moved] = arr.splice(from, 1);
+      arr.splice(to, 0, moved);
+      return arr;
+    });
+  };
+
+  const usarDestinoComoPortada = () => {
+    const foto = fotosDestino[0];
+    if (!foto) { avisar('Este destino todavía no tiene una imagen asignada.'); return; }
+    setImagenes((lista) => [foto, ...lista.filter((item) => item !== foto)]);
+    avisar('La primera imagen de este destino ahora es la portada principal.');
+  };
+
+  const asignarDestinoAPortada = () => {
+    if (!imagenes[0]) { avisar('Primero agrega una imagen para usar como portada.'); return; }
+    asignarImagenExistenteADestino(setColores, destino, imagenes[0]);
+    avisar(`La portada ahora pertenece a ${destinoTexto}.`);
+  };
+
+  return (
+    <section className="product-gallery">
+      <div>
+        <b>{destinoTexto ? `Fotos de ${destinoTexto} (${imagenes.length})` : `Galería del producto (${imagenes.length})`}</b>
+        <small>Elegí si cargás fotos de un color único o de la paleta multicolor. Al elegir ese color, el cliente verá estas imágenes en el detalle.</small>
+      </div>
+      <label className="product-color-image-target">Estoy cargando fotos para:
+        <select value={destino} onChange={(event) => setDestino(event.target.value)} disabled={!colores.length}>
+          {!colores.length && <option value="">Primero registra un color</option>}
+          {paleta.length > 0 && <option value={PALETA_ID}>Paleta multicolor ({paleta.length} {paleta.length === 1 ? 'tono' : 'tonos'})</option>}
+          {unicos.map((color) => <option value={color.id} key={color.id}>{color.nombre}</option>)}
+        </select>
+      </label>
+      <button className="product-color-cover" type="button" disabled={!fotosDestino.length} onClick={usarDestinoComoPortada}>Usar la primera foto de {destinoTexto || 'este color'} como portada</button>
+      <button className="product-color-cover product-color-cover--secondary" type="button" disabled={!destino || !imagenes.length} onClick={asignarDestinoAPortada}>Asignar {destinoTexto || 'el destino'} a la portada actual</button>
+
+      <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.8rem', flexWrap: 'wrap' }}>
+        <label className="product-upload" style={{ margin: 0, flex: 1, minWidth: '220px' }}>
+          <ImagePlus size={20} />
+          <span>{subiendo ? 'Subiendo imágenes…' : 'Subir imágenes desde archivo'}</span>
+          <input type="file" accept="image/*" multiple disabled={!colores.length} onChange={subirArchivos} />
+        </label>
+      </div>
+
+      <div className="product-url-row">
+        <input
+          type="url"
+          placeholder="O pega el enlace URL de una imagen (https://...)"
+          value={enlace} disabled={!colores.length}
+          onChange={(event) => setEnlace(event.target.value)}
+        />
+        <button type="button" disabled={!colores.length} onClick={agregarEnlace}>
+          <Link2 size={16} /> Agregar URL
+        </button>
+      </div>
+
+      <div className="product-image-list" style={{ marginTop: '1rem' }}>
+        {imagenes.map((src, index) => (
+          <figure key={`${src}-${index}`} className={index === 0 ? 'is-cover' : ''}>
+            <img src={src} alt={`Foto ${index + 1}`} />
+            <div className="product-img-toolbar">
+              {index !== 0 && (
+                <button type="button" className="btn-star" title="Hacer portada principal" onClick={() => establecerPortada(index)}>
+                  <Star size={12} fill="#ffdb9b" />
+                </button>
+              )}
+              {index > 0 && (
+                <button type="button" title="Mover antes" onClick={() => moverImagen(index, index - 1)}>
+                  <ChevronLeft size={12} />
+                </button>
+              )}
+              {index < imagenes.length - 1 && (
+                <button type="button" title="Mover después" onClick={() => moverImagen(index, index + 1)}>
+                  <ChevronRight size={12} />
+                </button>
+              )}
+              <button type="button" className="btn-delete" title="Eliminar foto" onClick={() => eliminarImagen(index)}>
+                <Trash2 size={12} />
+              </button>
+            </div>
+            <figcaption>{index === 0 ? '★ Portada' : `Foto ${index + 1}`} · {nombreColorDeImagen(colores, src)}</figcaption>
+          </figure>
+        ))}
+        {!imagenes.length && <p>Sin imágenes aún. Agrega fotos locales o enlaces web para publicarlas en el kiosco.</p>}
+      </div>
+    </section>
+  );
+}
 
 const productosIniciales = [
   {
@@ -156,12 +470,9 @@ export default function ProductosAdmin() {
   // Modales
   const [nuevoProducto, setNuevoProducto] = useState(false);
   const [imagenesNuevo, setImagenesNuevo] = useState([]);
-  const [urlNuevo, setUrlNuevo] = useState('');
   const [coloresNuevo, setColoresNuevo] = useState([]);
-  const [valorColorNuevo, setValorColorNuevo] = useState('#54595f');
-  const [nombreColorNuevo, setNombreColorNuevo] = useState('');
+  // Destino de las fotos: el id de un color único o PALETA_ID para la paleta multicolor.
   const [colorImagenNuevo, setColorImagenNuevo] = useState('');
-  const [paletaMulticolorNuevo, setPaletaMulticolorNuevo] = useState(false);
 
   const [vistaProducto, setVistaProducto] = useState(null);
   const [fotoActivaIndex, setFotoActivaIndex] = useState(0);
@@ -173,12 +484,8 @@ export default function ProductosAdmin() {
   });
   const [editarProducto, setEditarProducto] = useState(null);
   const [editImagenes, setEditImagenes] = useState([]);
-  const [urlEdit, setUrlEdit] = useState('');
   const [coloresEdit, setColoresEdit] = useState([]);
-  const [valorColorEdit, setValorColorEdit] = useState('#54595f');
-  const [nombreColorEdit, setNombreColorEdit] = useState('');
   const [colorImagenEdit, setColorImagenEdit] = useState('');
-  const [paletaMulticolorEdit, setPaletaMulticolorEdit] = useState(false);
 
   const [categoriasApi, setCategoriasApi] = useState([]);
 
@@ -312,12 +619,11 @@ export default function ProductosAdmin() {
     const listaFotos = producto.imagenes?.length
       ? [...producto.imagenes]
       : (producto.imagen_url ? [producto.imagen_url] : []);
+    const colores = Array.isArray(producto.colores) ? producto.colores : [];
     setEditImagenes(listaFotos);
-    setUrlEdit('');
-    setColoresEdit(Array.isArray(producto.colores) ? producto.colores : []);
-    setColorImagenEdit(Array.isArray(producto.colores) && producto.colores.length ? leerColor(producto.colores[0]).id : '');
-    setPaletaMulticolorEdit(Array.isArray(producto.colores) && producto.colores.some((registro) => leerColor(registro).modo === 'paleta'));
-    setNombreColorEdit('');
+    setColoresEdit(colores);
+    // Destino inicial de las fotos: el primer color único; si solo hay paleta, la paleta.
+    setColorImagenEdit(coloresUnicos(colores)[0]?.id || (coloresDePaleta(colores).length ? PALETA_ID : ''));
   };
 
   const guardarAjuste = async () => {
@@ -331,123 +637,6 @@ export default function ProductosAdmin() {
     } catch (err) {
       avisar('Error al actualizar inventario en el servidor.');
     }
-  };
-
-  // Manejo de imágenes en Nuevo Producto
-  const asociarImagenesConColor = (setColores, colorSeleccionado, urls) => {
-    if (!colorSeleccionado || !urls.length) return;
-    setColores((lista) => lista.map((registro) => {
-      const color = leerColor(registro);
-      if (color.id !== colorSeleccionado) return registro;
-      return guardarColor({ ...color, imagenes: [...new Set([...color.imagenes, ...urls])] });
-    }));
-  };
-
-  // Una pieza multicolor tiene una sola galería: sus fotos representan toda la paleta.
-  const asociarImagenesConPaleta = (setColores, urls) => {
-    if (!urls.length) return;
-    setColores((lista) => lista.map((registro) => {
-      const color = leerColor(registro);
-      return guardarColor({ ...color, imagenes: [...new Set([...color.imagenes, ...urls])] });
-    }));
-  };
-
-  const asignarImagenExistenteAColor = (setColores, colorSeleccionado, imagen) => {
-    if (!colorSeleccionado || !imagen) return;
-    setColores((lista) => lista.map((registro) => {
-      const color = leerColor(registro);
-      const sinImagen = color.imagenes.filter((src) => src !== imagen);
-      return guardarColor({ ...color, imagenes: color.id === colorSeleccionado ? [...sinImagen, imagen] : sinImagen });
-    }));
-  };
-
-  const agregarImagenesNuevoArchivos = async event => {
-    const archivos = Array.from(event.target.files || []);
-    if (!archivos.length) return;
-    try {
-      avisar(`Subiendo ${archivos.length} imagen${archivos.length > 1 ? 'es' : ''} a Supabase...`);
-      const urls = await Promise.all(archivos.map(subirImagenProducto));
-      setImagenesNuevo(prev => [...prev, ...urls]);
-      if (paletaMulticolorNuevo) asociarImagenesConPaleta(setColoresNuevo, urls);
-      else asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, urls);
-      avisar('Imágenes guardadas permanentemente en Supabase.');
-    } catch (err) { avisar(err.message || 'No se pudieron subir las imágenes.'); }
-    finally { event.target.value = ''; }
-  };
-
-  const agregarUrlNuevo = () => {
-    if (urlNuevo.trim()) {
-      setImagenesNuevo(prev => [...prev, urlNuevo.trim()]);
-      if (paletaMulticolorNuevo) asociarImagenesConPaleta(setColoresNuevo, [urlNuevo.trim()]);
-      else asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, [urlNuevo.trim()]);
-      setUrlNuevo('');
-    }
-  };
-
-  const agregarColorNuevo = () => {
-    const nombre = nombreColorNuevo.trim() || 'Color';
-    const existe = coloresNuevo.some((registro) => leerColor(registro).valor.toLowerCase() === valorColorNuevo.toLowerCase() && leerColor(registro).nombre.toLowerCase() === nombre.toLowerCase());
-    if (!/^#[0-9a-f]{6}$/i.test(valorColorNuevo) || existe) return;
-    const registro = guardarColor({ id: `${nombre}-${valorColorNuevo}-${Date.now()}`, nombre, valor: valorColorNuevo, imagenes: [] });
-    setColoresNuevo((lista) => [...lista, registro]);
-    setColorImagenNuevo(leerColor(registro).id);
-    setNombreColorNuevo('');
-  };
-
-  const actualizarNombreColorNuevo = (nombre) => {
-    setNombreColorNuevo(nombre);
-    const tono = tonoSugerido(nombre);
-    if (tono) setValorColorNuevo(tono);
-  };
-
-  const elegirTonoNuevo = (nombre) => {
-    const valor = tonoSugerido(nombre) || '#54595f';
-    const existente = coloresNuevo.find((registro) => {
-      const color = leerColor(registro);
-      return normalizarNombreColor(color.nombre) === normalizarNombreColor(nombre);
-    });
-    if (existente) { setColorImagenNuevo(leerColor(existente).id); return; }
-    const registro = guardarColor({ id: `${nombre}-${valor}-${Date.now()}`, nombre, valor, imagenes: [] });
-    setColoresNuevo((lista) => [...lista, registro]);
-    setColorImagenNuevo(leerColor(registro).id);
-    setNombreColorNuevo('');
-  };
-
-  const eliminarImagenNuevo = index => {
-    setImagenesNuevo(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const establecerPortadaNuevo = index => {
-    setImagenesNuevo(prev => {
-      const nueva = [...prev];
-      const [item] = nueva.splice(index, 1);
-      return [item, ...nueva];
-    });
-    avisar('Imagen fijada como portada del producto.');
-  };
-
-  const usarColorComoPortadaNuevo = () => {
-    const foto = buscarColorPorId(coloresNuevo, colorImagenNuevo)?.imagenes?.[0];
-    if (!foto) return avisar('Este color aún no tiene una imagen asignada.');
-    setImagenesNuevo((lista) => [foto, ...lista.filter((item) => item !== foto)]);
-    avisar('La primera imagen de este color ahora es la portada principal.');
-  };
-
-  const asignarColorAPortadaNuevo = () => {
-    if (!imagenesNuevo[0]) return avisar('Primero agrega una imagen para usar como portada.');
-    if (!colorImagenNuevo) return avisar('Primero selecciona una variante de color.');
-    asignarImagenExistenteAColor(setColoresNuevo, colorImagenNuevo, imagenesNuevo[0]);
-    avisar(`La portada ahora pertenece a ${buscarColorPorId(coloresNuevo, colorImagenNuevo)?.nombre || 'la variante elegida'}.`);
-  };
-
-  const moverImagenNuevo = (from, to) => {
-    setImagenesNuevo(prev => {
-      const arr = [...prev];
-      if (to < 0 || to >= arr.length) return arr;
-      const [moved] = arr.splice(from, 1);
-      arr.splice(to, 0, moved);
-      return arr;
-    });
   };
 
   const registrarProducto = async event => {
@@ -465,7 +654,7 @@ export default function ProductosAdmin() {
       imagen_url: imagenesNuevo[0] || null,
       imagenes: imagenesNuevo,
       video_url: String(datos.get('video_url') || '').trim() || null,
-      colores: coloresNuevo.map((registro) => guardarColor({ ...leerColor(registro), modo: paletaMulticolorNuevo ? 'paleta' : 'variante' })),
+      colores: coloresNuevo.map((registro) => guardarColor(leerColor(registro))),
     };
 
     try {
@@ -478,106 +667,13 @@ export default function ProductosAdmin() {
       setProductos(lista => [formateado, ...lista]);
       setNuevoProducto(false);
       setImagenesNuevo([]);
-      setUrlNuevo('');
       setColoresNuevo([]);
       setColorImagenNuevo('');
-      setNombreColorNuevo('');
-      setPaletaMulticolorNuevo(false);
       setCategoria('Todos');
       await avisoExito({ titulo: '¡Producto creado!', texto: `${payload.nombre || payload.sku} se guardó correctamente en la base de datos.` });
     } catch (err) {
       await avisoError(`Error al registrar en servidor: ${err.message}`);
     }
-  };
-
-  // Manejo de imágenes en Editar Producto
-  const agregarImagenesEditArchivos = async event => {
-    const archivos = Array.from(event.target.files || []);
-    if (!archivos.length) return;
-    try {
-      avisar(`Subiendo ${archivos.length} imagen${archivos.length > 1 ? 'es' : ''} a Supabase...`);
-      const urls = await Promise.all(archivos.map(subirImagenProducto));
-      setEditImagenes(prev => [...prev, ...urls]);
-      if (paletaMulticolorEdit) asociarImagenesConPaleta(setColoresEdit, urls);
-      else asociarImagenesConColor(setColoresEdit, colorImagenEdit, urls);
-      avisar('Imágenes guardadas permanentemente en Supabase.');
-    } catch (err) { avisar(err.message || 'No se pudieron subir las imágenes.'); }
-    finally { event.target.value = ''; }
-  };
-
-  const agregarUrlEdit = () => {
-    if (urlEdit.trim()) {
-      setEditImagenes(prev => [...prev, urlEdit.trim()]);
-      if (paletaMulticolorEdit) asociarImagenesConPaleta(setColoresEdit, [urlEdit.trim()]);
-      else asociarImagenesConColor(setColoresEdit, colorImagenEdit, [urlEdit.trim()]);
-      setUrlEdit('');
-    }
-  };
-
-  const agregarColorEdit = () => {
-    const nombre = nombreColorEdit.trim() || 'Color';
-    const existe = coloresEdit.some((registro) => leerColor(registro).valor.toLowerCase() === valorColorEdit.toLowerCase() && leerColor(registro).nombre.toLowerCase() === nombre.toLowerCase());
-    if (!/^#[0-9a-f]{6}$/i.test(valorColorEdit) || existe) return;
-    const registro = guardarColor({ id: `${nombre}-${valorColorEdit}-${Date.now()}`, nombre, valor: valorColorEdit, imagenes: [] });
-    setColoresEdit((lista) => [...lista, registro]);
-    setColorImagenEdit(leerColor(registro).id);
-    setNombreColorEdit('');
-  };
-
-  const actualizarNombreColorEdit = (nombre) => {
-    setNombreColorEdit(nombre);
-    const tono = tonoSugerido(nombre);
-    if (tono) setValorColorEdit(tono);
-  };
-
-  const elegirTonoEdit = (nombre) => {
-    const valor = tonoSugerido(nombre) || '#54595f';
-    const existente = coloresEdit.find((registro) => {
-      const color = leerColor(registro);
-      return normalizarNombreColor(color.nombre) === normalizarNombreColor(nombre);
-    });
-    if (existente) { setColorImagenEdit(leerColor(existente).id); return; }
-    const registro = guardarColor({ id: `${nombre}-${valor}-${Date.now()}`, nombre, valor, imagenes: [] });
-    setColoresEdit((lista) => [...lista, registro]);
-    setColorImagenEdit(leerColor(registro).id);
-    setNombreColorEdit('');
-  };
-
-  const eliminarImagenEdit = index => {
-    setEditImagenes(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const establecerPortadaEdit = index => {
-    setEditImagenes(prev => {
-      const nueva = [...prev];
-      const [item] = nueva.splice(index, 1);
-      return [item, ...nueva];
-    });
-    avisar('Imagen fijada como portada del producto.');
-  };
-
-  const usarColorComoPortadaEdit = () => {
-    const foto = buscarColorPorId(coloresEdit, colorImagenEdit)?.imagenes?.[0];
-    if (!foto) return avisar('Este color aún no tiene una imagen asignada.');
-    setEditImagenes((lista) => [foto, ...lista.filter((item) => item !== foto)]);
-    avisar('La primera imagen de este color ahora es la portada principal.');
-  };
-
-  const asignarColorAPortadaEdit = () => {
-    if (!editImagenes[0]) return avisar('Este producto todavía no tiene imagen de portada.');
-    if (!colorImagenEdit) return avisar('Primero selecciona una variante de color.');
-    asignarImagenExistenteAColor(setColoresEdit, colorImagenEdit, editImagenes[0]);
-    avisar(`La portada ahora pertenece a ${buscarColorPorId(coloresEdit, colorImagenEdit)?.nombre || 'la variante elegida'}.`);
-  };
-
-  const moverImagenEdit = (from, to) => {
-    setEditImagenes(prev => {
-      const arr = [...prev];
-      if (to < 0 || to >= arr.length) return arr;
-      const [moved] = arr.splice(from, 1);
-      arr.splice(to, 0, moved);
-      return arr;
-    });
   };
 
   const guardarEdicion = async event => {
@@ -596,7 +692,7 @@ export default function ProductosAdmin() {
       imagen_url: editImagenes[0] || null,
       imagenes: editImagenes,
       video_url: String(datos.get('video_url') || '').trim() || null,
-      colores: coloresEdit.map((registro) => guardarColor({ ...leerColor(registro), modo: paletaMulticolorEdit ? 'paleta' : 'variante' })),
+      colores: coloresEdit.map((registro) => guardarColor(leerColor(registro))),
     };
 
     try {
@@ -1035,104 +1131,23 @@ export default function ProductosAdmin() {
                 Video promocional del producto <small>Opcional · general para todas las variantes; no se asigna a colores.</small>
                 <input name="video_url" type="url" defaultValue={editarProducto.video_url || ''} placeholder="https://www.youtube.com/watch?v=..." />
               </label>
-              <fieldset className="product-form-wide product-color-picker">
-                <legend>Variantes de color <small>Cada variante puede tener sus propias fotos.</small></legend>
-                <label className="product-palette-mode"><input type="checkbox" checked={paletaMulticolorEdit} onChange={(event) => setPaletaMulticolorEdit(event.target.checked)} /> <span><b>Es un producto multicolor</b><small>Ej.: un sillón con verde, turquesa y morado en la misma pieza. En el detalle se mostrará una sola paleta informativa, no opciones separadas.</small></span></label>
-                <div className="product-color-picker__create"><input aria-label="Nombre del color" list="tonos-sugeridos" value={nombreColorEdit} onChange={(event) => actualizarNombreColorEdit(event.target.value)} maxLength="40" placeholder="Ej. Beige arena" /><input aria-label="Elegir tono del color" title="Puedes ajustar manualmente el tono" type="color" value={valorColorEdit} onChange={(event) => setValorColorEdit(event.target.value)} /><button type="button" onClick={agregarColorEdit}><Plus size={16} /> Agregar color</button></div>
-                <small>Color personalizado: escribe un nombre, ajusta el tono si quieres y pulsa “Agregar color”.</small>
-                <b className="color-assistant__title">O agrega una variante rápida:</b>
-                <div className="color-assistant" aria-label="Tonos sugeridos">{TONOS_RAPIDOS.map((nombre) => { const registro = coloresEdit.find((item) => normalizarNombreColor(leerColor(item).nombre) === normalizarNombreColor(nombre)); return <button type="button" key={nombre} onClick={() => elegirTonoEdit(nombre)} title={registro ? `${nombre} ya está registrado` : `Agregar ${nombre}`} className={`${registro ? 'is-registered' : ''} ${leerColor(registro).id === colorImagenEdit ? 'is-selected' : ''}`}><i style={{ backgroundColor: tonoSugerido(nombre) }} />{nombre}{registro && <em>Registrado</em>}</button>; })}</div>
-                <div className="product-color-picker__list">{coloresEdit.map((registro) => { const color = leerColor(registro); return <span key={registro}><i style={{ backgroundColor: color.valor }} />{color.nombre}{color.imagenes.length > 0 && <em>{color.imagenes.length} foto{color.imagenes.length > 1 ? 's' : ''}</em>}<button type="button" aria-label={`Quitar ${color.nombre}`} onClick={() => { setColoresEdit((lista) => lista.filter((item) => item !== registro)); if (colorImagenEdit === color.id) setColorImagenEdit(''); }}><X size={13} /></button></span>; })}{!coloresEdit.length && <small>Aún no se registraron colores para este producto.</small>}</div>
-              </fieldset>
+              <SelectorColores
+                colores={coloresEdit}
+                setColores={setColoresEdit}
+                destino={colorImagenEdit}
+                setDestino={setColorImagenEdit}
+              />
             </div>
 
-            {/* Galería de Imágenes en Edición */}
-            <section className={paletaMulticolorEdit ? 'product-gallery is-multicolor' : 'product-gallery'}>
-              <div>
-                <b>{paletaMulticolorEdit ? 'Fotos del producto multicolor' : 'Fotos de la variante'} ({editImagenes.length})</b>
-                <small>
-                  {paletaMulticolorEdit ? 'Estas fotos muestran la pieza completa y se asignarán a toda su paleta de colores.' : 'Elige un color y sus fotos se mostrarán al cliente cuando lo seleccione. La primera foto sigue siendo la portada general.'}
-                </small>
-              </div>
-              <label className="product-color-image-target">Estoy cargando fotos para: 
-                <select value={colorImagenEdit} onChange={(event) => setColorImagenEdit(event.target.value)} disabled={!coloresEdit.length}>
-                  {!coloresEdit.length && <option value="">Primero registra un color</option>}
-                  {coloresEdit.map((registro) => { const color = leerColor(registro); return <option value={color.id} key={registro}>{color.nombre}</option>; })}
-                </select>
-              </label>
-              <button className="product-color-cover" type="button" disabled={!colorImagenEdit || !buscarColorPorId(coloresEdit, colorImagenEdit)?.imagenes?.length} onClick={usarColorComoPortadaEdit}>Usar la primera foto de este color como portada</button>
-              <button className="product-color-cover product-color-cover--secondary" type="button" disabled={!colorImagenEdit || !editImagenes.length} onClick={asignarColorAPortadaEdit}>Asignar el color elegido a la portada actual</button>
-
-              <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.8rem', flexWrap: 'wrap' }}>
-                <label className="product-upload" style={{ margin: 0, flex: 1, minWidth: '220px' }}>
-                  <ImagePlus size={20} />
-                  <span>Subir imágenes desde archivo</span>
-                  <input type="file" accept="image/*" multiple disabled={!coloresEdit.length} onChange={agregarImagenesEditArchivos} />
-                </label>
-              </div>
-
-              <div className="product-url-row">
-                <input
-                  type="url"
-                  placeholder="O pega el enlace URL de una imagen (https://...)"
-                  value={urlEdit} disabled={!coloresEdit.length}
-                  onChange={e => setUrlEdit(e.target.value)}
-                />
-                <button type="button" disabled={!coloresEdit.length} onClick={agregarUrlEdit}>
-                  <Link2 size={16} /> Agregar URL
-                </button>
-              </div>
-
-              <div className="product-image-list" style={{ marginTop: '1rem' }}>
-                {editImagenes.map((src, index) => (
-                  <figure key={index} className={index === 0 ? 'is-cover' : ''}>
-                    <img src={src} alt={`Foto ${index + 1}`} />
-                    <div className="product-img-toolbar">
-                      {index !== 0 && (
-                        <button
-                          type="button"
-                          className="btn-star"
-                          title="Hacer portada principal"
-                          onClick={() => establecerPortadaEdit(index)}
-                        >
-                          <Star size={12} fill="#ffdb9b" />
-                        </button>
-                      )}
-                      {index > 0 && (
-                        <button
-                          type="button"
-                          title="Mover antes"
-                          onClick={() => moverImagenEdit(index, index - 1)}
-                        >
-                          <ChevronLeft size={12} />
-                        </button>
-                      )}
-                      {index < editImagenes.length - 1 && (
-                        <button
-                          type="button"
-                          title="Mover después"
-                          onClick={() => moverImagenEdit(index, index + 1)}
-                        >
-                          <ChevronRight size={12} />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        className="btn-delete"
-                        title="Eliminar foto"
-                        onClick={() => eliminarImagenEdit(index)}
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                    <figcaption>{index === 0 ? '★ Portada' : `Foto ${index + 1}`} · {nombreColorDeImagen(coloresEdit, src)}</figcaption>
-                  </figure>
-                ))}
-                {editImagenes.length === 0 && (
-                  <p>Sin imágenes asignadas. Agrega al menos una para visibilidad en el kiosco.</p>
-                )}
-              </div>
-            </section>
+            <GaleriaProducto
+              colores={coloresEdit}
+              setColores={setColoresEdit}
+              imagenes={editImagenes}
+              setImagenes={setEditImagenes}
+              destino={colorImagenEdit}
+              setDestino={setColorImagenEdit}
+              avisar={avisar}
+            />
 
             <label className="product-kiosk-check">
               <input
@@ -1213,102 +1228,23 @@ export default function ProductosAdmin() {
                 Video promocional del producto <small>Opcional · general para todas las variantes; no se asigna a colores.</small>
                 <input name="video_url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
               </label>
-              <fieldset className="product-form-wide product-color-picker">
-                <legend>Variantes de color <small>Cada variante puede tener sus propias fotos.</small></legend>
-                <label className="product-palette-mode"><input type="checkbox" checked={paletaMulticolorNuevo} onChange={(event) => setPaletaMulticolorNuevo(event.target.checked)} /> <span><b>Es un producto multicolor</b><small>Ej.: un sillón con verde, turquesa y morado en la misma pieza. En el detalle se mostrará una sola paleta informativa, no opciones separadas.</small></span></label>
-                <div className="product-color-picker__create"><input aria-label="Nombre del color" list="tonos-sugeridos" value={nombreColorNuevo} onChange={(event) => actualizarNombreColorNuevo(event.target.value)} maxLength="40" placeholder="Ej. Gris grafito" /><input aria-label="Elegir tono del color" title="Puedes ajustar manualmente el tono" type="color" value={valorColorNuevo} onChange={(event) => setValorColorNuevo(event.target.value)} /><button type="button" onClick={agregarColorNuevo}><Plus size={16} /> Agregar color</button></div>
-                <small>Color personalizado: escribe un nombre, ajusta el tono si quieres y pulsa “Agregar color”.</small>
-                <b className="color-assistant__title">O agrega una variante rápida:</b>
-                <div className="color-assistant" aria-label="Tonos sugeridos">{TONOS_RAPIDOS.map((nombre) => { const registro = coloresNuevo.find((item) => normalizarNombreColor(leerColor(item).nombre) === normalizarNombreColor(nombre)); return <button type="button" key={nombre} onClick={() => elegirTonoNuevo(nombre)} title={registro ? `${nombre} ya está registrado` : `Agregar ${nombre}`} className={`${registro ? 'is-registered' : ''} ${leerColor(registro).id === colorImagenNuevo ? 'is-selected' : ''}`}><i style={{ backgroundColor: tonoSugerido(nombre) }} />{nombre}{registro && <em>Registrado</em>}</button>; })}</div>
-                <div className="product-color-picker__list">{coloresNuevo.map((registro) => { const color = leerColor(registro); return <span key={registro}><i style={{ backgroundColor: color.valor }} />{color.nombre}{color.imagenes.length > 0 && <em>{color.imagenes.length} foto{color.imagenes.length > 1 ? 's' : ''}</em>}<button type="button" aria-label={`Quitar ${color.nombre}`} onClick={() => { setColoresNuevo((lista) => lista.filter((item) => item !== registro)); if (colorImagenNuevo === color.id) setColorImagenNuevo(''); }}><X size={13} /></button></span>; })}{!coloresNuevo.length && <small>Escribe un nombre, elige el tono y agrega el color.</small>}</div>
-              </fieldset>
+              <SelectorColores
+                colores={coloresNuevo}
+                setColores={setColoresNuevo}
+                destino={colorImagenNuevo}
+                setDestino={setColorImagenNuevo}
+              />
             </div>
 
-            <section className={paletaMulticolorNuevo ? 'product-gallery is-multicolor' : 'product-gallery'}>
-              <div>
-                <b>{paletaMulticolorNuevo ? 'Fotos del producto multicolor' : 'Fotos de la variante'} ({imagenesNuevo.length})</b>
-                <small>
-                  {paletaMulticolorNuevo ? 'Carga fotos de la pieza completa: se asociarán a todos los tonos de la paleta.' : 'Primero elige el color y luego carga sus fotos. Al seleccionarlo, el cliente verá esas imágenes en el detalle.'}
-                </small>
-              </div>
-
-              <label className="product-color-image-target">Estoy cargando fotos para: 
-                <select value={colorImagenNuevo} onChange={(event) => setColorImagenNuevo(event.target.value)} disabled={!coloresNuevo.length}>
-                  {!coloresNuevo.length && <option value="">Primero registra un color</option>}
-                  {coloresNuevo.map((registro) => { const color = leerColor(registro); return <option value={color.id} key={registro}>{color.nombre}</option>; })}
-                </select>
-              </label>
-              <button className="product-color-cover" type="button" disabled={!colorImagenNuevo || !buscarColorPorId(coloresNuevo, colorImagenNuevo)?.imagenes?.length} onClick={usarColorComoPortadaNuevo}>Usar la primera foto de este color como portada</button>
-              <button className="product-color-cover product-color-cover--secondary" type="button" disabled={!colorImagenNuevo || !imagenesNuevo.length} onClick={asignarColorAPortadaNuevo}>Asignar el color elegido a la portada actual</button>
-
-              <label className="product-upload">
-                <ImagePlus size={22} />
-                <span>Subir imágenes desde archivo</span>
-                <input type="file" accept="image/*" multiple disabled={!coloresNuevo.length} onChange={agregarImagenesNuevoArchivos} />
-              </label>
-
-              <div className="product-url-row">
-                <input
-                  type="url"
-                  placeholder="O pega el enlace URL de una imagen (https://...)"
-                  value={urlNuevo} disabled={!coloresNuevo.length}
-                  onChange={e => setUrlNuevo(e.target.value)}
-                />
-                <button type="button" disabled={!coloresNuevo.length} onClick={agregarUrlNuevo}>
-                  <Link2 size={16} /> Agregar URL
-                </button>
-              </div>
-
-              <div className="product-image-list" style={{ marginTop: '1rem' }}>
-                {imagenesNuevo.map((src, index) => (
-                  <figure key={index} className={index === 0 ? 'is-cover' : ''}>
-                    <img src={src} alt={`Producto ${index + 1}`} />
-                    <div className="product-img-toolbar">
-                      {index !== 0 && (
-                        <button
-                          type="button"
-                          className="btn-star"
-                          title="Hacer portada principal"
-                          onClick={() => establecerPortadaNuevo(index)}
-                        >
-                          <Star size={12} fill="#ffdb9b" />
-                        </button>
-                      )}
-                      {index > 0 && (
-                        <button
-                          type="button"
-                          title="Mover antes"
-                          onClick={() => moverImagenNuevo(index, index - 1)}
-                        >
-                          <ChevronLeft size={12} />
-                        </button>
-                      )}
-                      {index < imagenesNuevo.length - 1 && (
-                        <button
-                          type="button"
-                          title="Mover después"
-                          onClick={() => moverImagenNuevo(index, index + 1)}
-                        >
-                          <ChevronRight size={12} />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        className="btn-delete"
-                        title="Eliminar foto"
-                        onClick={() => eliminarImagenNuevo(index)}
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                    <figcaption>{index === 0 ? '★ Portada' : `Foto ${index + 1}`} · {nombreColorDeImagen(coloresNuevo, src)}</figcaption>
-                  </figure>
-                ))}
-                {imagenesNuevo.length === 0 && (
-                  <p>Sin imágenes aún. Puedes agregar fotos locales o enlaces web.</p>
-                )}
-              </div>
-            </section>
+            <GaleriaProducto
+              colores={coloresNuevo}
+              setColores={setColoresNuevo}
+              imagenes={imagenesNuevo}
+              setImagenes={setImagenesNuevo}
+              destino={colorImagenNuevo}
+              setDestino={setColorImagenNuevo}
+              avisar={avisar}
+            />
 
             <label className="product-kiosk-check">
               <input name="visible" type="checkbox" defaultChecked /> Publicar este producto en kioscos al guardarlo

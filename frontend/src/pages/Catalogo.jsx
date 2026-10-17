@@ -739,19 +739,19 @@ export default function Catalogo() {
                             {/* Variantes reales configuradas para este producto. */}
                             {(() => {
                               const colores = coloresDelProducto(producto);
-                              const visibles = colores.slice(0, 4);
-                              const restantes = colores.length - visibles.length;
                               if (!colores.length) return null;
-                              const esMulticolor = colores.some((color) => color.modo === 'paleta');
-                              if (esMulticolor) {
-                                const paso = 100 / colores.length;
-                                const fondo = `conic-gradient(${colores.map((color, indice) => `${color.valor} ${(indice * paso).toFixed(2)}% ${((indice + 1) * paso).toFixed(2)}%`).join(', ')})`;
-                                return <div className="flex items-center gap-2" aria-label={`Paleta multicolor: ${colores.map((color) => color.nombre).join(', ')}`} title={`Paleta multicolor: ${colores.map((color) => color.nombre).join(', ')}`}>
+                              // Un producto puede combinar una paleta multicolor y colores únicos.
+                              const paleta = colores.filter((color) => color.modo === 'paleta');
+                              const unicos = colores.filter((color) => color.modo !== 'paleta');
+                              const visibles = unicos.slice(0, 4);
+                              const restantes = unicos.length - visibles.length;
+                              const paso = 100 / (paleta.length || 1);
+                              const fondo = `conic-gradient(${paleta.map((color, indice) => `${color.valor} ${(indice * paso).toFixed(2)}% ${((indice + 1) * paso).toFixed(2)}%`).join(', ')})`;
+                              const etiqueta = `${paleta.length ? `Paleta multicolor: ${paleta.map((color) => color.nombre).join(', ')}. ` : ''}${unicos.length ? `${unicos.length} colores disponibles` : ''}`.trim();
+                              return <div className="flex items-center gap-1.5" aria-label={etiqueta} title={etiqueta}>
+                                {paleta.length > 0 && (
                                   <span className="w-5 h-5 rounded-full border-2 border-white shadow-sm ring-1 ring-surface-container-high" style={{ background: fondo }} />
-                                  <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">Paleta multicolor</span>
-                                </div>;
-                              }
-                              return <div className="flex items-center gap-1.5" aria-label={`${colores.length} colores disponibles`}>
+                                )}
                                 {visibles.map((color) => (
                                   <span
                                     key={`${color.nombre}-${color.valor}`}
@@ -762,6 +762,7 @@ export default function Catalogo() {
                                   />
                                 ))}
                                 {restantes > 0 && <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">+{restantes} tono{restantes === 1 ? '' : 's'}</span>}
+                                {paleta.length > 0 && !unicos.length && <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">Paleta multicolor</span>}
                               </div>;
                             })()}
                           </div>

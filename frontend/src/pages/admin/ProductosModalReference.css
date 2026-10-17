@@ -3,6 +3,16 @@
 /* Tablet: la ficha abre sobre sidebar y encabezado, sin contenido oculto. */
 .product-create-modal{z-index:120}
 @media (min-width:701px) and (max-width:1100px){.product-create-modal{align-items:flex-start!important;padding:16px!important}.product-create-modal>form{max-width:calc(100vw - 32px)!important;width:100%!important}.product-create-modal>form>header{padding:16px 20px}.product-create-modal .product-form-grid{gap:12px 14px;padding:18px 20px 6px}.product-create-modal .product-gallery{margin:0 20px}.product-create-modal .product-kiosk-check{margin:14px 20px}.product-create-modal>form>footer{padding:12px 20px}}
-/* Productos con varios tonos en una sola pieza, no variantes separadas. */
-.product-palette-mode{align-items:flex-start;background:#fff7f8;border:1px solid #f1d8dd;border-radius:9px;display:flex!important;gap:9px;margin:12px 0 4px;padding:10px 12px}.product-palette-mode input{accent-color:#a6192e;flex:0 0 auto;margin:3px 0 0;min-height:auto!important}.product-palette-mode span{display:grid;gap:2px}.product-palette-mode b{color:#7d1327;font-size:.75rem}.product-palette-mode small{color:#69737c;font-size:.69rem;font-weight:500;line-height:1.4}
-.product-gallery.is-multicolor .product-color-image-target,.product-gallery.is-multicolor .product-color-cover{display:none}
+/* Colores del producto: variantes únicas y paleta multicolor en la misma ficha. */
+.product-color-type{display:grid;gap:8px;grid-template-columns:1fr 1fr;margin:11px 0 10px}
+.product-color-type>button{align-items:flex-start;background:#fff;border:1px solid #e3dadd;border-radius:10px;cursor:pointer;display:grid;gap:3px;min-height:auto;padding:9px 11px;text-align:left}
+.product-color-type>button:hover{border-color:#c99aa4}
+.product-color-type>button.active{background:#fff7f8;border-color:#a6192e;box-shadow:0 0 0 1px #a6192e}
+.product-color-type>button b{align-items:center;color:#3b292b;display:flex;font-size:.74rem;gap:5px}
+.product-color-type>button small{color:#6f777c;font-size:.64rem;font-weight:600;line-height:1.35}
+.product-color-groups{display:grid;gap:10px;margin-top:12px}
+.product-color-group>span{color:#5b636a;display:block;font-size:.64rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase}
+.product-color-group--palette>span{color:#a6192e}
+.product-color-group .product-color-picker__list{margin-top:7px}
+@media(max-width:600px){.product-color-type{grid-template-columns:1fr}}
+
