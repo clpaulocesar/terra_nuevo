@@ -16,11 +16,12 @@ export default function Confirmacion() {
   const [error, setError] = useState('');
   const [pedidoGenerado, setPedidoGenerado] = useState(null);
   const [clienteTicket, setClienteTicket] = useState(null);
+  const [itemsTicket, setItemsTicket] = useState([]);
   const enviando = useRef(false);
   const clienteId = useRef(null);
 
   // Tiene prioridad sobre el carrito vacío luego de completar la compra.
-  if (pedidoGenerado) return <Navigate to="/pedido" replace state={{ pedido: pedidoGenerado, cliente: clienteTicket, items }} />;
+  if (pedidoGenerado) return <Navigate to="/pedido" replace state={{ pedido: pedidoGenerado, cliente: clienteTicket, items: itemsTicket }} />;
   if (!items.length) return <Navigate to="/carrito" replace />;
 
   const confirmar = async () => {
@@ -33,6 +34,9 @@ export default function Confirmacion() {
     try {
       // Conserva los datos de facturación antes de limpiar el kiosco compartido.
       const datosClienteTicket = { ...cliente };
+      // El carrito se limpia al final; el ticket y WhatsApp necesitan conservar
+      // todos los datos visuales de sus líneas (nombre, cantidad y color).
+      const detalleItemsTicket = items.map((item) => ({ ...item }));
       let id = null;
       if (cliente.nombre) {
         clienteId.current ??= await crearCliente(cliente);
@@ -48,6 +52,7 @@ export default function Confirmacion() {
       descargarTicket(pedido, datosClienteTicket, items);
 
       setClienteTicket(datosClienteTicket);
+      setItemsTicket(detalleItemsTicket);
       setPedidoGenerado(pedido);
       vaciarCarrito();
       limpiarCliente();
