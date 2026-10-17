@@ -56,6 +56,12 @@ export default function DetalleProducto() {
     });
   }, [producto]);
   useEffect(() => { if (coloresProducto.length) setColor(coloresProducto[0]); }, [producto?.id, coloresProducto]);
+  const esPaletaMulticolor = coloresProducto.some((opcion) => opcion.modo === 'paleta');
+  const ruedaPaleta = useMemo(() => {
+    if (!coloresProducto.length) return 'transparent';
+    const paso = 100 / coloresProducto.length;
+    return `conic-gradient(${coloresProducto.map((opcion, indice) => `${opcion.valor} ${(indice * paso).toFixed(2)}% ${((indice + 1) * paso).toFixed(2)}%`).join(', ')})`;
+  }, [coloresProducto]);
   const video = useMemo(() => mediaDeVideo(producto?.video_url), [producto?.video_url]);
   // URL del video con reproducción automática (autoplay). Los navegadores
   // solo permiten autoplay en modo silenciado, por eso agregamos mute/autoplay.
@@ -133,6 +139,7 @@ export default function DetalleProducto() {
                   </video>
                 )))
               : (fotos[indiceFoto] ? <img src={fotos[indiceFoto]} alt={producto.nombre} /> : null)}
+            {coloresProducto.length > 0 && <aside className="product-gallery__color-card"><b>{esPaletaMulticolor ? 'Paleta:' : 'Color:'}</b>{esPaletaMulticolor ? <span className="product-gallery__palette-wheel" style={{ background: ruedaPaleta }} role="img" aria-label={'Paleta multicolor: ' + coloresProducto.map((opcion) => opcion.nombre).join(', ')} /> : <div>{coloresProducto.slice(0, 5).map((opcion) => <button type="button" key={opcion.id || opcion.nombre + opcion.valor} title={opcion.nombre} aria-label={'Ver color ' + opcion.nombre} onClick={() => seleccionarColor(opcion)} className={color?.valor === opcion.valor ? 'active' : ''} style={{ backgroundColor: opcion.valor }} />)}{coloresProducto.length > 5 && <span>+{coloresProducto.length - 5}</span>}</div>}<small>{esPaletaMulticolor ? 'Producto multicolor' : <>Tono actual: <strong>{color?.nombre}</strong></>}</small></aside>}
           </div>
           <div className="product-gallery__thumbs">
             {video && (
@@ -165,7 +172,7 @@ export default function DetalleProducto() {
           <h1>{producto.nombre}</h1><div className="product-buy__rating"><span>{[1, 2, 3, 4, 5].map((n) => <Star size={15} fill="currentColor" key={n} />)}</span><small>Producto recomendado TERRA</small></div>
           <div className="product-buy__price"><strong>{formatoMoneda(producto.precio)}</strong><small>{disponible ? 'Disponible para entrega inmediata' : 'Consultar disponibilidad'}</small></div>
           <p className="product-buy__description">{lineasDescripcion.length ? lineasDescripcion.slice(0, 2).map((linea, indice) => <span key={`${indice}-${linea}`}>{linea}</span>) : 'Conocé las características y dimensiones en la ficha técnica.'}</p>
-          <div className="product-buy__choice"><b>Colores disponibles:</b>{coloresProducto.length ? <><div className="product-buy__palette">{coloresProducto.map((opcion) => <button type="button" title={opcion.imagenes?.length ? `${opcion.nombre}: ver fotos` : opcion.nombre} aria-label={`Elegir color ${opcion.nombre}`} key={opcion.id || `${opcion.nombre}-${opcion.valor}`} onClick={() => seleccionarColor(opcion)} className={color?.valor === opcion.valor ? 'active' : ''}><i style={{ backgroundColor: opcion.valor }} /><span>{opcion.nombre}</span></button>)}</div><small>Tono actual: <strong>{color?.nombre || coloresProducto[0].nombre}</strong>{color?.imagenes?.length ? ' · imágenes de este color disponibles' : ''}</small></> : <small>Colores por confirmar</small>}</div>
+          <div className={esPaletaMulticolor ? 'product-buy__choice product-buy__choice--palette' : 'product-buy__choice'}><b>{esPaletaMulticolor ? 'Paleta de colores:' : 'Colores disponibles:'}</b>{coloresProducto.length ? <>{esPaletaMulticolor && <span className="product-buy__palette-wheel" style={{ background: ruedaPaleta }} role="img" aria-label={'Paleta multicolor: ' + coloresProducto.map((opcion) => opcion.nombre).join(', ')} />}<div className="product-buy__palette">{coloresProducto.map((opcion) => esPaletaMulticolor ? <span className="product-buy__palette-chip" title={opcion.nombre} key={opcion.id || opcion.nombre + '-' + opcion.valor}>{opcion.nombre}</span> : <button type="button" title={opcion.imagenes?.length ? opcion.nombre + ': ver fotos' : opcion.nombre} aria-label={'Elegir color ' + opcion.nombre} key={opcion.id || opcion.nombre + '-' + opcion.valor} onClick={() => seleccionarColor(opcion)} className={color?.valor === opcion.valor ? 'active' : ''}><i style={{ backgroundColor: opcion.valor }} /><span>{opcion.nombre}</span></button>)}</div><small>{esPaletaMulticolor ? 'Este modelo combina estos tonos en una sola pieza.' : <>Tono actual: <strong>{color?.nombre || coloresProducto[0].nombre}</strong>{color?.imagenes?.length ? ' · imágenes de este color disponibles' : ''}</>}</small></> : <small>Colores por confirmar</small>}</div>
           <div className="product-buy__quantity"><b>Cantidad:</b><div><button type="button" aria-label="Disminuir" disabled={cantidad <= 1} onClick={() => setCantidad((valor) => Math.max(1, valor - 1))}><CircleMinus size={19} /></button><span>{cantidad}</span><button type="button" aria-label="Aumentar" disabled={cantidad >= Number(producto.stock)} onClick={() => setCantidad((valor) => Math.min(Number(producto.stock), valor + 1))}><CirclePlus size={19} /></button></div></div>
           <button className="product-buy__add" disabled={!disponible} onClick={agregar} type="button">{agregado ? <><Check size={19} /> Agregado al carrito</> : <><ShoppingCart size={19} /> Agregar al carrito</>}</button><Link className="product-buy__now" to="/carrito">Comprar ahora</Link>
           <div className="product-buy__guarantees"><span><ShieldCheck size={15} /> Garantía oficial TERRA</span><span><Truck size={15} /> Envío seguro a Bolivia</span></div>

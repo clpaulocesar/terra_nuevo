@@ -30,6 +30,7 @@ const guardarColor = (color) => JSON.stringify({
   nombre: color.nombre,
   valor: color.valor,
   imagenes: Array.isArray(color.imagenes) ? color.imagenes : [],
+  modo: color.modo || 'variante',
 });
 
 // Nombres habituales para que el administrador no tenga que conocer códigos HEX.
@@ -160,6 +161,7 @@ export default function ProductosAdmin() {
   const [valorColorNuevo, setValorColorNuevo] = useState('#54595f');
   const [nombreColorNuevo, setNombreColorNuevo] = useState('');
   const [colorImagenNuevo, setColorImagenNuevo] = useState('');
+  const [paletaMulticolorNuevo, setPaletaMulticolorNuevo] = useState(false);
 
   const [vistaProducto, setVistaProducto] = useState(null);
   const [fotoActivaIndex, setFotoActivaIndex] = useState(0);
@@ -176,6 +178,7 @@ export default function ProductosAdmin() {
   const [valorColorEdit, setValorColorEdit] = useState('#54595f');
   const [nombreColorEdit, setNombreColorEdit] = useState('');
   const [colorImagenEdit, setColorImagenEdit] = useState('');
+  const [paletaMulticolorEdit, setPaletaMulticolorEdit] = useState(false);
 
   const [categoriasApi, setCategoriasApi] = useState([]);
 
@@ -313,6 +316,7 @@ export default function ProductosAdmin() {
     setUrlEdit('');
     setColoresEdit(Array.isArray(producto.colores) ? producto.colores : []);
     setColorImagenEdit(Array.isArray(producto.colores) && producto.colores.length ? leerColor(producto.colores[0]).id : '');
+    setPaletaMulticolorEdit(Array.isArray(producto.colores) && producto.colores.some((registro) => leerColor(registro).modo === 'paleta'));
     setNombreColorEdit('');
   };
 
@@ -339,6 +343,15 @@ export default function ProductosAdmin() {
     }));
   };
 
+  // Una pieza multicolor tiene una sola galería: sus fotos representan toda la paleta.
+  const asociarImagenesConPaleta = (setColores, urls) => {
+    if (!urls.length) return;
+    setColores((lista) => lista.map((registro) => {
+      const color = leerColor(registro);
+      return guardarColor({ ...color, imagenes: [...new Set([...color.imagenes, ...urls])] });
+    }));
+  };
+
   const asignarImagenExistenteAColor = (setColores, colorSeleccionado, imagen) => {
     if (!colorSeleccionado || !imagen) return;
     setColores((lista) => lista.map((registro) => {
@@ -355,7 +368,8 @@ export default function ProductosAdmin() {
       avisar(`Subiendo ${archivos.length} imagen${archivos.length > 1 ? 'es' : ''} a Supabase...`);
       const urls = await Promise.all(archivos.map(subirImagenProducto));
       setImagenesNuevo(prev => [...prev, ...urls]);
-      asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, urls);
+      if (paletaMulticolorNuevo) asociarImagenesConPaleta(setColoresNuevo, urls);
+      else asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, urls);
       avisar('Imágenes guardadas permanentemente en Supabase.');
     } catch (err) { avisar(err.message || 'No se pudieron subir las imágenes.'); }
     finally { event.target.value = ''; }
@@ -364,7 +378,8 @@ export default function ProductosAdmin() {
   const agregarUrlNuevo = () => {
     if (urlNuevo.trim()) {
       setImagenesNuevo(prev => [...prev, urlNuevo.trim()]);
-      asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, [urlNuevo.trim()]);
+      if (paletaMulticolorNuevo) asociarImagenesConPaleta(setColoresNuevo, [urlNuevo.trim()]);
+      else asociarImagenesConColor(setColoresNuevo, colorImagenNuevo, [urlNuevo.trim()]);
       setUrlNuevo('');
     }
   };
@@ -450,7 +465,7 @@ export default function ProductosAdmin() {
       imagen_url: imagenesNuevo[0] || null,
       imagenes: imagenesNuevo,
       video_url: String(datos.get('video_url') || '').trim() || null,
-      colores: coloresNuevo,
+      colores: coloresNuevo.map((registro) => guardarColor({ ...leerColor(registro), modo: paletaMulticolorNuevo ? 'paleta' : 'variante' })),
     };
 
     try {
@@ -467,6 +482,7 @@ export default function ProductosAdmin() {
       setColoresNuevo([]);
       setColorImagenNuevo('');
       setNombreColorNuevo('');
+      setPaletaMulticolorNuevo(false);
       setCategoria('Todos');
       await avisoExito({ titulo: '¡Producto creado!', texto: `${payload.nombre || payload.sku} se guardó correctamente en la base de datos.` });
     } catch (err) {
@@ -482,7 +498,8 @@ export default function ProductosAdmin() {
       avisar(`Subiendo ${archivos.length} imagen${archivos.length > 1 ? 'es' : ''} a Supabase...`);
       const urls = await Promise.all(archivos.map(subirImagenProducto));
       setEditImagenes(prev => [...prev, ...urls]);
-      asociarImagenesConColor(setColoresEdit, colorImagenEdit, urls);
+      if (paletaMulticolorEdit) asociarImagenesConPaleta(setColoresEdit, urls);
+      else asociarImagenesConColor(setColoresEdit, colorImagenEdit, urls);
       avisar('Imágenes guardadas permanentemente en Supabase.');
     } catch (err) { avisar(err.message || 'No se pudieron subir las imágenes.'); }
     finally { event.target.value = ''; }
@@ -491,7 +508,8 @@ export default function ProductosAdmin() {
   const agregarUrlEdit = () => {
     if (urlEdit.trim()) {
       setEditImagenes(prev => [...prev, urlEdit.trim()]);
-      asociarImagenesConColor(setColoresEdit, colorImagenEdit, [urlEdit.trim()]);
+      if (paletaMulticolorEdit) asociarImagenesConPaleta(setColoresEdit, [urlEdit.trim()]);
+      else asociarImagenesConColor(setColoresEdit, colorImagenEdit, [urlEdit.trim()]);
       setUrlEdit('');
     }
   };
@@ -578,7 +596,7 @@ export default function ProductosAdmin() {
       imagen_url: editImagenes[0] || null,
       imagenes: editImagenes,
       video_url: String(datos.get('video_url') || '').trim() || null,
-      colores: coloresEdit,
+      colores: coloresEdit.map((registro) => guardarColor({ ...leerColor(registro), modo: paletaMulticolorEdit ? 'paleta' : 'variante' })),
     };
 
     try {
@@ -1019,6 +1037,7 @@ export default function ProductosAdmin() {
               </label>
               <fieldset className="product-form-wide product-color-picker">
                 <legend>Variantes de color <small>Cada variante puede tener sus propias fotos.</small></legend>
+                <label className="product-palette-mode"><input type="checkbox" checked={paletaMulticolorEdit} onChange={(event) => setPaletaMulticolorEdit(event.target.checked)} /> <span><b>Es un producto multicolor</b><small>Ej.: un sillón con verde, turquesa y morado en la misma pieza. En el detalle se mostrará una sola paleta informativa, no opciones separadas.</small></span></label>
                 <div className="product-color-picker__create"><input aria-label="Nombre del color" list="tonos-sugeridos" value={nombreColorEdit} onChange={(event) => actualizarNombreColorEdit(event.target.value)} maxLength="40" placeholder="Ej. Beige arena" /><input aria-label="Elegir tono del color" title="Puedes ajustar manualmente el tono" type="color" value={valorColorEdit} onChange={(event) => setValorColorEdit(event.target.value)} /><button type="button" onClick={agregarColorEdit}><Plus size={16} /> Agregar color</button></div>
                 <small>Color personalizado: escribe un nombre, ajusta el tono si quieres y pulsa “Agregar color”.</small>
                 <b className="color-assistant__title">O agrega una variante rápida:</b>
@@ -1028,11 +1047,11 @@ export default function ProductosAdmin() {
             </div>
 
             {/* Galería de Imágenes en Edición */}
-            <section className="product-gallery">
+            <section className={paletaMulticolorEdit ? 'product-gallery is-multicolor' : 'product-gallery'}>
               <div>
-                <b>Fotos de la variante ({editImagenes.length})</b>
+                <b>{paletaMulticolorEdit ? 'Fotos del producto multicolor' : 'Fotos de la variante'} ({editImagenes.length})</b>
                 <small>
-                  Elige un color y sus fotos se mostrarán al cliente cuando lo seleccione. La primera foto sigue siendo la portada general.
+                  {paletaMulticolorEdit ? 'Estas fotos muestran la pieza completa y se asignarán a toda su paleta de colores.' : 'Elige un color y sus fotos se mostrarán al cliente cuando lo seleccione. La primera foto sigue siendo la portada general.'}
                 </small>
               </div>
               <label className="product-color-image-target">Estoy cargando fotos para: 
@@ -1196,6 +1215,7 @@ export default function ProductosAdmin() {
               </label>
               <fieldset className="product-form-wide product-color-picker">
                 <legend>Variantes de color <small>Cada variante puede tener sus propias fotos.</small></legend>
+                <label className="product-palette-mode"><input type="checkbox" checked={paletaMulticolorNuevo} onChange={(event) => setPaletaMulticolorNuevo(event.target.checked)} /> <span><b>Es un producto multicolor</b><small>Ej.: un sillón con verde, turquesa y morado en la misma pieza. En el detalle se mostrará una sola paleta informativa, no opciones separadas.</small></span></label>
                 <div className="product-color-picker__create"><input aria-label="Nombre del color" list="tonos-sugeridos" value={nombreColorNuevo} onChange={(event) => actualizarNombreColorNuevo(event.target.value)} maxLength="40" placeholder="Ej. Gris grafito" /><input aria-label="Elegir tono del color" title="Puedes ajustar manualmente el tono" type="color" value={valorColorNuevo} onChange={(event) => setValorColorNuevo(event.target.value)} /><button type="button" onClick={agregarColorNuevo}><Plus size={16} /> Agregar color</button></div>
                 <small>Color personalizado: escribe un nombre, ajusta el tono si quieres y pulsa “Agregar color”.</small>
                 <b className="color-assistant__title">O agrega una variante rápida:</b>
@@ -1204,11 +1224,11 @@ export default function ProductosAdmin() {
               </fieldset>
             </div>
 
-            <section className="product-gallery">
+            <section className={paletaMulticolorNuevo ? 'product-gallery is-multicolor' : 'product-gallery'}>
               <div>
-                <b>Fotos de la variante ({imagenesNuevo.length})</b>
+                <b>{paletaMulticolorNuevo ? 'Fotos del producto multicolor' : 'Fotos de la variante'} ({imagenesNuevo.length})</b>
                 <small>
-                  Primero elige el color y luego carga sus fotos. Al seleccionarlo, el cliente verá esas imágenes en el detalle.
+                  {paletaMulticolorNuevo ? 'Carga fotos de la pieza completa: se asociarán a todos los tonos de la paleta.' : 'Primero elige el color y luego carga sus fotos. Al seleccionarlo, el cliente verá esas imágenes en el detalle.'}
                 </small>
               </div>
 
