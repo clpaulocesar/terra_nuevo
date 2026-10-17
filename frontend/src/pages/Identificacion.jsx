@@ -121,7 +121,7 @@ export default function Identificacion() {
             </section>
             <button className="ident-whatsapp" type="button" onClick={() => setWhatsapp(!whatsapp)}>
               <span>{whatsapp && <Check size={17} />}</span>
-              <div><b>Deseo recibir mi comprobante por WhatsApp</b><small>Lo solicitarás al WhatsApp TERRA: 69050660</small></div>
+              <div><b>Deseo recibir mi comprobante por WhatsApp</b><small>Lo solicitarás al WhatsApp TERRA: 75335697</small></div>
             </button>
             <button className="ident-next" type="submit">Continuar a confirmación <ArrowRight size={20} /></button>
             <button className="ident-guest" type="button" onClick={() => { limpiarCliente(); nav('/confirmacion'); }}>Continuar como invitado</button>
