@@ -62,8 +62,10 @@ export default function PedidoGenerado() {
 
   const fechaGeneracion = formatoFechaPedido(pedido.fecha || pedido.fecha_creacion || pedido.created_at);
   const clienteTicket = state?.cliente?.nombre || state?.cliente?.nit ? state.cliente : pedido.cliente;
+  // El carrito se limpia al crear el pedido. Si la navegación trae una lista vacía,
+  // conservamos el detalle devuelto por el backend para el ticket y WhatsApp.
+  const itemsTicket = state?.items?.length ? state.items : (pedido.items || []);
   const solicitarComprobante = Boolean(clienteTicket?.whatsapp && WHATSAPP_COMPROBANTES);
-  const itemsTicket = state?.items || pedido.items || [];
   const mensajeWhatsApp = encodeURIComponent(crearMensajeComprobante({
     pedido,
     cliente: clienteTicket,
@@ -96,7 +98,7 @@ export default function PedidoGenerado() {
       <div className="pedido-actions">
         <button
           type="button"
-          onClick={() => descargarTicket(pedido, clienteTicket, state?.items || pedido.items)}
+          onClick={() => descargarTicket(pedido, clienteTicket, itemsTicket)}
           className="pedido-download"
         >
           <Download size={20} /> Descargar ticket
