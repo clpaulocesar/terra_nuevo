@@ -382,19 +382,19 @@ export default function Catalogo() {
                         <span className="material-symbols-outlined text-[20px]">close</span>
                       </button>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => setTecladoAbierto((prev) => !prev)}
-                      className={`flex items-center gap-space-xs ml-space-sm pl-space-sm px-space-sm py-1.5 rounded-lg cursor-pointer transition-colors ${
-                        tecladoAbierto ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant'
-                      }`}
-                      title="Abrir teclado táctil"
-                    >
-                      <span className={`material-symbols-outlined text-[18px] ${tecladoAbierto ? 'text-on-primary' : 'text-primary'}`}>
-                        keyboard
-                      </span>
-                      <span className="font-label-sm text-label-sm uppercase tracking-wider">Teclado</span>
-                    </button>
+                    {!tecladoAbierto && (
+                      <button
+                        type="button"
+                        onClick={() => setTecladoAbierto(true)}
+                        className="flex items-center gap-space-xs ml-space-sm pl-space-sm px-space-sm py-1.5 rounded-lg cursor-pointer transition-colors bg-surface-container-low text-on-surface-variant"
+                        title="Abrir teclado táctil"
+                      >
+                        <span className="material-symbols-outlined text-[18px] text-primary">
+                          keyboard
+                        </span>
+                        <span className="font-label-sm text-label-sm uppercase tracking-wider">Teclado</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -477,13 +477,13 @@ export default function Catalogo() {
                     ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ'],
                     ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
                   ].map((row, i) => (
-                    <div key={i} className="flex justify-center gap-1 sm:gap-1.5 w-full">
+                    <div key={i} className="flex justify-center gap-0.5 sm:gap-1.5 w-full">
                       {row.map((letra) => (
                         <button
                           key={letra}
                           type="button"
                           onClick={() => agregarCaracter(letra)}
-                          className="flex-1 min-w-[26px] sm:min-w-[36px] max-w-[44px] h-10 sm:h-12 rounded-lg bg-surface-container-lowest text-on-surface font-bold text-sm sm:text-base shadow-sm active:scale-95 active:bg-primary-container active:text-on-primary transition-all flex items-center justify-center"
+                          className="flex-1 min-w-0 sm:min-w-[36px] max-w-[44px] h-9 sm:h-12 rounded-lg bg-surface-container-lowest text-on-surface font-bold text-sm sm:text-base shadow-sm active:scale-95 active:bg-primary-container active:text-on-primary transition-all flex items-center justify-center"
                         >
                           {letra}
                         </button>
@@ -492,7 +492,7 @@ export default function Catalogo() {
                         <button
                           type="button"
                           onClick={borrarCaracter}
-                          className="px-2 sm:px-3 h-10 sm:h-12 rounded-lg bg-error-container text-on-error-container font-bold text-xs sm:text-sm shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1"
+                          className="px-1.5 sm:px-3 h-9 sm:h-12 rounded-lg bg-error-container text-on-error-container font-bold text-xs sm:text-sm shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1 shrink-0"
                         >
                           <span className="material-symbols-outlined text-[16px] sm:text-[18px]">backspace</span>
                           <span className="hidden sm:inline">Borrar</span>
@@ -500,18 +500,18 @@ export default function Catalogo() {
                       )}
                     </div>
                   ))}
-                  <div className="flex justify-center gap-1.5 sm:gap-2 mt-1">
+                  <div className="flex justify-center gap-1 sm:gap-2 mt-1 w-full">
                     <button
                       type="button"
                       onClick={() => agregarCaracter(' ')}
-                      className="flex-1 max-w-[340px] h-10 sm:h-12 rounded-lg bg-surface-container-lowest text-on-surface font-semibold text-xs sm:text-sm shadow-sm active:scale-95 flex items-center justify-center gap-2"
+                      className="flex-1 min-w-0 max-w-[340px] h-9 sm:h-12 rounded-lg bg-surface-container-lowest text-on-surface font-semibold text-xs sm:text-sm shadow-sm active:scale-95 flex items-center justify-center gap-2"
                     >
                       Espacio
                     </button>
                     <button
                       type="button"
                       onClick={() => setBuscar('')}
-                      className="px-3 sm:px-4 h-10 sm:h-12 rounded-lg bg-surface-variant text-on-surface-variant font-semibold text-xs sm:text-sm shadow-sm active:scale-95 flex items-center justify-center"
+                      className="px-2 sm:px-4 h-9 sm:h-12 rounded-lg bg-surface-variant text-on-surface-variant font-semibold text-xs sm:text-sm shadow-sm active:scale-95 flex items-center justify-center shrink-0"
                     >
                       Limpiar todo
                     </button>
@@ -694,108 +694,108 @@ export default function Catalogo() {
                           )}
                         </div>
 
-                          {/* Cuerpo de la Tarjeta */}
-                          <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
-                            <div className="flex flex-col gap-space-xs">
-                              {/* Fila de reseñas y entrega */}
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="font-label-sm text-label-sm text-on-surface-variant">
-                                  <span className="text-amber-500 tracking-tight">★★★★★</span>{' '}
-                                  (32 reseñas)
-                                </span>
-                                <span className={`font-label-sm text-label-sm font-bold ${producto.stock > 0 ? 'text-on-surface' : 'text-error'}`}>
-                                  {producto.stock > 0 ? 'Entrega inmediata' : 'Agotado'}
-                                </span>
-                              </div>
-
-                              <Link
-                                to={`/productos/${producto.id}`}
-                                className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors"
-                              >
-                                <span className="material-symbols-outlined text-[18px]">
-                                  visibility
-                                </span>
-                                <span>Ver detalles del producto</span>
-                              </Link>
-
-                              <h2 className="font-title-md text-title-md text-on-surface font-bold leading-snug">
-                                <Link
-                                  className="hover:text-primary transition-colors"
-                                  to={`/productos/${producto.id}`}
-                                >
-                                  {producto.nombre}
-                                </Link>
-                              </h2>
-
-                              {Boolean(producto.descripcion) && (
-                                <p className="text-on-surface-variant font-body-sm text-body-sm leading-relaxed line-clamp-2">
-                                  {producto.descripcion}
-                                </p>
-                              )}
+                        {/* Cuerpo de la Tarjeta */}
+                        <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
+                          <div className="flex flex-col gap-space-xs">
+                            {/* Fila de reseñas y entrega */}
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-label-sm text-label-sm text-on-surface-variant">
+                                <span className="text-amber-500 tracking-tight">★★★★★</span>{' '}
+                                (32 reseñas)
+                              </span>
+                              <span className={`font-label-sm text-label-sm font-bold ${producto.stock > 0 ? 'text-on-surface' : 'text-error'}`}>
+                                {producto.stock > 0 ? 'Entrega inmediata' : 'Agotado'}
+                              </span>
                             </div>
 
-                            {/* Tonos disponibles (solo los registrados por el admin) */}
-                            {tonosColores.length > 0 && (
-                              <div className="flex items-center gap-1.5">
-                                {tonosColores.slice(0, 4).map((tono) => (
-                                  <span
-                                    key={`${tono.nombre}-${tono.valor}`}
-                                    title={tono.nombre}
-                                    style={{ backgroundColor: tono.valor }}
-                                    className="w-3.5 h-3.5 rounded-full border border-surface-container-high"
-                                  />
-                                ))}
-                                {tonosColores.length > 4 && (
-                                  <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">
-                                    +{tonosColores.length - 4} tonos
-                                  </span>
-                                )}
-                              </div>
+                            <Link
+                              to={`/productos/${producto.id}`}
+                              className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">
+                                visibility
+                              </span>
+                              <span>Ver detalles del producto</span>
+                            </Link>
+
+                            <h2 className="font-title-md text-title-md text-on-surface font-bold leading-snug">
+                              <Link
+                                className="hover:text-primary transition-colors"
+                                to={`/productos/${producto.id}`}
+                              >
+                                {producto.nombre}
+                              </Link>
+                            </h2>
+
+                            {Boolean(producto.descripcion) && (
+                              <p className="text-on-surface-variant font-body-sm text-body-sm leading-relaxed line-clamp-2">
+                                {producto.descripcion}
+                              </p>
                             )}
                           </div>
 
-                          {/* Precio y Botón Táctil de Agregar */}
-                          <div className="flex flex-col gap-space-sm pt-space-xs bg-surface-container-low/50 p-3 sm:p-4 rounded-xl">
-                            <div className="flex items-baseline justify-between gap-2">
-                              <div className="min-w-0">
-                                {producto.precioOriginal ? (
-                                  <span className="font-body-sm text-body-sm text-outline line-through">
-                                    {formatoMoneda(producto.precioOriginal)}
-                                  </span>
-                                ) : (
-                                  <span className="font-body-sm text-body-sm text-outline">
-                                    {producto.precioLabel || 'Precio Regular'}
-                                  </span>
-                                )}
-                                <div className="font-price-card text-price-card text-primary font-extrabold">
-                                  {formatoMoneda(producto.precio)}
-                                </div>
-                              </div>
-                              <span className="hidden sm:inline-block shrink-0 font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant">
-                                {producto.garantia || 'Garantía Oficial'}
-                              </span>
+                          {/* Tonos disponibles (solo los registrados por el admin) */}
+                          {tonosColores.length > 0 && (
+                            <div className="flex items-center gap-1.5">
+                              {tonosColores.slice(0, 4).map((tono) => (
+                                <span
+                                  key={`${tono.nombre}-${tono.valor}`}
+                                  title={tono.nombre}
+                                  style={{ backgroundColor: tono.valor }}
+                                  className="w-3.5 h-3.5 rounded-full border border-surface-container-high"
+                                />
+                              ))}
+                              {tonosColores.length > 4 && (
+                                <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">
+                                  +{tonosColores.length - 4} tonos
+                                </span>
+                              )}
                             </div>
+                          )}
+                        </div>
 
-                            {/* Botón Táctil de Gran Formato */}
-                            <button
-                              className={`w-full min-h-[48px] sm:min-h-[52px] rounded-xl text-[15px] sm:text-base font-bold flex items-center justify-center gap-space-xs shadow-sm transition-all active:scale-95 ${
-                                recienAgregado
-                                  ? 'bg-secondary text-surface-bright shadow-md'
-                                  : 'bg-primary-container hover:bg-primary text-on-primary'
-                              }`}
-                              onClick={() => handleAgregar(producto)}
-                              type="button"
-                              disabled={producto.stock <= 0}
-                            >
-                              <span className="material-symbols-outlined text-[22px]">
-                                {recienAgregado ? 'done' : 'add_shopping_cart'}
-                              </span>
-                              <span>
-                                {recienAgregado ? '¡Agregado al Carrito!' : 'Agregar al carrito'}
-                              </span>
-                            </button>
+                        {/* Precio y Botón Táctil de Agregar */}
+                        <div className="flex flex-col gap-space-sm pt-space-xs bg-surface-container-low/50 p-3 sm:p-4 rounded-xl">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <div className="min-w-0">
+                              {producto.precioOriginal ? (
+                                <span className="font-body-sm text-body-sm text-outline line-through">
+                                  {formatoMoneda(producto.precioOriginal)}
+                                </span>
+                              ) : (
+                                <span className="font-body-sm text-body-sm text-outline">
+                                  {producto.precioLabel || 'Precio Regular'}
+                                </span>
+                              )}
+                              <div className="font-price-card text-price-card text-primary font-extrabold">
+                                {formatoMoneda(producto.precio)}
+                              </div>
+                            </div>
+                            <span className="hidden sm:inline-block shrink-0 font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant">
+                              {producto.garantia || 'Garantía Oficial'}
+                            </span>
                           </div>
-                        </article>
+
+                          {/* Botón Táctil de Gran Formato */}
+                          <button
+                            className={`w-full min-h-[48px] sm:min-h-[52px] rounded-xl text-[15px] sm:text-base font-bold flex items-center justify-center gap-space-xs shadow-sm transition-all active:scale-95 ${
+                              recienAgregado
+                                ? 'bg-secondary text-surface-bright shadow-md'
+                                : 'bg-primary-container hover:bg-primary text-on-primary'
+                            }`}
+                            onClick={() => handleAgregar(producto)}
+                            type="button"
+                            disabled={producto.stock <= 0}
+                          >
+                            <span className="material-symbols-outlined text-[22px]">
+                              {recienAgregado ? 'done' : 'add_shopping_cart'}
+                            </span>
+                            <span>
+                              {recienAgregado ? '¡Agregado al Carrito!' : 'Agregar al carrito'}
+                            </span>
+                          </button>
+                        </div>
+                      </article>
                     );
                   })}
                 </div>
