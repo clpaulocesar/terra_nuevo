@@ -112,7 +112,6 @@ export default function CarritoFlotante() {
   useEffect(() => {
     if (!qrLeido) return undefined;
     const id = idDeCodigoQr(qrLeido);
-    setQrLeido(null);
     if (!id) {
       setMensajeQr('⚠️ Ese código no corresponde a un producto.');
       return undefined;
