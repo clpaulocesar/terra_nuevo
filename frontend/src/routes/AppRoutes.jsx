@@ -46,20 +46,12 @@ function Layout() {
   return (
     <div className="app-shell">
       <header className="site-header terra-header">
-        <div className="terra-header-left">
-          <Link to="/" className="brand terra-logo" title="TERRA Autoservicio">
-            <img src="/logo-terra.png" alt="TERRA Autoservicio" />
-          </Link>
-        </div>
-
-        {/* Desktop & Tablet Navigation */}
-        <nav className="desktop-nav" aria-label="Navegación principal">
-          <NavLink to="/catalogo"><Package size={17} /> <span>Catálogo de Productos</span></NavLink>
-          <NavLink to="/categorias"><Tags size={17} /> <span>Líneas y Categorías</span></NavLink>
-        </nav>
-
-        <div className="terra-header-right">
-          <button type="button" className="terra-login-button" aria-haspopup="dialog" aria-expanded={cuentaAbierta} onClick={() => setCuentaAbierta(true)}><UserRound size={19} /><span>Iniciar sesión</span></button>
+        {/* Espaciador para centrar el logo; el grupo derecho lleva carrito, casa y sesión */}
+        <div className="header-spacer" />
+        <Link to="/" className="brand terra-logo" title="TERRA Autoservicio">
+          <img src="/logo-terra.png" alt="TERRA Autoservicio" />
+        </Link>
+        <div className="header-grupo-derecho">
           <NavLink to="/carrito" className="cart-link terra-cart-link">
             <ShoppingCart size={18} />
             <span>Carrito</span>
@@ -68,6 +60,7 @@ function Layout() {
           <NavLink to="/" end className="terra-home-btn" title="Inicio">
             <Home size={18} />
           </NavLink>
+          <button type="button" className="terra-login-button" aria-haspopup="dialog" aria-expanded={cuentaAbierta} onClick={() => setCuentaAbierta(true)}><UserRound size={19} /><span>Iniciar sesión</span></button>
         </div>
       </header>
       {cuentaAbierta && <WebAccountModal onClose={() => setCuentaAbierta(false)} />}
@@ -105,10 +98,10 @@ function Layout() {
         </NavLink>
       </nav>
 
-      <footer className="site-footer">
-        <div>TERRA AUTOSERVICIO · Sucursal Equipetrol, Santa Cruz</div>
-        <small>Terminal táctil optimizado para celular, tablet y PC</small>
-      </footer>
+        <footer className="site-footer">
+          <div>TERRA AUTOSERVICIO · Sucursal 1 Central, Santa Cruz</div>
+          <small>Terminal táctil optimizado para celular, tablet y PC</small>
+        </footer>
 
       <div className="fabs-stack">
         <CarritoFlotante />

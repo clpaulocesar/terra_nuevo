@@ -217,15 +217,16 @@
   .cart-fab { margin-right: 0.75rem; }
 }
 
-/* Boton escanear QR al lado del carrito (palpita) */
+/* Boton escanear QR + carrito apilados verticalmente (QR arriba, carrito abajo/centro) */
 .cart-fabs {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
   align-items: center;
 }
 .cart-qr {
-  width: 3.4rem;
-  height: 3.4rem;
+  width: 3rem;
+  height: 3rem;
   border: none;
   border-radius: 999px;
   background: #a6192e;
@@ -333,3 +334,15 @@
 }
 @keyframes avisoFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes avisoOut { to { opacity: 0; transform: translateY(10px); pointer-events: none; } }
+
+/* Movil: FABs y QR mas pequeños, y escaner QR que ocupe bien la pantalla */
+@media (max-width: 639px) {
+  .cart-widget { bottom: 8rem; }
+  .cart-fab { width: 2.6rem; height: 2.6rem; }
+  .cart-fab svg { width: 20px; height: 20px; }
+  .cart-qr { width: 2.6rem; height: 2.6rem; }
+  .cart-qr svg { width: 18px; height: 18px; }
+  .qr-modal { padding: 10px; }
+  .qr-modal__panel { max-width: 100%; max-height: 92vh; }
+  .qr-modal__view { margin: 0 12px 8px; }
+}

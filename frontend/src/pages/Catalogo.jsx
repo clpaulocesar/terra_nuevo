@@ -394,10 +394,10 @@ export default function Catalogo() {
                     <button
                       type="button"
                       onClick={() => setTecladoAbierto((prev) => !prev)}
-                      className={`hidden sm:flex items-center gap-space-xs ml-space-sm pl-space-sm px-space-sm py-1.5 rounded-lg cursor-pointer transition-colors ${
+                      className={`flex items-center gap-space-xs ml-space-sm pl-space-sm px-space-sm py-1.5 rounded-lg cursor-pointer transition-colors ${
                         tecladoAbierto ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant'
                       }`}
-                      title="Abrir teclado táctil para kiosco"
+                      title="Abrir teclado táctil"
                     >
                       <span className={`material-symbols-outlined text-[18px] ${tecladoAbierto ? 'text-on-primary' : 'text-primary'}`}>
                         keyboard

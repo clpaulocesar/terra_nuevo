@@ -30,11 +30,17 @@ export default function CarritoFlotante() {
 
   useEffect(() => {
     if (!escaneoAbierto) return undefined;
-    const scanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: 250 }, false);
+    const scanner = new Html5QrcodeScanner("qr-reader", {
+      fps: 20,
+      qrbox: 220,
+      aspectRatio: 1.0,
+      showTorchButton: true,
+      showFlipCameraButton: true,
+    }, false);
     scannerRef.current = scanner;
     scanner.render(
       (decodedText) => { setQrLeido(decodedText); },
-      () => {}
+      (errorMessage) => {}
     );
     return () => {
       if (scannerRef.current) {
@@ -131,6 +137,11 @@ export default function CarritoFlotante() {
       </aside>
 
       <div className="cart-fabs">
+        {!abierto && (
+          <button type="button" className="cart-qr" onClick={abrirEscaneo} aria-label="Escanear código QR">
+            <QrCode size={18} />
+          </button>
+        )}
         <button
           type="button"
           className="cart-fab"
@@ -138,14 +149,9 @@ export default function CarritoFlotante() {
           aria-expanded={abierto}
           aria-label={abierto ? 'Cerrar carrito' : 'Abrir carrito'}
         >
-          {abierto ? <X size={24} /> : <ShoppingCart size={24} />}
+          {abierto ? <X size={20} /> : <ShoppingCart size={20} />}
           {!abierto && cantidadTotal > 0 && <b className="cart-fab-badge">{cantidadTotal}</b>}
         </button>
-        {!abierto && (
-          <button type="button" className="cart-qr" onClick={abrirEscaneo} aria-label="Escanear código QR">
-            <QrCode size={20} />
-          </button>
-        )}
       </div>
       {mostrarAvisoCamara && (
         <div className="qr-aviso-flotante">

@@ -219,6 +219,20 @@
   margin-top: 0.25rem;
 }
 
+/* Header móvil: logo centrado, carrito + casa + sesión al borde derecho */
+.header-spacer { flex: 1; }
+.header-grupo-derecho {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.terra-logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 /* ========================================================
    RESPONSIVE BREAKPOINTS: Tablet (521px - 1024px)
    ======================================================== */
@@ -243,6 +257,8 @@
   .site-header.terra-header {
     padding: 0.5rem 1rem;
     min-height: 56px;
+    justify-content: flex-start;
+    gap: 0.5rem;
   }
 
   .terra-header .terra-logo img {
@@ -329,7 +345,7 @@
   }
 
   .site-footer {
-    padding-bottom: 5rem; /* Evita que la barra móvil tape el texto */
+    padding-bottom: 10rem; /* Evita que la barra móvil tape la dirección de la sucursal */
   }
 }
 
