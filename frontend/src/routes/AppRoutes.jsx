@@ -52,6 +52,10 @@ function Layout() {
           <img src="/logo-terra.png" alt="TERRA Autoservicio" />
         </Link>
         <div className="header-grupo-derecho">
+          <NavLink to="/catalogo" className="terra-catalog-link">
+            <Package size={17} />
+            <span>Catálogo de Productos</span>
+          </NavLink>
           <NavLink to="/carrito" className="cart-link terra-cart-link">
             <ShoppingCart size={18} />
             <span>Carrito</span>
