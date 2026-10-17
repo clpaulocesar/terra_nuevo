@@ -1,9 +1,32 @@
-import { createContext, useCallback, useMemo, useState } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 
 export const CarritoContext = createContext(null);
 
+// Persiste el carrito en el navegador: al escanear varios QR se recarga la
+// página completa (detalle-qr.html -> /productos/:id?agregar=1) y, sin esto,
+// el estado en memoria reiniciaba el carrito en cada escaneo.
+const CLAVE_CARRITO = 'terra_carrito';
+
+function carritoGuardado() {
+  try {
+    const lista = JSON.parse(localStorage.getItem(CLAVE_CARRITO) || '[]');
+    if (!Array.isArray(lista)) return [];
+    return lista.filter((item) => item && typeof item === 'object' && item.lineaId && item.id
+      && Number.isFinite(Number(item.precio)) && Number.isFinite(Number(item.cantidad)));
+  } catch {
+    return [];
+  }
+}
+
 export function CarritoProvider({ children }) {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(carritoGuardado);
+
+  useEffect(() => {
+    try {
+      if (items.length) localStorage.setItem(CLAVE_CARRITO, JSON.stringify(items));
+      else localStorage.removeItem(CLAVE_CARRITO);
+    } catch { /* sin almacenamiento */ }
+  }, [items]);
 
   const agregarProducto = useCallback((producto, cantidad = 1, opcion = {}) => {
     const id = String(producto?.id || '').trim();
