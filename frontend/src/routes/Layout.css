@@ -344,13 +344,15 @@
     padding: 0 3px;
   }
 
+  /* Carrito solo ícono en móvil (header superior y barra inferior táctil) */
+  .terra-header-right .terra-cart-link > span,
+  .mobile-nav-item.mobile-cart-item > span {
+    display: none;
+  }
+
   .site-footer {
     padding-bottom: 10rem; /* Evita que la barra móvil tape la dirección de la sucursal */
   }
 }
 
-@media (max-width: 360px) {
-  .terra-header-right .terra-cart-link > span {
-    display: none;
-  }
-}
+

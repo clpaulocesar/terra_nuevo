@@ -703,44 +703,45 @@ export default function Catalogo() {
                           )}
                         </div>
 
-                        {/* Cuerpo de la Tarjeta */}
-                        <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
-                          <div className="flex flex-col gap-space-xs">
-                            {/* Fila de reseñas y entrega */}
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-label-sm text-label-sm text-on-surface-variant">
-                                <span className="text-amber-500 tracking-tight">★★★★★</span>{' '}
-                                (32 reseñas)
-                              </span>
-                              <span className={`font-label-sm text-label-sm font-bold ${producto.stock > 0 ? 'text-on-surface' : 'text-error'}`}>
-                                {producto.stock > 0 ? 'Entrega inmediata' : 'Agotado'}
-                              </span>
-                            </div>
+                          {/* Cuerpo de la Tarjeta */}
+                          <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
+                            <div className="flex flex-col gap-space-xs">
+                              {/* Fila de reseñas y entrega */}
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-label-sm text-label-sm text-on-surface-variant">
+                                  <span className="text-amber-500 tracking-tight">★★★★★</span>{' '}
+                                  (32 reseñas)
+                                </span>
+                                <span className={`font-label-sm text-label-sm font-bold ${producto.stock > 0 ? 'text-on-surface' : 'text-error'}`}>
+                                  {producto.stock > 0 ? 'Entrega inmediata' : 'Agotado'}
+                                </span>
+                              </div>
 
-                            <Link
-                              to={`/productos/${producto.id}`}
-                              className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors"
-                            >
-                              <span className="material-symbols-outlined text-[18px]">
-                                visibility
-                              </span>
-                              <span>Ver detalles del producto</span>
-                            </Link>
-
-                            <h2 className="font-title-md text-title-md text-on-surface font-bold leading-snug">
                               <Link
-                                className="hover:text-primary transition-colors"
                                 to={`/productos/${producto.id}`}
+                                className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors"
                               >
-                                {producto.nombre}
+                                <span className="material-symbols-outlined text-[18px]">
+                                  visibility
+                                </span>
+                                <span>Ver detalles del producto</span>
                               </Link>
-                            </h2>
 
-                            {Boolean(producto.descripcion) && (
-                              <p className="text-on-surface-variant font-body-sm text-body-sm leading-relaxed line-clamp-2">
-                                {producto.descripcion}
-                              </p>
-                            )}
+                              <h2 className="font-title-md text-title-md text-on-surface font-bold leading-snug">
+                                <Link
+                                  className="hover:text-primary transition-colors"
+                                  to={`/productos/${producto.id}`}
+                                >
+                                  {producto.nombre}
+                                </Link>
+                              </h2>
+
+                              {Boolean(producto.descripcion) && (
+                                <p className="text-on-surface-variant font-body-sm text-body-sm leading-relaxed line-clamp-2">
+                                  {producto.descripcion}
+                                </p>
+                              )}
+                            </div>
 
                             {/* Tonos disponibles (solo los registrados por el admin) */}
                             {tonosColores.length > 0 && (
@@ -803,8 +804,7 @@ export default function Catalogo() {
                               </span>
                             </button>
                           </div>
-                        </div>
-                      </article>
+                        </article>
                     );
                   })}
                 </div>
