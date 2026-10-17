@@ -1,16 +1,6 @@
 import { pool } from '../config/database.js';
 
-let nitColumnReady = null;
-function asegurarColumnaNit() {
-  if (!nitColumnReady) nitColumnReady = (async () => {
-    await pool.query('ALTER TABLE customers ADD COLUMN IF NOT EXISTS nit TEXT');
-    await pool.query('ALTER TABLE customers ALTER COLUMN nit TYPE TEXT');
-  })();
-  return nitColumnReady;
-}
-
 export async function crearClienteBD({ nombre, telefono, email, nit }) {
-  await asegurarColumnaNit();
   const { rows } = await pool.query(
     `INSERT INTO customers (name, phone, email, nit) VALUES ($1,$2,$3,$4)
      RETURNING id, name AS nombre, phone AS telefono, email, nit, created_at AS fecha_registro`,

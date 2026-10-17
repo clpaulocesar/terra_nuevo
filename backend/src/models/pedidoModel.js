@@ -2,14 +2,6 @@ import { randomUUID } from 'node:crypto';
 import { pool } from '../config/database.js';
 
 const aMonto = (minor) => Number(minor || 0) / 100;
-let paymentColumnsReady;
-function asegurarColumnasPago() {
-  if (!paymentColumnsReady) paymentColumnsReady = Promise.all([
-    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_receipt_url TEXT'),
-    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method TEXT'),
-  ]);
-  return paymentColumnsReady;
-}
 
 export async function crearPedidoBD(clienteId, items) {
   const conexion = await pool.connect();
@@ -47,7 +39,6 @@ export async function crearPedidoBD(clienteId, items) {
 }
 
 export async function obtenerPedidoBD(id) {
-  await asegurarColumnasPago();
   const { rows } = await pool.query(
     `SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor,o.status AS estado,o.created_at AS fecha,
             o.payment_receipt_url AS comprobante_url,o.payment_method AS metodo_pago,
@@ -67,7 +58,6 @@ export async function obtenerPedidoBD(id) {
 }
 
 export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 } = {}) {
-  await asegurarColumnasPago();
   const valores=[]; const condiciones=[];
   if(buscar){valores.push(`%${buscar}%`);condiciones.push(`(o.ticket_number ILIKE $${valores.length} OR COALESCE(c.name,'') ILIKE $${valores.length})`);}
   if(estado){valores.push(estado);condiciones.push(`o.status=$${valores.length}`);}
@@ -77,7 +67,6 @@ export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 }
 }
 
 export async function registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl }) {
-  await asegurarColumnasPago();
   const { rows } = await pool.query(
     `UPDATE orders
      SET status='completed', payment_method=$1, payment_receipt_url=COALESCE($2, payment_receipt_url), updated_at=NOW()

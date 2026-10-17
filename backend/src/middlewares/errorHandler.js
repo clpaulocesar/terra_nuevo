@@ -34,16 +34,13 @@ export function errorHandler(err, req, res, next) {
     mensaje = 'El JSON enviado no es válido';
   }
 
-  let detalle;
   if (statusCode >= 500) {
     console.error('Error del servidor:', err);
     mensaje = 'Error interno del servidor';
-    detalle = `${err.code || ''} ${err.message || ''} ${err.detail || ''}`.trim();
   }
 
   return res.status(statusCode).json({
     success: false,
     mensaje,
-    detalle,
   });
 }

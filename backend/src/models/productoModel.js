@@ -5,14 +5,7 @@ const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, 
   COALESCE(p.public_price, 0) AS precio, p.stock_quantity::integer AS stock,
   p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
 
-let videoColumnReady;
-function asegurarColumnaVideo() {
-  if (!videoColumnReady) videoColumnReady = Promise.all([pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS video_url TEXT'), pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS colors TEXT[]'), pool.query('ALTER TABLE products ADD COLUMN IF NOT EXISTS image_urls TEXT[]')]);
-  return videoColumnReady;
-}
-
 export async function listarProductosBD({ buscar = '', categoria = '', pagina = 1, limite = 100, soloActivos = false } = {}) {
-  await asegurarColumnaVideo();
   const valores = [];
   const condiciones = [];
   if (soloActivos) condiciones.push('COALESCE(p.activo, p.is_active, TRUE) = TRUE');
@@ -55,7 +48,6 @@ async function calcularMaximoVentas() {
 }
 
 export async function obtenerProductoBD(id) {
-  await asegurarColumnaVideo();
   const idStr = String(id || '').trim();
   const { rows } = await pool.query(
     `SELECT ${campos} 
