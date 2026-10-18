@@ -22,7 +22,7 @@ const enlaces = [
 export default function AdminLayout() {
   const [drawerAbierto, setDrawerAbierto] = useState(false);
   const navigate = useNavigate();
-  const salir = () => { cerrarSesionAdmin(); navigate('/admin/login', { replace: true }); };
+  const salir = () => { cerrarSesionAdmin(); navigate('/', { replace: true }); };
 
   return (
     <div className={`admin-shell ${drawerAbierto ? 'drawer-open' : ''}`}>
