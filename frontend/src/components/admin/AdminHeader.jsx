@@ -11,6 +11,7 @@ import './AdminNavigationHidden.css';
 const TITULOS_RUTAS = {
   '/admin': 'Panel Principal', '/admin/': 'Panel Principal', '/admin/productos': 'Productos',
   '/admin/categorias': 'Categorías', '/admin/pedidos': 'Pedidos', '/admin/clientes': 'Clientes',
+  '/admin/reportes': 'Reportes',
 };
 
 export default function AdminHeader({ onToggleDrawer }) {
