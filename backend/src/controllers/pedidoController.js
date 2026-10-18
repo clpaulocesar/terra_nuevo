@@ -6,6 +6,7 @@ import {
   listarPedidosBD,
   actualizarEstadoPedidoBD,
 } from '../models/pedidoModel.js';
+import { pool } from '../config/database.js';
 
 export async function registrarPagoPedido(req, res, next) {
   try {
@@ -126,6 +127,33 @@ export async function crearPedido(req, res, next) {
   } catch (error) {
     next(error);
   }
+}
+
+export async function crearVentaDirecta(req, res, next) {
+  try {
+    const clienteId = req.body?.clienteId == null ? null : String(req.body.clienteId).trim();
+    const metodoPago = String(req.body?.metodoPago || '').trim();
+    const items = req.body?.items;
+    if (!['qr', 'efectivo', 'tarjeta'].includes(metodoPago)) return res.status(400).json({ success: false, mensaje: 'Selecciona un método de pago válido.' });
+    if (!Array.isArray(items) || !items.length || items.length > 50) return res.status(400).json({ success: false, mensaje: 'Debes agregar entre 1 y 50 productos.' });
+    const agrupados = new Map();
+    for (const item of items) {
+      const productoId = String(item?.productoId || '').trim(); const cantidad = Number(item?.cantidad);
+      if (!productoId || !Number.isSafeInteger(cantidad) || cantidad < 1 || cantidad > 100) return res.status(400).json({ success: false, mensaje: 'Producto o cantidad inválida.' });
+      const total = (agrupados.get(productoId) || 0) + cantidad;
+      if (total > 100) return res.status(400).json({ success: false, mensaje: 'Máximo 100 unidades por producto.' });
+      agrupados.set(productoId, total);
+    }
+    let precioMayorista = false;
+    if (clienteId) {
+      const cliente = await pool.query(`SELECT u.role FROM customers c LEFT JOIN users u ON u.auth_user_id=c.auth_user_id WHERE c.id=$1`, [clienteId]);
+      if (!cliente.rowCount) return res.status(404).json({ success: false, mensaje: 'Cliente no encontrado.' });
+      precioMayorista = cliente.rows[0].role === 'mayorista';
+    }
+    const pedido = await crearPedidoBD(clienteId, Array.from(agrupados, ([productoId, cantidad]) => ({ productoId, cantidad })), { precioMayorista });
+    const cobrado = await registrarPagoPedidoBD(pedido.id, { metodoPago, comprobanteUrl: null });
+    return res.status(201).json({ success: true, mensaje: 'Venta directa registrada.', data: { ...cobrado, tipoCliente: precioMayorista ? 'mayorista' : 'minorista' } });
+  } catch (error) { next(error); }
 }
 
 export async function obtenerPedido(req, res, next) {
