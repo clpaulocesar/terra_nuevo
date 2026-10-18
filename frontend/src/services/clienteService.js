@@ -4,3 +4,11 @@ export async function crearCliente(datos) { exigirConexionReal(); return apiRequ
 export async function obtenerCliente(id) { exigirConexionReal(); return apiRequest(`/clientes/${id}`); }
 export async function eliminarCliente(id) { exigirConexionReal(); return apiRequest(`/clientes/${id}`, { method: 'DELETE' }); }
 export async function listarClientes({ buscar = '', limite = 100 } = {}) { exigirConexionReal(); return apiRequest(`/clientes?buscar=${encodeURIComponent(buscar)}&limite=${limite}`); }
+export async function crearUsuarioMayorista(datos) {
+  exigirConexionReal();
+  const token = sessionStorage.getItem('terra_admin_token');
+  if (!token) throw new Error('Inicia sesión nuevamente como administrador.');
+  return apiRequest('/clientes/mayoristas', {
+    method: 'POST', body: datos, headers: { Authorization: `Bearer ${token}` },
+  });
+}
