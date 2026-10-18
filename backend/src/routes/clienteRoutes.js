@@ -4,6 +4,8 @@ import { Router } from 'express';
 import {
   crearCliente,
   crearUsuarioMayorista,
+  obtenerSesionCliente,
+  listarMisPedidosMayorista,
   eliminarCliente,
   obtenerCliente,
   listarClientes,
@@ -14,6 +16,8 @@ const router = Router();
 
 router.post('/', crearCliente);
 router.post('/mayoristas', authAdmin, crearUsuarioMayorista);
+router.get('/sesion', obtenerSesionCliente);
+router.get('/mis-pedidos', listarMisPedidosMayorista);
 router.get('/', listarClientes);
 router.get('/:id', obtenerCliente);
 router.delete('/:id', eliminarCliente);

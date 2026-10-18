@@ -79,6 +79,21 @@ export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 }
   return rows;
 }
 
+export async function listarPedidosPorClienteBD(clienteId, limite = 50) {
+  const { rows } = await pool.query(
+    `SELECT o.id,o.ticket_number AS codigo,o.total_minor/100.0 AS total,o.status AS estado,o.created_at AS fecha,
+            COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items
+     FROM orders o
+     LEFT JOIN order_items i ON i.order_id=o.id
+     WHERE o.customer_id=$1
+     GROUP BY o.id
+     ORDER BY o.created_at DESC
+     LIMIT $2`,
+    [clienteId, limite]
+  );
+  return rows;
+}
+
 export async function registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl }) {
   await asegurarColumnasPago();
   const { rows } = await pool.query(

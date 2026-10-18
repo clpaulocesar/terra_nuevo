@@ -1,13 +1,19 @@
-import { createContext, useCallback, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { SesionClienteContext } from './SesionClienteContext.jsx';
 
 export const CarritoContext = createContext(null);
 
 export function CarritoProvider({ children }) {
   const [items, setItems] = useState([]);
+  const { esMayorista } = useContext(SesionClienteContext);
+
+  useEffect(() => {
+    setItems((anterior) => anterior.map((item) => ({ ...item, precio: esMayorista && Number.isFinite(Number(item.precioMayorista)) ? Number(item.precioMayorista) : Number(item.precioPublico ?? item.precio) })));
+  }, [esMayorista]);
 
   const agregarProducto = useCallback((producto, cantidad = 1, opcion = {}) => {
     const id = String(producto?.id || '').trim();
-    const precio = Number(producto?.precio);
+    const precio = esMayorista && Number.isFinite(Number(producto?.precioMayorista)) ? Number(producto.precioMayorista) : Number(producto?.precio);
     const stock = Number(producto?.stock);
     const unidades = Number(cantidad);
 
@@ -27,13 +33,13 @@ export function CarritoProvider({ children }) {
       return encontrado
         ? anterior.map((item) => item.lineaId === lineaId ? { ...item, cantidad: nuevaCantidad } : item)
         : [...anterior, {
-            id, nombre: producto.nombre, precio, stock: Math.floor(stock),
+            id, nombre: producto.nombre, precio, precioPublico: Number(producto.precio), precioMayorista: producto.precioMayorista ?? null, stock: Math.floor(stock),
             categoria: producto.categoria, imagen_url: producto.imagen_url,
             color, lineaId, cantidad: nuevaCantidad,
           }];
     });
     return true;
-  }, [items]);
+  }, [items, esMayorista]);
 
   const quitarProducto = useCallback((lineaId) => {
     setItems((anterior) => anterior.filter((item) => item.lineaId !== String(lineaId)));

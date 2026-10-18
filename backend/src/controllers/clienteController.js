@@ -7,6 +7,8 @@ import {
 } from '../models/clienteModel.js';
 import { crearPerfilMayoristaBD } from '../models/mayoristaModel.js';
 import { crearUsuarioSupabase, eliminarUsuarioSupabase } from '../services/supabaseAuth.js';
+import { obtenerMayoristaDesdeToken } from '../services/sesionMayorista.js';
+import { listarPedidosPorClienteBD } from '../models/pedidoModel.js';
 
 function campoTexto(valor) {
   return typeof valor === 'string' ? valor.trim() : '';
@@ -119,6 +121,25 @@ export async function crearUsuarioMayorista(req, res, next) {
     }
     return next(error);
   }
+}
+
+export async function obtenerSesionCliente(req, res, next) {
+  try {
+    const perfil = await obtenerMayoristaDesdeToken(req.headers.authorization);
+    if (!perfil) return res.status(403).json({ success: false, mensaje: 'Esta cuenta no tiene acceso mayorista.' });
+    return res.json({ success: true, data: perfil });
+  } catch (error) { next(error); }
+}
+
+export async function listarMisPedidosMayorista(req, res, next) {
+  try {
+    const perfil = await obtenerMayoristaDesdeToken(req.headers.authorization);
+    if (!perfil?.cliente_id) return res.status(403).json({ success: false, mensaje: 'La sesión mayorista no es válida.' });
+    const limite = Number(req.query.limite ?? 50);
+    if (!Number.isSafeInteger(limite) || limite < 1 || limite > 100) return res.status(400).json({ success: false, mensaje: 'Límite inválido.' });
+    const pedidos = await listarPedidosPorClienteBD(perfil.cliente_id, limite);
+    return res.json({ success: true, data: pedidos });
+  } catch (error) { next(error); }
 }
 
 export async function obtenerCliente(req, res, next) {

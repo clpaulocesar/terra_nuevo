@@ -2,6 +2,7 @@ import { useContext, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, Delete, ShieldCheck, UserRound } from 'lucide-react';
 import { ClienteContext } from '../context/ClienteContext.jsx';
+import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { validarDatosCliente } from '../utils/validaciones.js';
 import './Identificacion.css';
@@ -21,6 +22,7 @@ const TECLADO_NUMEROS = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['0'
 
 export default function Identificacion() {
   const { cliente, setCliente, limpiarCliente } = useContext(ClienteContext);
+  const { esMayorista } = useContext(SesionClienteContext);
   const { items } = useCarrito();
   const [datos, setDatos] = useState(cliente);
   const [errores, setErrores] = useState({});
@@ -30,6 +32,7 @@ export default function Identificacion() {
   const nav = useNavigate();
 
   if (!items.length) return <Navigate to="/carrito" replace />;
+  if (esMayorista) return <Navigate to="/confirmacion" replace />;
 
   const seguir = (event) => {
     event.preventDefault();
