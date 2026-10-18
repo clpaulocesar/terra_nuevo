@@ -7,10 +7,6 @@ import { obtenerProducto } from '../../services/productoService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import './CarritoFlotante.css';
 
-function esDispositivoMovil() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
-
 // Extrae el id/param del contenido del QR (URL de la ficha o texto con ?id=).
 function idDeCodigoQr(texto) {
   try {
@@ -28,7 +24,6 @@ export default function CarritoFlotante() {
   const [abierto, setAbierto] = useState(false);
   const [escaneoAbierto, setEscaneoAbierto] = useState(false);
   const [qrLeido, setQrLeido] = useState(null);
-  const [mostrarAvisoCamara, setMostrarAvisoCamara] = useState(false);
   // inactiva | iniciando | activa | error
   const [camaraEstado, setCamaraEstado] = useState('inactiva');
   const [camaraError, setCamaraError] = useState(null);
@@ -52,11 +47,6 @@ export default function CarritoFlotante() {
   const cerrarEscaneo = () => setEscaneoAbierto(false);
 
   const abrirEscaneo = () => {
-    if (!esDispositivoMovil()) {
-      setMostrarAvisoCamara(true);
-      setTimeout(() => setMostrarAvisoCamara(false), 3000);
-      return;
-    }
     codigoRef.current = null;
     setMensajeQr(null);
     setAgregandoScan(false);
@@ -219,11 +209,6 @@ export default function CarritoFlotante() {
           {!abierto && cantidadTotal > 0 && <b className="cart-fab-badge">{cantidadTotal}</b>}
         </button>
       </div>
-      {mostrarAvisoCamara && (
-        <div className="qr-aviso-flotante">
-          Usá un dispositivo con cámara (celular o tablet) para escanear el QR.
-        </div>
-      )}
       {escaneoAbierto && (
         <div className="qr-modal" role="dialog" aria-modal="true" aria-label="Escanear código QR" onClick={cerrarEscaneo}>
           <div className="qr-modal__panel" onClick={e => e.stopPropagation()}>
