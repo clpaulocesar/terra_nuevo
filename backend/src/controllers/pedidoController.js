@@ -144,7 +144,8 @@ export async function crearVentaDirecta(req, res, next) {
       if (total > 100) return res.status(400).json({ success: false, mensaje: 'Máximo 100 unidades por producto.' });
       agrupados.set(productoId, total);
     }
-    let precioMayorista = false;
+    const tipoMayoristaManual = req.body?.tipoMayoristaManual === true;
+    let precioMayorista = tipoMayoristaManual;
     if (clienteId) {
       const cliente = await pool.query(`SELECT u.role FROM customers c LEFT JOIN users u ON u.auth_user_id=c.auth_user_id WHERE c.id=$1`, [clienteId]);
       if (!cliente.rowCount) return res.status(404).json({ success: false, mensaje: 'Cliente no encontrado.' });
