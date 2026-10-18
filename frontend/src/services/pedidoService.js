@@ -6,11 +6,11 @@ export async function crearPedido({ clienteId = null, items }) {
   exigirConexionReal();
   return apiRequest('/pedidos', { method: 'POST', body: { clienteId, items: items.map(item => ({ productoId: String(item.productoId), cantidad: Number(item.cantidad), color: String(item.color || '').trim() || null })) } });
 }
-export async function crearVentaDirecta({ clienteId = null, items, metodoPago }) {
+export async function crearVentaDirecta({ clienteId = null, items, metodoPago, tipoMayoristaManual = false }) {
   exigirConexionReal();
   const token = sessionStorage.getItem('terra_admin_token');
   if (!token) throw new Error('Inicia sesión nuevamente como administrador.');
-  return apiRequest('/pedidos/venta-directa', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: { clienteId, items, metodoPago } });
+  return apiRequest('/pedidos/venta-directa', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: { clienteId, items, metodoPago, tipoMayoristaManual } });
 }
 
 export async function obtenerPedido(id) { exigirConexionReal(); return apiRequest(`/pedidos/${id}`); }
