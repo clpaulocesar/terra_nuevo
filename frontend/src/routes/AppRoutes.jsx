@@ -30,6 +30,7 @@ import VentasDirectasAdmin from '../pages/admin/VentasDirectasAdmin.jsx';
 import PedidosAdmin from '../pages/admin/PedidosAdmin.jsx';
 import ClientesAdmin from '../pages/admin/ClientesAdmin.jsx';
 import CategoriasAdmin from '../pages/admin/CategoriasAdmin.jsx';
+import ReportesAdmin from '../pages/admin/ReportesAdmin.jsx';
 import LoginAdmin from '../pages/admin/LoginAdmin.jsx';
 import RutaAdmin from '../components/admin/RutaAdmin.jsx';
 import ChatAsistente from '../components/chat/ChatAsistente.jsx';
@@ -223,6 +224,7 @@ export default function AppRoutes() {
           <Route path="categorias" element={<CategoriasAdmin />} />
           <Route path="pedidos" element={<PedidosAdmin />} />
           <Route path="clientes" element={<ClientesAdmin />} />
+          <Route path="reportes" element={<ReportesAdmin />} />
         </Route>
         <Route element={<Layout />}>
           <Route index element={<Bienvenida />} />

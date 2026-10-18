@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, Package, ReceiptText, Store, LogOut, Tags, Users, X, ShoppingCart } from 'lucide-react';
+import { LayoutDashboard, Package, ReceiptText, Store, LogOut, Tags, TrendingUp, Users, X, ShoppingCart } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { cerrarSesionAdmin } from '../../services/adminService.js';
 import AdminHeader from './AdminHeader.jsx';
@@ -17,6 +17,7 @@ const enlaces = [
   { to: '/admin/productos', label: 'Productos', icon: Package },
   { to: '/admin/categorias', label: 'Categorías', icon: Tags },
   { to: '/admin/clientes', label: 'Clientes', icon: Users },
+  { to: '/admin/reportes', label: 'Reportes', icon: TrendingUp },
 ];
 
 export default function AdminLayout() {
