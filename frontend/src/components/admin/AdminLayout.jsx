@@ -13,8 +13,8 @@ import './AdminTheme.css';
 const enlaces = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/pedidos', label: 'Pedidos', icon: ReceiptText },
-  { to: '/admin/productos', label: 'Productos', icon: Package },
   { to: '/admin/ventas-directas', label: 'Ventas directas', icon: ShoppingCart },
+  { to: '/admin/productos', label: 'Productos', icon: Package },
   { to: '/admin/categorias', label: 'Categorías', icon: Tags },
   { to: '/admin/clientes', label: 'Clientes', icon: Users },
 ];
