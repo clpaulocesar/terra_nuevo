@@ -17,16 +17,16 @@ Backend:
 - Backend exits on startup if Postgres is unavailable; requires `backend/.env` with `DATABASE_URL`, `PORT`, `FRONTEND_URL`, admin env vars
 
 Database:
-- Create DB `terra_autoservicio`, then `psql -U postgres -d terra_autoservicio -f database/schema.sql` (run from repo root)
+- Create DB `terra_autoservicio`, then `psql -U postgres -d terra_autoservicio -f frontend/database/schema.sql` (run from repo root)
 - Reset/seed catalog: `cd backend && node src/config/migrate_seed.js`
 - Health check: `GET http://localhost:3001/api/health`
 
 ## Architecture
 - Frontend env: root `.env` (copy from `.env.example`): `VITE_API_URL`, `VITE_MODO_DEMO`. `VITE_MODO_DEMO` must equal exactly `"true"` to enable demo mode.
-- Frontend API base comes from `src/services/api.js` (`VITE_API_URL`, default `http://localhost:3001/api`; trailing slash stripped). Backend mounts `/api/{productos,pedidos,clientes,admin}`.
-- CORS uses `FRONTEND_URL` (default `http://localhost:5173`).
+- Frontend API base comes from `src/services/api.js` (`window.TERRA_CONFIG.API_URL` in `public/config.js` beats `VITE_API_URL`, default `http://localhost:3001/api`; trailing slash stripped). Backend mounts `/api/{productos,categorias,pedidos,clientes,admin,asistente}` + `/api/health`, `/docs`, `/openapi`, `/api/productos/seed`.
+- CORS is wide open (`cors()` with no origin); `FRONTEND_URL` is documented in `.env` but unused by code.
 - Admin token lives in `sessionStorage` under `terra_admin_token` (not `localStorage`), expires in 8h; `apiRequest` does not attach it.
-- Orders recompute price/stock from the DB inside a transaction with `SELECT ... FOR SHARE`. Cart is memory-only and backend does not decrement stock on order creation.
+- Orders recompute price/stock from the DB inside a transaction (no row locking). Cart is per-tab `sessionStorage` (`terra_carrito`), not memory-only. Backend does not decrement stock on order creation — stock only changes via `PATCH /api/productos/:id/stock`.
 - No test scripts exist (`npm test` in backend intentionally fails). Verification is `npm run lint`, `npm run build`, backend startup, and health check.
 
 ## Gotchas
