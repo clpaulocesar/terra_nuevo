@@ -25,6 +25,7 @@ import Catalogo from '../pages/Catalogo.jsx';
 import AdminLayout from '../components/admin/AdminLayout.jsx';
 import DashboardAdmin from '../pages/admin/DashboardAdmin.jsx';
 import ProductosAdmin from '../pages/admin/ProductosAdmin.jsx';
+import VentasDirectasAdmin from '../pages/admin/VentasDirectasAdmin.jsx';
 import PedidosAdmin from '../pages/admin/PedidosAdmin.jsx';
 import ClientesAdmin from '../pages/admin/ClientesAdmin.jsx';
 import CategoriasAdmin from '../pages/admin/CategoriasAdmin.jsx';
@@ -206,6 +207,7 @@ export default function AppRoutes() {
         <Route path="admin" element={<RutaAdmin><AdminLayout /></RutaAdmin>}>
           <Route index element={<DashboardAdmin />} />
           <Route path="productos" element={<ProductosAdmin />} />
+          <Route path="ventas-directas" element={<VentasDirectasAdmin />} />
           <Route path="categorias" element={<CategoriasAdmin />} />
           <Route path="pedidos" element={<PedidosAdmin />} />
           <Route path="clientes" element={<ClientesAdmin />} />

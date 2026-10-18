@@ -11,7 +11,7 @@ function asegurarColumnasPago() {
   return paymentColumnsReady;
 }
 
-export async function crearPedidoBD(clienteId, items) {
+export async function crearPedidoBD(clienteId, items, { precioMayorista = false } = {}) {
   const conexion = await pool.connect();
   try {
     await conexion.query('BEGIN');
@@ -26,9 +26,9 @@ export async function crearPedidoBD(clienteId, items) {
         // variantes activas. product_variant_id admite NULL en order_items.
         `SELECT p.id AS product_id, p.name, p.stock_quantity, NULL::uuid AS variant_id,
                 COALESCE(p.codigo_terra, p.internal_code, p.slug, p.id::text) AS sku,
-                ROUND(COALESCE(p.public_price, 0) * 100)::bigint AS price_minor
+                ROUND(COALESCE(CASE WHEN $2 THEN NULLIF(BTRIM(p.precio_mayorista::text), '')::numeric END, p.public_price, 0) * 100)::bigint AS price_minor
          FROM products p
-         WHERE p.id=$1 AND COALESCE(p.activo,p.is_active,TRUE)=TRUE LIMIT 1`, [item.productoId]);
+         WHERE p.id=$1 AND COALESCE(p.activo,p.is_active,TRUE)=TRUE LIMIT 1`, [item.productoId, precioMayorista]);
       if (!producto.rowCount) throw new Error('Producto no encontrado o inactivo en Supabase');
       const p = producto.rows[0];
       if (Number(p.stock_quantity || 0) < item.cantidad) throw new Error(`Stock insuficiente para ${p.name}`);
