@@ -42,8 +42,11 @@ export async function listarClientesBD({ buscar = '', limite = 100 } = {}) {
   await asegurarColumnaNit();
   const { rows } = await pool.query(
     `SELECT c.id, c.name AS nombre, c.phone AS telefono, c.email, c.nit, c.created_at AS fecha_registro,
+       MAX(u.role) AS rol,
        COUNT(o.id)::int AS compras, COALESCE(SUM(o.total_minor),0) / 100.0 AS gasto, MAX(o.created_at) AS ultima_compra
-     FROM customers c LEFT JOIN orders o ON o.customer_id=c.id
+     FROM customers c
+     LEFT JOIN users u ON u.auth_user_id=c.auth_user_id
+     LEFT JOIN orders o ON o.customer_id=c.id
      WHERE c.name ILIKE $1 OR COALESCE(c.phone,'') ILIKE $1 OR COALESCE(c.email,'') ILIKE $1 OR COALESCE(c.nit,'') ILIKE $1
      GROUP BY c.id ORDER BY c.created_at DESC LIMIT $2`, [`%${buscar}%`, limite]
   );

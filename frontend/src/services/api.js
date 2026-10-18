@@ -21,13 +21,13 @@ export const WHATSAPP_COMPROBANTES = String(
   (typeof window !== 'undefined' && window.TERRA_CONFIG?.WHATSAPP_COMPROBANTES) || '59175335697'
 ).replace(/\D/g, '');
 
-export async function apiRequest(ruta, { method = 'GET', body, signal } = {}) {
+export async function apiRequest(ruta, { method = 'GET', body, signal, headers = {} } = {}) {
   let respuesta;
   try {
     respuesta = await fetch(`${API_URL}${ruta}`, {
       method,
       signal,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...headers },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
   } catch (error) {
