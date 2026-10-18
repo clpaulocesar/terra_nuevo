@@ -102,7 +102,11 @@ export async function crearProducto(req, res, next) {
       });
     }
 
-    const nuevo = await crearProductoBD(datos);
+    const precioMayorista = datos.precioMayorista === '' || datos.precioMayorista == null ? null : Number(datos.precioMayorista);
+    if (precioMayorista !== null && (!Number.isFinite(precioMayorista) || precioMayorista < 0)) {
+      return res.status(400).json({ success: false, mensaje: 'El precio mayorista debe ser un monto válido.' });
+    }
+    const nuevo = await crearProductoBD({ ...datos, precioMayorista });
     return res.status(201).json({
       success: true,
       mensaje: 'Producto creado exitosamente',
@@ -129,7 +133,11 @@ export async function actualizarProducto(req, res, next) {
       });
     }
 
-    const actualizado = await actualizarProductoBD(id, req.body);
+    const precioMayorista = req.body?.precioMayorista === '' || req.body?.precioMayorista == null ? null : Number(req.body.precioMayorista);
+    if (precioMayorista !== null && (!Number.isFinite(precioMayorista) || precioMayorista < 0)) {
+      return res.status(400).json({ success: false, mensaje: 'El precio mayorista debe ser un monto válido.' });
+    }
+    const actualizado = await actualizarProductoBD(id, { ...req.body, precioMayorista });
     if (!actualizado) {
       return res.status(404).json({
         success: false,

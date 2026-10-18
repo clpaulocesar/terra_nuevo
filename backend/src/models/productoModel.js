@@ -2,7 +2,7 @@ import { pool } from '../config/database.js';
 
 const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, p.slug AS slug,
   p.name AS nombre, p.description AS descripcion, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
-  COALESCE(p.public_price, 0) AS precio, p.stock_quantity::integer AS stock,
+  COALESCE(p.public_price, 0) AS precio, p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
   p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
 
 export async function listarProductosBD({ buscar = '', categoria = '', pagina = 1, limite = 100, soloActivos = false } = {}) {
@@ -37,9 +37,9 @@ export async function crearProductoBD(datos) {
   const baseSlug = String(datos.nombre || 'producto').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const codigo = String(datos.sku || `TRR-${Date.now()}`).trim();
   const { rows } = await pool.query(
-    `INSERT INTO products (name, slug, codigo_terra, description, public_price, stock_quantity, imagen_url, image_urls, video_url, colors, activo, is_active, internal_code, size, color, category_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$11,$3,$12,$13,(SELECT id FROM categories WHERE LOWER(name)=LOWER($14) AND is_active=TRUE LIMIT 1)) RETURNING id`,
-    [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.video_url || null, Array.isArray(datos.colores) ? datos.colores : [], datos.activo ?? true, datos.medida || null, datos.detalle || null, datos.categoria]
+    `INSERT INTO products (name, slug, codigo_terra, description, public_price, precio_mayorista, stock_quantity, imagen_url, image_urls, video_url, colors, activo, is_active, internal_code, size, color, category_id)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12,$3,$13,$14,(SELECT id FROM categories WHERE LOWER(name)=LOWER($15) AND is_active=TRUE LIMIT 1)) RETURNING id`,
+    [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), datos.precioMayorista ?? null, Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.video_url || null, Array.isArray(datos.colores) ? datos.colores : [], datos.activo ?? true, datos.medida || null, datos.detalle || null, datos.categoria]
   );
   return obtenerProductoBD(rows[0].id);
 }
@@ -48,10 +48,10 @@ export async function actualizarProductoBD(id, datos) {
   const idStr = String(id || '').trim();
   const { rows } = await pool.query(
     `UPDATE products 
-     SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), image_urls=$6, activo=COALESCE($7,activo), internal_code=COALESCE($8,internal_code), codigo_terra=COALESCE($8,codigo_terra), size=COALESCE($9,size), color=COALESCE($10,color), video_url=$11, colors=$12, category_id=COALESCE((SELECT id FROM categories WHERE LOWER(name)=LOWER($13) AND is_active=TRUE LIMIT 1),category_id), updated_at=NOW() 
-     WHERE id::text = $14 OR slug = $14 OR COALESCE(codigo_terra, internal_code) = $14 
+     SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), image_urls=$6, activo=COALESCE($7,activo), internal_code=COALESCE($8,internal_code), codigo_terra=COALESCE($8,codigo_terra), size=COALESCE($9,size), color=COALESCE($10,color), video_url=$11, colors=$12, precio_mayorista=$13, category_id=COALESCE((SELECT id FROM categories WHERE LOWER(name)=LOWER($14) AND is_active=TRUE LIMIT 1),category_id), updated_at=NOW()
+     WHERE id::text = $15 OR slug = $15 OR COALESCE(codigo_terra, internal_code) = $15
      RETURNING id`,
-    [datos.nombre, datos.descripcion, datos.precio, datos.stock ?? datos.showroom, datos.imagen_url, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.activo, datos.sku, datos.medida, datos.detalle, datos.video_url ?? null, Array.isArray(datos.colores) ? datos.colores : [], datos.categoria, idStr]
+    [datos.nombre, datos.descripcion, datos.precio, datos.stock ?? datos.showroom, datos.imagen_url, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.activo, datos.sku, datos.medida, datos.detalle, datos.video_url ?? null, Array.isArray(datos.colores) ? datos.colores : [], datos.precioMayorista ?? null, datos.categoria, idStr]
   );
   return rows[0] ? obtenerProductoBD(rows[0].id) : null;
 }
