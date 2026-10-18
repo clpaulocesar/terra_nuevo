@@ -114,7 +114,7 @@ export async function crearUsuarioMayorista(req, res, next) {
     return res.status(201).json({ success: true, mensaje: 'Usuario mayorista creado correctamente.', data: mayorista });
   } catch (error) {
     if (usuarioAuth?.id) await eliminarUsuarioSupabase(usuarioAuth.id).catch(() => {});
-    if (error.codigo === 'SUPABASE_ADMIN_NO_CONFIGURADO') {
+    if (error.codigo === 'SUPABASE_NO_CONFIGURADO') {
       return res.status(503).json({ success: false, mensaje: error.message });
     }
     return next(error);
