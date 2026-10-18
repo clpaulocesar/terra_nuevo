@@ -647,6 +647,7 @@ export default function ProductosAdmin() {
       sku: datos.get('sku'),
       categoria: datos.get('categoria'),
       precio: Number(datos.get('precio')),
+      precioMayorista: datos.get('precio_mayorista') === '' ? null : Number(datos.get('precio_mayorista')),
       showroom: Number(datos.get('showroom')),
       activo: datos.get('visible') === 'on',
       detalle: datos.get('detalle') || 'Especificación showroom',
@@ -685,6 +686,7 @@ export default function ProductosAdmin() {
       sku: datos.get('sku'),
       categoria: datos.get('categoria'),
       precio: precioNumerico > 0 ? precioNumerico : Number(String(editarProducto.precio).replace(/\./g, '').replace(/,/g, '.')),
+      precioMayorista: datos.get('precio_mayorista') === '' ? null : Number(datos.get('precio_mayorista')),
       detalle: datos.get('detalle') || editarProducto.detalle,
       descripcion: datos.get('descripcion') || editarProducto.descripcion,
       showroom: Number(datos.get('showroom')),
@@ -843,6 +845,7 @@ export default function ProductosAdmin() {
                 <th>Producto</th>
                 <th>Categoría</th>
                 <th>Precio</th>
+                <th>Precio mayorista</th>
                 <th>Showroom</th>
                 <th>Kiosco</th>
                 <th>Acciones</th>
@@ -868,6 +871,7 @@ export default function ProductosAdmin() {
                   </td>
                   <td>{p.categoria}</td>
                   <td><strong>Bs {p.precio}</strong></td>
+                  <td><strong>{p.precioMayorista === null ? 'No definido' : `Bs ${p.precioMayorista.toLocaleString('es-BO')}`}</strong></td>
                   <td>
                     <span className={p.showroom < 2 ? 'stock low' : 'stock'}>
                       {p.showroom} un.
@@ -1099,6 +1103,17 @@ export default function ProductosAdmin() {
               </label>
 
               <label>
+                Precio mayorista (Bs) <small>Opcional</small>
+                <input
+                  name="precio_mayorista"
+                  min="0"
+                  type="number"
+                  defaultValue={editarProducto.precioMayorista ?? ''}
+                  placeholder="0.00"
+                />
+              </label>
+
+              <label>
                 Medidas / Especificación
                 <input
                   name="detalle"
@@ -1208,6 +1223,10 @@ export default function ProductosAdmin() {
               <label>
                 Precio de venta (Bs)
                 <input name="precio" required min="0" type="number" placeholder="0.00" />
+              </label>
+              <label>
+                Precio mayorista (Bs) <small>Opcional</small>
+                <input name="precio_mayorista" min="0" type="number" placeholder="0.00" />
               </label>
               <label>
                 Medidas / Detalle

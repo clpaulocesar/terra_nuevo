@@ -2,6 +2,7 @@ import { apiRequest, MODO_DEMO } from './api.js';
 
 export function normalizarProducto(producto) {
   const precio = Number(producto.precio || 0);
+  const precioMayorista = producto.precio_mayorista === null || producto.precio_mayorista === undefined || producto.precio_mayorista === '' ? null : Number(producto.precio_mayorista);
   const showroom = Number(producto.showroom ?? producto.stock ?? 0);
   const imagenes = Array.isArray(producto.imagenes) && producto.imagenes.length ? producto.imagenes : (producto.imagen_url ? [producto.imagen_url] : []);
   return {
@@ -9,6 +10,7 @@ export function normalizarProducto(producto) {
     id: producto.id,
     sku: producto.sku || `TRR-${producto.id}`,
     precio,
+    precioMayorista: Number.isFinite(precioMayorista) ? precioMayorista : null,
     precioOriginal: producto.precio_original ? Number(producto.precio_original) : null,
     showroom,
     bodega: Number(producto.bodega ?? 0),
