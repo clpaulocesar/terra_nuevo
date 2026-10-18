@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Check, ChevronDown, ChevronRight, CircleMinus, CirclePlus, MapPin, Play, ShieldCheck, ShoppingCart, Sparkles, Star, Truck } from 'lucide-react';
 import { obtenerProducto, listarProductos } from '../services/productoService.js';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { mediaDeVideo } from '../utils/videoEmbed.js';
+import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import './DetalleProducto.css';
 import './DetalleProductoSpecs.css';
 import './DetalleProductoRelated.css';
@@ -20,6 +21,7 @@ export default function DetalleProducto() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { agregarProducto } = useCarrito();
+  const { esMayorista } = useContext(SesionClienteContext);
   const [producto, setProducto] = useState(null);
   const [relacionados, setRelacionados] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -268,7 +270,7 @@ export default function DetalleProducto() {
         </div>
         <section className="product-buy">
           <h1>{producto.nombre}</h1><div className="product-buy__rating"><span>{[1, 2, 3, 4, 5].map((n) => <Star size={15} fill="currentColor" key={n} />)}</span><small>Producto recomendado TERRA</small></div>
-          <div className="product-buy__price"><strong>{formatoMoneda(producto.precio)}</strong><small>{disponible ? 'Disponible para entrega inmediata' : 'Consultar disponibilidad'}</small></div>
+          <div className="product-buy__price"><strong>{formatoMoneda(esMayorista && Number.isFinite(Number(producto.precioMayorista)) ? producto.precioMayorista : producto.precio)}</strong><small>{disponible ? 'Disponible para entrega inmediata' : 'Consultar disponibilidad'}</small></div>
           <p className="product-buy__description">{lineasDescripcion.length ? lineasDescripcion.slice(0, 2).map((linea, indice) => <span key={`${indice}-${linea}`}>{linea}</span>) : 'Conocé las características y dimensiones en la ficha técnica.'}</p>
           <div ref={selectorColorRef} className={`product-buy__color-selector${menuColoresAbierto ? ' is-open' : ''}`}>
             <div className="product-buy__color-head">

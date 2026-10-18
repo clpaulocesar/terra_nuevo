@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useContext, useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Camera, Check, ExternalLink, QrCode, ShoppingCart, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
@@ -6,6 +6,7 @@ import { listarProductos, listarCategorias, obtenerProducto } from '../services/
 import { agregarProductoCarritoQr, leerCarritoQr } from '../services/qrCartService.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { obtenerIconoCategoria } from '../data/categorias.js';
+import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import './Catalogo.css';
 
 const CATEGORIAS_CONFIG = [
@@ -61,6 +62,7 @@ export default function Catalogo() {
   const navigate = useNavigate();
   const abrirCamaraAlEntrar = searchParams.get('abrirQr') === '1';
   const { cantidadTotal, subtotal, agregarProducto } = useCarrito();
+  const { esMayorista } = useContext(SesionClienteContext);
 
   // Estados de datos reales
   const [productos, setProductos] = useState([]);
@@ -906,7 +908,7 @@ export default function Catalogo() {
                                   </span>
                                 )}
                                 <div className="font-price-card text-price-card text-primary font-extrabold">
-                                  {formatoMoneda(producto.precio)}
+                                  {formatoMoneda(esMayorista && Number.isFinite(Number(producto.precioMayorista)) ? producto.precioMayorista : producto.precio)}
                                 </div>
                               </div>
                               <span className="hidden sm:inline-block shrink-0 font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant">

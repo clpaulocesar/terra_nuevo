@@ -3,10 +3,11 @@ import {
   BrowserRouter, Routes, Route, Navigate, Link,
   NavLink, Outlet, useNavigate, useLocation, useSearchParams,
 } from 'react-router-dom';
-import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound } from 'lucide-react';
+import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { useProductos } from '../hooks/useProductos.js';
 import { ClienteContext } from '../context/ClienteContext.jsx';
+import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useContext } from 'react';
 import { categorias, emojiCategoria } from '../data/categorias.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
@@ -42,7 +43,9 @@ import './HeaderOptionsHidden.css';
 
 function Layout() {
   const { cantidadTotal } = useCarrito();
+  const { sesion, esMayorista, cerrarSesion } = useContext(SesionClienteContext);
   const [cuentaAbierta, setCuentaAbierta] = useState(false);
+  const [menuCuentaAbierto, setMenuCuentaAbierto] = useState(false);
   const navigate = useNavigate();
   const pulsacionesLogo = useRef([]);
 
@@ -53,6 +56,12 @@ function Layout() {
     event.preventDefault();
     pulsacionesLogo.current = [];
     navigate('/admin/login');
+  };
+
+  const cerrarCuenta = () => {
+    cerrarSesion();
+    setMenuCuentaAbierto(false);
+    navigate('/');
   };
 
   return (
@@ -71,7 +80,10 @@ function Layout() {
         </nav>
 
         <div className="terra-header-right">
-          <button type="button" className="terra-login-button" aria-haspopup="dialog" aria-expanded={cuentaAbierta} onClick={() => setCuentaAbierta(true)}><UserRound size={19} /><span>Iniciar sesión</span></button>
+          <div className="terra-account">
+            <button type="button" className="terra-login-button" aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : setCuentaAbierta(true)}><UserRound size={19} /><span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span></button>
+            {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu"><strong>{sesion?.nombre || 'Cliente mayorista'}</strong><small>Cuenta mayorista</small>{sesion?.email && <span>{sesion.email}</span>}{sesion?.telefono && <span>{sesion.telefono}</span>}<button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></section>}
+          </div>
           <NavLink to="/carrito" className="cart-link terra-cart-link">
             <ShoppingCart size={18} />
             <span>Carrito</span>

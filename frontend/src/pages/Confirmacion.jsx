@@ -2,6 +2,7 @@ import { useContext, useRef, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, CreditCard, QrCode, ReceiptText, ShieldCheck } from 'lucide-react';
 import { ClienteContext } from '../context/ClienteContext.jsx';
+import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { crearCliente } from '../services/clienteService.js';
 import { crearPedido } from '../services/pedidoService.js';
@@ -12,6 +13,7 @@ import './Confirmacion.css';
 export default function Confirmacion() {
   const { items, subtotal, vaciarCarrito } = useCarrito();
   const { cliente, limpiarCliente } = useContext(ClienteContext);
+  const { sesion, esMayorista } = useContext(SesionClienteContext);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
   const [pedidoGenerado, setPedidoGenerado] = useState(null);
@@ -33,18 +35,21 @@ export default function Confirmacion() {
 
     try {
       // Conserva los datos de facturación antes de limpiar el kiosco compartido.
-      const datosClienteTicket = { ...cliente };
+      const datosClienteTicket = esMayorista
+        ? { nombre: sesion?.nombre || 'Cliente mayorista', telefono: sesion?.telefono || '', nit: '' }
+        : { ...cliente };
       // El carrito se limpia al final; el ticket y WhatsApp necesitan conservar
       // todos los datos visuales de sus líneas (nombre, cantidad y color).
       const detalleItemsTicket = items.map((item) => ({ ...item }));
       let id = null;
-      if (cliente.nombre) {
+      if (cliente.nombre && !esMayorista) {
         clienteId.current ??= await crearCliente(cliente);
         id = clienteId.current?.id ?? null;
       }
 
       const pedido = await crearPedido({
         clienteId: id,
+        token: esMayorista ? sesion?.token : null,
         items: items.map((item) => ({ productoId: item.id, cantidad: item.cantidad, color: item.color?.nombre || null })),
       });
 

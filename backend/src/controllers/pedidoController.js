@@ -7,6 +7,7 @@ import {
   actualizarEstadoPedidoBD,
 } from '../models/pedidoModel.js';
 import { pool } from '../config/database.js';
+import { obtenerMayoristaDesdeToken } from '../services/sesionMayorista.js';
 
 export async function registrarPagoPedido(req, res, next) {
   try {
@@ -50,7 +51,10 @@ export async function listarPedidos(req, res, next) {
 
 export async function crearPedido(req, res, next) {
   try {
-    const clienteId = req.body?.clienteId == null ? null : String(req.body.clienteId).trim();
+    let clienteId = req.body?.clienteId == null ? null : String(req.body.clienteId).trim();
+    const mayorista = req.headers.authorization ? await obtenerMayoristaDesdeToken(req.headers.authorization) : null;
+    if (req.headers.authorization && !mayorista) return res.status(403).json({ success: false, mensaje: 'La sesión mayorista no es válida.' });
+    if (mayorista) clienteId = mayorista.cliente_id;
 
     const items = req.body?.items;
 
@@ -116,7 +120,8 @@ export async function crearPedido(req, res, next) {
 
     const pedido = await crearPedidoBD(
       clienteId,
-      itemsNormalizados
+      itemsNormalizados,
+      { precioMayorista: Boolean(mayorista) }
     );
 
     return res.status(201).json({
