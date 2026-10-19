@@ -1,8 +1,10 @@
 import { N8N_CHAT_URL } from './api.js';
 
 // Cliente del nodo "When chat message received" de n8n.
-// El webhook espera POST { action: 'sendMessage', sessionId, chatInput }
-// y responde con { output: '...' } (o el JSON del último nodo del workflow).
+// - Texto: POST JSON { action: 'sendMessage', sessionId, chatInput }.
+// - Audio (requiere "Allow File Uploads" en el nodo): POST multipart/form-data con los mismos
+//   campos más `files` (el archivo llega al workflow como binario, p. ej. $binary.data0).
+// Responde con { output: '...' } (o el JSON del último nodo del workflow).
 
 export const CHAT_HABILITADO = Boolean(N8N_CHAT_URL);
 
@@ -21,19 +23,14 @@ function extraerTexto(datos) {
   );
 }
 
-export async function enviarMensajeChat({ mensaje, sessionId, signal }) {
+async function llamarWebhook({ body, headers, signal }) {
   if (!CHAT_HABILITADO) {
     throw new Error('El chat no está configurado. Define N8N_CHAT_URL en public/config.js.');
   }
 
   let respuesta;
   try {
-    respuesta = await fetch(N8N_CHAT_URL, {
-      method: 'POST',
-      signal,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'sendMessage', sessionId, chatInput: mensaje }),
-    });
+    respuesta = await fetch(N8N_CHAT_URL, { method: 'POST', signal, headers, body });
   } catch (error) {
     if (error.name === 'AbortError') throw error;
     throw new Error('No se pudo conectar con el asistente. Comprueba que n8n esté activo.');
@@ -49,4 +46,23 @@ export async function enviarMensajeChat({ mensaje, sessionId, signal }) {
   }
 
   return String(extraerTexto(datos) || '').trim();
+}
+
+export async function enviarMensajeChat({ mensaje, sessionId, signal }) {
+  return llamarWebhook({
+    signal,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'sendMessage', sessionId, chatInput: mensaje }),
+  });
+}
+
+// `audio` es un Blob WAV (ver utils/audioWav.js). No se fija Content-Type: el navegador
+// añade el boundary del multipart automáticamente.
+export async function enviarAudioChat({ audio, nombreArchivo, sessionId, signal, mensaje = '' }) {
+  const formData = new FormData();
+  formData.append('action', 'sendMessage');
+  formData.append('sessionId', sessionId);
+  formData.append('chatInput', mensaje);
+  formData.append('files', audio, nombreArchivo || 'nota-de-voz.wav');
+  return llamarWebhook({ signal, body: formData });
 }
