@@ -110,3 +110,14 @@ export async function listarCategorias(req, res, next) {
     next(error);
   }
 }
+
+// Devuelve la tabla `categories` completa, sin filtros ni transformaciones.
+// Endpoint sin protección por ahora.
+export async function listarCategoriasCrudo(req, res, next) {
+  try {
+    const { rows } = await pool.query('SELECT * FROM categories ORDER BY name ASC');
+    return res.json({ success: true, total: rows.length, data: rows });
+  } catch (error) {
+    next(error);
+  }
+}
