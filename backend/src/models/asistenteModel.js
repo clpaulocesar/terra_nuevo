@@ -38,7 +38,7 @@ export async function buscarProductosChatBD(termino = '') {
      FROM base
      WHERE NOT EXISTS (SELECT 1 FROM filtrados)
      ORDER BY precio_venta
-     LIMIT 8`,
+     `,
     [texto]
   );
   return rows;
