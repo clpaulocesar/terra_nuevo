@@ -1,0 +1,47 @@
+.ident-page{font-family:Manrope,Arial,sans-serif;max-width:1080px;margin:0 auto}
+.ident-page>header{align-items:center;display:flex;gap:1rem}
+.ident-page>header a{align-items:center;background:#f0eded;border-radius:.7rem;color:#1b1c1c;display:flex;font-weight:800;gap:.4rem;padding:.75rem;text-decoration:none}
+.ident-page>header span{color:#707974;font-size:.8rem;margin-left:auto}
+.ident-page h1{color:#a6192e;font-size:2.25rem;margin:1.5rem 0 .3rem;text-align:center}
+.ident-lead{color:#404944;margin:0 auto;max-width:560px;text-align:center}
+.ident-layout{margin:1.75rem auto 0;max-width:760px}
+.ident-card{background:#fff;border-radius:1rem;box-shadow:0 4px 18px #00000012;padding:1.5rem}
+.ident-fields{display:grid;gap:1rem 1rem;margin-bottom:1rem}
+.ident-card label{display:block}
+.ident-card label>span{align-items:center;display:flex;font-size:.9rem;font-weight:800;gap:.35rem;justify-content:flex-start}
+.ident-card label b{color:#ba1a1a;margin-left:auto}
+.ident-card label em{color:#707974;font-size:.75rem;font-style:normal;font-weight:500;margin-left:auto}
+.ident-card label>div{align-items:center;background:#f0eded;border:2px solid transparent;border-radius:.75rem;display:flex;margin-top:.4rem;transition:border-color .15s,background .15s}
+.ident-card label.active>div{background:#fff;border-color:#a6192e}
+.ident-card input{background:transparent;border:0;font-size:1rem;min-height:3.4rem;outline:0;padding:.5rem .75rem;width:100%}
+.ident-card input[readonly]{caret-color:transparent;cursor:pointer}
+.ident-card i{background:#e4e2e1;border-radius:.6rem 0 0 .6rem;font-style:normal;padding:1rem .8rem}
+.ident-card small{color:#ba1a1a}
+.ident-keyboard{background:linear-gradient(145deg,#f6f4f3,#ebe8e6);border:1px solid #ded9d6;border-radius:1rem;margin:1.25rem 0;padding:1rem;position:relative}
+.ident-keyboard header{align-items:baseline;display:flex;gap:.65rem;margin:0 0 .8rem}
+.ident-keyboard header span{color:#1b1c1c;font-size:.87rem;font-weight:800}
+.ident-keyboard header small{color:#707974;font-size:.72rem}
+.ident-keyboard__letters>div{display:flex;gap:.45rem;justify-content:center;margin-top:.45rem}
+.ident-keyboard button{background:#fff;border:1px solid #d5d1ce;border-bottom-width:3px;border-radius:.55rem;color:#252624;cursor:pointer;font:800 1rem Manrope,Arial,sans-serif;min-height:2.75rem;min-width:2.75rem;padding:.35rem .55rem;transition:background .12s,transform .12s}
+.ident-keyboard button:hover,.ident-keyboard button:focus-visible{background:#fff5f5;border-color:#a6192e;outline:0}
+.ident-keyboard button:active{border-bottom-width:1px;transform:translateY(2px)}
+.ident-keyboard__actions .selected{background:#a6192e;color:#fff}
+.ident-keyboard__actions .space{flex:0 1 17rem;font-size:.8rem;min-width:8rem}
+.ident-keyboard__numeric{display:grid;gap:.45rem;grid-template-columns:repeat(3,minmax(3.5rem,1fr));margin:0 auto;max-width:18rem}
+.ident-keyboard__numeric button:last-child{grid-column:2}
+.ident-keyboard__delete{align-items:center;display:flex;gap:.35rem;justify-content:center;margin:.75rem auto 0;min-width:8rem}
+.ident-whatsapp{align-items:center;background:#f0eded;border:0;border-radius:.75rem;cursor:pointer;display:flex;gap:.7rem;padding:1rem;text-align:left;width:100%}
+.ident-whatsapp>span{align-items:center;background:#e4e2e1;border-radius:.4rem;color:#fff;display:grid;flex:0 0 auto;height:1.7rem;justify-content:center;width:1.7rem}
+.ident-whatsapp>span:has(svg){background:#a6192e}
+.ident-whatsapp b{font-size:.9rem}
+.ident-whatsapp small{color:#707974;display:block}
+.ident-next,.ident-guest{align-items:center;border:0;border-radius:.75rem;cursor:pointer;display:flex;font-weight:800;justify-content:center;margin-top:1rem;min-height:3.5rem;width:100%}
+.ident-next{background:#a6192e;color:#fff;gap:.5rem}
+.ident-next:hover{background:#8e1527}
+.ident-guest{background:#e4e2e1;color:#1b1c1c}
+.ident-guest:hover{background:#d8d5d4}
+.ident-card+aside{align-items:flex-start;background:#f0eded;border-radius:.75rem;color:#404944;display:flex;gap:.6rem;margin-top:1rem;padding:1rem}
+.ident-card+aside svg{color:#a6192e;flex:0 0 auto}
+.ident-card+aside p{font-size:.85rem;margin:0}
+@media(min-width:640px){.ident-fields{grid-template-columns:1fr 1fr}.ident-field-nombre{grid-column:1/-1}}
+@media(max-width:520px){.ident-page h1{font-size:1.8rem}.ident-page>header span{display:none}.ident-card{padding:1rem}.ident-keyboard{margin-left:-.25rem;margin-right:-.25rem;padding:.75rem}.ident-keyboard header small{display:none}.ident-keyboard__letters>div{gap:.25rem}.ident-keyboard button{min-height:2.55rem;min-width:2.15rem;padding:.25rem}.ident-keyboard__actions .space{min-width:6rem}}

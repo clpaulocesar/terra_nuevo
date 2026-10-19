@@ -1,0 +1,19 @@
+/* Adjunto de comprobante de pago en el modal de cobro de Pedidos */
+.orders-modal .orders-receipt{background:#f6f3f2;border:1px dashed #dcd9d9;border-radius:.8rem;margin-top:1rem;padding:.85rem 1rem}
+.orders-modal .orders-receipt-head{align-items:center;display:flex;gap:.5rem;justify-content:space-between}
+.orders-modal .orders-receipt-head b{align-items:center;color:#1b1c1c;display:flex;font-size:.85rem;gap:.4rem}
+.orders-modal .orders-receipt-head span{color:#707974;font-size:.7rem}
+.orders-modal .orders-receipt-btn{align-items:center;background:#fff;border:1px solid #dcd9d9;border-radius:.65rem;color:#a6192e;cursor:pointer;display:inline-flex;font-size:.8rem;font-weight:800;gap:.45rem;justify-content:center;min-height:2.6rem;padding:.55rem .9rem;transition:background .15s}
+.orders-modal .orders-receipt-btn:hover{background:#fff1f2}
+.orders-modal .orders-receipt-btn input{display:none}
+.orders-modal .orders-receipt-empty{display:flex;margin-top:.65rem;width:100%}
+.orders-modal .orders-receipt-preview{align-items:center;display:flex;gap:.85rem;margin-top:.65rem}
+.orders-modal .orders-receipt-preview img{background:#fff;border:1px solid #e4e2e1;border-radius:.6rem;height:86px;object-fit:cover;width:110px}
+.orders-modal .orders-receipt-preview p{color:#707974;font-size:.75rem;margin:0 0 .4rem}
+.orders-modal .orders-receipt-remove{align-items:center;background:none;border:0;color:#ba1a1a;cursor:pointer;display:inline-flex;font-size:.75rem;font-weight:800;gap:.3rem;margin-top:.35rem;padding:.2rem 0}
+.orders-modal .orders-receipt-error{background:#ffdad6;border-radius:.5rem;color:#93000a;font-size:.75rem;margin:.6rem 0 0;padding:.5rem .65rem}
+
+@media(max-width:520px){
+  .orders-modal .orders-receipt-preview{align-items:flex-start;flex-direction:column}
+  .orders-modal .orders-receipt-preview img{height:120px;width:100%}
+}
