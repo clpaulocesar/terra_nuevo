@@ -650,7 +650,7 @@ export default function ProductosAdmin() {
       precioMayorista: datos.get('precio_mayorista') === '' ? null : Number(datos.get('precio_mayorista')),
       showroom: Number(datos.get('showroom')),
       activo: datos.get('visible') === 'on',
-      detalle: datos.get('detalle') || 'Especificación showroom',
+      medida: datos.get('medida') || null,
       descripcion: datos.get('descripcion') || '',
       imagen_url: imagenesNuevo[0] || null,
       imagenes: imagenesNuevo,
@@ -687,7 +687,7 @@ export default function ProductosAdmin() {
       categoria: datos.get('categoria'),
       precio: precioNumerico > 0 ? precioNumerico : Number(String(editarProducto.precio).replace(/\./g, '').replace(/,/g, '.')),
       precioMayorista: datos.get('precio_mayorista') === '' ? null : Number(datos.get('precio_mayorista')),
-      detalle: datos.get('detalle') || editarProducto.detalle,
+      medida: datos.get('medida') || editarProducto.medida,
       descripcion: datos.get('descripcion') || editarProducto.descripcion,
       showroom: Number(datos.get('showroom')),
       activo: datos.get('visible') === 'on',
@@ -980,7 +980,7 @@ export default function ProductosAdmin() {
                 <div className="product-view-info">
                   <h3>{vistaProducto.nombre}</h3>
                   <p>SKU: <b>{vistaProducto.sku}</b> · Categoría: <b>{vistaProducto.categoria}</b></p>
-                  <p style={{ marginTop: '0.2rem' }}>Medidas / Especificación: <b>{vistaProducto.detalle || 'Estándar'}</b></p>
+                  <p style={{ marginTop: '0.2rem' }}>Medidas / Especificación: <b>{vistaProducto.medida || 'Estándar'}</b></p>
                 </div>
                 <div className="product-view-price">
                   <small>Precio Kiosco</small>
@@ -1116,8 +1116,8 @@ export default function ProductosAdmin() {
               <label>
                 Medidas / Especificación
                 <input
-                  name="detalle"
-                  defaultValue={editarProducto.detalle}
+                  name="medida"
+                  defaultValue={editarProducto.medida}
                   placeholder="Ej. Queen · 160 × 200 cm"
                 />
               </label>
@@ -1230,7 +1230,7 @@ export default function ProductosAdmin() {
               </label>
               <label>
                 Medidas / Detalle
-                <input name="detalle" placeholder="Ej. King · 200 × 200 cm" />
+                <input name="medida" placeholder="Ej. King · 200 × 200 cm" />
               </label>
               <label>
                 Stock showroom
