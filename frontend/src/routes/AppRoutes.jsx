@@ -97,7 +97,6 @@ function Layout() {
                   <span>NIT/CI: {sesion?.nit || 'Pendiente de registro'}</span>
                 </div>
               </div>
-              <div className="terra-account-benefit"><BadgeCheck size={17} /><span><b>Condiciones B2B activas</b> en productos seleccionados. Consulta tus beneficios comerciales con un asesor TERRA.</span></div>
               <nav className="terra-account-links" aria-label="Opciones de cuenta mayorista">
                 <Link className="is-active" to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><Home size={16} /> Mi panel mayorista<i /></Link>
                 <Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><BookOpen size={16} /> Catálogo mayorista con precios B2B</Link>
