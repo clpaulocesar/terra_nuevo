@@ -108,11 +108,12 @@ img{max-width:100%}
   .welcome-spot>b{font-size:.82rem!important}
   .welcome-trust{margin-top:1.5rem!important}
 
-  /* FABs en teléfono: más chicos y bajos, sin tapar el contenido central */
-  .chat-widget{bottom:calc(var(--floating-cart-bottom) + var(--floating-cart-size) + var(--floating-controls-gap))!important;gap:.6rem!important;right:.6rem!important}
+  /* FABs en teléfono: apilados QR (arriba), carrito (medio) y asistente (abajo). */
+  .chat-widget{bottom:var(--floating-cart-bottom)!important;gap:.6rem!important;right:.6rem!important}
   .chat-fab{padding:.75rem!important}
-  .cart-widget{bottom:var(--floating-cart-bottom)!important}
+  .cart-widget{bottom:calc(var(--floating-cart-bottom) + 3rem + var(--floating-controls-gap))!important}
   .cart-fab{height:3rem!important;margin-right:.6rem!important;width:3rem!important}
+  .catalog-qr-fab{right:.6rem!important;bottom:calc(var(--floating-cart-bottom) + 3rem + var(--floating-cart-size) + var(--floating-controls-gap) * 2)!important}
 }
 
 /* En teléfono la navegación inferior sustituye por completo a la superior. */
