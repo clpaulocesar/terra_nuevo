@@ -94,12 +94,24 @@ export async function actualizarProducto(id, datos) { exigirConexionReal(); retu
 export async function actualizarStock(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}/stock`, { method: 'PATCH', body: datos })); }
 export async function cambiarVisibilidadProducto(id, activo) {
   exigirConexionReal();
-  const res = await apiRequest(`/productos/${id}/visibilidad`, {
-    method: 'PATCH',
-    body: { activo: Boolean(activo) },
-  });
-  const data = res?.data || res;
-  return normalizarProducto(data);
+  try {
+    const res = await apiRequest(`/productos/${id}/visibilidad`, {
+      method: 'PATCH',
+      body: { activo: Boolean(activo) },
+    });
+    const data = res?.data || res;
+    return normalizarProducto(data);
+  } catch (err) {
+    if (err.message?.includes('Ruta no encontrada') || err.message?.includes('404')) {
+      const resFallback = await apiRequest(`/productos/${id}`, {
+        method: 'PUT',
+        body: { activo: Boolean(activo) },
+      });
+      const dataFallback = resFallback?.data || resFallback;
+      return normalizarProducto(dataFallback);
+    }
+    throw err;
+  }
 }
 export async function eliminarProducto(id) { exigirConexionReal(); return apiRequest(`/productos/${id}`, { method: 'DELETE' }); }
 export async function listarCategorias({ signal } = {}) { try { const r = await apiRequest('/categorias', { signal }); return Array.isArray(r) ? r : r?.data || []; } catch { return []; } }

@@ -22,6 +22,7 @@ router.post('/', crearProducto);
 router.put('/:id', actualizarProducto);
 router.patch('/:id/stock', actualizarStock);
 router.patch('/:id/visibilidad', cambiarVisibilidadProducto);
+router.patch('/:id', cambiarVisibilidadProducto);
 router.delete('/:id', eliminarProducto);
 
 export default router;
