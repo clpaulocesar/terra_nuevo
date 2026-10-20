@@ -6,9 +6,7 @@ import {
   Camera,
   CheckCircle2,
   Info,
-  LocateFixed,
   Mail,
-  MapPin,
   PhoneCall,
   Save,
   Store,
@@ -17,6 +15,7 @@ import {
   User,
 } from 'lucide-react';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
+import MapaEntregaMayorista from '../components/mayorista/MapaEntregaMayorista.jsx';
 import './PanelMayorista.css';
 
 export default function PanelMayorista() {
@@ -34,7 +33,6 @@ export default function PanelMayorista() {
   const [referencia, setReferencia] = useState('Portón azul frente a Surtidor Genex, timbre almacén rampa 2');
   const [gps, setGps] = useState('-17.768924, -63.182410');
   const [avatarUrl, setAvatarUrl] = useState(null);
-  const [zoomNivel, setZoomNivel] = useState(1);
   const [guardadoExito, setGuardadoExito] = useState(false);
   const [cargandoUbicacion, setCargandoUbicacion] = useState(false);
 
@@ -365,124 +363,15 @@ export default function PanelMayorista() {
             </div>
           </div>
 
-          {/* Mapa georreferenciado con controles */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-            <div className="b2b-map-controls-row">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <strong style={{ fontSize: '0.75rem', color: '#374151' }}>Punto georreferenciado en el mapa</strong>
-                <span className="b2b-gps-badge">GPS: {gps}</span>
-              </div>
-              <div className="b2b-map-action-buttons">
-                <button
-                  type="button"
-                  className="b2b-btn-map-action"
-                  onClick={handleObtenerGps}
-                  title="Detectar coordenadas actuales"
-                >
-                  <LocateFixed size={14} style={{ color: 'var(--terra-wine-b2b)' }} />
-                  <span>{cargandoUbicacion ? 'Obteniendo GPS...' : 'Usar mi ubicación GPS actual'}</span>
-                </button>
-                <button
-                  type="button"
-                  className="b2b-btn-map-action"
-                  onClick={() => alert('Haz clic en el mapa para ajustar el marcador.')}
-                  title="Fijar punto"
-                >
-                  <MapPin size={14} style={{ color: '#6b7280' }} />
-                  <span>Fijar punto en el mapa</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Contenedor del mapa SVG */}
-            <div className="b2b-map-frame">
-              <svg
-                className="b2b-map-svg"
-                viewBox="0 0 800 360"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ transform: `scale(${zoomNivel})`, transformOrigin: 'center center' }}
-              >
-                <rect fill="#F4EFEA" height="360" width="800" />
-                {/* Carreteras principales */}
-                <path d="M-20,90 Q300,120 820,80" fill="none" stroke="#ffffff" strokeWidth="22" />
-                <path d="M-20,90 Q300,120 820,80" fill="none" stroke="#FFE8B3" strokeWidth="14" />
-                <path d="M280,-20 L310,380" fill="none" stroke="#ffffff" strokeWidth="26" />
-                <path d="M280,-20 L310,380" fill="none" stroke="#FFE8B3" strokeWidth="16" />
-                <path d="M-10,240 Q400,220 810,260" fill="none" stroke="#ffffff" strokeWidth="18" />
-                <path d="M560,-20 Q540,160 580,380" fill="none" stroke="#ffffff" strokeWidth="18" />
-
-                {/* Manzanas y zonas industriales */}
-                <g fill="#E5DECE" opacity="0.7">
-                  <rect height="50" rx="4" width="80" x="40" y="20" />
-                  <rect height="60" rx="4" width="100" x="140" y="15" />
-                  <rect height="100" rx="4" width="90" x="40" y="110" />
-                  <rect height="80" rx="4" width="100" x="150" y="120" />
-                  <rect height="45" rx="4" width="90" x="330" y="30" />
-                  <rect height="55" rx="4" width="95" x="440" y="20" />
-                  <rect height="100" rx="4" width="120" x="330" y="115" />
-                  <rect height="95" rx="4" width="65" x="470" y="120" />
-                  <rect height="120" rx="4" width="150" x="600" y="40" />
-                  <rect height="80" rx="4" width="180" x="340" y="260" />
-                  <rect height="75" rx="4" width="160" x="60" y="260" />
-                </g>
-
-                {/* Área verde / parque logístico */}
-                <g fill="#CDE4CD" opacity="0.8">
-                  <rect height="140" rx="6" width="160" x="600" y="190" />
-                </g>
-
-                {/* Textos de referencia de Santa Cruz */}
-                <text fill="#8B1D34" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="10" fontWeight="bold" x="30" y="78">
-                  Av. Banzer (4to Anillo)
-                </text>
-                <text fill="#666666" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="9" fontWeight="bold" x="315" y="32">
-                  3er Anillo Externo
-                </text>
-                <text fill="#426B42" fontFamily="Plus Jakarta Sans, sans-serif" fontSize="10" x="615" y="215">
-                  Parque Logístico Norte
-                </text>
-              </svg>
-
-              {/* Pin marcador central */}
-              <div className="b2b-map-pin">
-                <div className="b2b-map-pin__bubble">
-                  <span className="b2b-dot b2b-dot--pulse" style={{ backgroundColor: '#10b981' }} />
-                  <Store size={14} style={{ color: 'var(--terra-wine-b2b)' }} />
-                  <span>Almacén Central {razonSocial}</span>
-                </div>
-                <div className="b2b-map-pin__circle">
-                  <MapPin size={18} />
-                </div>
-                <div className="b2b-map-pin__shadow" />
-              </div>
-
-              {/* Badge inferior de camiones pesados */}
-              <div className="b2b-map-truck-legend">
-                <CheckCircle2 size={13} style={{ color: '#059669' }} />
-                <span>Ubicación registrada para entrega de camiones de carga pesada</span>
-              </div>
-
-              {/* Controles de zoom */}
-              <div className="b2b-map-zoom-buttons">
-                <button
-                  type="button"
-                  className="b2b-map-zoom-btn"
-                  title="Acercar mapa"
-                  onClick={() => setZoomNivel((z) => Math.min(1.6, z + 0.15))}
-                >
-                  +
-                </button>
-                <button
-                  type="button"
-                  className="b2b-map-zoom-btn"
-                  title="Alejar mapa"
-                  onClick={() => setZoomNivel((z) => Math.max(0.85, z - 0.15))}
-                >
-                  −
-                </button>
-              </div>
-            </div>
-          </div>
+          {/* Mapa Leaflet interactivo para georreferenciación de almacén y entrega */}
+          <MapaEntregaMayorista
+            gps={gps}
+            onGpsChange={setGps}
+            razonSocial={razonSocial}
+            direccion={direccion}
+            cargandoGps={cargandoUbicacion}
+            onObtenerGps={handleObtenerGps}
+          />
         </section>
 
         {/* Footer del Formulario */}
