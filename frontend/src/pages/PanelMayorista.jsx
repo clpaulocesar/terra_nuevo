@@ -87,11 +87,15 @@ export default function PanelMayorista() {
           const descuento = precioMinorista > precioMayorista
             ? Math.round(((precioMinorista - precioMayorista) / precioMinorista) * 100)
             : 0;
-          return <article key={producto.id}>
-          <Link to={`/productos/${producto.id}`} className="wholesale-panel__product-image"><img src={imagenDeProducto(producto.imagen_url)} onError={usarImagenFallback} alt={producto.nombre} /></Link>
-          <div className="wholesale-panel__product-info"><small>{producto.categoria}</small><Link to={`/productos/${producto.id}`}>{producto.nombre}</Link><span>Disponible: {producto.stock} un.</span></div>
-          <div className="wholesale-panel__product-price"><small>Precio minorista: <s>{formatoMoneda(precioMinorista)}</s></small><strong>{formatoMoneda(precioMayorista)}</strong><em>Precio mayorista</em>{descuento > 0 && <b>Ahorro {descuento}%</b>}</div>
-          <button type="button" onClick={() => { if (agregarProducto(producto)) navigate('/carrito'); }}><ShoppingCart size={16} /> Agregar</button>
+          return <article key={producto.id} style={{ display: 'block' }}>
+          <div style={{ alignItems: 'center', display: 'flex', gap: '0.75rem' }}>
+            <Link to={`/productos/${producto.id}`} className="wholesale-panel__product-image"><img src={imagenDeProducto(producto.imagen_url)} onError={usarImagenFallback} alt={producto.nombre} /></Link>
+            <div className="wholesale-panel__product-info" style={{ flex: 1, minWidth: 0 }}><small>{producto.categoria}</small><Link to={`/productos/${producto.id}`}>{producto.nombre}</Link><span>Disponible: {producto.stock} un.</span></div>
+          </div>
+          <div style={{ alignItems: 'end', display: 'flex', gap: '0.75rem', justifyContent: 'space-between', marginTop: '0.8rem' }}>
+            <div className="wholesale-panel__product-price" style={{ gridColumn: 'auto' }}><small>Precio minorista: <s>{formatoMoneda(precioMinorista)}</s></small><strong>{formatoMoneda(precioMayorista)}</strong><em style={{ color: '#747d79', display: 'block', fontSize: '0.67rem', fontStyle: 'normal' }}>Precio mayorista</em>{descuento > 0 && <b style={{ background: '#eaf8ee', borderRadius: '5px', color: '#27743e', display: 'inline-block', fontSize: '0.64rem', marginTop: '0.28rem', padding: '0.18rem 0.32rem' }}>Ahorro {descuento}%</b>}</div>
+            <button type="button" style={{ flex: '0 0 auto', gridColumn: 'auto', padding: '0.68rem 0.9rem', width: 'auto' }} onClick={() => { if (agregarProducto(producto)) navigate('/carrito'); }}><ShoppingCart size={16} /> Agregar</button>
+          </div>
         </article>;
         })}
         {!sugeridos.length && <div className="wholesale-panel__empty wholesale-panel__empty--short"><Boxes size={28} /><div><strong>No hay productos disponibles por el momento.</strong></div></div>}
