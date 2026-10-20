@@ -3,7 +3,7 @@ import {
   BrowserRouter, Routes, Route, Navigate, Link,
   NavLink, Outlet, useNavigate, useLocation, useSearchParams,
 } from 'react-router-dom';
-import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut, ChevronDown, BadgeCheck, BookOpen, ReceiptText, MessageCircle } from 'lucide-react';
+import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut, ChevronDown, BadgeCheck, BookOpen, ReceiptText, MessageCircle, FileText, Repeat2, ContactRound } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { useProductos } from '../hooks/useProductos.js';
 import { ClienteContext } from '../context/ClienteContext.jsx';
@@ -87,7 +87,28 @@ function Layout() {
         <div className="terra-header-right">
           <div className="terra-account">
             <button type="button" className={`terra-login-button${esMayorista ? ' terra-login-button--mayorista' : ''}`} aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : setCuentaAbierta(true)}>{esMayorista ? <i className="terra-account-avatar">{inicialesCuenta}</i> : <UserRound size={19} />}<span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span>{esMayorista && <ChevronDown size={15} className={menuCuentaAbierto ? 'is-open' : ''} />}</button>
-            {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu"><div className="terra-account-summary"><i className="terra-account-avatar terra-account-avatar--large">{inicialesCuenta}</i><div><strong>{sesion?.nombre || 'Cliente mayorista'}</strong><small className="terra-account-status"><BadgeCheck size={12} /> Cuenta mayorista autorizada</small><span>{sesion?.email}</span>{sesion?.nit && <span>NIT/CI: {sesion.nit}</span>}</div></div><div className="terra-account-benefit"><BadgeCheck size={17} /><span><b>Precios mayoristas activos</b> en los productos con condición B2B configurada.</span></div><nav className="terra-account-links" aria-label="Opciones de cuenta mayorista"><Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><BookOpen size={16} /> Catálogo con precios mayoristas</Link><Link to="/mi-cuenta/pedidos" onClick={() => setMenuCuentaAbierto(false)}><ReceiptText size={16} /> Mis pedidos</Link><a href={enlaceAsesor} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Soporte por WhatsApp</a></nav><div className="terra-account-footer"><button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></div></section>}
+            {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu">
+              <div className="terra-account-summary">
+                <i className="terra-account-avatar terra-account-avatar--large">{inicialesCuenta}</i>
+                <div>
+                  <div className="terra-account-name"><strong>{sesion?.nombre || 'Cliente mayorista'}</strong><b>Nivel Oro</b></div>
+                  <small className="terra-account-status">Cuenta mayorista autorizada</small>
+                  <span>{sesion?.email}</span>
+                  <span>NIT/CI: {sesion?.nit || 'Pendiente de registro'}</span>
+                </div>
+              </div>
+              <div className="terra-account-benefit"><BadgeCheck size={17} /><span><b>Condiciones B2B activas</b> en productos seleccionados. Consulta tus beneficios comerciales con un asesor TERRA.</span></div>
+              <nav className="terra-account-links" aria-label="Opciones de cuenta mayorista">
+                <Link className="is-active" to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><Home size={16} /> Mi panel mayorista<i /></Link>
+                <Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><BookOpen size={16} /> Catálogo mayorista con precios B2B</Link>
+                <Link to="/mi-cuenta/pedidos" onClick={() => setMenuCuentaAbierto(false)}><ReceiptText size={16} /> Mis pedidos</Link>
+                <button type="button" className="terra-account-link-disabled" title="Disponible próximamente"><FileText size={16} /> Mis cotizaciones y licitaciones</button>
+                <Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><Repeat2 size={16} /> Repetir compra rápida</Link>
+                <button type="button" className="terra-account-link-disabled" title="Disponible próximamente"><ContactRound size={16} /> Mi perfil y datos de facturación</button>
+                <a className="terra-account-support" href={enlaceAsesor} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Soporte por WhatsApp<i>Asesor en línea</i></a>
+              </nav>
+              <div className="terra-account-footer"><button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></div>
+            </section>}
           </div>
           <NavLink to="/carrito" className="cart-link terra-cart-link">
             <ShoppingCart size={18} />
