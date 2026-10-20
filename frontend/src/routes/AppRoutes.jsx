@@ -51,6 +51,7 @@ import './HeaderOptionsHidden.css';
 import './FloatingActions.css';
 // Modo noche: va al final para que sus reglas pisen las de todas las páginas.
 import '../theme-dark.css';
+import '../theme-dark-admin.css';
 
 function Layout() {
   const { cantidadTotal } = useCarrito();
