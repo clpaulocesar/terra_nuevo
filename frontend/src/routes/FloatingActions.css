@@ -1,0 +1,80 @@
+/* Acciones flotantes de la tienda: QR (arriba), carrito (medio) y asistente (abajo).
+   Las tres comparten el mismo margen derecho y se apilan verticalmente. */
+
+.catalog-qr-fab {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(var(--floating-cart-bottom, 4.5rem) + 3.1rem + var(--floating-cart-size, 3.4rem) + var(--floating-controls-gap, 0.9rem) * 2);
+  z-index: 74;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--floating-cart-size, 3.4rem);
+  height: var(--floating-cart-size, 3.4rem);
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: #a6192e;
+  color: #fff;
+  cursor: pointer;
+  overflow: visible;
+  animation: qr-halo 2.4s ease-out infinite;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+/* Halo suave permanente alrededor del botón. */
+.catalog-qr-fab::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 999px;
+  background: rgba(166, 25, 46, 0.14);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.catalog-qr-fab:hover { background: #8e1527; }
+.catalog-qr-fab:active { transform: scale(0.97); }
+.catalog-qr-fab > svg { width: 1.35rem; height: 1.35rem; }
+
+.catalog-qr-fab b {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  padding: 0 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #1b1c1c;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+/* Onda que se expande desde el borde del botón. */
+@keyframes qr-halo {
+  0% { box-shadow: 0 8px 24px rgba(166, 25, 46, 0.35), 0 0 0 0 rgba(166, 25, 46, 0.34); }
+  70% { box-shadow: 0 8px 24px rgba(166, 25, 46, 0.35), 0 0 0 12px rgba(166, 25, 46, 0); }
+  100% { box-shadow: 0 8px 24px rgba(166, 25, 46, 0.35), 0 0 0 0 rgba(166, 25, 46, 0); }
+}
+
+/* Mientras el chat o el carrito están abiertos, los demás flotantes se ocultan
+   para no superponerse al panel. */
+.app-shell:has(.chat-widget.abierto) .catalog-qr-fab,
+.app-shell:has(.cart-widget.abierto) .catalog-qr-fab,
+.app-shell:has(.chat-widget.abierto) .cart-widget {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (max-width: 639px) {
+  .catalog-qr-fab { right: 0.75rem; }
+}
+
+@media (max-width: 640px) {
+  .catalog-qr-fab { right: 0.6rem; }
+}
