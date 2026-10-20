@@ -107,10 +107,12 @@ export async function listarProductosBD({
   const valoresFiltro = [...valores];
   valores.push(limite, (pagina - 1) * limite);
   const { rows } = await pool.query(
-    `SELECT ${campos}, COUNT(*) OVER()::integer AS total_filas
+    `${CTE_VENTAS}
+     SELECT ${campos}, COUNT(*) OVER()::integer AS total_filas
      FROM products p
      LEFT JOIN categories c ON c.id=p.category_id
      LEFT JOIN product_instructions pi ON pi.product_id=p.id
+     LEFT JOIN ventas v ON v.nombre = LOWER(p.name)
      ${where}
      ORDER BY ${orderBy}
      LIMIT $${valores.length - 1} OFFSET $${valores.length}`,
@@ -209,14 +211,45 @@ export async function actualizarProductoBD(id, datos) {
   const idStr = String(id || '').trim();
   const { rows } = await pool.query(
     `UPDATE products 
-     SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), image_urls=$6, activo=COALESCE($7,activo), internal_code=COALESCE($8,internal_code), codigo_terra=COALESCE($8,codigo_terra), size=COALESCE($9,size), color=COALESCE($10,color), video_url=$11, colors=$12, precio_mayorista=$13, category_id=COALESCE((SELECT id FROM categories WHERE LOWER(name)=LOWER($14) AND is_active=TRUE LIMIT 1),category_id), updated_at=NOW()
+     SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), image_urls=COALESCE($6,image_urls), activo=COALESCE($7,activo), is_active=COALESCE($7,is_active), internal_code=COALESCE($8,internal_code), codigo_terra=COALESCE($8,codigo_terra), size=COALESCE($9,size), color=COALESCE($10,color), video_url=COALESCE($11,video_url), colors=COALESCE($12,colors), precio_mayorista=COALESCE($13,precio_mayorista), category_id=COALESCE((SELECT id FROM categories WHERE LOWER(name)=LOWER($14) AND is_active=TRUE LIMIT 1),category_id), updated_at=NOW()
      WHERE id::text = $15 OR slug = $15 OR COALESCE(codigo_terra, internal_code) = $15
      RETURNING id`,
-    [datos.nombre, datos.descripcion, datos.precio, datos.stock ?? datos.showroom, datos.imagen_url, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.activo, datos.sku, datos.medida, datos.detalle, datos.video_url ?? null, Array.isArray(datos.colores) ? datos.colores : [], datos.precioMayorista ?? null, datos.categoria, idStr]
+    [
+      datos.nombre ?? null,
+      datos.descripcion ?? null,
+      datos.precio ?? null,
+      (datos.stock ?? datos.showroom) ?? null,
+      datos.imagen_url ?? null,
+      Array.isArray(datos.imagenes) ? datos.imagenes : null,
+      datos.activo !== undefined ? Boolean(datos.activo) : null,
+      datos.sku ?? null,
+      datos.medida ?? null,
+      datos.detalle ?? null,
+      datos.video_url !== undefined ? datos.video_url : null,
+      Array.isArray(datos.colores) ? datos.colores : null,
+      datos.precioMayorista !== undefined ? datos.precioMayorista : null,
+      datos.categoria ?? null,
+      idStr
+    ]
   );
   if (rows[0] && Array.isArray(datos.escalasMayorista)) await reemplazarEscalasMayoristas(rows[0].id, datos.escalasMayorista);
   return rows[0] ? obtenerProductoBD(rows[0].id) : null;
 }
+
+export async function cambiarVisibilidadProductoBD(id, activo) {
+  await asegurarEscalasMayoristasBD();
+  const idStr = String(id || '').trim();
+  const valor = Boolean(activo);
+  const { rows } = await pool.query(
+    `UPDATE products
+     SET activo = $1, is_active = $1, updated_at = NOW()
+     WHERE id::text = $2 OR slug = $2 OR COALESCE(codigo_terra, internal_code) = $2
+     RETURNING id`,
+    [valor, idStr]
+  );
+  return rows[0] ? obtenerProductoBD(rows[0].id) : null;
+}
+
 
 export async function actualizarStockBD(id, { showroom }) {
   const idStr = String(id || '').trim();

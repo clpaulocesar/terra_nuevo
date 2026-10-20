@@ -262,10 +262,10 @@ export default function DetalleProducto() {
   }, [autoAgregar, producto, color, agregarProducto, setSearchParams]);
 
   if (cargando) return <p className="detalle-status">Cargando producto…</p>;
-  if (error || !producto)
+  if (error || !producto || producto.activo === false || producto.visible === false)
     return (
       <div className="detalle-status">
-        <p>{error || "Producto no encontrado."}</p>
+        <p>{error || "Este producto no se encuentra disponible actualmente."}</p>
         <Link to="/catalogo">Volver al catálogo</Link>
       </div>
     );

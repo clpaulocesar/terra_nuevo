@@ -64,3 +64,7 @@
 .products-pagination button:disabled { opacity: .4; cursor: not-allowed; }
 .products-pagination select { border: 1px solid #e4e2e1; border-radius: .5rem; padding: .4rem .6rem; font-size: .8rem; background: #fff; }
 .products-pagination .page-pill { background: #a6192e; color: #fff; border-radius: 99px; padding: .3rem .7rem; font-size: .75rem; font-weight: 800; }
+.products-table .product-actions .product-action-vis.is-hidden { background: #ffdad6; color: #ba1a1a; }
+.products-table .product-actions .product-action-vis.is-hidden:hover { background: #ba1a1a; color: #fff; }
+.kiosk-badge-btn { background: none; border: none; padding: 0; cursor: pointer; display: inline-flex; }
+.kiosk-badge-btn:hover .kiosk { filter: brightness(0.92); transform: scale(1.04); }

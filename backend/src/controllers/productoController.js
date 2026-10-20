@@ -6,6 +6,7 @@ import {
   actualizarProductoBD,
   actualizarStockBD,
   eliminarProductoBD,
+  cambiarVisibilidadProductoBD,
 } from '../models/productoModel.js';
 import { migrateAndSeed } from '../config/migrate_seed.js';
 
@@ -251,4 +252,34 @@ export async function eliminarProducto(req, res, next) {
     next(error);
   }
 }
+
+export async function cambiarVisibilidadProducto(req, res, next) {
+  try {
+    const id = String(req.params.id || '').trim();
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        mensaje: 'ID de producto inválido',
+      });
+    }
+
+    const activo = req.body?.activo !== undefined ? Boolean(req.body.activo) : false;
+    const actualizado = await cambiarVisibilidadProductoBD(id, activo);
+    if (!actualizado) {
+      return res.status(404).json({
+        success: false,
+        mensaje: 'Producto no encontrado',
+      });
+    }
+
+    return res.json({
+      success: true,
+      mensaje: activo ? 'Producto ahora visible para clientes' : 'Producto oculto para clientes y catálogo',
+      data: actualizado,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 

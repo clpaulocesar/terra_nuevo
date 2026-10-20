@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Palette, Play, Plus, QrCode, Search, SlidersHorizontal, Star, Store, Tag, Trash2, Truck, X } from 'lucide-react';
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, EyeOff, ImagePlus, Link2, PackagePlus, Palette, Play, Plus, QrCode, Search, SlidersHorizontal, Star, Store, Tag, Trash2, Truck, X } from 'lucide-react';
 import QRCode from 'react-qr-code';
-import { listarProductosPaginado, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
+import { listarProductosPaginado, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto, cambiarVisibilidadProducto } from '../../services/productoService.js';
 import { mediaDeVideo } from '../../utils/videoEmbed.js';
 import { subirImagenProducto } from '../../services/storageService.js';
 import { avisoEliminado, avisoError, avisoExito, confirmarEliminacion } from '../../utils/alertas.js';
@@ -848,6 +848,29 @@ export default function ProductosAdmin() {
     }
   };
 
+  const alternarVisibilidad = async (producto) => {
+    const nuevoEstado = !producto.visible;
+    try {
+      const actualizado = await cambiarVisibilidadProducto(producto.id, nuevoEstado);
+      const formateado = {
+        ...actualizado,
+        precio: typeof actualizado.precio === 'number' ? actualizado.precio.toLocaleString('es-BO') : actualizado.precio,
+        tono: producto.tono || 'terra',
+      };
+      setProductos((lista) => lista.map((item) => (item.id === producto.id ? formateado : item)));
+      if (vistaProducto?.id === producto.id) setVistaProducto(formateado);
+      if (editarProducto?.id === producto.id) setEditarProducto(formateado);
+      await avisoExito({
+        titulo: nuevoEstado ? '¡Producto visible!' : '¡Producto oculto!',
+        texto: nuevoEstado
+          ? `"${producto.nombre || producto.sku}" ahora es visible en el catálogo de clientes.`
+          : `"${producto.nombre || producto.sku}" fue ocultado y ya no se mostrará a los clientes.`,
+      });
+    } catch (err) {
+      await avisoError(`No se pudo cambiar la visibilidad: ${err.message}`);
+    }
+  };
+
   return (
     <main className="products-admin">
       <datalist id="tonos-sugeridos">{Object.keys(TONOS_SUGERIDOS).map((nombre) => <option value={nombre.replace(/\b\w/g, (letra) => letra.toUpperCase())} key={nombre} />)}</datalist>
@@ -1004,12 +1027,27 @@ export default function ProductosAdmin() {
                     </span>
                   </td>
                   <td>
-                    <span className={p.visible ? 'kiosk visible' : 'kiosk'}>
-                      {p.visible ? 'Activo' : 'Oculto'}
-                    </span>
+                    <button
+                      type="button"
+                      className="kiosk-badge-btn"
+                      title={p.visible ? 'Clic para ocultar este producto a los clientes' : 'Clic para mostrar este producto en catálogo'}
+                      onClick={() => alternarVisibilidad(p)}
+                      style={{ cursor: 'pointer', border: 'none', background: 'transparent', padding: 0 }}
+                    >
+                      <span className={p.visible ? 'kiosk visible' : 'kiosk'}>
+                        {p.visible ? 'Activo' : 'Oculto'}
+                      </span>
+                    </button>
                   </td>
                   <td>
                     <div className="product-actions">
+                      <button
+                        className={`product-action-vis ${p.visible ? '' : 'is-hidden'}`}
+                        title={p.visible ? 'Ocultar este producto (no mostrar a clientes)' : 'Mostrar este producto a clientes'}
+                        onClick={() => alternarVisibilidad(p)}
+                      >
+                        {p.visible ? <EyeOff size={17} /> : <Eye size={17} />}
+                      </button>
                       <button title="Vista previa / Ver fotos" onClick={() => abrirVista(p)}>
                         <Eye size={17} />
                       </button>
@@ -1168,6 +1206,35 @@ export default function ProductosAdmin() {
                 Cerrar
               </button>
               <button
+                type="button"
+                className={vistaProducto.visible ? 'btn-ocultar-producto' : 'btn-mostrar-producto'}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.65rem 1rem',
+                  borderRadius: '0.6rem',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  border: vistaProducto.visible ? '1px solid #ffdad6' : '1px solid #b3efd5',
+                  background: vistaProducto.visible ? '#fff1f0' : '#f0fdf4',
+                  color: vistaProducto.visible ? '#ba1a1a' : '#004230',
+                }}
+                title={vistaProducto.visible ? 'Ocultar este producto para que no se muestre a los clientes' : 'Mostrar este producto en el catálogo de clientes'}
+                onClick={() => alternarVisibilidad(vistaProducto)}
+              >
+                {vistaProducto.visible ? (
+                  <>
+                    <EyeOff size={17} /> Ocultar este producto
+                  </>
+                ) : (
+                  <>
+                    <Eye size={17} /> Mostrar este producto
+                  </>
+                )}
+              </button>
+              <button
                 className="primary"
                 type="button"
                 onClick={() => {
@@ -1309,7 +1376,7 @@ export default function ProductosAdmin() {
                 type="checkbox"
                 defaultChecked={editarProducto.visible}
               />
-              Publicar y mantener visible este producto en los kioscos de autoservicio
+              Visible en autoservicio y catálogo de clientes (desmarca para ocultar este producto)
             </label>
 
             <footer>
