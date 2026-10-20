@@ -45,7 +45,9 @@ function construirQueryProductos({
   precioMin = null,
   precioMax = null,
 } = {}) {
-  const p = new URLSearchParams({ pagina: String(pagina), limite: String(limite) });
+  // El backend en produccion valida limite <= 200. Se normaliza a un maximo de 200 para evitar error 400.
+  const limiteNormalizado = Math.min(Math.max(1, Number(limite) || 100), 200);
+  const p = new URLSearchParams({ pagina: String(pagina), limite: String(limiteNormalizado) });
   if (buscar) p.set('buscar', buscar);
   if (categoria && categoria !== 'Todos' && categoria !== 'Todas') p.set('categoria', categoria);
   if (orden) p.set('orden', orden);

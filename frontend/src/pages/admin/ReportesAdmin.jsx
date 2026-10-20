@@ -504,15 +504,40 @@ export default function ReportesAdmin() {
     const filas = filasExportables();
     const [encabezado, ...cuerpo] = filas;
     const tabla = `<table border="1"><thead><tr>${encabezado.map((celda) => `<th>${celda}</th>`).join('')}</tr></thead><tbody>${cuerpo.map((fila) => `<tr>${fila.map((celda) => `<td>${celda}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-    descargar(`reporte-${tab}.xls`, `\uFEFF<html><head><meta charset="utf-8" /></head><body>${tabla}</body></html>`, 'application/vnd.ms-excel');
+    descargar(`reporte-${tab}.xls`, `\uFEFF<html><head><meta charset="utf-8" /><style>@page{size:landscape;} table{border-collapse:collapse;font-size:11px;} th,td{border:1px solid #999;padding:4px 6px;white-space:nowrap;} th{background:#a6192e;color:#fff;font-weight:700;} tr:nth-child(even) td{background:#f6f3f2;}</style></head><body><h2 style="color:#a6192e;margin:0 0 8px;">TERRA Autoservicio · Reporte ${tab}</h2><p style="font-size:11px;color:#555;margin:0 0 10px;">Período: ${aISO(periodo.inicio)} a ${aISO(periodo.fin)} · ${filas.length - 1} filas · ${new Date().toLocaleString('es-BO')}</p>${tabla}</body></html>`, 'application/vnd.ms-excel');
     setMenuExportAbierto(false);
     setAviso('Exportación Excel generada.');
   };
 
   const exportarPDF = () => {
     setMenuExportAbierto(false);
-    setAviso('Preparando PDF ejecutivo…');
-    setTimeout(() => window.print(), 300);
+    const filas = filasExportables();
+    const [encabezado, ...cuerpo] = filas;
+    const thead = encabezado.map((c) => `<th>${c}</th>`).join('');
+    const tbody = cuerpo.map((fila) => `<tr>${fila.map((celda) => `<td>${celda ?? ''}</td>`).join('')}</tr>`).join('');
+    const html = `<!doctype html><html lang="es"><head><meta charset="UTF-8"><title>Reporte TERRA</title><style>
+      @page { size: A4 landscape; margin: 12mm; }
+      * { box-sizing: border-box; }
+      body { font-family: 'Segoe UI', Arial, sans-serif; color: #1b1c1c; margin: 0; }
+      h1 { color: #a6192e; font-size: 18px; margin: 0 0 4px; }
+      .meta { font-size: 10px; color: #56605c; margin: 0 0 10px; }
+      table { width: 100%; border-collapse: collapse; font-size: 9px; }
+      th, td { border: 1px solid #d9d4d3; padding: 4px 6px; text-align: left; vertical-align: top; }
+      th { background: #a6192e; color: #fff; font-weight: 700; }
+      tr:nth-child(even) td { background: #f6f3f2; }
+      td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+      @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    </style></head><body>
+      <h1>Reporte ${tab} · TERRA Autoservicio</h1>
+      <p class="meta">Período: ${aISO(periodo.inicio)} a ${aISO(periodo.fin)} · ${cuerpo.length} filas · ${new Date().toLocaleString('es-BO')}</p>
+      <table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>
+      <script>onload = () => { setTimeout(() => { window.print(); }, 250); };</script>
+    </body></html>`;
+    const ventana = window.open('', '_blank', 'width=1100,height=760');
+    if (!ventana) { setAviso('Permite las ventanas emergentes para generar el PDF.'); return; }
+    ventana.document.write(html);
+    ventana.document.close();
+    setAviso('PDF preparado (usa "Guardar como PDF").');
   };
 
   /* ---------------- Render ---------------- */

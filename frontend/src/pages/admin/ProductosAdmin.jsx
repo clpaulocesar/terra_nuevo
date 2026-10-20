@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, ImagePlus, Link2, PackagePlus, Palette, Play, Plus, QrCode, Search, SlidersHorizontal, Star, Store, Tag, Trash2, Truck, X } from 'lucide-react';
 import QRCode from 'react-qr-code';
-import { listarProductos, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
+import { listarProductosPaginado, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto } from '../../services/productoService.js';
 import { mediaDeVideo } from '../../utils/videoEmbed.js';
 import { subirImagenProducto } from '../../services/storageService.js';
 import { avisoEliminado, avisoError, avisoExito, confirmarEliminacion } from '../../utils/alertas.js';
@@ -466,6 +466,11 @@ export default function ProductosAdmin() {
   const [soloKiosco, setSoloKiosco] = useState(false);
   const [ajuste, setAjuste] = useState(null);
   const [mensaje, setMensaje] = useState('');
+  const [progresoCarga, setProgresoCarga] = useState(0);
+  const [paginaTabla, setPaginaTabla] = useState(1);
+  const [porPagina, setPorPagina] = useState(25);
+  const [ordenCol, setOrdenCol] = useState('nombre');
+  const [ordenDir, setOrdenDir] = useState('asc');
 
   // Modales
   const [nuevoProducto, setNuevoProducto] = useState(false);
@@ -571,9 +576,23 @@ export default function ProductosAdmin() {
   const cargarProductos = async () => {
     setCargando(true);
     setErrorCarga('');
+    setProgresoCarga(0);
     try {
-      const lista = await listarProductos({ todos: true, limite: 100, usarRespaldo: false });
-      setProductos(lista.map(p => ({
+      const acumulado = [];
+      let pagina = 1;
+      const limite = 500;
+      let total = null;
+      do {
+        const r = await listarProductosPaginado({ todos: true, limite, pagina, usarRespaldo: false });
+        acumulado.push(...(r.productos || []));
+        total = r.paginacion?.total ?? total;
+        setProgresoCarga(acumulado.length);
+        const tieneSiguiente = r.paginacion?.tieneSiguiente ?? (r.productos.length >= limite);
+        if (!tieneSiguiente) break;
+        pagina += 1;
+        if (pagina > 100) break;
+      } while (true);
+      setProductos(acumulado.map(p => ({
         ...p,
         precio: typeof p.precio === 'number' ? p.precio.toLocaleString('es-BO') : p.precio,
         tono: p.tono || 'terra',
@@ -595,6 +614,99 @@ export default function ProductosAdmin() {
     (categoria === 'Todos' || p.categoria === categoria) &&
     (!soloKiosco || p.visible)
   ), [productos, buscar, categoria, soloKiosco]);
+
+  const visiblesOrdenados = useMemo(() => {
+    const lista = [...visibles];
+    const obtener = (p) => {
+      switch (ordenCol) {
+        case 'sku': return String(p.sku || '');
+        case 'categoria': return String(p.categoria || '');
+        case 'precio': return Number(String(p.precio || '0').replace(/\./g, '').replace(/,/g, '.')) || 0;
+        case 'showroom': return Number(p.showroom || 0);
+        case 'visible': return p.visible ? 1 : 0;
+        default: return String(p.nombre || '').toLowerCase();
+      }
+    };
+    lista.sort((a, b) => {
+      const va = obtener(a), vb = obtener(b);
+      if (va < vb) return ordenDir === 'asc' ? -1 : 1;
+      if (va > vb) return ordenDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return lista;
+  }, [visibles, ordenCol, ordenDir]);
+
+  const totalPaginasTabla = Math.max(1, Math.ceil(visiblesOrdenados.length / porPagina));
+  const paginaSegura = Math.min(paginaTabla, totalPaginasTabla);
+  const visiblesPagina = visiblesOrdenados.slice((paginaSegura - 1) * porPagina, paginaSegura * porPagina);
+
+  useEffect(() => { setPaginaTabla(1); }, [buscar, categoria, soloKiosco, porPagina]);
+
+  const alternarOrden = (col) => {
+    if (ordenCol === col) setOrdenDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else { setOrdenCol(col); setOrdenDir('asc'); }
+  };
+
+  const indicadorOrden = (col) => (ordenCol === col ? (ordenDir === 'asc' ? ' ▲' : ' ▼') : '');
+
+  // ---------- Exportación ----------
+  const columnasExport = [
+    { titulo: 'SKU', valor: (p) => p.sku || p.id || '' },
+    { titulo: 'Nombre', valor: (p) => p.nombre || '' },
+    { titulo: 'Categoría', valor: (p) => p.categoria || '' },
+    { titulo: 'Precio (Bs)', valor: (p) => p.precio || '' },
+    { titulo: 'Stock', valor: (p) => p.stock ?? p.showroom ?? '' },
+    { titulo: 'Visible en kiosco', valor: (p) => (p.visible ? 'Sí' : 'No') },
+    { titulo: 'Detalle', valor: (p) => p.detalle || '' },
+    { titulo: 'Colores', valor: (p) => (Array.isArray(p.colores) ? p.colores.join(', ') : '') },
+    { titulo: 'Imagen URL', valor: (p) => p.imagen_url || '' },
+  ];
+
+  const descargarArchivo = (nombre, contenido, tipo) => {
+    const blob = new Blob([contenido], { type: tipo });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nombre; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const exportarExcelProductos = () => {
+    const filas = [columnasExport.map((c) => c.titulo), ...visibles.map((p) => columnasExport.map((c) => c.valor(p)))];
+    const [encabezado, ...cuerpo] = filas;
+    const tabla = `<table border="1"><thead><tr>${encabezado.map((c) => `<th>${c}</th>`).join('')}</tr></thead><tbody>${cuerpo.map((fila) => `<tr>${fila.map((celda) => `<td>${celda ?? ''}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    const html = `\uFEFF<html><head><meta charset="utf-8" /><style>@page{size:landscape;} table{border-collapse:collapse;font-size:11px;} th,td{border:1px solid #999;padding:4px 6px;white-space:nowrap;} th{background:#a6192e;color:#fff;font-weight:700;} tr:nth-child(even) td{background:#f6f3f2;}</style></head><body><h2 style="color:#a6192e;margin:0 0 8px;">TERRA Autoservicio · Catálogo de productos</h2><p style="font-size:11px;color:#555;margin:0 0 10px;">${visibles.length} productos · ${new Date().toLocaleString('es-BO')}</p>${tabla}</body></html>`;
+    descargarArchivo(`productos-${new Date().toISOString().slice(0, 10)}.xls`, html, 'application/vnd.ms-excel');
+    setMensaje('Exportación Excel generada.');
+  };
+
+  const exportarPDFProductos = () => {
+    const filas = visibles.map((p) => columnasExport.map((c) => c.valor(p)));
+    const thead = columnasExport.map((c) => `<th>${c.titulo}</th>`).join('');
+    const tbody = filas.map((fila) => `<tr>${fila.map((celda) => `<td>${celda ?? ''}</td>`).join('')}</tr>`).join('');
+    const html = `<!doctype html><html lang="es"><head><meta charset="UTF-8"><title>Productos TERRA</title><style>
+      @page { size: A4 landscape; margin: 12mm; }
+      * { box-sizing: border-box; }
+      body { font-family: 'Segoe UI', Arial, sans-serif; color: #1b1c1c; margin: 0; }
+      h1 { color: #a6192e; font-size: 18px; margin: 0 0 4px; }
+      .meta { font-size: 10px; color: #56605c; margin: 0 0 10px; }
+      table { width: 100%; border-collapse: collapse; font-size: 9px; }
+      th, td { border: 1px solid #d9d4d3; padding: 4px 6px; text-align: left; vertical-align: top; }
+      th { background: #a6192e; color: #fff; font-weight: 700; }
+      tr:nth-child(even) td { background: #f6f3f2; }
+      td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+      @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    </style></head><body>
+      <h1>Catálogo de productos · TERRA Autoservicio</h1>
+      <p class="meta">${visibles.length} productos · ${new Date().toLocaleString('es-BO')} · Filtro: ${buscar || 'Todos'}${categoria !== 'Todos' ? ' · ' + categoria : ''}</p>
+      <table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>
+      <script>onload = () => { setTimeout(() => { window.print(); }, 250); };</script>
+    </body></html>`;
+    const ventana = window.open('', '_blank', 'width=1100,height=760');
+    if (!ventana) { setMensaje('Permite las ventanas emergentes para generar el PDF.'); return; }
+    ventana.document.write(html);
+    ventana.document.close();
+    setMensaje('PDF preparado (usa "Guardar como PDF").');
+  };
 
   // Cálculos dinámicos de KPIs sobre inventario real
   const totalShowroom = useMemo(() => productos.reduce((acc, p) => acc + (Number(p.showroom) || 0), 0), [productos]);
@@ -757,15 +869,15 @@ export default function ProductosAdmin() {
         <div>
           <div>
             <h1>Catálogo de productos e inventario</h1>
-            <b>{productos.length} productos registrados</b>
+            <b>{productos.length} productos registrados{cargando ? ` · cargando ${progresoCarga}...` : ''}</b>
           </div>
           <p>Gestión de catálogo digital, inventario multialmacén y visibilidad en kioscos.</p>
         </div>
         <div className="products-toolbar">
-          <button onClick={() => avisar('Exportación Excel preparada.')}>
+          <button onClick={exportarExcelProductos}>
             <Download size={17} /> Excel
           </button>
-          <button onClick={() => avisar('Fichas PDF preparadas.')}>
+          <button onClick={exportarPDFProductos}>
             <Download size={17} /> PDF
           </button>
           <button onClick={() => productos.length > 0 && setAjuste({ ...productos[0] })}>
@@ -839,27 +951,34 @@ export default function ProductosAdmin() {
 
       <section className="products-table">
         <header>
-          <div>
-            <h2>Productos y stock por ubicación</h2>
-            <span>Mostrando {visibles.length} de {productos.length} registros</span>
-          </div>
+        <div>
+          <h2>Productos y stock por ubicación</h2>
+          <span>Mostrando {visiblesPagina.length} de {visiblesOrdenados.length} registros · Página {paginaSegura} de {totalPaginasTabla}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <label style={{ fontSize: 12, color: '#56605c' }}>Filas:
+            <select value={porPagina} onChange={(e) => setPorPagina(Number(e.target.value))} style={{ marginLeft: 6 }}>
+              {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </label>
+        </div>
         </header>
 
         <div className="products-scroll">
           <table>
             <thead>
               <tr>
-                <th>Producto</th>
-                <th>Categoría</th>
-                <th>Precio</th>
+                <th style={{ cursor: 'pointer' }} onClick={() => alternarOrden('nombre')}>Producto{indicadorOrden('nombre')}</th>
+                <th style={{ cursor: 'pointer' }} onClick={() => alternarOrden('categoria')}>Categoría{indicadorOrden('categoria')}</th>
+                <th style={{ cursor: 'pointer' }} onClick={() => alternarOrden('precio')}>Precio{indicadorOrden('precio')}</th>
                 <th>Precio mayorista</th>
-                <th>Showroom</th>
-                <th>Kiosco</th>
+                <th style={{ cursor: 'pointer' }} onClick={() => alternarOrden('showroom')}>Showroom{indicadorOrden('showroom')}</th>
+                <th style={{ cursor: 'pointer' }} onClick={() => alternarOrden('visible')}>Kiosco{indicadorOrden('visible')}</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {visibles.map(p => (
+              {visiblesPagina.map(p => (
                 <tr key={p.id}>
                   <td>
                     <div className="product-info">
@@ -912,6 +1031,19 @@ export default function ProductosAdmin() {
               ))}
             </tbody>
           </table>
+        </div>
+        <div className="products-pagination">
+          <span className="info">Página {paginaSegura} de {totalPaginasTabla} · {visiblesOrdenados.length} registros</span>
+          <div className="controls">
+            <label style={{ fontSize: 12, color: '#56605c', display: 'flex', alignItems: 'center', gap: 6 }}>Filas:
+              <select value={porPagina} onChange={(e) => setPorPagina(Number(e.target.value))}>
+                {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </label>
+            <button type="button" onClick={() => setPaginaTabla((p) => Math.max(1, p - 1))} disabled={paginaSegura <= 1}>Anterior</button>
+            <span className="page-pill">{paginaSegura}</span>
+            <button type="button" onClick={() => setPaginaTabla((p) => Math.min(totalPaginasTabla, p + 1))} disabled={paginaSegura >= totalPaginasTabla}>Siguiente</button>
+          </div>
         </div>
       </section>
 
@@ -1375,3 +1507,4 @@ export default function ProductosAdmin() {
     </main>
   );
 }
+

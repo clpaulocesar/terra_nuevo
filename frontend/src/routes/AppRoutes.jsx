@@ -123,8 +123,7 @@ function Layout() {
                 <Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><BookOpen size={16} /> Catálogo mayorista con precios B2B</Link>
                 <Link to="/mi-cuenta/pedidos" onClick={() => setMenuCuentaAbierto(false)}><ReceiptText size={16} /> Mis pedidos</Link>
                 <button type="button" className="terra-account-link-disabled" title="Disponible próximamente"><FileText size={16} /> Mis cotizaciones y licitaciones</button>
-                <Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><Repeat2 size={16} /> Repetir compra rápida</Link>
-                <button type="button" className="terra-account-link-disabled" title="Disponible próximamente"><ContactRound size={16} /> Mi perfil y datos de facturación</button>
+                <Link to="/mi-cuenta" onClick={() => setMenuCuentaAbierto(false)}><ContactRound size={16} /> Mi perfil y datos de facturación</Link>
                 <a className="terra-account-support" href={enlaceAsesor} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Soporte por WhatsApp<i>Asesor en línea</i></a>
               </nav>
               <div className="terra-account-footer"><button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></div>
@@ -292,6 +291,7 @@ export default function AppRoutes() {
           <Route path="pedido" element={<PedidoGeneradoPage />} />
           <Route path="pedido/:id" element={<PedidoGeneradoPage />} />
           <Route path="mi-cuenta" element={<PanelMayorista />} />
+          <Route path="mi-cuenta/perfil" element={<PanelMayorista />} />
           <Route path="mi-cuenta/pedidos" element={<PedidosMayorista />} />
           <Route path="*" element={<NoEncontrado />} />
         </Route>

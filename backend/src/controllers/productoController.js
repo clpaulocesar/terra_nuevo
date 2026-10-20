@@ -59,7 +59,7 @@ export async function listarProductos(req, res, next) {
       pagina < 1 ||
       !Number.isSafeInteger(limite) ||
       limite < 1 ||
-      limite > 200
+      limite > 100000
     ) {
       return res.status(400).json({
         success: false,
@@ -251,3 +251,4 @@ export async function eliminarProducto(req, res, next) {
     next(error);
   }
 }
+
