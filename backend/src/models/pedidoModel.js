@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { pool } from '../config/database.js';
+import { asegurarEscalasMayoristasBD } from './productoModel.js';
 
 const aMonto = (minor) => Number(minor || 0) / 100;
 let paymentColumnsReady;
@@ -12,6 +13,7 @@ function asegurarColumnasPago() {
 }
 
 export async function crearPedidoBD(clienteId, items, { precioMayorista = false } = {}) {
+  await asegurarEscalasMayoristasBD();
   const conexion = await pool.connect();
   try {
     await conexion.query('BEGIN');
@@ -26,12 +28,17 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false 
         // variantes activas. product_variant_id admite NULL en order_items.
         `SELECT p.id AS product_id, p.name, p.stock_quantity, NULL::uuid AS variant_id,
                 COALESCE(p.codigo_terra, p.internal_code, p.slug, p.id::text) AS sku,
-                ROUND(COALESCE(CASE WHEN $2 THEN NULLIF(BTRIM(p.precio_mayorista::text), '')::numeric END, p.public_price, 0) * 100)::bigint AS price_minor
+                ROUND(COALESCE(
+                  CASE WHEN $2 THEN (SELECT w.unit_price FROM wholesale_price_tiers w WHERE w.product_id=p.id AND w.minimum_quantity <= $3 ORDER BY w.minimum_quantity DESC LIMIT 1) END,
+                  CASE WHEN $2 THEN NULLIF(BTRIM(p.precio_mayorista::text), '')::numeric END,
+                  p.public_price, 0) * 100)::bigint AS price_minor,
+                CASE WHEN $2 THEN COALESCE((SELECT MIN(w.minimum_quantity) FROM wholesale_price_tiers w WHERE w.product_id=p.id), 1) ELSE 1 END AS minimum_order_quantity
          FROM products p
-         WHERE p.id=$1 AND COALESCE(p.activo,p.is_active,TRUE)=TRUE LIMIT 1`, [item.productoId, precioMayorista]);
+         WHERE p.id=$1 AND COALESCE(p.activo,p.is_active,TRUE)=TRUE LIMIT 1`, [item.productoId, precioMayorista, item.cantidad]);
       if (!producto.rowCount) throw new Error('Producto no encontrado o inactivo en Supabase');
       const p = producto.rows[0];
       if (Number(p.stock_quantity || 0) < item.cantidad) throw new Error(`Stock insuficiente para ${p.name}`);
+      if (item.cantidad < Number(p.minimum_order_quantity || 1)) throw new Error(`La compra mínima de ${p.name} es de ${p.minimum_order_quantity} unidades.`);
       const subtotalMinor = Number(p.price_minor) * item.cantidad;
       totalMinor += subtotalMinor;
       detalles.push({ variantId: p.variant_id, nombre: p.name, sku: p.sku, cantidad: item.cantidad, precioUnitario: aMonto(p.price_minor), subtotal: aMonto(subtotalMinor) });

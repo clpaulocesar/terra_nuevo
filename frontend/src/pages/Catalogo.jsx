@@ -796,10 +796,13 @@ export default function Catalogo() {
                 {productosFiltrados.map((producto) => {
                   const recienAgregado = Boolean(agregados[producto.id]);
                   const tonosColores = coloresDeProducto(producto);
-                  const disponible = producto.stock > 0;
-                  const cantidadMayorista = Math.min(producto.stock, cantidadesMayorista[producto.id] || 1);
+                  const escalasMayorista = Array.isArray(producto.escalasMayorista) ? producto.escalasMayorista : [];
+                  const minimoMayorista = escalasMayorista[0]?.minCantidad || 1;
+                  const disponible = producto.stock >= (esMayorista ? minimoMayorista : 1);
+                  const cantidadMayorista = Math.min(producto.stock, Math.max(minimoMayorista, cantidadesMayorista[producto.id] || minimoMayorista));
                   const precioMinorista = Number(producto.precio || 0);
-                  const precioMayorista = Number(producto.precioMayorista ?? producto.precio);
+                  const tramoAplicado = escalasMayorista.filter((escala) => escala.minCantidad <= cantidadMayorista).at(-1);
+                  const precioMayorista = Number(tramoAplicado?.precio ?? producto.precioMayorista ?? producto.precio);
                   const ahorroMayorista = precioMinorista > precioMayorista
                     ? Math.round(((precioMinorista - precioMayorista) / precioMinorista) * 100)
                     : 0;

@@ -5,12 +5,17 @@ export function normalizarProducto(producto) {
   const precioMayorista = producto.precio_mayorista === null || producto.precio_mayorista === undefined || producto.precio_mayorista === '' ? null : Number(producto.precio_mayorista);
   const showroom = Number(producto.showroom ?? producto.stock ?? 0);
   const imagenes = Array.isArray(producto.imagenes) && producto.imagenes.length ? producto.imagenes : (producto.imagen_url ? [producto.imagen_url] : []);
+  const escalasMayorista = Array.isArray(producto.escalas_mayorista) ? producto.escalas_mayorista
+    .map((escala) => ({ minCantidad: Number(escala.minCantidad), precio: Number(escala.precio) }))
+    .filter((escala) => Number.isSafeInteger(escala.minCantidad) && escala.minCantidad > 0 && Number.isFinite(escala.precio))
+    .sort((a, b) => a.minCantidad - b.minCantidad) : [];
   return {
     ...producto,
     id: producto.id,
     sku: producto.sku || `TRR-${producto.id}`,
     precio,
     precioMayorista: Number.isFinite(precioMayorista) ? precioMayorista : null,
+    escalasMayorista,
     precioOriginal: producto.precio_original ? Number(producto.precio_original) : null,
     showroom,
     bodega: Number(producto.bodega ?? 0),
