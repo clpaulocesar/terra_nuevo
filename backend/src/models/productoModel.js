@@ -3,7 +3,41 @@ import { pool } from '../config/database.js';
 const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, p.slug AS slug,
   p.name AS nombre, p.description AS descripcion, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
   COALESCE(p.public_price, 0) AS precio, p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
-  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
+  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, COALESCE(p.activo, p.is_active, TRUE) AS activo,
+  COALESCE((SELECT json_agg(json_build_object('minCantidad', w.minimum_quantity, 'precio', w.unit_price) ORDER BY w.minimum_quantity)
+    FROM wholesale_price_tiers w WHERE w.product_id=p.id), '[]'::json) AS escalas_mayorista`;
+
+let escalasReady;
+export function asegurarEscalasMayoristasBD() {
+  if (!escalasReady) escalasReady = pool.query(`
+    CREATE TABLE IF NOT EXISTS wholesale_price_tiers (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      minimum_quantity INTEGER NOT NULL CHECK (minimum_quantity > 0),
+      unit_price NUMERIC(12,2) NOT NULL CHECK (unit_price >= 0),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(product_id, minimum_quantity)
+    )
+  `);
+  return escalasReady;
+}
+
+async function reemplazarEscalasMayoristas(productoId, escalas = []) {
+  if (!Array.isArray(escalas)) return;
+  await asegurarEscalasMayoristasBD();
+  const conexion = await pool.connect();
+  try {
+    await conexion.query('BEGIN');
+    await conexion.query('DELETE FROM wholesale_price_tiers WHERE product_id=$1', [productoId]);
+    for (const escala of escalas) {
+      await conexion.query('INSERT INTO wholesale_price_tiers (product_id, minimum_quantity, unit_price) VALUES ($1,$2,$3)', [productoId, escala.minCantidad, escala.precio]);
+    }
+    await conexion.query('COMMIT');
+  } catch (error) {
+    await conexion.query('ROLLBACK');
+    throw error;
+  } finally { conexion.release(); }
+}
 
 const EXISTE_PROMOCION = `EXISTS (
   SELECT 1 FROM promotion_products pp
@@ -66,6 +100,7 @@ export async function listarProductosBD({
   precioMax = null,
   orden = 'recomendados',
 } = {}) {
+  await asegurarEscalasMayoristasBD();
   const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, conStock, precioMin, precioMax });
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
   const orderBy = ORDENES[orden] || ORDENES.recomendados;
@@ -108,6 +143,7 @@ export async function listarProductosPaginadoBD({
   precioMax = null,
   orden = 'recomendados',
 } = {}) {
+  await asegurarEscalasMayoristasBD();
   const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, conStock, precioMin, precioMax });
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
   const orderBy = ORDENES[orden] || ORDENES.recomendados;
@@ -139,6 +175,7 @@ export async function listarProductosPaginadoBD({
 }
 
 export async function obtenerProductoBD(id) {
+  await asegurarEscalasMayoristasBD();
   const idStr = String(id || '').trim();
   const { rows } = await pool.query(
     `SELECT ${campos} 
@@ -155,6 +192,7 @@ export async function obtenerProductoBD(id) {
 }
 
 export async function crearProductoBD(datos) {
+  await asegurarEscalasMayoristasBD();
   const baseSlug = String(datos.nombre || 'producto').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const codigo = String(datos.sku || `TRR-${Date.now()}`).trim();
   const { rows } = await pool.query(
@@ -162,10 +200,12 @@ export async function crearProductoBD(datos) {
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12,$3,$13,$14,(SELECT id FROM categories WHERE LOWER(name)=LOWER($15) AND is_active=TRUE LIMIT 1)) RETURNING id`,
     [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), datos.precioMayorista ?? null, Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.video_url || null, Array.isArray(datos.colores) ? datos.colores : [], datos.activo ?? true, datos.medida || null, datos.detalle || null, datos.categoria]
   );
+  await reemplazarEscalasMayoristas(rows[0].id, datos.escalasMayorista || []);
   return obtenerProductoBD(rows[0].id);
 }
 
 export async function actualizarProductoBD(id, datos) {
+  await asegurarEscalasMayoristasBD();
   const idStr = String(id || '').trim();
   const { rows } = await pool.query(
     `UPDATE products 
@@ -174,6 +214,7 @@ export async function actualizarProductoBD(id, datos) {
      RETURNING id`,
     [datos.nombre, datos.descripcion, datos.precio, datos.stock ?? datos.showroom, datos.imagen_url, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.activo, datos.sku, datos.medida, datos.detalle, datos.video_url ?? null, Array.isArray(datos.colores) ? datos.colores : [], datos.precioMayorista ?? null, datos.categoria, idStr]
   );
+  if (rows[0] && Array.isArray(datos.escalasMayorista)) await reemplazarEscalasMayoristas(rows[0].id, datos.escalasMayorista);
   return rows[0] ? obtenerProductoBD(rows[0].id) : null;
 }
 
