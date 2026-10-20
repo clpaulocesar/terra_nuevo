@@ -29,6 +29,7 @@ import ProductosAdmin from '../pages/admin/ProductosAdmin.jsx';
 import VentasDirectasAdmin from '../pages/admin/VentasDirectasAdmin.jsx';
 import PedidosAdmin from '../pages/admin/PedidosAdmin.jsx';
 import ClientesAdmin from '../pages/admin/ClientesAdmin.jsx';
+import PersonalAdmin from '../pages/admin/PersonalAdmin.jsx';
 import CategoriasAdmin from '../pages/admin/CategoriasAdmin.jsx';
 import ReportesAdmin from '../pages/admin/ReportesAdmin.jsx';
 import LoginAdmin from '../pages/admin/LoginAdmin.jsx';
@@ -224,6 +225,7 @@ export default function AppRoutes() {
           <Route path="categorias" element={<CategoriasAdmin />} />
           <Route path="pedidos" element={<PedidosAdmin />} />
           <Route path="clientes" element={<ClientesAdmin />} />
+          <Route path="personal" element={<PersonalAdmin />} />
           <Route path="reportes" element={<ReportesAdmin />} />
         </Route>
         <Route element={<Layout />}>
