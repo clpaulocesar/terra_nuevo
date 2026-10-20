@@ -24,6 +24,23 @@ export async function seedProductos(req, res, next) {
 
 const ORDENES_VALIDOS = ORDENES_PRODUCTOS;
 
+function normalizarEscalasMayoristas(escalas, { obligatorio = false } = {}) {
+  if (escalas === undefined) return obligatorio ? [] : undefined;
+  if (!Array.isArray(escalas) || escalas.length > 10) throw new Error('Las escalas mayoristas deben contener entre 0 y 10 tramos.');
+  const normalizadas = escalas.map((escala) => ({
+    minCantidad: Number(escala?.minCantidad),
+    precio: Number(escala?.precio),
+  })).sort((a, b) => a.minCantidad - b.minCantidad);
+  const minimos = new Set();
+  for (const escala of normalizadas) {
+    if (!Number.isSafeInteger(escala.minCantidad) || escala.minCantidad < 1 || !Number.isFinite(escala.precio) || escala.precio < 0 || minimos.has(escala.minCantidad)) {
+      throw new Error('Cada escala debe tener una cantidad mínima única y un precio válido.');
+    }
+    minimos.add(escala.minCantidad);
+  }
+  return normalizadas;
+}
+
 export async function listarProductos(req, res, next) {
   try {
     const buscar = String(req.query.buscar ?? '').trim();
@@ -132,13 +149,15 @@ export async function crearProducto(req, res, next) {
     if (precioMayorista !== null && (!Number.isFinite(precioMayorista) || precioMayorista < 0)) {
       return res.status(400).json({ success: false, mensaje: 'El precio mayorista debe ser un monto válido.' });
     }
-    const nuevo = await crearProductoBD({ ...datos, precioMayorista });
+    const escalasMayorista = normalizarEscalasMayoristas(datos.escalasMayorista, { obligatorio: true });
+    const nuevo = await crearProductoBD({ ...datos, precioMayorista, escalasMayorista });
     return res.status(201).json({
       success: true,
       mensaje: 'Producto creado exitosamente',
       data: nuevo,
     });
   } catch (error) {
+    if (error.message?.includes('escala')) return res.status(400).json({ success: false, mensaje: error.message });
     if (error.code === '23505') {
       return res.status(409).json({
         success: false,
@@ -163,7 +182,8 @@ export async function actualizarProducto(req, res, next) {
     if (precioMayorista !== null && (!Number.isFinite(precioMayorista) || precioMayorista < 0)) {
       return res.status(400).json({ success: false, mensaje: 'El precio mayorista debe ser un monto válido.' });
     }
-    const actualizado = await actualizarProductoBD(id, { ...req.body, precioMayorista });
+    const escalasMayorista = normalizarEscalasMayoristas(req.body?.escalasMayorista);
+    const actualizado = await actualizarProductoBD(id, { ...req.body, precioMayorista, escalasMayorista });
     if (!actualizado) {
       return res.status(404).json({
         success: false,
@@ -177,6 +197,7 @@ export async function actualizarProducto(req, res, next) {
       data: actualizado,
     });
   } catch (error) {
+    if (error.message?.includes('escala')) return res.status(400).json({ success: false, mensaje: error.message });
     if (error.code === '23505') {
       return res.status(409).json({
         success: false,
