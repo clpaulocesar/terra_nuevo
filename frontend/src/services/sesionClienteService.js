@@ -12,6 +12,15 @@ export async function iniciarSesionCliente(email, password) {
   return { ...perfil, token: data.access_token };
 }
 
+export async function actualizarPerfilMayorista(token, datos) {
+  if (!token) throw new Error('Inicia sesión como mayorista.');
+  return apiRequest('/clientes/perfil', {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}` },
+    body: datos,
+  });
+}
+
 export async function listarMisPedidosMayorista(token) {
   if (!token) throw new Error('Inicia sesión como mayorista.');
   return apiRequest('/clientes/mis-pedidos', { headers: { Authorization: `Bearer ${token}` } });

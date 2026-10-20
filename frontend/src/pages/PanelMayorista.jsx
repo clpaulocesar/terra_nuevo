@@ -15,6 +15,7 @@ import {
   User,
 } from 'lucide-react';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
+import { actualizarPerfilMayorista } from '../services/sesionClienteService.js';
 import MapaEntregaMayorista from '../components/mayorista/MapaEntregaMayorista.jsx';
 import './PanelMayorista.css';
 
@@ -22,18 +23,23 @@ export default function PanelMayorista() {
   const { sesion, esMayorista, iniciarSesion } = useContext(SesionClienteContext);
 
   // Estados del formulario inicializados con datos de sesión o valores B2B institucionales
-  const [nombreTitular, setNombreTitular] = useState(
-    sesion?.titular || sesion?.nombre || 'Ana Patricia Valdivia Roca'
+  const [nombreTitular, setNombreTitular] = useState(sesion?.titular || '');
+  const [telefono, setTelefono] = useState(sesion?.telefono || '');
+  const [correo, setCorreo] = useState(sesion?.email || '');
+  const [razonSocial, setRazonSocial] = useState(sesion?.nombre || '');
+  const [nit, setNit] = useState(sesion?.nit || '');
+  const [direccion, setDireccion] = useState(sesion?.direccion || '');
+  const [referencia, setReferencia] = useState(sesion?.referencia || '');
+  const [gps, setGps] = useState(
+    sesion?.gps ||
+      (sesion?.latitud != null && sesion?.longitud != null
+        ? `${sesion.latitud}, ${sesion.longitud}`
+        : '')
   );
-  const [telefono, setTelefono] = useState(sesion?.telefono || '+591 710 44520');
-  const [correo, setCorreo] = useState(sesion?.email || 'ana.valdivia@muebleriavaldivia.bo');
-  const [razonSocial, setRazonSocial] = useState(sesion?.nombre || 'Mueblería Valdivia S.R.L.');
-  const [nit, setNit] = useState(sesion?.nit || '67874236');
-  const [direccion, setDireccion] = useState('Av. Banzer entre 3er y 4to Anillo #1420, Almacén Central');
-  const [referencia, setReferencia] = useState('Portón azul frente a Surtidor Genex, timbre almacén rampa 2');
-  const [gps, setGps] = useState('-17.768924, -63.182410');
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [guardadoExito, setGuardadoExito] = useState(false);
+  const [errorGuardado, setErrorGuardado] = useState('');
+  const [guardando, setGuardando] = useState(false);
   const [cargandoUbicacion, setCargandoUbicacion] = useState(false);
 
   const fileInputRef = useRef(null);
@@ -49,21 +55,56 @@ export default function PanelMayorista() {
     .join('')
     .toUpperCase();
 
-  // Guardar cambios
-  const handleGuardar = (e) => {
+  const aplicarPerfil = (perfil) => {
+    if (!perfil) return;
+    setNombreTitular(perfil.titular || '');
+    setTelefono(perfil.telefono || '');
+    setCorreo(perfil.email || '');
+    setRazonSocial(perfil.nombre || '');
+    setNit(perfil.nit || '');
+    setDireccion(perfil.direccion || '');
+    setReferencia(perfil.referencia || '');
+    setGps(
+      perfil.gps ||
+        (perfil.latitud != null && perfil.longitud != null
+          ? `${perfil.latitud}, ${perfil.longitud}`
+          : '')
+    );
+  };
+
+  // Guardar cambios en Supabase y actualizar la sesión en memoria.
+  const handleGuardar = async (e) => {
     if (e) e.preventDefault();
-    if (iniciarSesion && sesion) {
-      iniciarSesion({
-        ...sesion,
+    if (!sesion?.token || guardando) return;
+
+    setGuardadoExito(false);
+    setErrorGuardado('');
+    if (!direccion.trim()) {
+      setErrorGuardado('Ingresá la dirección de envío antes de guardar.');
+      return;
+    }
+
+    setGuardando(true);
+
+    try {
+      const actualizado = await actualizarPerfilMayorista(sesion.token, {
         nombre: razonSocial,
         titular: nombreTitular,
-        email: correo,
         telefono,
         nit,
+        direccion,
+        referencia,
+        gps,
       });
+      iniciarSesion({ ...sesion, ...actualizado, token: sesion.token });
+      aplicarPerfil(actualizado);
+      setGuardadoExito(true);
+      setTimeout(() => setGuardadoExito(false), 4500);
+    } catch (error) {
+      setErrorGuardado(error.message || 'No se pudo guardar el perfil y la dirección de envío.');
+    } finally {
+      setGuardando(false);
     }
-    setGuardadoExito(true);
-    setTimeout(() => setGuardadoExito(false), 4500);
   };
 
   // Cargar imagen o logo
@@ -87,29 +128,25 @@ export default function PanelMayorista() {
       return;
     }
     setCargandoUbicacion(true);
+    setErrorGuardado('');
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setGps(`${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`);
         setCargandoUbicacion(false);
       },
       () => {
-        setGps('-17.768924, -63.182410');
         setCargandoUbicacion(false);
+        setErrorGuardado('No se pudo obtener la ubicación GPS. Puedes fijar el punto manualmente en el mapa.');
       },
       { timeout: 7000 }
     );
   };
 
-  // Cancelar / Restablecer
+  // Cancelar / Restablecer los valores guardados en la sesión.
   const handleCancelar = () => {
-    setNombreTitular(sesion?.titular || sesion?.nombre || 'Ana Patricia Valdivia Roca');
-    setTelefono(sesion?.telefono || '+591 710 44520');
-    setCorreo(sesion?.email || 'ana.valdivia@muebleriavaldivia.bo');
-    setRazonSocial(sesion?.nombre || 'Mueblería Valdivia S.R.L.');
-    setNit(sesion?.nit || '67874236');
-    setDireccion('Av. Banzer entre 3er y 4to Anillo #1420, Almacén Central');
-    setReferencia('Portón azul frente a Surtidor Genex, timbre almacén rampa 2');
+    aplicarPerfil(sesion);
     setGuardadoExito(false);
+    setErrorGuardado('');
   };
 
   return (
@@ -128,12 +165,12 @@ export default function PanelMayorista() {
           <p>Actualiza tus datos de contacto comercial, facturación y ubicación de entrega para despachos.</p>
         </div>
         <div className="b2b-profile-header__actions">
-          <button type="button" className="b2b-btn-cancel" onClick={handleCancelar}>
+          <button type="button" className="b2b-btn-cancel" onClick={handleCancelar} disabled={guardando}>
             Cancelar
           </button>
-          <button type="button" className="b2b-btn-save" onClick={handleGuardar}>
+          <button type="button" className="b2b-btn-save" onClick={handleGuardar} disabled={guardando}>
             <CheckCircle2 size={17} />
-            <span>Guardar Cambios</span>
+            <span>{guardando ? 'Guardando…' : 'Guardar Cambios'}</span>
           </button>
         </div>
       </section>
@@ -142,7 +179,13 @@ export default function PanelMayorista() {
       {guardadoExito && (
         <div className="b2b-success-alert" role="status">
           <CheckCircle2 size={18} />
-          <span>¡Datos de perfil comercial, facturación y despacho actualizados correctamente!</span>
+          <span>¡Datos de perfil comercial, facturación y dirección de envío actualizados correctamente!</span>
+        </div>
+      )}
+      {errorGuardado && (
+        <div className="b2b-success-alert" role="alert" style={{ background: '#fff1f2', borderColor: '#fecdd3', color: '#9f1239' }}>
+          <Info size={18} />
+          <span>{errorGuardado}</span>
         </div>
       )}
 
@@ -274,6 +317,8 @@ export default function PanelMayorista() {
                   id="input-correo"
                   className="b2b-text-input"
                   required
+                  readOnly
+                  title="El correo de acceso se gestiona con soporte TERRA"
                   type="email"
                   value={correo}
                   onChange={(e) => setCorreo(e.target.value)}
@@ -300,7 +345,8 @@ export default function PanelMayorista() {
                   id="input-nit"
                   className="b2b-text-input b2b-text-input--no-icon"
                   style={{ fontFamily: 'monospace', fontWeight: 700 }}
-                  required
+                  inputMode="numeric"
+                  maxLength="20"
                   type="text"
                   value={nit}
                   onChange={(e) => setNit(e.target.value)}
@@ -338,6 +384,7 @@ export default function PanelMayorista() {
                   id="input-direccion"
                   className="b2b-text-input"
                   required
+                  maxLength="250"
                   type="text"
                   value={direccion}
                   onChange={(e) => setDireccion(e.target.value)}
@@ -355,6 +402,7 @@ export default function PanelMayorista() {
                 <input
                   id="input-referencia"
                   className="b2b-text-input"
+                  maxLength="250"
                   type="text"
                   value={referencia}
                   onChange={(e) => setReferencia(e.target.value)}
@@ -386,6 +434,7 @@ export default function PanelMayorista() {
               className="b2b-btn-cancel"
               style={{ flex: 1 }}
               onClick={handleCancelar}
+              disabled={guardando}
             >
               Cancelar
             </button>
@@ -393,9 +442,10 @@ export default function PanelMayorista() {
               type="submit"
               className="b2b-btn-save"
               style={{ flex: 1, justifyContent: 'center' }}
+              disabled={guardando}
             >
               <Save size={16} />
-              <span>Guardar cambios de perfil y dirección</span>
+              <span>{guardando ? 'Guardando cambios…' : 'Guardar cambios de perfil y dirección'}</span>
             </button>
           </div>
         </div>

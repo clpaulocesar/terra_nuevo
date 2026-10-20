@@ -174,7 +174,7 @@ export default function MapaEntregaMayorista({
       <div className="b2b-map-controls-row">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           <strong style={{ fontSize: '0.75rem', color: '#374151' }}>Punto georreferenciado en el mapa</strong>
-          <span className="b2b-gps-badge">GPS: {gps}</span>
+          <span className="b2b-gps-badge">GPS: {gps || 'Sin definir'}</span>
         </div>
 
         <div className="b2b-map-action-buttons">
