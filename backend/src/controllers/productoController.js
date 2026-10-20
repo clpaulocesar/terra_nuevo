@@ -1,11 +1,11 @@
 import {
-  listarProductosBD,
+  listarProductosPaginadoBD,
+  ORDENES_PRODUCTOS,
   obtenerProductoBD,
   crearProductoBD,
   actualizarProductoBD,
   actualizarStockBD,
   eliminarProductoBD,
-  ORDENES_PRODUCTOS,
 } from '../models/productoModel.js';
 import { migrateAndSeed } from '../config/migrate_seed.js';
 
@@ -22,14 +22,20 @@ export async function seedProductos(req, res, next) {
   }
 }
 
+const ORDENES_VALIDOS = ORDENES_PRODUCTOS;
+
 export async function listarProductos(req, res, next) {
   try {
     const buscar = String(req.query.buscar ?? '').trim();
     const categoria = String(req.query.categoria ?? '').trim();
-    const orden = String(req.query.orden ?? 'recomendados').trim();
+    const orden = ORDENES_VALIDOS.includes(String(req.query.orden ?? '')) ? String(req.query.orden) : 'recomendados';
     const pagina = Number(req.query.pagina ?? 1);
     const limite = Number(req.query.limite ?? 100);
     const soloActivos = req.query.todos === 'true' ? false : true;
+    const soloPromos = req.query.promos === 'true';
+    const conStock = req.query.stock === 'true';
+    const precioMin = req.query.precioMin != null && req.query.precioMin !== '' ? Number(req.query.precioMin) : null;
+    const precioMax = req.query.precioMax != null && req.query.precioMax !== '' ? Number(req.query.precioMax) : null;
 
     if (
       !Number.isSafeInteger(pagina) ||
@@ -44,19 +50,23 @@ export async function listarProductos(req, res, next) {
       });
     }
 
-    if (!ORDENES_PRODUCTOS.includes(orden)) {
-      return res.status(400).json({
-        success: false,
-        mensaje: `Orden inválido. Valores permitidos: ${ORDENES_PRODUCTOS.join(', ')}`,
-      });
+    if (
+      (precioMin !== null && (!Number.isFinite(precioMin) || precioMin < 0)) ||
+      (precioMax !== null && (!Number.isFinite(precioMax) || precioMax < 0))
+    ) {
+      return res.status(400).json({ success: false, mensaje: 'Rango de precios inválido' });
     }
 
-    const { productos, total } = await listarProductosBD({
+    const { productos, total } = await listarProductosPaginadoBD({
       buscar,
       categoria,
       pagina,
       limite,
       soloActivos,
+      soloPromos,
+      conStock,
+      precioMin,
+      precioMax,
       orden,
     });
 

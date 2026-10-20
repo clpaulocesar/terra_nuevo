@@ -1,4 +1,4 @@
-import { API_URL, apiRequest, MODO_DEMO } from './api.js';
+import { apiRequest, MODO_DEMO } from './api.js';
 
 export function normalizarProducto(producto) {
   const precio = Number(producto.precio || 0);
@@ -22,16 +22,33 @@ export function normalizarProducto(producto) {
     activo: producto.activo !== false,
     detalle: producto.detalle || producto.medida || '',
     descripcion: producto.descripcion || '',
-    categoria: producto.categoria || 'Sin categoría'
+    categoria: producto.categoria || 'Sin categoría',
+    ventas: Number(producto.ventas || 0),
+    promocion: Boolean(producto.promocion)
   };
 }
 function exigirConexionReal() { if (MODO_DEMO) throw new Error('El modo demostración está activo. Configura VITE_MODO_DEMO=false para usar PostgreSQL.'); }
-function construirQueryProductos({ buscar = '', categoria = '', pagina = 1, limite = 100, todos = false, orden = '' } = {}) {
-  const p = new URLSearchParams({ pagina, limite });
+function construirQueryProductos({
+  buscar = '',
+  categoria = '',
+  pagina = 1,
+  limite = 100,
+  todos = false,
+  orden = '',
+  promos = false,
+  stock = false,
+  precioMin = null,
+  precioMax = null,
+} = {}) {
+  const p = new URLSearchParams({ pagina: String(pagina), limite: String(limite) });
   if (buscar) p.set('buscar', buscar);
-  if (categoria && categoria !== 'Todos') p.set('categoria', categoria);
+  if (categoria && categoria !== 'Todos' && categoria !== 'Todas') p.set('categoria', categoria);
   if (orden) p.set('orden', orden);
   if (todos) p.set('todos', 'true');
+  if (promos) p.set('promos', 'true');
+  if (stock) p.set('stock', 'true');
+  if (precioMin !== null && precioMin !== '' && Number.isFinite(Number(precioMin))) p.set('precioMin', String(precioMin));
+  if (precioMax !== null && precioMax !== '' && Number.isFinite(Number(precioMax))) p.set('precioMax', String(precioMax));
   return p;
 }
 
@@ -42,20 +59,12 @@ export async function listarProductos({ signal, ...filtros } = {}) {
 }
 
 // Igual que listarProductos pero conserva la metadata de paginación que devuelve el backend.
-// apiRequest desenvuelve `data`, así que aquí se hace el fetch completo para leer `paginacion`.
+// apiRequest con `raw` devuelve el sobre completo (`data` + `paginacion`).
 export async function listarProductosPaginado({ signal, ...filtros } = {}) {
   exigirConexionReal();
-  let respuesta;
-  try {
-    respuesta = await fetch(`${API_URL}/productos?${construirQueryProductos(filtros)}`, { signal, headers: { 'Content-Type': 'application/json' } });
-  } catch (error) {
-    if (error.name === 'AbortError') throw error;
-    throw new Error('No se pudo conectar al backend. Comprueba que esté encendido.');
-  }
-  const datos = await respuesta.json().catch(() => null);
-  if (!respuesta.ok || datos?.success === false) throw new Error(datos?.mensaje || `Error HTTP ${respuesta.status}`);
+  const datos = await apiRequest(`/productos?${construirQueryProductos(filtros)}`, { signal, raw: true });
   const lista = Array.isArray(datos) ? datos : datos?.data || [];
-  const limite = Number(datos?.paginacion?.limite ?? filtros.limite ?? 100);
+  const limite = Number(datos?.paginacion?.limite ?? filtros.limite ?? 18);
   const pagina = Number(datos?.paginacion?.pagina ?? filtros.pagina ?? 1);
   // Un backend anterior no manda `total`: en ese caso queda en null y la
   // paginación avanza "a ciegas" mientras la página venga completa.

@@ -21,7 +21,7 @@ export const WHATSAPP_COMPROBANTES = String(
   (typeof window !== 'undefined' && window.TERRA_CONFIG?.WHATSAPP_COMPROBANTES) || '59175335697'
 ).replace(/\D/g, '');
 
-export async function apiRequest(ruta, { method = 'GET', body, signal, headers = {} } = {}) {
+export async function apiRequest(ruta, { method = 'GET', body, signal, headers = {}, raw = false } = {}) {
   let respuesta;
   try {
     respuesta = await fetch(`${API_URL}${ruta}`, {
@@ -39,5 +39,6 @@ export async function apiRequest(ruta, { method = 'GET', body, signal, headers =
   if (!respuesta.ok || datos?.success === false) {
     throw new Error(datos?.mensaje || `Error HTTP ${respuesta.status}`);
   }
-  return datos?.data ?? datos;
+  // `raw` devuelve el sobre completo (data + paginacion) en vez de solo `data`.
+  return raw ? datos : (datos?.data ?? datos);
 }

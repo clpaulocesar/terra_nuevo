@@ -5,28 +5,68 @@ const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, 
   COALESCE(p.public_price, 0) AS precio, p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
   p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
 
+const EXISTE_PROMOCION = `EXISTS (
+  SELECT 1 FROM promotion_products pp
+  JOIN promotions pr ON pr.id = pp.promotion_id
+  WHERE pp.product_id = p.id
+    AND COALESCE(pr.is_active, TRUE) = TRUE
+    AND (pr.starts_at IS NULL OR pr.starts_at <= NOW())
+    AND (pr.ends_at IS NULL OR pr.ends_at >= NOW())
+)`;
+
+// Cada opción tiene su propio ORDER BY fijo: nunca se interpola texto del request.
+// Se aceptan alias en kebab-case y snake_case para no romper clientes existentes.
 const ORDENES = {
-  recomendados: 'p.created_at DESC, p.id DESC',
-  'precio-asc': 'COALESCE(p.public_price, 0) ASC, p.name ASC',
-  'precio-desc': 'COALESCE(p.public_price, 0) DESC, p.name ASC',
-  nombre: 'p.name ASC',
+  recomendados: 'COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
+  relevancia: 'COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
+  'mas-vendidos': 'COALESCE(v.unidades, 0) DESC, p.created_at DESC, p.id DESC',
+  mas_vendidos: 'COALESCE(v.unidades, 0) DESC, p.created_at DESC, p.id DESC',
+  nuevos: 'p.created_at DESC, p.id DESC',
+  'precio-asc': 'COALESCE(p.public_price, 0) ASC, p.name ASC, p.id ASC',
+  precio_asc: 'COALESCE(p.public_price, 0) ASC, p.name ASC, p.id ASC',
+  'precio-desc': 'COALESCE(p.public_price, 0) DESC, p.name ASC, p.id ASC',
+  precio_desc: 'COALESCE(p.public_price, 0) DESC, p.name ASC, p.id ASC',
+  nombre: 'p.name ASC, p.id ASC',
 };
 
 export const ORDENES_PRODUCTOS = Object.keys(ORDENES);
 
-// Devuelve una página de productos y el total de filas que cumplen el filtro
-// (COUNT(*) OVER() evita una segunda consulta). Filtros y orden viven aquí para
-// que la paginación del frontend sea exacta sin traer todo el catálogo.
-export async function listarProductosBD({ buscar = '', categoria = '', pagina = 1, limite = 100, soloActivos = false, orden = 'recomendados' } = {}) {
+const CTE_VENTAS = `WITH ventas AS (
+  SELECT LOWER(product_name) AS nombre, SUM(COALESCE(quantity, 0))::integer AS unidades
+  FROM order_items
+  WHERE product_name IS NOT NULL
+  GROUP BY LOWER(product_name)
+)`;
+
+function construirFiltros({ buscar = '', categoria = '', soloActivos = false, soloPromos = false, conStock = false, precioMin = null, precioMax = null } = {}) {
   const valores = [];
   const condiciones = [];
   if (soloActivos) condiciones.push('COALESCE(p.activo, p.is_active, TRUE) = TRUE');
-  if (buscar) {
-    valores.push(`%${buscar}%`);
-    const i = valores.length;
-    condiciones.push(`(p.name ILIKE $${i} OR COALESCE(p.description, '') ILIKE $${i} OR COALESCE(p.codigo_terra, p.internal_code, '') ILIKE $${i} OR COALESCE(c.name, p.product_group, '') ILIKE $${i} OR COALESCE(p.size, '') ILIKE $${i})`);
-  }
-  if (categoria && categoria !== 'Todos') { valores.push(categoria); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
+  if (buscar) { valores.push(`%${buscar}%`); condiciones.push(`(p.name ILIKE $${valores.length} OR COALESCE(p.codigo_terra, p.internal_code, '') ILIKE $${valores.length} OR COALESCE(p.description, '') ILIKE $${valores.length})`); }
+  const categoriaLimpia = String(categoria || '').trim();
+  if (categoriaLimpia && !['todos', 'todas'].includes(categoriaLimpia.toLowerCase())) { valores.push(categoriaLimpia); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
+  if (soloPromos) condiciones.push(EXISTE_PROMOCION);
+  if (conStock) condiciones.push('COALESCE(p.stock_quantity, 0) > 0');
+  if (Number.isFinite(precioMin)) { valores.push(precioMin); condiciones.push(`COALESCE(p.public_price, 0) >= $${valores.length}`); }
+  if (Number.isFinite(precioMax)) { valores.push(precioMax); condiciones.push(`COALESCE(p.public_price, 0) <= $${valores.length}`); }
+  return { valores, condiciones };
+}
+
+// Devuelve una página de productos y el total de filas que cumplen el filtro.
+// Filtros y orden viven aquí para que la paginación del frontend sea exacta.
+export async function listarProductosBD({
+  buscar = '',
+  categoria = '',
+  pagina = 1,
+  limite = 100,
+  soloActivos = false,
+  soloPromos = false,
+  conStock = false,
+  precioMin = null,
+  precioMax = null,
+  orden = 'recomendados',
+} = {}) {
+  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, conStock, precioMin, precioMax });
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
   const orderBy = ORDENES[orden] || ORDENES.recomendados;
   const valoresFiltro = [...valores];
@@ -52,6 +92,50 @@ export async function listarProductosBD({ buscar = '', categoria = '', pagina = 
   }
   const productos = rows.map(({ total_filas: _omitido, ...resto }) => resto);
   return { productos, total };
+}
+
+// Listado paginado del catálogo con filtros y ordenamiento reales en base de datos.
+// Devuelve { productos, total } para que el frontend pueda paginar sobre +2.500 referencias.
+export async function listarProductosPaginadoBD({
+  buscar = '',
+  categoria = '',
+  pagina = 1,
+  limite = 18,
+  soloActivos = false,
+  soloPromos = false,
+  conStock = false,
+  precioMin = null,
+  precioMax = null,
+  orden = 'recomendados',
+} = {}) {
+  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, conStock, precioMin, precioMax });
+  const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
+  const orderBy = ORDENES[orden] || ORDENES.recomendados;
+
+  const consulta = await pool.query(
+    `${CTE_VENTAS}
+     SELECT ${campos},
+       COALESCE(v.unidades, 0) AS ventas,
+       ${EXISTE_PROMOCION} AS promocion
+     FROM products p
+     LEFT JOIN categories c ON c.id = p.category_id
+     LEFT JOIN product_instructions pi ON pi.product_id = p.id
+     LEFT JOIN ventas v ON v.nombre = LOWER(p.name)
+     ${where}
+     ORDER BY ${orderBy}
+     LIMIT $${valores.length + 1} OFFSET $${valores.length + 2}`,
+    [...valores, limite, (pagina - 1) * limite]
+  );
+
+  const totalConsulta = await pool.query(
+    `SELECT COUNT(DISTINCT p.id) AS total
+     FROM products p
+     LEFT JOIN categories c ON c.id = p.category_id
+     ${where}`,
+    valores
+  );
+
+  return { productos: consulta.rows, total: Number(totalConsulta.rows[0]?.total || 0) };
 }
 
 export async function obtenerProductoBD(id) {
