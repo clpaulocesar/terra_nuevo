@@ -1,1 +1,1344 @@
-.wholesale-orders{margin:auto;max-width:950px;padding:2.2rem 0}.wholesale-orders>header>span{align-items:center;color:#a6192e;display:flex;font-size:.78rem;font-weight:800;gap:.4rem;text-transform:uppercase}.wholesale-orders h1{font-size:2.2rem;margin:.35rem 0}.wholesale-orders>header p{color:#68716d;margin:0 0 1.5rem}.wholesale-orders__state,.wholesale-orders__error,.wholesale-orders__empty{background:#fff;border-radius:14px;padding:1.3rem}.wholesale-orders__error{background:#fff1f2;color:#a6192e}.wholesale-orders__list{display:grid;gap:.8rem}.wholesale-orders__list article{align-items:center;background:#fff;border:1px solid #eee5e6;border-radius:13px;display:grid;gap:1rem;grid-template-columns:1.2fr 2fr auto auto;padding:1rem 1.2rem}.wholesale-orders__list article>div{display:grid;gap:.2rem}.wholesale-orders__code{font-weight:800}.wholesale-orders__list small{color:#78817d}.wholesale-orders__list p{align-items:center;color:#55605b;display:flex;font-size:.85rem;gap:.45rem;margin:0}.wholesale-orders__list strong{color:#a6192e;white-space:nowrap}.wholesale-orders__status{background:#f2f0f0;border-radius:999px;font-size:.68rem;padding:.38rem .55rem;white-space:nowrap}.wholesale-orders__status--completed{background:#e8f7ed;color:#23723a}.wholesale-orders__status--cancelled{background:#fff0f1;color:#a6192e}.wholesale-orders__status--preparing,.wholesale-orders__status--confirmed{background:#fff5db;color:#805a00}.wholesale-orders__empty{text-align:center}.wholesale-orders__empty svg{color:#a6192e}.wholesale-orders__empty h2{font-size:1.1rem}.wholesale-orders__empty p{color:#68716d}.wholesale-orders__empty a{background:#a6192e;border-radius:8px;color:#fff;display:inline-block;font-weight:800;padding:.75rem 1rem;text-decoration:none}@media(max-width:700px){.wholesale-orders{padding:1.4rem 0}.wholesale-orders__list article{align-items:start;grid-template-columns:1fr auto}.wholesale-orders__list p{grid-column:1/-1}.wholesale-orders__status{grid-column:2;grid-row:1}.wholesale-orders__list strong{grid-column:1;grid-row:3}}
+/* ==========================================================================
+   PORTAL MAYORISTA B2B - MIS PEDIDOS
+   Paleta institucional TERRA y diseño Master-Detail
+   ========================================================================== */
+
+:root {
+  --terra-wine: #A61932;
+  --terra-wine-dark: #8B1429;
+  --terra-wine-light: #FBECEF;
+  --terra-bg-soft: #FAF8F5;
+  --terra-surface: #FFFFFF;
+  --terra-border: #ECE7E1;
+  --terra-text-dark: #1E1B18;
+  --terra-text-muted: #6B6661;
+}
+
+/* Expande el ancho del contenedor en esta página */
+.page-content:has(.wholesale-orders-dashboard) {
+  width: min(1580px, calc(100% - 24px)) !important;
+  max-width: 1580px !important;
+  padding-top: 1.25rem !important;
+  padding-bottom: 3.5rem !important;
+}
+
+.wholesale-orders-dashboard {
+  width: 100%;
+  max-width: 1580px;
+  margin: 0 auto;
+  font-family: "Plus Jakarta Sans", Inter, system-ui, -apple-system, sans-serif;
+  color: var(--terra-text-dark);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ==========================================================================
+   1. HEADER DE PÁGINA
+   ========================================================================== */
+.b2b-page-header {
+  background: #ffffff;
+  border: 1px solid var(--terra-border);
+  border-radius: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 4px 14px 0 rgba(30, 27, 24, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .b2b-page-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.b2b-page-header__left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.b2b-page-header__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.b2b-page-header__title-row h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--terra-text-dark);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.b2b-account-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.b2b-page-header__desc {
+  font-size: 0.875rem;
+  color: var(--terra-text-muted);
+  max-width: 48rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.b2b-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.b2b-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+.b2b-btn-secondary:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.b2b-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background-color: var(--terra-wine);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+.b2b-btn-primary:hover {
+  background-color: var(--terra-wine-dark);
+  box-shadow: 0 4px 12px rgba(166, 25, 50, 0.25);
+}
+
+/* ==========================================================================
+   2. SECCIÓN DE KPIS
+   ========================================================================== */
+.b2b-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .b2b-kpis-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .b2b-kpis-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.b2b-kpi-card {
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--terra-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  display: flex;
+  flex-direction: column;
+}
+.b2b-kpi-card:hover {
+  border-color: rgba(166, 25, 50, 0.35);
+  transform: translateY(-2px);
+}
+
+.b2b-kpi-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.b2b-kpi-card__label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.b2b-kpi-card__icon-box {
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.b2b-kpi-card__val {
+  font-size: 1.25rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.b2b-kpi-card__sub {
+  margin-top: 0.25rem;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Estilos de color para KPIs */
+.b2b-kpi-card--amber {
+  border-color: rgba(253, 230, 138, 0.8);
+  background: linear-gradient(135deg, #ffffff 0%, rgba(254, 243, 199, 0.25) 100%);
+}
+.b2b-kpi-card--amber .b2b-kpi-card__label { color: #92400e; }
+.b2b-kpi-card--amber .b2b-kpi-card__icon-box { background: #fef3c7; color: #92400e; }
+.b2b-kpi-card--amber .b2b-kpi-card__val { color: #78350f; }
+.b2b-kpi-card--amber .b2b-kpi-card__sub { color: #b45309; }
+
+.b2b-kpi-card--slate {
+  border-color: #e2e8f0;
+}
+.b2b-kpi-card--slate .b2b-kpi-card__icon-box { background: #f1f5f9; color: #334155; }
+.b2b-kpi-card--slate .b2b-kpi-card__val { color: #1e293b; }
+.b2b-kpi-card--slate .b2b-kpi-card__sub { color: #64748b; }
+
+.b2b-kpi-card--blue {
+  border-color: #bfdbfe;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(239, 246, 255, 0.3) 100%);
+}
+.b2b-kpi-card--blue .b2b-kpi-card__label { color: #1e40af; }
+.b2b-kpi-card--blue .b2b-kpi-card__icon-box { background: #dbeafe; color: #1d4ed8; }
+.b2b-kpi-card--blue .b2b-kpi-card__val { color: #1e3a8a; }
+.b2b-kpi-card--blue .b2b-kpi-card__sub { color: #1d4ed8; }
+
+.b2b-kpi-card--green {
+  border-color: #bbf7d0;
+}
+.b2b-kpi-card--green .b2b-kpi-card__label { color: #166534; }
+.b2b-kpi-card--green .b2b-kpi-card__icon-box { background: #dcfce7; color: #15803d; }
+.b2b-kpi-card--green .b2b-kpi-card__val { color: #14532d; }
+.b2b-kpi-card--green .b2b-kpi-card__sub { color: #15803d; }
+
+.b2b-kpi-card--rose {
+  border-color: #fecdd3;
+}
+.b2b-kpi-card--rose .b2b-kpi-card__label { color: #9f1239; }
+.b2b-kpi-card--rose .b2b-kpi-card__icon-box { background: #ffe4e6; color: #be123c; }
+.b2b-kpi-card--rose .b2b-kpi-card__val { color: #881337; }
+.b2b-kpi-card--rose .b2b-kpi-card__sub { color: #e11d48; }
+
+/* ==========================================================================
+   3. BARRA DE FILTROS AVANZADOS
+   ========================================================================== */
+.b2b-filter-bar {
+  background: #ffffff;
+  border: 1px solid var(--terra-border);
+  border-radius: 1rem;
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 4px 14px 0 rgba(30, 27, 24, 0.05);
+}
+
+.b2b-filter-bar__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.875rem;
+  align-items: flex-end;
+}
+
+@media (min-width: 640px) {
+  .b2b-filter-bar__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .b2b-filter-bar__grid {
+    grid-template-columns: 3.2fr 2.6fr 2fr 2fr 2.2fr;
+  }
+}
+
+.b2b-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.b2b-field-group label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.b2b-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.b2b-input-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: #9ca3af;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.b2b-input-text {
+  width: 100%;
+  padding: 0.55rem 0.75rem 0.55rem 2.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  color: #1f2937;
+  outline: none;
+  transition: all 0.15s ease;
+}
+.b2b-input-text:focus {
+  background-color: #ffffff;
+  border-color: var(--terra-wine);
+  box-shadow: 0 0 0 3px rgba(166, 25, 50, 0.1);
+}
+
+.b2b-select {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  color: #1f2937;
+  outline: none;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.b2b-select:focus {
+  background-color: #ffffff;
+  border-color: var(--terra-wine);
+  box-shadow: 0 0 0 3px rgba(166, 25, 50, 0.1);
+}
+
+.b2b-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.b2b-btn-filter {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--terra-wine);
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.b2b-btn-filter:hover {
+  background-color: var(--terra-wine-dark);
+}
+
+.b2b-btn-clear {
+  padding: 0.55rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.b2b-btn-clear:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+/* ==========================================================================
+   4. LAYOUT MASTER-DETAIL (LISTA + DETALLE PROFUNDO)
+   ========================================================================== */
+.b2b-master-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+@media (min-width: 1280px) {
+  .b2b-master-detail-grid {
+    grid-template-columns: 7fr 5fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   COLUMNA IZQUIERDA: TABLA HISTÓRICA
+   -------------------------------------------------------------------------- */
+.b2b-table-card {
+  background: #ffffff;
+  border: 1px solid var(--terra-border);
+  border-radius: 1rem;
+  box-shadow: 0 4px 14px 0 rgba(30, 27, 24, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.b2b-table-card__top {
+  padding: 0.875rem 1.25rem;
+  background-color: rgba(249, 250, 251, 0.85);
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.b2b-table-card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.b2b-table-card__title strong {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #374151;
+}
+
+.b2b-counter-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6b7280;
+  background: #ffffff;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid #e5e7eb;
+}
+
+.b2b-table-card__sort {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+.b2b-table-card__sort select {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--terra-wine);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Tabla responsiva */
+.b2b-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.b2b-orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.78rem;
+}
+
+.b2b-orders-table thead tr {
+  background-color: rgba(249, 250, 251, 0.6);
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.b2b-orders-table th {
+  padding: 0.75rem 1rem;
+  white-space: nowrap;
+}
+
+.b2b-orders-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+.b2b-orders-table tbody tr:hover {
+  background-color: rgba(249, 250, 251, 0.9);
+}
+
+.b2b-orders-table tbody tr.is-selected {
+  background-color: rgba(254, 242, 242, 0.55);
+  border-left: 4px solid var(--terra-wine);
+}
+.b2b-orders-table tbody tr.is-selected:hover {
+  background-color: rgba(254, 242, 242, 0.85);
+}
+
+.b2b-orders-table td {
+  padding: 0.85rem 1rem;
+  vertical-align: middle;
+}
+
+.b2b-order-id-main {
+  font-weight: 900;
+  color: var(--terra-wine);
+}
+.b2b-order-id-sub {
+  font-size: 0.68rem;
+  color: #9ca3af;
+  margin-top: 0.15rem;
+}
+
+.b2b-order-date-main {
+  font-weight: 700;
+  color: #1f2937;
+}
+.b2b-order-date-sub {
+  font-size: 0.68rem;
+  color: #9ca3af;
+}
+
+.b2b-order-items-main {
+  font-weight: 700;
+  color: #111827;
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.b2b-order-items-sub {
+  font-size: 0.68rem;
+  color: #6b7280;
+}
+
+.b2b-order-total-main {
+  font-weight: 900;
+  color: #111827;
+}
+.b2b-order-total-sub {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #059669;
+}
+
+/* Badges de estado en la tabla */
+.b2b-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.b2b-status-badge--blue {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+.b2b-status-badge--slate {
+  background-color: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+.b2b-status-badge--green {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+.b2b-status-badge--amber {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+.b2b-status-badge--rose {
+  background-color: #ffe4e6;
+  color: #be123c;
+  border-color: #fecdd3;
+}
+
+.b2b-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  display: inline-block;
+}
+.b2b-dot--pulse {
+  animation: b2b-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes b2b-ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.b2b-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.b2b-btn-view-detail {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--terra-wine);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.b2b-btn-view-detail:hover {
+  background-color: var(--terra-wine-dark);
+}
+
+.b2b-btn-icon-action {
+  padding: 0.35rem;
+  color: #6b7280;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.b2b-btn-icon-action:hover {
+  color: #111827;
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+}
+
+.b2b-btn-repeat-sm {
+  padding: 0.3rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--terra-wine);
+  background-color: var(--terra-wine-light);
+  border: 1px solid rgba(166, 25, 50, 0.15);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.b2b-btn-repeat-sm:hover {
+  background-color: #f8d7dc;
+}
+
+/* Paginador B2B */
+.b2b-pagination-bar {
+  padding: 0.85rem 1.25rem;
+  background-color: rgba(249, 250, 251, 0.75);
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+
+@media (min-width: 640px) {
+  .b2b-pagination-bar {
+    flex-direction: row;
+  }
+}
+
+.b2b-pagination-bar__buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.b2b-page-btn {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.b2b-page-btn:hover:not(:disabled) {
+  background-color: #f3f4f6;
+}
+.b2b-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.b2b-page-btn.is-active {
+  background-color: var(--terra-wine);
+  border-color: var(--terra-wine);
+  color: #ffffff;
+}
+
+/* Tarjeta de soporte / logística */
+.b2b-help-card {
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  background: #ffffff;
+  border: 1px solid var(--terra-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.b2b-help-card__left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.b2b-help-card__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.b2b-help-card__text h5 {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+}
+.b2b-help-card__text p {
+  font-size: 0.72rem;
+  color: #6b7280;
+  margin: 0.15rem 0 0;
+}
+
+/* --------------------------------------------------------------------------
+   COLUMNA DERECHA: PANEL DE DETALLE PROFUNDO (SELECTED ORDER)
+   -------------------------------------------------------------------------- */
+.b2b-detail-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  border: 2px solid rgba(166, 25, 50, 0.2);
+  box-shadow: 0 4px 14px 0 rgba(30, 27, 24, 0.05);
+  overflow: hidden;
+  position: sticky;
+  top: 5rem;
+}
+
+.b2b-detail-card__header {
+  padding: 1.25rem 1.25rem 1rem;
+  background: linear-gradient(90deg, #f9fafb 0%, rgba(254, 242, 242, 0.35) 100%);
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.b2b-detail-card__header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.b2b-detail-tag {
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--terra-wine);
+}
+
+.b2b-detail-code {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #111827;
+  margin-left: 0.4rem;
+}
+
+.b2b-detail-time {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.15rem;
+}
+
+.b2b-detail-capsule-grid {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(229, 231, 235, 0.6);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+}
+
+.b2b-capsule-label {
+  font-size: 0.64rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  display: block;
+}
+
+.b2b-capsule-val {
+  font-weight: 700;
+  color: #1f2937;
+  display: block;
+}
+
+.b2b-capsule-sub {
+  font-size: 0.68rem;
+  color: #047857;
+  display: block;
+  font-weight: 600;
+}
+
+/* Ítems del pedido */
+.b2b-detail-card__body {
+  padding: 1.25rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.b2b-detail-section-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #111827;
+  margin: 0 0 0.85rem;
+}
+
+.b2b-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.b2b-item-card {
+  padding: 0.75rem;
+  background-color: #f9fafb;
+  border-radius: 0.75rem;
+  border: 1px solid #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.b2b-item-card__left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.b2b-item-qty {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.78rem;
+  color: var(--terra-wine);
+  flex-shrink: 0;
+}
+
+.b2b-item-meta h5 {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+}
+.b2b-item-meta p {
+  font-size: 0.7rem;
+  color: #6b7280;
+  margin: 0.15rem 0 0.1rem;
+}
+.b2b-item-meta span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.b2b-item-card__right {
+  text-align: right;
+  flex-shrink: 0;
+}
+.b2b-item-price {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #111827;
+}
+.b2b-item-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+/* Desglose de costos */
+.b2b-cost-summary {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+}
+
+.b2b-cost-row {
+  display: flex;
+  justify-content: space-between;
+  color: #6b7280;
+}
+.b2b-cost-row--discount {
+  color: #047857;
+  font-weight: 700;
+}
+.b2b-cost-row--total {
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: #111827;
+  padding-top: 0.65rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid #e5e7eb;
+}
+.b2b-cost-row--total strong {
+  color: var(--terra-wine);
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.b2b-cost-row--meta {
+  font-size: 0.7rem;
+  color: #6b7280;
+  padding-top: 0.25rem;
+}
+
+/* --------------------------------------------------------------------------
+   TIMELINE STEPPER (SEGUIMIENTO LOGÍSTICO)
+   -------------------------------------------------------------------------- */
+.b2b-timeline-section {
+  padding: 1.25rem;
+  background-color: rgba(249, 250, 251, 0.45);
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.b2b-timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.b2b-timeline-header h4 {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #111827;
+  margin: 0;
+}
+.b2b-timeline-header span {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #1d4ed8;
+}
+
+.b2b-timeline-steps {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-left: 0.5rem;
+}
+
+.b2b-timeline-step {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+/* Conector vertical */
+.timeline-connector {
+  position: absolute;
+  left: 1rem;
+  top: 2rem;
+  bottom: -1rem;
+  width: 2px;
+  background-color: #e2e8f0;
+}
+
+.timeline-connector-active {
+  background-color: #10b981;
+}
+
+.b2b-step-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 10;
+  font-size: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.b2b-step-icon--completed {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.b2b-step-icon--active {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px #dbeafe;
+}
+
+.b2b-step-icon--pending {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+}
+
+.b2b-step-icon--cancelled {
+  background-color: #e11d48;
+  color: #ffffff;
+}
+
+.b2b-step-body {
+  font-size: 0.75rem;
+}
+.b2b-step-body strong {
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.b2b-step-body p {
+  font-size: 0.68rem;
+  color: #6b7280;
+  margin: 0.15rem 0 0;
+}
+
+.b2b-step-badge-current {
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.6rem;
+  background: #dbeafe;
+  color: #1e40af;
+  font-weight: 900;
+}
+
+/* Botones de acción del detalle */
+.b2b-detail-actions {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.b2b-detail-actions__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.b2b-btn-action-outline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #374151;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.b2b-btn-action-outline:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.b2b-btn-repeat-order {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--terra-wine);
+  background-color: var(--terra-wine-light);
+  border: 1px solid rgba(166, 25, 50, 0.2);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.b2b-btn-repeat-order:hover {
+  background-color: #f8d7dc;
+}
+
+.b2b-btn-whatsapp-advisor {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #059669;
+  border: none;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.b2b-btn-whatsapp-advisor:hover {
+  background-color: #047857;
+}
+
+.b2b-btn-query-info {
+  width: 100%;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.15s ease;
+}
+.b2b-btn-query-info:hover {
+  color: #111827;
+}
+
+/* ==========================================================================
+   5. AVISO DE SEGURIDAD SUPABASE RLS
+   ========================================================================== */
+.b2b-security-notice {
+  background-color: rgba(243, 244, 246, 0.8);
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #6b7280;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.b2b-security-notice code {
+  padding: 0.125rem 0.375rem;
+  background: #ffffff;
+  border-radius: 0.25rem;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  font-family: monospace;
+  font-size: 0.7rem;
+}
+
+/* ==========================================================================
+   6. BOTONES FLOTANTES DE ACCIÓN RÁPIDA
+   ========================================================================== */
+.b2b-floating-actions {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  z-index: 40;
+}
+
+.b2b-floating-qr {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.15rem;
+  background-color: var(--terra-wine);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: none;
+  box-shadow: 0 12px 30px -4px rgba(166, 25, 50, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+  text-decoration: none;
+}
+.b2b-floating-qr:hover {
+  background-color: var(--terra-wine-dark);
+  transform: scale(1.05);
+}
+
+.b2b-floating-qr__icon {
+  padding: 0.25rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.b2b-floating-chat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  background-color: #111827;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  align-self: flex-end;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.b2b-floating-chat:hover {
+  background-color: #000000;
+  transform: scale(1.05);
+}
+
+/* ==========================================================================
+   7. FOOTER INSTITUCIONAL B2B
+   ========================================================================== */
+.b2b-institutional-footer {
+  margin-top: 1rem;
+  background-color: #ffffff;
+  border: 1px solid var(--terra-border);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.b2b-institutional-footer__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (min-width: 768px) {
+  .b2b-institutional-footer__content {
+    flex-direction: row;
+  }
+}
+
+.b2b-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.b2b-footer-brand strong {
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--terra-text-dark);
+}
+
+.b2b-badge-micro {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  background-color: var(--terra-wine);
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+}
+
+.b2b-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+}
+.b2b-footer-links a {
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.b2b-footer-links a:hover {
+  color: var(--terra-wine);
+}
