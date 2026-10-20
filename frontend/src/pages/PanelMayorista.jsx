@@ -460,14 +460,13 @@ export default function PanelMayorista() {
           </div>
         </section>
 
-        {/* SECCIÓN B: Dirección de Envío a Domicilio */}
+        {/* SECCIÓN B: Dirección de Envío */}
         <section className="b2b-form-section">
           <div className="b2b-form-section__header">
             <div className="b2b-section-title-wrap">
               <Truck size={20} style={{ color: 'var(--terra-wine-b2b)' }} />
               <div>
-                <h3>Dirección de Envío a Domicilio</h3>
-                <p>Ubicación de tu vivienda donde recibirás los pedidos mayoristas</p>
+                <h3>Dirección de Envío</h3>
               </div>
             </div>
             <span className="b2b-verified-badge">
