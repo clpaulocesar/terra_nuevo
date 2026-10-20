@@ -65,12 +65,13 @@ const coloresDeProducto = (producto) => {
 export default function Catalogo() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { cantidadTotal, subtotal, agregarProducto } = useCarrito();
+  const { items, cantidadTotal, subtotal, agregarProducto, quitarProducto } = useCarrito();
   const { esMayorista } = useContext(SesionClienteContext);
 
   const abrirCamaraAlEntrar = searchParams.get('abrirQr') === '1';
 
   const [buscar, setBuscar] = useState('');
+  const [cantidadesMayorista, setCantidadesMayorista] = useState({});
   // La búsqueda se envía al backend con un pequeño retraso para no pedir una
   // página por cada tecla pulsada en el teclado táctil.
   const [buscarAplicado, setBuscarAplicado] = useState('');
@@ -256,8 +257,8 @@ export default function Catalogo() {
   // Búsqueda, categoría y orden ya vienen aplicados desde el backend por página.
   const productosFiltrados = productosOrdenados;
 
-  const handleAgregar = (producto) => {
-    if (!agregarProducto(producto)) return;
+  const handleAgregar = (producto, cantidad = 1) => {
+    if (!agregarProducto(producto, cantidad)) return;
     setAgregados((prev) => ({ ...prev, [producto.id]: true }));
     setTimeout(() => {
       setAgregados((prev) => ({ ...prev, [producto.id]: false }));
@@ -747,11 +748,18 @@ export default function Catalogo() {
                 </button>
               </div>
             ) : (
+              <div className={esMayorista ? 'terra-wholesale-catalog-layout' : ''}>
               <div className="terra-grid">
                 {productosFiltrados.map((producto) => {
                   const recienAgregado = Boolean(agregados[producto.id]);
                   const tonosColores = coloresDeProducto(producto);
                   const disponible = producto.stock > 0;
+                  const cantidadMayorista = Math.min(producto.stock, cantidadesMayorista[producto.id] || 1);
+                  const precioMinorista = Number(producto.precio || 0);
+                  const precioMayorista = Number(producto.precioMayorista ?? producto.precio);
+                  const ahorroMayorista = precioMinorista > precioMayorista
+                    ? Math.round(((precioMinorista - precioMayorista) / precioMinorista) * 100)
+                    : 0;
 
                   return (
                     <article
@@ -843,19 +851,29 @@ export default function Catalogo() {
 
                       <div className="terra-card__footer">
                         <div className="terra-card__precio">
-                          {producto.precioOriginal ? (
+                          {esMayorista ? <>
+                            <span className="terra-card__precio-original">PVP: {formatoMoneda(precioMinorista)}</span>
+                            <span className="terra-card__precio-actual">{formatoMoneda(precioMayorista)}</span>
+                            {ahorroMayorista > 0 && <span className="terra-wholesale-saving">-{ahorroMayorista}% Mayorista</span>}
+                          </> : producto.precioOriginal ? (
                             <span className="terra-card__precio-original">
                               {formatoMoneda(producto.precioOriginal)}
                             </span>
                           ) : null}
-                          <span className="terra-card__precio-actual">
-                            {formatoMoneda(esMayorista && Number.isFinite(Number(producto.precioMayorista)) ? producto.precioMayorista : producto.precio)}
-                          </span>
+                          {!esMayorista && <span className="terra-card__precio-actual">
+                            {formatoMoneda(producto.precio)}
+                          </span>}
                         </div>
+
+                        {esMayorista && <div className="terra-wholesale-quantity" aria-label={`Cantidad de ${producto.nombre}`}>
+                          <button type="button" aria-label="Disminuir cantidad" disabled={cantidadMayorista <= 1} onClick={() => setCantidadesMayorista((prev) => ({ ...prev, [producto.id]: Math.max(1, cantidadMayorista - 1) }))}>−</button>
+                          <strong>{cantidadMayorista}</strong>
+                          <button type="button" aria-label="Aumentar cantidad" disabled={cantidadMayorista >= producto.stock} onClick={() => setCantidadesMayorista((prev) => ({ ...prev, [producto.id]: Math.min(producto.stock, cantidadMayorista + 1) }))}>+</button>
+                        </div>}
 
                         <button
                           className={`terra-btn-agregar ${!disponible ? 'terra-btn-agregar--disabled' : ''} ${recienAgregado ? 'terra-btn-agregar--added' : ''}`}
-                          onClick={() => handleAgregar(producto)}
+                          onClick={() => handleAgregar(producto, esMayorista ? cantidadMayorista : 1)}
                           type="button"
                           disabled={!disponible}
                         >
@@ -870,6 +888,11 @@ export default function Catalogo() {
                     </article>
                   );
                 })}
+              </div>
+              {esMayorista && <aside className="terra-wholesale-cart" aria-label="Resumen de pedido mayorista">
+                <header><span className="material-symbols-outlined">shopping_cart</span><div><h2>Pedido mayorista</h2><p>{items.length} {items.length === 1 ? 'línea' : 'líneas'} · {cantidadTotal} unidades</p></div></header>
+                {items.length ? <><div className="terra-wholesale-cart__items">{items.slice(0, 4).map((item) => <article key={item.lineaId}><div><strong>{item.nombre}</strong><small>{item.cantidad} un. · {formatoMoneda(item.precio)} c/u</small></div><b>{formatoMoneda(item.cantidad * item.precio)}</b><button type="button" onClick={() => quitarProducto(item.lineaId)}>Eliminar</button></article>)}</div>{items.length > 4 && <p className="terra-wholesale-cart__more">+ {items.length - 4} productos más en el pedido</p>}<div className="terra-wholesale-cart__total"><span>Subtotal mayorista</span><strong>{formatoMoneda(subtotal)}</strong></div><Link className="terra-wholesale-cart__checkout" to="/carrito">Revisar pedido mayorista <ArrowRight size={17} /></Link></> : <div className="terra-wholesale-cart__empty"><span className="material-symbols-outlined">inventory_2</span><p>Agrega productos y cantidades para preparar tu pedido.</p></div>}
+              </aside>}
               </div>
             )}
 
