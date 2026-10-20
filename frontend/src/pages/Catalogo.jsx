@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useContext } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Camera, Check, ExternalLink, QrCode, ShoppingCart, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
@@ -8,19 +8,6 @@ import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { obtenerIconoCategoria } from '../data/categorias.js';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import './Catalogo.css';
-
-const CATEGORIAS_CONFIG = [
-  { id: '', nombre: 'Todos', icon: 'apps' },
-  { id: 'Colchones', nombre: 'Colchones', icon: 'bed' },
-  { id: 'Sommiers', nombre: 'Sommiers', icon: 'layers' },
-  { id: 'Espaldares', nombre: 'Espaldares', icon: 'vertical_split' },
-  { id: 'Camas', nombre: 'Camas', icon: 'bedroom_parent' },
-  { id: 'Almohadas', nombre: 'Almohadas', icon: 'hotel' },
-  { id: 'Ropa de cama', nombre: 'Ropa de cama', icon: 'texture' },
-  { id: 'Muebles', nombre: 'Muebles', icon: 'chair' },
-  { id: 'Recamier', nombre: 'Recamier', icon: 'weekend' },
-  { id: 'Promociones', nombre: 'Promociones', icon: 'star', especial: true },
-];
 
 const MEDIDAS_CONFIG = [
   { id: 'King', label: 'King (200x200)' },
@@ -35,40 +22,49 @@ const FIRMEZAS_CONFIG = [
   { id: 'Firme Ortopédica', label: 'Firme Ortopédica' },
 ];
 
-// Los colores llegan desde la base como objetos o como registros JSON (por
-// compatibilidad con productos creados antes de las variantes por color).
-function coloresDelProducto(producto) {
+const coloresDeProducto = (producto) => {
   const registros = Array.isArray(producto?.colores) ? producto.colores : [];
+  const lista = [];
   const vistos = new Set();
-
-  return registros.reduce((lista, registro) => {
-    let color = registro;
-    if (typeof registro === 'string') {
-      try { color = JSON.parse(registro); } catch {
-        const [nombre, valor] = registro.split('|');
-        color = { nombre: valor ? nombre : 'Color', valor: valor || nombre };
+  for (const registro of registros) {
+    let nombre = '';
+    let valor = '';
+    if (registro && typeof registro === 'object') {
+      nombre = String(registro.nombre || registro.name || '').trim();
+      valor = String(registro.valor || registro.color || '').trim();
+    } else {
+      const texto = String(registro || '').trim();
+      try {
+        const dato = JSON.parse(texto);
+        nombre = String(dato?.nombre || dato?.name || '').trim();
+        valor = String(dato?.valor || dato?.color || '').trim();
+      } catch {
+        const [parte1, parte2] = texto.split('|');
+        nombre = (parte2 ? parte1 : parte1) || 'Color';
+        valor = parte2 || parte1;
       }
     }
-    const valor = String(color?.valor || color?.color || '').trim();
-    if (!valor || vistos.has(valor.toLowerCase())) return lista;
-    vistos.add(valor.toLowerCase());
-    lista.push({ nombre: String(color?.nombre || valor), valor, modo: color?.modo || 'variante' });
-    return lista;
-  }, []);
-}
+    const hex = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(valor) ? valor : '';
+    if (!hex) continue;
+    const clave = (nombre || hex).toLowerCase();
+    if (vistos.has(clave)) continue;
+    vistos.add(clave);
+    lista.push({ nombre: nombre || 'Color', valor: hex });
+  }
+  return lista;
+};
 
 export default function Catalogo() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const abrirCamaraAlEntrar = searchParams.get('abrirQr') === '1';
   const { cantidadTotal, subtotal, agregarProducto } = useCarrito();
   const { esMayorista } = useContext(SesionClienteContext);
 
-  // Estados de datos reales
+  const abrirCamaraAlEntrar = searchParams.get('abrirQr') === '1';
+
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
 
-  // Estados de búsqueda y filtros
   const [buscar, setBuscar] = useState('');
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(() => {
     const categoria = searchParams.get('categoria') || '';
@@ -81,14 +77,33 @@ export default function Catalogo() {
   });
   const [medidaSeleccionada, setMedidaSeleccionada] = useState('');
   const [firmezaSeleccionada, setFirmezaSeleccionada] = useState('');
-  const [orden, setOrden] = useState('recomendados'); // 'recomendados' | 'precio-asc' | 'precio-desc' | 'nombre'
+  const [orden, setOrden] = useState('recomendados');
   const [menuOrdenAbierto, setMenuOrdenAbierto] = useState(false);
 
-  // Retroalimentación de productos agregados temporalmente: { [id]: boolean }
   const [agregados, setAgregados] = useState({});
 
-  // Modal de Asesor TERRA
   const [modalAsesorAbierto, setModalAsesorAbierto] = useState(false);
+
+  const [tecladoAbierto, setTecladoAbierto] = useState(false);
+  const [modoNumerico, setModoNumerico] = useState(false);
+  const tecladoRef = useRef(null);
+
+  const [esTactil, setEsTactil] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const mq = window.matchMedia('(max-width: 1023px)');
+    const actualizar = (e) => setEsTactil(e.matches);
+    mq.addEventListener('change', actualizar);
+    return () => mq.removeEventListener('change', actualizar);
+  }, []);
+
+  const [segundosSesion, setSegundosSesion] = useState(180);
+
+  const searchInputRef = useRef(null);
+
   const [escanerAbierto, setEscanerAbierto] = useState(abrirCamaraAlEntrar);
   const [carritoQr, setCarritoQr] = useState(() => {
     try { return leerCarritoQr(); } catch { return []; }
@@ -97,13 +112,6 @@ export default function Catalogo() {
   const [errorEscaner, setErrorEscaner] = useState(false);
   const [ultimoProductoQrId, setUltimoProductoQrId] = useState('');
 
-  // Modal Teclado Kiosco
-  const [tecladoAbierto, setTecladoAbierto] = useState(false);
-
-  // Contador de sesión activa del Kiosco (3 minutos de inactividad)
-  const [segundosSesion, setSegundosSesion] = useState(180);
-
-  const searchInputRef = useRef(null);
   const videoEscanerRef = useRef(null);
   const escanerProcesandoRef = useRef(false);
 
@@ -111,7 +119,6 @@ export default function Catalogo() {
     if (abrirCamaraAlEntrar) navigate('/catalogo', { replace: true });
   }, [abrirCamaraAlEntrar, navigate]);
 
-  // Carga de productos reales desde backend PostgreSQL
   useEffect(() => {
     let cancelado = false;
     setCargando(true);
@@ -126,11 +133,9 @@ export default function Catalogo() {
         console.warn('Error al conectar con backend:', err);
         if (!cancelado) { setProductos([]); setCargando(false); }
       });
-
     return () => { cancelado = true; };
   }, []);
 
-  // Cargar categorías dinámicas desde backend / Supabase
   const [categoriasApi, setCategoriasApi] = useState([]);
   useEffect(() => {
     let cancelado = false;
@@ -144,12 +149,10 @@ export default function Catalogo() {
     return () => { cancelado = true; };
   }, []);
 
-  // Construcción de categorías dinámicas
   const categoriasDinamicas = useMemo(() => {
     const lista = [
       { id: '', nombre: 'Todos', icon: 'apps' },
     ];
-
     const conteo = {};
     let hayPromociones = false;
     for (const p of productos) {
@@ -159,7 +162,6 @@ export default function Catalogo() {
         conteo[cat] = (conteo[cat] || 0) + 1;
       }
     }
-
     if (categoriasApi.length > 0) {
       for (const cat of categoriasApi) {
         lista.push({
@@ -179,25 +181,18 @@ export default function Catalogo() {
           total: conteo[cat],
         });
       }
-    } else {
-      for (const cat of CATEGORIAS_CONFIG.filter((c) => c.id && !c.especial)) {
-        lista.push(cat);
-      }
     }
-
     if (hayPromociones || productos.some((p) => p.promocion || p.descuento)) {
       lista.push({
         id: 'Promociones',
         nombre: 'Promociones',
-        icon: 'star',
+        icon: 'local_fire_department',
         especial: true,
       });
     }
-
     return lista;
   }, [productos, categoriasApi]);
 
-  // Manejo del temporizador de sesión
   useEffect(() => {
     const timer = setInterval(() => {
       setSegundosSesion((prev) => (prev > 0 ? prev - 1 : 180));
@@ -211,11 +206,8 @@ export default function Catalogo() {
     return `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')} min`;
   }, [segundosSesion]);
 
-  // Filtrado y ordenamiento dinámico sobre datos reales
   const productosFiltrados = useMemo(() => {
     let resultado = [...productos];
-
-    // Filtro por búsqueda
     if (buscar.trim()) {
       const q = buscar.toLowerCase().trim();
       resultado = resultado.filter((p) => {
@@ -223,8 +215,6 @@ export default function Catalogo() {
         return textoCompleto.includes(q);
       });
     }
-
-    // Filtro por categoría
     if (categoriaSeleccionada) {
       if (categoriaSeleccionada === 'Promociones') {
         resultado = resultado.filter((p) => Boolean(p.promocion || p.descuento));
@@ -232,24 +222,18 @@ export default function Catalogo() {
         resultado = resultado.filter((p) => p.categoria?.toLowerCase() === categoriaSeleccionada.toLowerCase());
       }
     }
-
-    // Filtro por medida
     if (medidaSeleccionada) {
       resultado = resultado.filter((p) =>
         p.medida?.toLowerCase().includes(medidaSeleccionada.toLowerCase()) ||
         p.tagMedida?.toLowerCase().includes(medidaSeleccionada.toLowerCase())
       );
     }
-
-    // Filtro por firmeza
     if (firmezaSeleccionada) {
       resultado = resultado.filter((p) =>
         p.firmeza?.toLowerCase().includes(firmezaSeleccionada.toLowerCase()) ||
         p.subtitulo?.toLowerCase().includes(firmezaSeleccionada.toLowerCase())
       );
     }
-
-    // Ordenamiento
     if (orden === 'precio-asc') {
       resultado.sort((a, b) => a.precio - b.precio);
     } else if (orden === 'precio-desc') {
@@ -257,11 +241,9 @@ export default function Catalogo() {
     } else if (orden === 'nombre') {
       resultado.sort((a, b) => a.nombre.localeCompare(b.nombre));
     }
-
     return resultado;
   }, [productos, buscar, categoriaSeleccionada, medidaSeleccionada, firmezaSeleccionada, orden]);
 
-  // Acción de agregar al carrito con efecto visual
   const handleAgregar = (producto) => {
     if (!agregarProducto(producto)) return;
     setAgregados((prev) => ({ ...prev, [producto.id]: true }));
@@ -269,6 +251,41 @@ export default function Catalogo() {
       setAgregados((prev) => ({ ...prev, [producto.id]: false }));
     }, 1800);
   };
+
+  const agregarCaracter = (caracter) => {
+    setBuscar((prev) => prev + caracter);
+  };
+  const alternarModoNumerico = () => {
+    setModoNumerico((prev) => !prev);
+  };
+  const borrarCaracter = () => {
+    setBuscar((prev) => prev.slice(0, -1));
+  };
+  const abrirTecladoTactil = () => {
+    if (esTactil) {
+      setTecladoAbierto(true);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!tecladoAbierto || !esTactil) return;
+      if (tecladoRef.current && !tecladoRef.current.contains(event.target)) {
+        if (!event.target.closest('input')) {
+          setTecladoAbierto(false);
+        }
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [tecladoAbierto, esTactil]);
+
+  const nombreOrdenActual = {
+    'recomendados': 'Recomendados',
+    'precio-asc': 'Menor precio',
+    'precio-desc': 'Mayor precio',
+    'nombre': 'Nombre A-Z',
+  }[orden];
 
   const unidadesQr = carritoQr.reduce((total, item) => total + Number(item.cantidad), 0);
   const totalQr = carritoQr.reduce((total, item) => total + Number(item.precio) * Number(item.cantidad), 0);
@@ -280,7 +297,6 @@ export default function Catalogo() {
       const id = url.searchParams.get('id') || url.searchParams.get('producto') || url.searchParams.get('p');
       if (id) return id.trim();
     } catch {
-      // El QR también puede contener el ID sin una URL.
     }
     return /^[a-zA-Z0-9_-]{1,100}$/.test(valor) ? valor : null;
   };
@@ -293,20 +309,18 @@ export default function Catalogo() {
 
   useEffect(() => {
     if (!escanerAbierto || !videoEscanerRef.current) return undefined;
-
     let cancelado = false;
     let controlesCamara;
     escanerProcesandoRef.current = false;
     setEstadoEscaner('Solicitando acceso a la cámara…');
     setErrorEscaner(false);
-
     const mostrarErrorCamara = (error) => {
       if (cancelado) return;
       const mensaje = error?.name === 'NotAllowedError'
         ? 'Permite el acceso a la cámara en tu navegador para escanear los productos.'
         : error?.name === 'NotFoundError'
-          ? 'No se encontró una cámara disponible en este dispositivo.'
-          : 'No se pudo iniciar la cámara. Verificá los permisos del navegador y volvé a intentar.';
+        ? 'No se encontró una cámara disponible en este dispositivo.'
+        : 'No se pudo iniciar la cámara. Verificá los permisos del navegador y volvé a intentar.';
       setEstadoEscaner(mensaje);
       setErrorEscaner(true);
     };
@@ -320,7 +334,6 @@ export default function Catalogo() {
           videoEscanerRef.current,
           async (resultado) => {
             if (cancelado || !resultado || escanerProcesandoRef.current) return;
-
             escanerProcesandoRef.current = true;
             const idProducto = obtenerIdDelQr(resultado.getText());
             if (!idProducto) {
@@ -329,7 +342,6 @@ export default function Catalogo() {
               window.setTimeout(() => { escanerProcesandoRef.current = false; }, 1200);
               return;
             }
-
             setEstadoEscaner('Buscando producto…');
             setErrorEscaner(false);
             try {
@@ -363,7 +375,6 @@ export default function Catalogo() {
       }
     };
     iniciarEscaner();
-
     return () => {
       cancelado = true;
       controlesCamara?.stop();
@@ -379,610 +390,401 @@ export default function Catalogo() {
     return () => document.removeEventListener('keydown', cerrarConEscape);
   }, [escanerAbierto]);
 
-  // Teclado virtual táctil
-  const agregarCaracter = (caracter) => {
-    setBuscar((prev) => prev + caracter);
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  };
-
-  const borrarCaracter = () => {
-    setBuscar((prev) => prev.slice(0, -1));
-  };
-
-  const nombreOrdenActual = {
-    'recomendados': 'Recomendados',
-    'precio-asc': 'Menor precio',
-    'precio-desc': 'Mayor precio',
-    'nombre': 'Nombre A-Z',
-  }[orden];
-
   return (
-    <div className="catalogo-container notranslate bg-surface font-body-md text-on-surface select-none antialiased flex flex-col" translate="no">
-      {/* HEADER TÁCTIL FIJO */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-primary-container text-on-primary shadow-[0_4px_20px_rgba(0,66,48,0.15)]">
-        <div className="h-20 w-full px-margin flex items-center justify-between">
-          {/* Marca TERRA Autoservicio y sucursal */}
-          <div className="flex items-center gap-space-lg">
-            <Link
-              to="/"
-              className="flex items-center bg-white/95 hover:bg-white px-3 py-1.5 rounded-xl shadow-sm transition-all active:scale-95"
-              title="TERRA Autoservicio - Logramos tu descanso"
-            >
-              <img
-                alt="TERRA Autoservicio"
-                className="h-9 sm:h-10 w-auto object-contain cursor-pointer"
-                src="/logo-terra.png"
+    <div className="terra-catalogo">
+      <main className="terra-main">
+        <section className="terra-search-bar">
+          <div className="terra-search-bar__inner">
+            <div className="terra-search-wrapper">
+              <span className="terra-search-icon material-symbols-outlined">search</span>
+              <input
+                ref={searchInputRef}
+                className="terra-search-input"
+                id="kiosk-search"
+                placeholder="Buscar colchones, sommiers, camas…"
+                type="text"
+                value={buscar}
+                readOnly={esTactil}
+                inputMode={esTactil ? 'none' : 'text'}
+                onClick={abrirTecladoTactil}
+                onFocus={abrirTecladoTactil}
+                onChange={(e) => setBuscar(e.target.value)}
               />
-            </Link>
-
-            <div className="hidden lg:flex items-center gap-space-xs bg-primary/40 px-space-md py-space-xs rounded-full border border-primary-fixed/20">
-              <span className="material-symbols-outlined text-[18px] text-secondary-fixed">storefront</span>
-              <span className="font-label-sm text-label-sm text-surface-bright">
-                Sucursal 1 Central • Santa Cruz de la Sierra
-              </span>r
-            </div>
-
-            <div className="flex items-center gap-space-xs bg-surface-container-lowest/10 px-space-sm py-space-xs rounded-full">
-              <span className="w-2 h-2 rounded-full bg-primary-fixed animate-pulse"></span>
-              <span className="font-label-sm text-label-sm text-primary-fixed">Terminal Kiosco #02</span>
-            </div>
-          </div>
-
-          {/* Navegación Kiosco */}
-          <nav className="flex items-center gap-space-md">
-            <Link
-              to="/catalogo"
-              className="min-h-[52px] px-space-lg rounded-xl flex items-center font-label-lg text-label-lg bg-primary text-on-primary shadow-sm transition-colors"
-            >
-              Catálogo
-            </Link>
-            <Link
-              to="/categorias"
-              className="min-h-[52px] px-space-lg rounded-xl flex items-center font-label-lg text-label-lg text-surface-variant hover:text-on-primary transition-colors"
-            >
-              Categorías
-            </Link>
-            <Link
-              to="/carrito"
-              className="min-h-[52px] px-space-lg rounded-xl flex items-center font-label-lg text-label-lg text-surface-variant hover:text-on-primary transition-colors"
-            >
-              Carrito ({cantidadTotal}) • {formatoMoneda(subtotal)}
-            </Link>
-          </nav>
-
-          {/* Acciones de cabecera */}
-          <div className="flex items-center gap-space-md">
-            <Link
-              to="/"
-              title="Volver a la pantalla de bienvenida"
-              className="min-h-[52px] px-space-md rounded-xl bg-primary hover:bg-surface-container-high hover:text-on-surface flex items-center justify-center text-on-primary transition-all active:scale-95"
-            >
-              <span className="material-symbols-outlined text-[24px]">home</span>
-            </Link>
-            <div
-              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center cursor-pointer"
-              title="Usuario activo en autoservicio"
-            >
-              <span className="material-symbols-outlined text-on-primary text-[18px]">person</span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* CONTENIDO PRINCIPAL */}
-      <main className="w-full pb-4 bg-surface flex-1">
-        <div className="flex flex-col w-full">
-          {/* BARRA TÁCTICA DE BÚSQUEDA Y CONTROL DE FILTROS */}
-          <section className="w-full px-margin pt-space-md pb-space-sm bg-surface">
-            <div className="max-w-[1240px] mx-auto flex flex-col gap-space-md">
-              {/* Fila principal de búsqueda táctil */}
-              <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md">
-                {/* Cuadro de búsqueda optimizado para pantalla táctil */}
-                <div className="relative flex-1 group">
-                  <div className="flex items-center bg-surface-container-lowest rounded-xl shadow-sm px-space-md min-h-[56px] transition-all focus-within:shadow-md">
-                    <span className="material-symbols-outlined text-outline text-[26px] mr-space-sm select-none">
-                      search
-                    </span>
-                    <input
-                      ref={searchInputRef}
-                      className="w-full bg-transparent border-none outline-none font-body-lg text-body-lg text-on-surface placeholder:text-outline/70 py-2"
-                      id="kiosk-search"
-                      placeholder="Buscar poltronas y sofa cama"
-                      type="text"
-                      value={buscar}
-                      readOnly
-                      inputMode="none"
-                      onKeyDown={(event) => event.preventDefault()}
-                      onPaste={(event) => event.preventDefault()}
-                      onDrop={(event) => event.preventDefault()}
-                      aria-label="Buscar productos. Usa el teclado táctil TERRA."
-                    />
-                    {buscar && (
-                      <button
-                        aria-label="Borrar búsqueda"
-                        className="min-w-[44px] min-h-[44px] rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high flex items-center justify-center transition-transform active:scale-90"
-                        id="clear-search-btn"
-                        onClick={() => {
-                          setBuscar('');
-                          if (searchInputRef.current) searchInputRef.current.focus();
-                        }}
-                        type="button"
-                      >
-                        <span className="material-symbols-outlined text-[20px]">close</span>
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setTecladoAbierto((prev) => !prev)}
-                      className={`hidden sm:flex items-center gap-space-xs ml-space-sm pl-space-sm px-space-sm py-1.5 rounded-lg cursor-pointer transition-colors ${
-                        tecladoAbierto ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant'
-                      }`}
-                      title="Abrir teclado táctil para kiosco"
-                    >
-                      <span className={`material-symbols-outlined text-[18px] ${tecladoAbierto ? 'text-on-primary' : 'text-primary'}`}>
-                        keyboard
-                      </span>
-                      <span className="font-label-sm text-label-sm uppercase tracking-wider">Teclado</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Contador de inventario y selector de orden */}
-                <div className="flex flex-wrap items-center justify-between lg:justify-end gap-3 lg:gap-4 shrink-0">
-                  <div className="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-container-high rounded-xl min-h-[48px]">
-                    <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
-                    <span className="font-label-md text-label-md text-on-surface font-semibold">
-                      {productosFiltrados.length} disponibles en tienda
-                    </span>
-                  </div>
-
-                  {/* Emulador de Menú Desplegable de Orden */}
-                  <div className="relative">
-                    <button
-                      className="min-h-[48px] lg:min-h-[56px] px-4 lg:px-6 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:bg-surface-container transition-all flex items-center gap-space-sm active:scale-95"
-                      id="sort-menu-btn"
-                      type="button"
-                      onClick={() => setMenuOrdenAbierto((prev) => !prev)}
-                    >
-                      <span className="material-symbols-outlined text-[20px] text-primary">swap_vert</span>
-                      <span className="font-label-md text-label-md">
-                        Orden: <strong className="text-primary font-bold">{nombreOrdenActual}</strong>
-                      </span>
-                      <span className="material-symbols-outlined text-[18px] text-outline">
-                        {menuOrdenAbierto ? 'expand_less' : 'expand_more'}
-                      </span>
-                    </button>
-
-                    {menuOrdenAbierto && (
-                      <div className="absolute right-0 top-full mt-2 w-56 bg-surface-container-lowest rounded-xl shadow-xl border border-surface-container-high py-2 z-30">
-                        {[
-                          { id: 'recomendados', label: 'Recomendados' },
-                          { id: 'precio-asc', label: 'Menor precio' },
-                          { id: 'precio-desc', label: 'Mayor precio' },
-                          { id: 'nombre', label: 'Nombre A-Z' },
-                        ].map((opt) => (
-                          <button
-                            key={opt.id}
-                            type="button"
-                            onClick={() => {
-                              setOrden(opt.id);
-                              setMenuOrdenAbierto(false);
-                            }}
-                            className={`w-full text-left px-4 py-3 flex items-center justify-between text-sm font-semibold transition-colors ${
-                              orden === opt.id
-                                ? 'bg-primary-container text-on-primary'
-                                : 'text-on-surface hover:bg-surface-container-high'
-                            }`}
-                          >
-                            <span>{opt.label}</span>
-                            {orden === opt.id && (
-                              <span className="material-symbols-outlined text-[18px]">done</span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Teclado en pantalla táctil (Touch Virtual Keyboard) */}
-              {tecladoAbierto && (
-                <div className="w-full bg-surface-container-high p-3 rounded-2xl shadow-inner flex flex-col gap-2">
-                  <div className="flex justify-between items-center px-2">
-                    <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                      Teclado Táctil TERRA
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setTecladoAbierto(false)}
-                      className="text-xs font-semibold text-primary hover:underline"
-                    >
-                      Cerrar teclado
-                    </button>
-                  </div>
-                  {[
-                    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-                    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ'],
-                    ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
-                  ].map((row, i) => (
-                    <div key={i} className="flex justify-center gap-1 sm:gap-1.5 w-full">
-                      {row.map((letra) => (
-                        <button
-                          key={letra}
-                          type="button"
-                          onClick={() => agregarCaracter(letra)}
-                          className="flex-1 min-w-[26px] sm:min-w-[36px] max-w-[44px] h-10 sm:h-12 rounded-lg bg-surface-container-lowest text-on-surface font-bold text-sm sm:text-base shadow-sm active:scale-95 active:bg-primary-container active:text-on-primary transition-all flex items-center justify-center"
-                        >
-                          {letra}
-                        </button>
-                      ))}
-                      {i === 2 && (
-                        <button
-                          type="button"
-                          onClick={borrarCaracter}
-                          className="px-2 sm:px-3 h-10 sm:h-12 rounded-lg bg-error-container text-on-error-container font-bold text-xs sm:text-sm shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1"
-                        >
-                          <span className="material-symbols-outlined text-[16px] sm:text-[18px]">backspace</span>
-                          <span className="hidden sm:inline">Borrar</span>
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <div className="flex justify-center gap-1.5 sm:gap-2 mt-1">
-                    <button
-                      type="button"
-                      onClick={() => agregarCaracter(' ')}
-                      className="flex-1 max-w-[340px] h-10 sm:h-12 rounded-lg bg-surface-container-lowest text-on-surface font-semibold text-xs sm:text-sm shadow-sm active:scale-95 flex items-center justify-center gap-2"
-                    >
-                      Espacio
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBuscar('')}
-                      className="px-3 sm:px-4 h-10 sm:h-12 rounded-lg bg-surface-variant text-on-surface-variant font-semibold text-xs sm:text-sm shadow-sm active:scale-95 flex items-center justify-center"
-                    >
-                      Limpiar todo
-                    </button>
-                  </div>
-                </div>
+              {buscar && (
+                <button
+                  aria-label="Borrar búsqueda"
+                  className="terra-btn-clear"
+                  id="clear-search-btn"
+                  onClick={() => setBuscar('')}
+                  type="button"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
               )}
+            </div>
 
-              {/* Riel desplazable horizontal de categorías */}
-              <div className="w-full overflow-x-auto no-scrollbar py-1">
-                <div className="flex items-center gap-space-sm min-w-max">
-                  {cargando
-                    ? [110, 150, 130, 140].map((ancho, i) => (
-                        <span
-                          key={i}
-                          aria-hidden="true"
-                          style={{ width: ancho }}
-                          className="min-h-[52px] rounded-full bg-surface-container-low animate-pulse"
-                        />
-                      ))
-                    : categoriasDinamicas.map((cat) => {
-                    const activa =
-                      (!categoriaSeleccionada && cat.id === '') ||
-                      (Boolean(categoriaSeleccionada) && Boolean(cat.id) && categoriaSeleccionada.toLowerCase() === cat.id.toLowerCase());
-
-                    if (cat.especial) {
-                      return (
-                        <button
-                          key={cat.id || 'todos'}
-                          type="button"
-                          onClick={() => setCategoriaSeleccionada(activa ? '' : cat.id)}
-                          className={`min-h-[52px] px-space-lg rounded-full shadow-sm flex items-center gap-space-xs font-label-lg text-label-lg font-bold transition-all active:scale-95 ${
-                            activa
-                              ? 'bg-secondary text-surface-bright ring-2 ring-tertiary-fixed shadow-md'
-                              : 'bg-secondary-container text-on-secondary-fixed hover:bg-secondary-fixed'
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[22px] text-tertiary">
-                            {cat.icon}
-                          </span>
-                          <span>{cat.nombre}</span>
-                        </button>
-                      );
-                    }
-
-                    return (
-                      <button
-                        key={cat.id || 'todos'}
-                        type="button"
-                        onClick={() => {
-                          if (cat.id === '') {
-                            setCategoriaSeleccionada('');
-                          } else {
-                            setCategoriaSeleccionada(activa ? '' : cat.id);
-                          }
-                        }}
-                        className={`min-h-[52px] px-space-lg rounded-full flex items-center gap-space-xs font-label-lg text-label-lg transition-transform active:scale-95 ${
-                          activa
-                            ? 'bg-primary-container text-on-primary shadow-md'
-                            : 'bg-surface-container-low text-on-surface hover:bg-surface-container-high shadow-sm'
-                        }`}
-                      >
-                        <span
-                          className={`material-symbols-outlined text-[22px] ${
-                            activa ? 'text-surface-bright' : 'text-outline'
-                          }`}
-                        >
-                          {cat.icon}
-                        </span>
-                        <span>{cat.nombre}</span>
-                        {activa && <span className="w-2 h-2 rounded-full bg-secondary-fixed ml-1"></span>}
-                      </button>
-                    );
-                  })}
-                </div>
+            <div className="terra-search-controls">
+              <div className="terra-chip terra-chip--count">
+                <span className="terra-chip__dot"></span>
+                <span className="terra-chip__text">{productosFiltrados.length} disponibles</span>
               </div>
 
-            </div>
-          </section>
+              <div className="terra-dropdown">
+                <button
+                  className="terra-btn-dropdown"
+                  id="sort-menu-btn"
+                  type="button"
+                  onClick={() => setMenuOrdenAbierto((prev) => !prev)}
+                >
+                  <span className="material-symbols-outlined terra-dropdown__icon">swap_vert</span>
+                  <span className="terra-dropdown__label">Orden: <strong>{nombreOrdenActual}</strong></span>
+                  <span className="material-symbols-outlined terra-dropdown__arrow">
+                    {menuOrdenAbierto ? 'expand_less' : 'expand_more'}
+                  </span>
+                </button>
 
-          {/* CATÁLOGO DE PRODUCTOS: Cuadrícula Landscape Tablet 3 Columnas */}
-          <section className="w-full px-margin py-space-md flex-1">
-            <div className="max-w-[1240px] mx-auto">
-              {cargando ? (
-                <div className="catalogo-loader">
-                  <div className="loader" role="status" aria-label="Cargando productos" />
-                  <p>Cargando productos...</p>
-                </div>
-              ) : productosFiltrados.length === 0 ? (
-                <div className="bg-surface-container-lowest rounded-2xl p-6 sm:p-12 text-center flex flex-col items-center justify-center gap-4 my-8 shadow-sm">
-                  <span className="material-symbols-outlined text-[64px] text-outline">search_off</span>
-                  <h3 className="font-title-lg text-title-lg text-on-surface font-bold">
-                    No encontramos productos que coincidan con tu búsqueda
-                  </h3>
-                  <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
-                    Probá cambiando los filtros de medidas o firmeza, o limpiá los términos de búsqueda.
-                  </p>
+                {menuOrdenAbierto && (
+                  <div className="terra-dropdown-menu">
+                    {[
+                      { id: 'recomendados', label: 'Recomendados' },
+                      { id: 'precio-asc', label: 'Precio menor a mayor' },
+                      { id: 'precio-desc', label: 'Precio mayor a menor' },
+                      { id: 'nombre', label: 'Nombre A-Z' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        className={`terra-dropdown-item ${orden === opt.id ? 'terra-dropdown-item--active' : ''}`}
+                        onClick={() => {
+                          setOrden(opt.id);
+                          setMenuOrdenAbierto(false);
+                        }}
+                      >
+                        <span>{opt.label}</span>
+                        {orden === opt.id && <span className="material-symbols-outlined terra-dropdown-item__check">done</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {tecladoAbierto && (
+          <div className="terra-keyboard" ref={tecladoRef}>
+            <div className="terra-keyboard__header">
+              <span className="terra-keyboard__title">Teclado Táctil TERRA</span>
+              <button
+                type="button"
+                onClick={() => setTecladoAbierto(false)}
+                className="terra-btn-ghost-sm"
+              >
+                Cerrar teclado
+              </button>
+            </div>
+            {[
+              ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+              ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ'],
+              ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+            ].map((row, i) => (
+              <div key={i} className="terra-keyboard__row">
+                {row.map((letra) => (
+                  <button
+                    key={letra}
+                    type="button"
+                    onClick={() => agregarCaracter(letra)}
+                    className="terra-key"
+                  >
+                    {letra}
+                  </button>
+                ))}
+                {i === 2 && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setBuscar('');
-                      setCategoriaSeleccionada('');
-                      setMedidaSeleccionada('');
-                      setFirmezaSeleccionada('');
-                    }}
-                    className="min-h-[50px] px-6 rounded-xl bg-primary text-on-primary font-bold shadow-sm active:scale-95"
+                    onClick={borrarCaracter}
+                    className="terra-key terra-key--delete"
                   >
-                    Restablecer todos los filtros
+                    <span className="material-symbols-outlined">backspace</span>
+                  </button>
+                )}
+              </div>
+            ))}
+            <div className="terra-keyboard__row terra-keyboard__row--wide">
+              <button
+                type="button"
+                onClick={alternarModoNumerico}
+                className="terra-key terra-key--mode"
+              >
+                {modoNumerico ? 'ABC' : '123'}
+              </button>
+              <button
+                type="button"
+                onClick={() => agregarCaracter(' ')}
+                className="terra-key terra-key--space"
+              >
+                Espacio
+              </button>
+              <button
+                type="button"
+                onClick={() => setBuscar('')}
+                className="terra-key terra-key--clear"
+              >
+                Limpiar
+              </button>
+            </div>
+            {modoNumerico && (
+              <>
+                <div className="terra-keyboard__row">
+                  {['1', '2', '3'].map((n) => (
+                    <button key={n} type="button" onClick={() => agregarCaracter(n)} className="terra-key">
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <div className="terra-keyboard__row">
+                  {['4', '5', '6'].map((n) => (
+                    <button key={n} type="button" onClick={() => agregarCaracter(n)} className="terra-key">
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <div className="terra-keyboard__row">
+                  {['7', '8', '9'].map((n) => (
+                    <button key={n} type="button" onClick={() => agregarCaracter(n)} className="terra-key">
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <div className="terra-keyboard__row terra-keyboard__row--wide">
+                  <button
+                    type="button"
+                    onClick={() => agregarCaracter('0')}
+                    className="terra-key terra-key--space"
+                  >
+                    0
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => agregarCaracter('+')}
+                    className="terra-key"
+                  >
+                    +
                   </button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-                  {productosFiltrados.map((producto) => {
-                    const recienAgregado = Boolean(agregados[producto.id]);
+              </>
+            )}
+          </div>
+        )}
 
-                    return (
-                      <article
-                        key={producto.id}
-                        className="flex flex-col bg-surface-container-lowest rounded-[1.75rem] shadow-sm hover:shadow-md transition-all overflow-hidden relative cursor-pointer"
-                        onClick={(event) => {
-                          if (!event.target.closest('button, a')) {
-                            navigate(`/productos/${producto.id}`);
-                          }
-                        }}
-                      >
-                        {/* Contenedor de Imagen y Badges */}
-                        <div className="relative w-full aspect-square bg-surface-container-lowest overflow-hidden m-3 mb-0 rounded-2xl" style={{ width: 'calc(100% - 1.5rem)' }}>
-                          <img
-                            className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
-                            alt={producto.nombre}
-                            src={producto.imagen_url}
-                            loading="lazy"
-                          />
+        <div className="terra-categories">
+          <div className="terra-categories__inner">
+            {cargando
+              ? [110, 150, 130, 140].map((ancho, i) => (
+                  <span
+                    key={i}
+                    aria-hidden="true"
+                    style={{ width: ancho }}
+                    className="terra-cat-skeleton"
+                  />
+                ))
+              : categoriasDinamicas.map((cat) => {
+                  const activa =
+                    (!categoriaSeleccionada && cat.id === '') ||
+                    (Boolean(categoriaSeleccionada) && Boolean(cat.id) && categoriaSeleccionada.toLowerCase() === cat.id.toLowerCase());
 
-                          {/* Insignias Superiores */}
-                          <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
-                            {producto.descuento && (
-                              <span className="px-space-sm py-1 rounded-full bg-secondary-container text-on-secondary-fixed font-label-sm text-label-sm font-bold shadow-sm flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[14px]">local_offer</span>{' '}
-                                {producto.descuento}
-                              </span>
-                            )}
-                            {producto.badgeSecundario && (
-                              <span className="px-space-sm py-1 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold shadow-sm">
-                                {producto.badgeSecundario}
-                              </span>
-                            )}
-                            {producto.badge && !producto.descuento && (
-                              <span
-                                className={`px-space-sm py-1 rounded-full font-label-sm text-label-sm font-bold shadow-sm flex items-center gap-1 ${
-                                  producto.badge === 'Más Vendido'
-                                    ? 'bg-secondary-fixed text-on-secondary-fixed'
-                                    : producto.badge === 'Nuevo'
-                                    ? 'bg-surface-bright text-primary'
-                                    : producto.badge === 'Salud Postural'
-                                    ? 'bg-primary/10 text-primary'
-                                    : producto.badge === 'Últimas Unidades'
-                                    ? 'bg-tertiary-fixed text-on-tertiary-fixed'
-                                    : 'bg-surface-container text-on-surface'
-                                }`}
-                              >
-                                {producto.badgeIcon && (
-                                  <span className="material-symbols-outlined text-[14px]">
-                                    {producto.badgeIcon}
-                                  </span>
-                                )}
-                                {producto.badge}
-                              </span>
-                            )}
-                          </div>
+                  return (
+                    <button
+                      key={cat.id || 'todos'}
+                      type="button"
+                      className={`terra-cat ${activa ? 'terra-cat--active' : ''} ${cat.especial ? 'terra-cat--promo' : ''}`}
+                      onClick={() => setCategoriaSeleccionada(activa ? '' : cat.id)}
+                    >
+                      <span className="material-symbols-outlined terra-cat__icon">{cat.icon}</span>
+                      <span className="terra-cat__label">{cat.nombre}</span>
+                      {activa && <span className="terra-cat__dot"></span>}
+                    </button>
+                  );
+                })}
+          </div>
+        </div>
 
-                          {/* Medida / Especificación Destacada Inferior */}
-                          {producto.tagMedida && (
-                            <div className="absolute bottom-3 left-3 bg-surface-container-lowest/95 backdrop-blur px-space-sm py-1 rounded-md text-primary font-label-sm text-label-sm font-bold shadow-sm flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[16px] text-primary">
-                                {producto.tagMedidaIcon || 'verified'}
-                              </span>{' '}
-                              {producto.tagMedida}
-                            </div>
+        <section className="terra-grid-section">
+          <div className="terra-grid__inner">
+            {cargando ? (
+              <div className="terra-empty terra-empty--loading">
+                <div className="terra-loader"></div>
+                <p className="terra-empty__text">Cargando productos…</p>
+              </div>
+            ) : productosFiltrados.length === 0 ? (
+              <div className="terra-empty">
+                <span className="material-symbols-outlined terra-empty__icon">search_off</span>
+                <h3 className="terra-empty__title">No encontramos productos</h3>
+                <p className="terra-empty__subtitle">
+                  Probá cambiando los filtros o limpiá la búsqueda.
+                </p>
+                <button
+                  type="button"
+                  className="terra-btn-primary terra-btn--wide"
+                  onClick={() => {
+                    setBuscar('');
+                    setCategoriaSeleccionada('');
+                    setMedidaSeleccionada('');
+                    setFirmezaSeleccionada('');
+                  }}
+                >
+                  Restablecer filtros
+                </button>
+              </div>
+            ) : (
+              <div className="terra-grid">
+                {productosFiltrados.map((producto) => {
+                  const recienAgregado = Boolean(agregados[producto.id]);
+                  const tonosColores = coloresDeProducto(producto);
+                  const disponible = producto.stock > 0;
+
+                  return (
+                    <article
+                      key={producto.id}
+                      className={`terra-card ${!disponible ? 'terra-card--agotado' : ''} ${recienAgregado ? 'terra-card--agregado' : ''}`}
+                      onClick={(event) => {
+                        if (!event.target.closest('button, a')) {
+                          navigate(`/productos/${producto.id}`);
+                        }
+                      }}
+                    >
+                      <div className="terra-card__media">
+                        <img
+                          className="terra-card__img"
+                          alt={producto.nombre}
+                          src={producto.imagen_url}
+                          loading="lazy"
+                        />
+
+                        <div className="terra-card__badges">
+                          {producto.descuento && (
+                            <span className="terra-badge terra-badge--promo">
+                              <span className="material-symbols-outlined terra-badge__icon">local_fire_department</span>
+                              {producto.descuento}
+                            </span>
+                          )}
+                          {producto.badgeSecundario && (
+                            <span className="terra-badge terra-badge--highlight">
+                              {producto.badgeSecundario}
+                            </span>
+                          )}
+                          {producto.badge && !producto.descuento && !producto.badgeSecundario && (
+                            <span className={`terra-badge terra-badge--${producto.badge === 'Más Vendido' ? 'bestseller' : producto.badge === 'Nuevo' ? 'nuevo' : 'destacado'}`}>
+                              {producto.badgeIcon && <span className="material-symbols-outlined terra-badge__icon">{producto.badgeIcon}</span>}
+                              {producto.badge}
+                            </span>
                           )}
                         </div>
 
-                        {/* Cuerpo de la Tarjeta */}
-                        <div className="p-3 sm:p-4 lg:p-6 flex flex-col flex-1 justify-between gap-space-md">
-                          <div className="flex flex-col gap-space-xs">
-                            {/* Fila de reseñas y entrega */}
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-label-sm text-label-sm text-on-surface-variant">
-                                <span className="text-amber-500 tracking-tight">★★★★★</span>{' '}
-                                (32 reseñas)
-                              </span>
-                              <span className={`font-label-sm text-label-sm font-bold ${producto.stock > 0 ? 'text-on-surface' : 'text-error'}`}>
-                                {producto.stock > 0 ? 'Entrega inmediata' : 'Agotado'}
-                              </span>
-                            </div>
-
-                            <Link
-                              to={`/productos/${producto.id}`}
-                              className="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors"
-                            >
-                              <span className="material-symbols-outlined text-[18px]">
-                                visibility
-                              </span>
-                              <span>Ver detalles del producto</span>
-                            </Link>
-
-                            <h2 className="font-title-md text-title-md text-on-surface font-bold leading-snug">
-                              <Link
-                                className="hover:text-primary transition-colors"
-                                to={`/productos/${producto.id}`}
-                              >
-                                {producto.nombre}
-                              </Link>
-                            </h2>
-
-                            {Boolean(producto.descripcion) && (
-                              <p className="text-on-surface-variant font-body-sm text-body-sm leading-relaxed line-clamp-2">
-                                {producto.descripcion}
-                              </p>
-                            )}
-
-                            {/* Variantes reales configuradas para este producto. */}
-                            {(() => {
-                              const colores = coloresDelProducto(producto);
-                              if (!colores.length) return null;
-                              // Un producto puede combinar una paleta multicolor y colores únicos.
-                              const paleta = colores.filter((color) => color.modo === 'paleta');
-                              const unicos = colores.filter((color) => color.modo !== 'paleta');
-                              const visibles = unicos.slice(0, 4);
-                              const restantes = unicos.length - visibles.length;
-                              const paso = 100 / (paleta.length || 1);
-                              const fondo = `conic-gradient(${paleta.map((color, indice) => `${color.valor} ${(indice * paso).toFixed(2)}% ${((indice + 1) * paso).toFixed(2)}%`).join(', ')})`;
-                              const etiqueta = `${paleta.length ? `Paleta multicolor: ${paleta.map((color) => color.nombre).join(', ')}. ` : ''}${unicos.length ? `${unicos.length} colores disponibles` : ''}`.trim();
-                              return <div className="flex items-center gap-1.5" aria-label={etiqueta} title={etiqueta}>
-                                {paleta.length > 0 && (
-                                  <span className="w-5 h-5 rounded-full border-2 border-white shadow-sm ring-1 ring-surface-container-high" style={{ background: fondo }} />
-                                )}
-                                {visibles.map((color) => (
-                                  <span
-                                    key={`${color.nombre}-${color.valor}`}
-                                    title={color.nombre}
-                                    aria-label={color.nombre}
-                                    style={{ backgroundColor: color.valor }}
-                                    className="w-3.5 h-3.5 rounded-full border border-surface-container-high"
-                                  />
-                                ))}
-                                {restantes > 0 && <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">+{restantes} tono{restantes === 1 ? '' : 's'}</span>}
-                                {paleta.length > 0 && !unicos.length && <span className="font-label-sm text-label-sm text-on-surface-variant font-semibold">Paleta multicolor</span>}
-                              </div>;
-                            })()}
+                        {producto.tagMedida && (
+                          <div className="terra-card__measure">
+                            <span className="material-symbols-outlined terra-card__measure-icon">
+                              {producto.tagMedidaIcon || 'verified'}
+                            </span>
+                            {producto.tagMedida}
                           </div>
+                        )}
+                      </div>
 
-                          {/* Precio y Botón Táctil de Agregar */}
-                          <div className="flex flex-col gap-space-sm pt-space-xs bg-surface-container-low/50 p-3 sm:p-4 rounded-xl">
-                            <div className="flex items-baseline justify-between gap-2">
-                              <div className="min-w-0">
-                                {producto.precioOriginal ? (
-                                  <span className="font-body-sm text-body-sm text-outline line-through">
-                                    {formatoMoneda(producto.precioOriginal)}
-                                  </span>
-                                ) : (
-                                  <span className="font-body-sm text-body-sm text-outline">
-                                    {producto.precioLabel || 'Precio Regular'}
-                                  </span>
-                                )}
-                                <div className="font-price-card text-price-card text-primary font-extrabold">
-                                  {formatoMoneda(esMayorista && Number.isFinite(Number(producto.precioMayorista)) ? producto.precioMayorista : producto.precio)}
-                                </div>
-                              </div>
-                              <span className="hidden sm:inline-block shrink-0 font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant">
-                                {producto.garantia || 'Garantía Oficial'}
-                              </span>
-                            </div>
-
-                            {/* Botón Táctil de Gran Formato */}
-                            <button
-                              className={`w-full min-h-[48px] sm:min-h-[52px] rounded-xl text-[15px] sm:text-base font-bold flex items-center justify-center gap-space-xs shadow-sm transition-all active:scale-95 ${
-                                recienAgregado
-                                  ? 'bg-secondary text-surface-bright shadow-md'
-                                  : 'bg-primary-container hover:bg-primary text-on-primary'
-                              }`}
-                              onClick={() => handleAgregar(producto)}
-                              type="button"
-                              disabled={producto.stock <= 0}
-                            >
-                              <span className="material-symbols-outlined text-[22px]">
-                                {recienAgregado ? 'done' : 'add_shopping_cart'}
-                              </span>
-                              <span>
-                                {recienAgregado ? '¡Agregado al Carrito!' : 'Agregar al carrito'}
-                              </span>
-                            </button>
-                          </div>
+                      <div className="terra-card__body">
+                        <div className="terra-card__top">
+                          <span className="terra-card__reviews">
+                            <span className="terra-card__stars">★★★★★</span>
+                            <span>(calidad)</span>
+                          </span>
+                          <span className={`terra-card__stock ${disponible ? 'terra-card__stock--ok' : 'terra-card__stock--no'}`}>
+                            {disponible ? '● Disponible' : '○ Agotado'}
+                          </span>
                         </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </section>
 
-                    {/* Carrito flotante global en el borde derecho (CarritoFlotante) */}
+                        <Link
+                          to={`/productos/${producto.id}`}
+                          className="terra-card__title-link"
+                        >
+                          <h2 className="terra-card__title">{producto.nombre}</h2>
+                        </Link>
 
-        </div>
+                        {Boolean(producto.descripcion) && (
+                          <p className="terra-card__desc">{producto.descripcion}</p>
+                        )}
+
+                        {tonosColores.length > 0 && (
+                          <div className="terra-card__colores">
+                            {tonosColores.slice(0, 4).map((tono) => (
+                              <span
+                                key={`${tono.nombre}-${tono.valor}`}
+                                title={tono.nombre}
+                                style={{ backgroundColor: tono.valor }}
+                                className="terra-color"
+                              />
+                            ))}
+                            {tonosColores.length > 4 && (
+                              <span className="terra-color-more">+{tonosColores.length - 4}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="terra-card__footer">
+                        <div className="terra-card__precio">
+                          {producto.precioOriginal ? (
+                            <span className="terra-card__precio-original">
+                              {formatoMoneda(producto.precioOriginal)}
+                            </span>
+                          ) : null}
+                          <span className="terra-card__precio-actual">
+                            {formatoMoneda(esMayorista && Number.isFinite(Number(producto.precioMayorista)) ? producto.precioMayorista : producto.precio)}
+                          </span>
+                        </div>
+
+                        <button
+                          className={`terra-btn-agregar ${!disponible ? 'terra-btn-agregar--disabled' : ''} ${recienAgregado ? 'terra-btn-agregar--added' : ''}`}
+                          onClick={() => handleAgregar(producto)}
+                          type="button"
+                          disabled={!disponible}
+                        >
+                          <span className="material-symbols-outlined terra-btn-agregar__icon">
+                            {recienAgregado ? 'done' : 'add_shopping_cart'}
+                          </span>
+                          <span className="terra-btn-agregar__label">
+                            {recienAgregado ? '¡Agregado!' : 'Agregar al carrito'}
+                          </span>
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
       </main>
 
-      {/* FOOTER TÁCTIL FIJO KIOSCO */}
-      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest text-on-surface shadow-[0_-4px_16px_rgba(41,41,41,0.04)] border-t border-surface-container-high">
-        <div className="h-16 w-full px-margin flex items-center justify-between">
-          <div className="flex items-center gap-space-md">
-            <button
-              className="min-h-[48px] px-space-lg rounded-xl bg-secondary-container text-on-secondary-container hover:bg-secondary-fixed hover:text-on-secondary-fixed flex items-center gap-space-xs font-label-md text-label-md transition-all active:scale-95 cursor-pointer font-bold"
-              type="button"
-              onClick={() => setModalAsesorAbierto(true)}
-            >
-              <span className="material-symbols-outlined text-[20px]">support_agent</span>
-              <span>Solicitar un asesor TERRA</span>
-            </button>
-            <span className="font-body-sm text-body-sm text-on-surface-variant hidden sm:inline">
-              Atención asistida disponible de 09:00 a 20:00
-            </span>
-          </div>
-
-          <div className="flex items-center gap-space-lg">
-            <div className="flex items-center gap-space-xs">
-              <span className="material-symbols-outlined text-outline text-[18px]">schedule</span>
-              <span className="font-label-sm text-label-sm text-on-surface-variant">
-                Sesión activa: {formatoTiempo}
-              </span>
+      {modalAsesorAbierto && (
+        <div className="terra-modal-overlay" onClick={() => setModalAsesorAbierto(false)}>
+          <div className="terra-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="terra-modal__icon">
+              <span className="material-symbols-outlined">support_agent</span>
             </div>
-            <Link
-              className="min-h-[44px] px-space-md rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface flex items-center gap-space-xs font-label-sm text-label-sm transition-all"
-              to="/"
+            <h3 className="terra-modal__title">¡Asesor TERRA Notificado!</h3>
+            <p className="terra-modal__text">
+              Un especialista en descanso se está acercando para asistirte con modelos, medidas y pruebas de firmeza.
+            </p>
+            <button
+              type="button"
+              className="terra-btn-primary terra-btn--wide"
+              onClick={() => setModalAsesorAbierto(false)}
             >
-              <span className="material-symbols-outlined text-[16px]">restart_alt</span>
-              <span>Reiniciar Kiosco</span>
-            </Link>
+              Entendido, continuar explorando
+            </button>
           </div>
         </div>
-      </footer>
+      )}
 
       <button
         type="button"
@@ -1040,36 +842,7 @@ export default function Catalogo() {
                 </button>
               </div>
             </div>
-            <small className="catalog-qr-hint">La cámara permanece abierta para escanear el siguiente producto.</small>
           </section>
-        </div>
-      )}
-
-      {/* MODAL: SOLICITUD DE ASESOR EN SALA */}
-      {modalAsesorAbierto && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-surface-container-lowest rounded-3xl max-w-md w-full p-6 shadow-2xl flex flex-col items-center text-center gap-4 animate-in fade-in zoom-in duration-200">
-            <div className="w-16 h-16 rounded-2xl bg-secondary-container text-on-secondary-fixed flex items-center justify-center shadow-sm">
-              <span className="material-symbols-outlined text-[36px]">support_agent</span>
-            </div>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface font-bold">
-              ¡Asesor TERRA Notificado!
-            </h3>
-            <p className="font-body-md text-body-md text-on-surface-variant">
-              Un especialista en descanso de la <strong>Sucursal 1central</strong> se está acercando a tu <strong>Terminal Kiosco #02</strong> para asistirte con modelos, medidas y pruebas de firmeza.
-            </p>
-            <div className="w-full bg-surface-container-low p-3 rounded-xl flex items-center justify-center gap-2 text-primary font-bold text-sm">
-              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
-              Tiempo estimado de espera: Menos de 1 minuto
-            </div>
-            <button
-              type="button"
-              onClick={() => setModalAsesorAbierto(false)}
-              className="w-full min-h-[50px] rounded-xl bg-primary text-on-primary font-bold shadow-md hover:bg-primary-container active:scale-95 transition-all mt-2"
-            >
-              Entendido, continuar explorando
-            </button>
-          </div>
         </div>
       )}
     </div>
