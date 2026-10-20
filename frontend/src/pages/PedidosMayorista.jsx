@@ -12,15 +12,10 @@ import {
   Layers,
   MessageCircle,
   Package,
-  PackageCheck,
   Plus,
-  QrCode,
-  ReceiptText,
   RotateCcw,
   Search,
   ShieldCheck,
-  ShoppingBag,
-  Sparkles,
   Truck,
   Wrench,
   XCircle,
@@ -1185,27 +1180,7 @@ export default function PedidosMayorista() {
         </span>
       </section>
 
-      {/* ====================================================================
-          6. ACCIONES FLOTANTES (Comprar por QR y Asistente B2B)
-          ==================================================================== */}
-      <aside className="b2b-floating-actions" data-purpose="floating-quick-actions">
-        <Link to="/catalogo?abrirQr=1" className="b2b-floating-qr" title="Escanear y comprar con lector QR">
-          <QrCode size={16} />
-          <span>Comprar por QR</span>
-          <span className="b2b-floating-qr__icon">
-            <ShoppingBag size={13} />
-          </span>
-        </Link>
-        <button
-          type="button"
-          className="b2b-floating-chat"
-          onClick={() => window.open(wspAsesor, '_blank')}
-        >
-          <span className="b2b-dot b2b-dot--pulse" style={{ backgroundColor: '#34d399' }} />
-          <MessageCircle size={15} />
-          <span>Asistente B2B</span>
-        </button>
-      </aside>
+
 
       {/* ====================================================================
           7. FOOTER INSTITUCIONAL B2B
