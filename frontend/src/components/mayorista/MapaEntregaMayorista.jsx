@@ -96,10 +96,10 @@ export default function MapaEntregaMayorista({
             ${razonSocial || 'Almacén Central'}
           </strong>
           <span style="color: #4b5563; display: block; margin-bottom: 6px;">
-            ${direccion || 'Punto de entrega y descarga de camiones'}
+            ${direccion || 'Punto de entrega'}
           </span>
           <div style="display: inline-block; background: #ecfdf5; color: #047857; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px;">
-            Acceso de camiones verificado
+            Ubicación de entrega registrada
           </div>
           <div style="font-family: monospace; font-size: 10px; color: #6b7280;">
             GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}
@@ -205,7 +205,7 @@ export default function MapaEntregaMayorista({
       {modoFijarActivo && (
         <div className="b2b-map-hint-banner">
           <Navigation size={13} style={{ color: 'var(--terra-wine-b2b)' }} />
-          <span>Haz clic en cualquier punto del mapa o arrastra el marcador para fijar la rampa de descarga.</span>
+          <span>Haz clic en cualquier punto del mapa o arrastra el marcador para fijar la ubicación de entrega.</span>
         </div>
       )}
 
@@ -213,10 +213,10 @@ export default function MapaEntregaMayorista({
       <div className="b2b-leaflet-container-frame">
         <div ref={mapContainerRef} className="b2b-leaflet-map-element" />
 
-        {/* Badge inferior de camiones pesados */}
+        {/* Badge inferior de ubicación de entrega */}
         <div className="b2b-map-truck-legend">
           <CheckCircle2 size={13} style={{ color: '#059669' }} />
-          <span>Mapa interactivo Leaflet: arrastra el pin o haz clic para marcar la descarga</span>
+          <span>Mapa interactivo Leaflet: arrastra el pin o haz clic para marcar la ubicación de entrega</span>
         </div>
       </div>
     </div>

@@ -310,19 +310,18 @@ export default function PanelMayorista() {
           </div>
         </section>
 
-        {/* SECCIÓN B: Dirección de Envío y Despachos de Carga */}
+        {/* SECCIÓN B: Dirección de Envío */}
         <section className="b2b-form-section">
           <div className="b2b-form-section__header">
             <div className="b2b-section-title-wrap">
               <Truck size={20} style={{ color: 'var(--terra-wine-b2b)' }} />
               <div>
-                <h3>Dirección de Envío y Despachos de Carga</h3>
-                <p>Ubicación registrada para entrega de camiones de carga pesada Terra</p>
+                <h3>Dirección de Envío</h3>
               </div>
             </div>
             <span className="b2b-verified-badge">
               <CheckCircle2 size={14} />
-              Acceso de camiones verificado
+              Ubicación de entrega registrada
             </span>
           </div>
 
