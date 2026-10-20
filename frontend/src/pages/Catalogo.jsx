@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef, useContext } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Camera, Check, ExternalLink, QrCode, ShoppingCart, X } from 'lucide-react';
+import { ArrowRight, Camera, Check, ExternalLink, QrCode, ShoppingCart, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { obtenerProducto } from '../services/productoService.js';
 import { agregarProductoCarritoQr, leerCarritoQr } from '../services/qrCartService.js';
@@ -9,6 +9,7 @@ import { obtenerIconoCategoria } from '../data/categorias.js';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { LIMITE_CATALOGO, useCatalogoPaginado } from '../context/CatalogoContext.jsx';
 import { imagenDeProducto, usarImagenFallback } from '../utils/imagenProducto.js';
+import { useAccesibilidad } from '../context/AccesibilidadContext.jsx';
 import './Catalogo.css';
 
 // Cuántas categorías se muestran como chips sueltos junto al selector "Todos".
@@ -70,11 +71,14 @@ export default function Catalogo() {
 
   const abrirCamaraAlEntrar = searchParams.get('abrirQr') === '1';
 
-  const [buscar, setBuscar] = useState('');
+  const { anunciar } = useAccesibilidad();
+
+  // `?buscar=` permite llegar con una búsqueda ya hecha (por ejemplo desde un comando de voz).
+  const [buscar, setBuscar] = useState(() => searchParams.get('buscar') || '');
   const [cantidadesMayorista, setCantidadesMayorista] = useState({});
   // La búsqueda se envía al backend con un pequeño retraso para no pedir una
   // página por cada tecla pulsada en el teclado táctil.
-  const [buscarAplicado, setBuscarAplicado] = useState('');
+  const [buscarAplicado, setBuscarAplicado] = useState(() => (searchParams.get('buscar') || '').trim());
   useEffect(() => {
     const temporizador = setTimeout(() => setBuscarAplicado(buscar.trim()), 300);
     return () => clearTimeout(temporizador);
@@ -98,7 +102,12 @@ export default function Catalogo() {
   });
 
   // Cualquier cambio de filtro vuelve a la primera página.
-  const cambiarCategoria = (valor) => { setCategoriaSeleccionada(valor); setPagina(1); setMenuCategoriasAbierto(false); };
+  const cambiarCategoria = (valor) => {
+    setCategoriaSeleccionada(valor);
+    setPagina(1);
+    setMenuCategoriasAbierto(false);
+    anunciar(valor ? `Categoría ${valor} seleccionada.` : 'Mostrando todos los productos.');
+  };
   const cambiarOrden = (valor) => { setOrden(valor); setPagina(1); setMenuOrdenAbierto(false); };
   const cambiarBusqueda = (valor) => { setBuscar(valor); setPagina(1); };
 
@@ -145,11 +154,42 @@ export default function Catalogo() {
   const gridRef = useRef(null);
   const irAPagina = (n) => {
     const destino = Math.min(Math.max(1, n), Math.max(1, ultimaPaginaPermitida));
-    if (destino === pagina) return;
+    if (destino === pagina) {
+      anunciar(n > pagina ? 'Ya estás en la última página.' : 'Ya estás en la primera página.');
+      return;
+    }
     setPagina(destino);
+    anunciar(totalConocido ? `Página ${destino} de ${totalPaginas}.` : `Página ${destino}.`);
     const tope = gridRef.current?.getBoundingClientRect().top ?? 0;
     window.scrollTo({ top: Math.max(0, window.scrollY + tope - 140), behavior: 'smooth' });
   };
+
+  // Resultado de cada carga, para lectores de pantalla y lectura por voz.
+  useEffect(() => {
+    if (cargando || errorProductos) return;
+    if (productos.length === 0) { anunciar('No encontramos productos con esos filtros.'); return; }
+    anunciar(totalConocido
+      ? `${totalProductos} productos disponibles. Página ${pagina} de ${totalPaginas}. Se muestran ${productos.length}.`
+      : `Página ${pagina}. Se muestran ${productos.length} productos.`, { interrumpir: false });
+  // Sólo cuando cambia el resultado cargado, no en cada render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cargando, errorProductos, productos]);
+
+  // Comandos de voz que afectan al catálogo (ver components/accesibilidad/LectorVoz.jsx).
+  const irAPaginaRef = useRef(irAPagina);
+  irAPaginaRef.current = irAPagina;
+  useEffect(() => {
+    const alComando = (evento) => {
+      const { accion, valor } = evento.detail || {};
+      if (accion === 'siguiente') irAPaginaRef.current(pagina + 1);
+      else if (accion === 'anterior') irAPaginaRef.current(pagina - 1);
+      else if (accion === 'buscar') cambiarBusqueda(String(valor || ''));
+      else if (accion === 'limpiar') { setBuscar(''); setCategoriaSeleccionada(''); setPagina(1); }
+    };
+    window.addEventListener('terra:voz', alComando);
+    return () => window.removeEventListener('terra:voz', alComando);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagina]);
 
   const [agregados, setAgregados] = useState({});
 
@@ -258,7 +298,10 @@ export default function Catalogo() {
   const productosFiltrados = productosOrdenados;
 
   const handleAgregar = (producto, cantidad = 1) => {
-    if (!agregarProducto(producto, cantidad)) return;
+    if (!agregarProducto(producto, cantidad)) { anunciar(`No se pudo agregar ${producto.nombre}.`); return; }
+    anunciar(cantidad > 1
+      ? `${cantidad} unidades de ${producto.nombre} agregadas al carrito.`
+      : `${producto.nombre} agregado al carrito.`);
     setAgregados((prev) => ({ ...prev, [producto.id]: true }));
     setTimeout(() => {
       setAgregados((prev) => ({ ...prev, [producto.id]: false }));
@@ -765,6 +808,13 @@ export default function Catalogo() {
                     <article
                       key={producto.id}
                       className={`terra-card ${!disponible ? 'terra-card--agotado' : ''} ${recienAgregado ? 'terra-card--agregado' : ''}`}
+                      tabIndex={0}
+                      aria-label={`${producto.nombre}, ${formatoMoneda(esMayorista && Number.isFinite(Number(producto.precioMayorista)) ? producto.precioMayorista : producto.precio)}, ${disponible ? 'disponible' : 'agotado'}. Enter para ver el detalle.`}
+                      onKeyDown={(event) => {
+                        if (event.target !== event.currentTarget) return;
+                        if (event.key === 'Enter') navigate(`/productos/${producto.id}`);
+                        if (event.key === ' ' && disponible) { event.preventDefault(); handleAgregar(producto); }
+                      }}
                       onClick={(event) => {
                         if (!event.target.closest('button, a')) {
                           navigate(`/productos/${producto.id}`);
