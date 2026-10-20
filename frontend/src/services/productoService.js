@@ -22,10 +22,13 @@ export function normalizarProducto(producto) {
     activo: producto.activo !== false,
     detalle: producto.detalle || producto.medida || '',
     descripcion: producto.descripcion || '',
-    categoria: producto.categoria || 'Sin categoría'
+    categoria: producto.categoria || 'Sin categoría',
+    ventas: Number(producto.ventas || 0),
+    promocion: Boolean(producto.promocion)
   };
 }
 function exigirConexionReal() { if (MODO_DEMO) throw new Error('El modo demostración está activo. Configura VITE_MODO_DEMO=false para usar PostgreSQL.'); }
+<<<<<<< Updated upstream
 function construirQueryProductos({ buscar = '', categoria = '', pagina = 1, limite = 100, todos = false, orden = '' } = {}) {
   const p = new URLSearchParams({ pagina, limite });
   if (buscar) p.set('buscar', buscar);
@@ -71,6 +74,46 @@ export async function listarProductosPaginado({ signal, ...filtros } = {}) {
     productos: lista.map(normalizarProducto),
     paginacion: { pagina, limite, total, totalPaginas, tieneSiguiente },
   };
+=======
+export async function listarProductos({ buscar = '', categoria = '', pagina = 1, limite = 100, todos = false, signal } = {}) {
+  exigirConexionReal();
+  const p = new URLSearchParams({ pagina, limite });
+  if (buscar) p.set('buscar', buscar);
+  if (categoria && categoria !== 'Todos') p.set('categoria', categoria);
+  if (todos) p.set('todos', 'true');
+  const r = await apiRequest(`/productos?${p}`, { signal });
+  return (Array.isArray(r) ? r : r?.data || []).map(normalizarProducto);
+}
+
+// Listado paginado del catálogo (caja administrativa): trae el sobre completo
+// para conocer el total de referencias y calcular las páginas en el servidor.
+export async function listarProductosPaginado({
+  buscar = '',
+  categoria = '',
+  pagina = 1,
+  limite = 18,
+  todos = false,
+  orden = 'recomendados',
+  promos = false,
+  stock = false,
+  precioMin = null,
+  precioMax = null,
+  signal,
+} = {}) {
+  exigirConexionReal();
+  const p = new URLSearchParams({ pagina: String(pagina), limite: String(limite), orden });
+  if (buscar) p.set('buscar', buscar);
+  if (categoria && categoria !== 'Todos') p.set('categoria', categoria);
+  if (todos) p.set('todos', 'true');
+  if (promos) p.set('promos', 'true');
+  if (stock) p.set('stock', 'true');
+  if (Number.isFinite(Number(precioMin)) && precioMin !== null && precioMin !== '') p.set('precioMin', String(precioMin));
+  if (Number.isFinite(Number(precioMax)) && precioMax !== null && precioMax !== '') p.set('precioMax', String(precioMax));
+  const r = await apiRequest(`/productos?${p}`, { signal, raw: true });
+  const productos = (Array.isArray(r?.data) ? r.data : []).map(normalizarProducto);
+  const paginacion = r?.paginacion || { pagina: 1, limite, total: productos.length, totalPaginas: 1 };
+  return { productos, paginacion };
+>>>>>>> Stashed changes
 }
 export async function obtenerProducto(id) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}`)); }
 export async function crearProducto(datos) { exigirConexionReal(); return normalizarProducto(await apiRequest('/productos', { method: 'POST', body: datos })); }
