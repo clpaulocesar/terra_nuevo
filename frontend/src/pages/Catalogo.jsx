@@ -2,25 +2,33 @@ import React, { useState, useMemo, useEffect, useRef, useContext } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Camera, Check, ExternalLink, QrCode, ShoppingCart, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
-import { listarProductos, listarCategorias, obtenerProducto } from '../services/productoService.js';
+import { obtenerProducto } from '../services/productoService.js';
 import { agregarProductoCarritoQr, leerCarritoQr } from '../services/qrCartService.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { obtenerIconoCategoria } from '../data/categorias.js';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
+import { LIMITE_CATALOGO, useCatalogoPaginado } from '../context/CatalogoContext.jsx';
+import { imagenDeProducto, usarImagenFallback } from '../utils/imagenProducto.js';
 import './Catalogo.css';
 
-const MEDIDAS_CONFIG = [
-  { id: 'King', label: 'King (200x200)' },
-  { id: 'Queen', label: 'Queen (160x200)' },
-  { id: '2 Plazas', label: '2 Plazas (140x190)' },
-  { id: '1.5 Plazas', label: '1.5 Plazas' },
-];
+// Cuántas categorías se muestran como chips sueltos junto al selector "Todos".
+// El resto queda disponible dentro del desplegable.
+const CATEGORIAS_VISIBLES = 4;
 
-const FIRMEZAS_CONFIG = [
-  { id: 'Suave', label: 'Suave' },
-  { id: 'Media', label: 'Media' },
-  { id: 'Firme Ortopédica', label: 'Firme Ortopédica' },
-];
+// Rango de botones numerados que se muestran en el paginador (con "…" entre saltos).
+const paginasVisibles = (actual, total) => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const conjunto = new Set([1, total, actual - 1, actual, actual + 1]);
+  if (actual <= 3) [2, 3, 4].forEach((n) => conjunto.add(n));
+  if (actual >= total - 2) [total - 1, total - 2, total - 3].forEach((n) => conjunto.add(n));
+  const lista = [...conjunto].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+  const resultado = [];
+  lista.forEach((n, i) => {
+    if (i > 0 && n - lista[i - 1] > 1) resultado.push(`gap-${n}`);
+    resultado.push(n);
+  });
+  return resultado;
+};
 
 const coloresDeProducto = (producto) => {
   const registros = Array.isArray(producto?.colores) ? producto.colores : [];
@@ -62,10 +70,15 @@ export default function Catalogo() {
 
   const abrirCamaraAlEntrar = searchParams.get('abrirQr') === '1';
 
-  const [productos, setProductos] = useState([]);
-  const [cargando, setCargando] = useState(true);
-
   const [buscar, setBuscar] = useState('');
+  // La búsqueda se envía al backend con un pequeño retraso para no pedir una
+  // página por cada tecla pulsada en el teclado táctil.
+  const [buscarAplicado, setBuscarAplicado] = useState('');
+  useEffect(() => {
+    const temporizador = setTimeout(() => setBuscarAplicado(buscar.trim()), 300);
+    return () => clearTimeout(temporizador);
+  }, [buscar]);
+
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(() => {
     const categoria = searchParams.get('categoria') || '';
     const equivalencias = {
@@ -75,10 +88,67 @@ export default function Catalogo() {
     };
     return equivalencias[categoria] || categoria;
   });
-  const [medidaSeleccionada, setMedidaSeleccionada] = useState('');
-  const [firmezaSeleccionada, setFirmezaSeleccionada] = useState('');
   const [orden, setOrden] = useState('recomendados');
   const [menuOrdenAbierto, setMenuOrdenAbierto] = useState(false);
+  const [menuCategoriasAbierto, setMenuCategoriasAbierto] = useState(false);
+  const [pagina, setPagina] = useState(() => {
+    const n = Number(searchParams.get('pagina') || 1);
+    return Number.isSafeInteger(n) && n > 0 ? n : 1;
+  });
+
+  // Cualquier cambio de filtro vuelve a la primera página.
+  const cambiarCategoria = (valor) => { setCategoriaSeleccionada(valor); setPagina(1); setMenuCategoriasAbierto(false); };
+  const cambiarOrden = (valor) => { setOrden(valor); setPagina(1); setMenuOrdenAbierto(false); };
+  const cambiarBusqueda = (valor) => { setBuscar(valor); setPagina(1); };
+
+  const {
+    productos,
+    cargando,
+    error: errorProductos,
+    total: totalProductos,
+    totalConocido,
+    totalPaginas,
+    tieneSiguiente,
+    categorias: categoriasApi,
+    categoriasCargadas,
+    reintentar: reintentarCarga,
+  } = useCatalogoPaginado({
+    buscar: buscarAplicado,
+    categoria: categoriaSeleccionada,
+    orden,
+    pagina,
+    limite: LIMITE_CATALOGO,
+  });
+
+  // Si el backend devuelve menos páginas de las que pide la URL, se corrige.
+  useEffect(() => {
+    if (!cargando && totalConocido && totalPaginas > 0 && pagina > totalPaginas) setPagina(totalPaginas);
+  }, [cargando, totalConocido, totalPaginas, pagina]);
+
+  // Backend viejo sin total: se puede avanzar una página más allá de lo conocido
+  // mientras la actual anuncie que hay siguiente.
+  const ultimaPaginaPermitida = totalConocido ? totalPaginas : Math.max(totalPaginas, tieneSiguiente ? pagina + 1 : pagina);
+  const mostrarPaginador = totalConocido ? totalPaginas > 1 : (pagina > 1 || tieneSiguiente);
+
+  // Orden de respaldo dentro de la página: si el backend ya ordenó, no cambia nada;
+  // si es una versión anterior que ignora `orden`, al menos la página se ve ordenada.
+  const productosOrdenados = useMemo(() => {
+    if (orden === 'recomendados') return productos;
+    const copia = [...productos];
+    if (orden === 'precio-asc') copia.sort((a, b) => a.precio - b.precio);
+    else if (orden === 'precio-desc') copia.sort((a, b) => b.precio - a.precio);
+    else if (orden === 'nombre') copia.sort((a, b) => String(a.nombre).localeCompare(String(b.nombre)));
+    return copia;
+  }, [productos, orden]);
+
+  const gridRef = useRef(null);
+  const irAPagina = (n) => {
+    const destino = Math.min(Math.max(1, n), Math.max(1, ultimaPaginaPermitida));
+    if (destino === pagina) return;
+    setPagina(destino);
+    const tope = gridRef.current?.getBoundingClientRect().top ?? 0;
+    window.scrollTo({ top: Math.max(0, window.scrollY + tope - 140), behavior: 'smooth' });
+  };
 
   const [agregados, setAgregados] = useState({});
 
@@ -119,79 +189,56 @@ export default function Catalogo() {
     if (abrirCamaraAlEntrar) navigate('/catalogo', { replace: true });
   }, [abrirCamaraAlEntrar, navigate]);
 
-  useEffect(() => {
-    let cancelado = false;
-    setCargando(true);
-    listarProductos({ limite: 100 })
-      .then((datos) => {
-        if (!cancelado) {
-          setProductos(Array.isArray(datos) ? datos : []);
-          setCargando(false);
-        }
-      })
-      .catch((err) => {
-        console.warn('Error al conectar con backend:', err);
-        if (!cancelado) { setProductos([]); setCargando(false); }
-      });
-    return () => { cancelado = true; };
-  }, []);
-
-  const [categoriasApi, setCategoriasApi] = useState([]);
-  useEffect(() => {
-    let cancelado = false;
-    listarCategorias()
-      .then((cats) => {
-        if (!cancelado && Array.isArray(cats) && cats.length > 0) {
-          setCategoriasApi(cats);
-        }
-      })
-      .catch(() => {});
-    return () => { cancelado = true; };
-  }, []);
-
+  // Lista completa de categorías (desde la API, con total de productos por categoría).
+  // Si la API aún no respondió, se infieren de la página actual para no dejar el riel vacío.
   const categoriasDinamicas = useMemo(() => {
-    const lista = [
-      { id: '', nombre: 'Todos', icon: 'apps' },
-    ];
-    const conteo = {};
-    let hayPromociones = false;
-    for (const p of productos) {
-      if (p.promocion || p.descuento) hayPromociones = true;
-      const cat = (p.categoria || '').trim();
-      if (cat) {
-        conteo[cat] = (conteo[cat] || 0) + 1;
-      }
-    }
+    const lista = [];
     if (categoriasApi.length > 0) {
       for (const cat of categoriasApi) {
         lista.push({
           id: cat.nombre,
           nombre: cat.nombre,
           icon: cat.icon || obtenerIconoCategoria(cat.nombre),
-          total: conteo[cat.nombre] ?? cat.total,
+          total: cat.total,
         });
       }
-    } else if (Object.keys(conteo).length > 0) {
-      const catsOrdenadas = Object.keys(conteo).sort((a, b) => conteo[b] - conteo[a]);
-      for (const cat of catsOrdenadas) {
-        lista.push({
-          id: cat,
-          nombre: cat,
-          icon: obtenerIconoCategoria(cat),
-          total: conteo[cat],
-        });
+    } else {
+      const conteo = {};
+      for (const p of productos) {
+        const cat = (p.categoria || '').trim();
+        if (cat) conteo[cat] = (conteo[cat] || 0) + 1;
       }
-    }
-    if (hayPromociones || productos.some((p) => p.promocion || p.descuento)) {
-      lista.push({
-        id: 'Promociones',
-        nombre: 'Promociones',
-        icon: 'local_fire_department',
-        especial: true,
-      });
+      for (const cat of Object.keys(conteo).sort((a, b) => conteo[b] - conteo[a])) {
+        lista.push({ id: cat, nombre: cat, icon: obtenerIconoCategoria(cat), total: conteo[cat] });
+      }
     }
     return lista;
   }, [productos, categoriasApi]);
+
+  const esCategoriaActiva = (id) =>
+    Boolean(categoriaSeleccionada) && Boolean(id) && categoriaSeleccionada.toLowerCase() === id.toLowerCase();
+
+  // Chips sueltos: las primeras N categorías. Si la seleccionada no está entre ellas,
+  // se muestra en el botón desplegable para que siempre se vea qué filtro está activo.
+  const categoriasEnRiel = categoriasDinamicas.slice(0, CATEGORIAS_VISIBLES);
+  const categoriaActivaObj = categoriasDinamicas.find((cat) => esCategoriaActiva(cat.id));
+  const activaFueraDelRiel = Boolean(categoriaActivaObj) && !categoriasEnRiel.some((cat) => esCategoriaActiva(cat.id));
+  const totalCategorias = categoriasDinamicas.reduce((suma, cat) => suma + (Number(cat.total) || 0), 0);
+
+  const menuCategoriasRef = useRef(null);
+  useEffect(() => {
+    if (!menuCategoriasAbierto) return undefined;
+    const cerrarFuera = (event) => {
+      if (menuCategoriasRef.current && !menuCategoriasRef.current.contains(event.target)) setMenuCategoriasAbierto(false);
+    };
+    const cerrarEscape = (event) => { if (event.key === 'Escape') setMenuCategoriasAbierto(false); };
+    document.addEventListener('mousedown', cerrarFuera);
+    document.addEventListener('keydown', cerrarEscape);
+    return () => {
+      document.removeEventListener('mousedown', cerrarFuera);
+      document.removeEventListener('keydown', cerrarEscape);
+    };
+  }, [menuCategoriasAbierto]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -206,43 +253,8 @@ export default function Catalogo() {
     return `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')} min`;
   }, [segundosSesion]);
 
-  const productosFiltrados = useMemo(() => {
-    let resultado = [...productos];
-    if (buscar.trim()) {
-      const q = buscar.toLowerCase().trim();
-      resultado = resultado.filter((p) => {
-        const textoCompleto = `${p.nombre} ${p.descripcion || ''} ${p.subtitulo || ''} ${p.categoria || ''} ${p.medida || ''}`.toLowerCase();
-        return textoCompleto.includes(q);
-      });
-    }
-    if (categoriaSeleccionada) {
-      if (categoriaSeleccionada === 'Promociones') {
-        resultado = resultado.filter((p) => Boolean(p.promocion || p.descuento));
-      } else {
-        resultado = resultado.filter((p) => p.categoria?.toLowerCase() === categoriaSeleccionada.toLowerCase());
-      }
-    }
-    if (medidaSeleccionada) {
-      resultado = resultado.filter((p) =>
-        p.medida?.toLowerCase().includes(medidaSeleccionada.toLowerCase()) ||
-        p.tagMedida?.toLowerCase().includes(medidaSeleccionada.toLowerCase())
-      );
-    }
-    if (firmezaSeleccionada) {
-      resultado = resultado.filter((p) =>
-        p.firmeza?.toLowerCase().includes(firmezaSeleccionada.toLowerCase()) ||
-        p.subtitulo?.toLowerCase().includes(firmezaSeleccionada.toLowerCase())
-      );
-    }
-    if (orden === 'precio-asc') {
-      resultado.sort((a, b) => a.precio - b.precio);
-    } else if (orden === 'precio-desc') {
-      resultado.sort((a, b) => b.precio - a.precio);
-    } else if (orden === 'nombre') {
-      resultado.sort((a, b) => a.nombre.localeCompare(b.nombre));
-    }
-    return resultado;
-  }, [productos, buscar, categoriaSeleccionada, medidaSeleccionada, firmezaSeleccionada, orden]);
+  // Búsqueda, categoría y orden ya vienen aplicados desde el backend por página.
+  const productosFiltrados = productosOrdenados;
 
   const handleAgregar = (producto) => {
     if (!agregarProducto(producto)) return;
@@ -254,12 +266,14 @@ export default function Catalogo() {
 
   const agregarCaracter = (caracter) => {
     setBuscar((prev) => prev + caracter);
+    setPagina(1);
   };
   const alternarModoNumerico = () => {
     setModoNumerico((prev) => !prev);
   };
   const borrarCaracter = () => {
     setBuscar((prev) => prev.slice(0, -1));
+    setPagina(1);
   };
   const abrirTecladoTactil = () => {
     if (esTactil) {
@@ -408,14 +422,14 @@ export default function Catalogo() {
                 inputMode={esTactil ? 'none' : 'text'}
                 onClick={abrirTecladoTactil}
                 onFocus={abrirTecladoTactil}
-                onChange={(e) => setBuscar(e.target.value)}
+                onChange={(e) => cambiarBusqueda(e.target.value)}
               />
               {buscar && (
                 <button
                   aria-label="Borrar búsqueda"
                   className="terra-btn-clear"
                   id="clear-search-btn"
-                  onClick={() => setBuscar('')}
+                  onClick={() => cambiarBusqueda('')}
                   type="button"
                 >
                   <span className="material-symbols-outlined">close</span>
@@ -426,7 +440,13 @@ export default function Catalogo() {
             <div className="terra-search-controls">
               <div className="terra-chip terra-chip--count">
                 <span className="terra-chip__dot"></span>
-                <span className="terra-chip__text">{productosFiltrados.length} disponibles</span>
+                <span className="terra-chip__text">
+                  {cargando
+                    ? 'Cargando…'
+                    : totalConocido
+                      ? `${totalProductos} disponibles${totalPaginas > 1 ? ` · pág. ${pagina}/${totalPaginas}` : ''}`
+                      : `${productosFiltrados.length} en esta página · pág. ${pagina}`}
+                </span>
               </div>
 
               <div className="terra-dropdown">
@@ -455,10 +475,7 @@ export default function Catalogo() {
                         key={opt.id}
                         type="button"
                         className={`terra-dropdown-item ${orden === opt.id ? 'terra-dropdown-item--active' : ''}`}
-                        onClick={() => {
-                          setOrden(opt.id);
-                          setMenuOrdenAbierto(false);
-                        }}
+                        onClick={() => cambiarOrden(opt.id)}
                       >
                         <span>{opt.label}</span>
                         {orden === opt.id && <span className="material-symbols-outlined terra-dropdown-item__check">done</span>}
@@ -527,7 +544,7 @@ export default function Catalogo() {
               </button>
               <button
                 type="button"
-                onClick={() => setBuscar('')}
+                onClick={() => cambiarBusqueda('')}
                 className="terra-key terra-key--clear"
               >
                 Limpiar
@@ -578,27 +595,86 @@ export default function Catalogo() {
         )}
 
         <div className="terra-categories">
-          <div className="terra-categories__inner">
-            {cargando
-              ? [110, 150, 130, 140].map((ancho, i) => (
-                  <span
-                    key={i}
-                    aria-hidden="true"
-                    style={{ width: ancho }}
-                    className="terra-cat-skeleton"
-                  />
-                ))
-              : categoriasDinamicas.map((cat) => {
-                  const activa =
-                    (!categoriaSeleccionada && cat.id === '') ||
-                    (Boolean(categoriaSeleccionada) && Boolean(cat.id) && categoriaSeleccionada.toLowerCase() === cat.id.toLowerCase());
+          <div className={`terra-categories__inner ${menuCategoriasAbierto ? 'terra-categories__inner--abierto' : ''}`}>
+            {!categoriasCargadas && categoriasDinamicas.length === 0 ? (
+              [110, 150, 130, 140].map((ancho, i) => (
+                <span
+                  key={i}
+                  aria-hidden="true"
+                  style={{ width: ancho }}
+                  className="terra-cat-skeleton"
+                />
+              ))
+            ) : (
+              <>
+                {/* Desplegable con todas las categorías; "Todos los productos" vive dentro. */}
+                <div className="terra-cat-dropdown" ref={menuCategoriasRef}>
+                  <button
+                    type="button"
+                    className={`terra-cat terra-cat--selector ${activaFueraDelRiel ? 'terra-cat--active' : ''}`}
+                    aria-haspopup="listbox"
+                    aria-expanded={menuCategoriasAbierto}
+                    onClick={() => setMenuCategoriasAbierto((prev) => !prev)}
+                  >
+                    <span className="material-symbols-outlined terra-cat__icon">
+                      {activaFueraDelRiel ? categoriaActivaObj.icon : 'category'}
+                    </span>
+                    <span className="terra-cat__label">
+                      {activaFueraDelRiel ? categoriaActivaObj.nombre : 'Categorías'}
+                    </span>
+                    <span className="material-symbols-outlined terra-cat__arrow">
+                      {menuCategoriasAbierto ? 'expand_less' : 'expand_more'}
+                    </span>
+                  </button>
 
+                  {menuCategoriasAbierto && (
+                    <div className="terra-cat-menu" role="listbox" aria-label="Elegir categoría">
+                      <div className="terra-cat-menu__header">
+                        <span>Categorías</span>
+                        <small>{categoriasDinamicas.length} líneas</small>
+                      </div>
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={!categoriaSeleccionada}
+                        className={`terra-cat-menu__item ${!categoriaSeleccionada ? 'terra-cat-menu__item--active' : ''}`}
+                        onClick={() => cambiarCategoria('')}
+                      >
+                        <span className="material-symbols-outlined">apps</span>
+                        <span className="terra-cat-menu__name">Todos los productos</span>
+                        {totalCategorias > 0 && <span className="terra-cat-menu__count">{totalCategorias}</span>}
+                        {!categoriaSeleccionada && <span className="material-symbols-outlined terra-cat-menu__check">done</span>}
+                      </button>
+                      {categoriasDinamicas.map((cat) => {
+                        const activa = esCategoriaActiva(cat.id);
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            role="option"
+                            aria-selected={activa}
+                            className={`terra-cat-menu__item ${activa ? 'terra-cat-menu__item--active' : ''}`}
+                            onClick={() => cambiarCategoria(activa ? '' : cat.id)}
+                          >
+                            <span className="material-symbols-outlined">{cat.icon}</span>
+                            <span className="terra-cat-menu__name">{cat.nombre}</span>
+                            {Number.isFinite(Number(cat.total)) && <span className="terra-cat-menu__count">{cat.total}</span>}
+                            {activa && <span className="material-symbols-outlined terra-cat-menu__check">done</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {categoriasEnRiel.map((cat) => {
+                  const activa = esCategoriaActiva(cat.id);
                   return (
                     <button
-                      key={cat.id || 'todos'}
+                      key={cat.id}
                       type="button"
-                      className={`terra-cat ${activa ? 'terra-cat--active' : ''} ${cat.especial ? 'terra-cat--promo' : ''}`}
-                      onClick={() => setCategoriaSeleccionada(activa ? '' : cat.id)}
+                      className={`terra-cat ${activa ? 'terra-cat--active' : ''}`}
+                      onClick={() => cambiarCategoria(activa ? '' : cat.id)}
                     >
                       <span className="material-symbols-outlined terra-cat__icon">{cat.icon}</span>
                       <span className="terra-cat__label">{cat.nombre}</span>
@@ -606,15 +682,37 @@ export default function Catalogo() {
                     </button>
                   );
                 })}
+
+                {categoriasDinamicas.length > CATEGORIAS_VISIBLES && (
+                  <button
+                    type="button"
+                    className="terra-cat terra-cat--more"
+                    onClick={() => setMenuCategoriasAbierto(true)}
+                  >
+                    <span className="material-symbols-outlined terra-cat__icon">more_horiz</span>
+                    <span className="terra-cat__label">+{categoriasDinamicas.length - CATEGORIAS_VISIBLES} más</span>
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
 
-        <section className="terra-grid-section">
+        <section className="terra-grid-section" ref={gridRef}>
           <div className="terra-grid__inner">
             {cargando ? (
               <div className="terra-empty terra-empty--loading">
                 <div className="terra-loader"></div>
                 <p className="terra-empty__text">Cargando productos…</p>
+              </div>
+            ) : errorProductos ? (
+              <div className="terra-empty">
+                <span className="material-symbols-outlined terra-empty__icon">cloud_off</span>
+                <h3 className="terra-empty__title">No se pudo cargar el catálogo</h3>
+                <p className="terra-empty__subtitle">{errorProductos}</p>
+                <button type="button" className="terra-btn-primary terra-btn--wide" onClick={reintentarCarga}>
+                  Reintentar
+                </button>
               </div>
             ) : productosFiltrados.length === 0 ? (
               <div className="terra-empty">
@@ -629,8 +727,7 @@ export default function Catalogo() {
                   onClick={() => {
                     setBuscar('');
                     setCategoriaSeleccionada('');
-                    setMedidaSeleccionada('');
-                    setFirmezaSeleccionada('');
+                    setPagina(1);
                   }}
                 >
                   Restablecer filtros
@@ -655,9 +752,10 @@ export default function Catalogo() {
                     >
                       <div className="terra-card__media">
                         <img
-                          className="terra-card__img"
+                          className={`terra-card__img ${producto.imagen_url ? '' : 'img-fallback'}`}
                           alt={producto.nombre}
-                          src={producto.imagen_url}
+                          src={imagenDeProducto(producto.imagen_url)}
+                          onError={usarImagenFallback}
                           loading="lazy"
                         />
 
@@ -760,6 +858,51 @@ export default function Catalogo() {
                   );
                 })}
               </div>
+            )}
+
+            {!cargando && !errorProductos && mostrarPaginador && (
+              <nav className="terra-paginador" aria-label="Paginación del catálogo">
+                <button
+                  type="button"
+                  className="terra-paginador__btn terra-paginador__btn--nav"
+                  onClick={() => irAPagina(pagina - 1)}
+                  disabled={pagina <= 1}
+                  aria-label="Página anterior"
+                >
+                  <span className="material-symbols-outlined">chevron_left</span>
+                  <span className="terra-paginador__nav-label">Anterior</span>
+                </button>
+
+                <div className="terra-paginador__paginas">
+                  {paginasVisibles(pagina, ultimaPaginaPermitida).map((item) =>
+                    typeof item === 'string' ? (
+                      <span key={item} className="terra-paginador__gap" aria-hidden="true">…</span>
+                    ) : (
+                      <button
+                        key={item}
+                        type="button"
+                        className={`terra-paginador__btn ${item === pagina ? 'terra-paginador__btn--active' : ''}`}
+                        onClick={() => irAPagina(item)}
+                        aria-current={item === pagina ? 'page' : undefined}
+                        aria-label={`Página ${item}`}
+                      >
+                        {item}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  className="terra-paginador__btn terra-paginador__btn--nav"
+                  onClick={() => irAPagina(pagina + 1)}
+                  disabled={!tieneSiguiente}
+                  aria-label="Página siguiente"
+                >
+                  <span className="terra-paginador__nav-label">Siguiente</span>
+                  <span className="material-symbols-outlined">chevron_right</span>
+                </button>
+              </nav>
             )}
           </div>
         </section>
