@@ -2,13 +2,15 @@ import { pool } from '../config/database.js';
 
 // El asistente consulta directamente la tabla `products` (con su categoría).
 // No usamos la vista `public.v_productos_chat`: no existe en Supabase y no se crea.
-// El payload no expone `id` ni `stock`: al cliente no le interesan cuando consulta.
+// Expone `id` y `stock` para que el chatbot pueda armar pedidos (POST /api/asistente/pedidos).
 export async function buscarProductosChatBD(termino = '') {
   const texto = String(termino || '').trim().slice(0, 120);
   const { rows } = await pool.query(
     `WITH base AS (
        SELECT
+         p.id,
          p.name AS nombre,
+         COALESCE(p.stock_quantity, 0)::int AS stock,
          COALESCE(c.name, p.product_group, 'General') AS categoria,
          p.marca,
          p.size AS medida,
@@ -31,10 +33,10 @@ export async function buscarProductosChatBD(termino = '') {
          AND translate(lower(busqueda), 'áéíóúüñ', 'aeiouun')
              ILIKE '%' || translate(lower($1), 'áéíóúüñ', 'aeiouun') || '%'
      )
-     SELECT nombre, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
+     SELECT id, nombre, stock, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
      FROM filtrados
      UNION ALL
-     SELECT nombre, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
+     SELECT id, nombre, stock, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
      FROM base
      WHERE NOT EXISTS (SELECT 1 FROM filtrados)
      ORDER BY precio_venta
