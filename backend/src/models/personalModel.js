@@ -38,3 +38,15 @@ export async function crearPersonalBD({ authUserId, nombre, email, rol }) {
   `, [authUserId, nombre, email, rol]);
   return rows[0];
 }
+
+export async function obtenerPersonalPorEmailBD(email) {
+  await asegurarTablaPersonal();
+  const { rows } = await pool.query(`
+    SELECT id, auth_user_id, name AS nombre, email, role AS rol, is_active AS activo, created_at AS fecha_registro
+    FROM staff_accounts
+    WHERE LOWER(email) = LOWER($1)
+    LIMIT 1
+  `, [email]);
+  return rows[0] || null;
+}
+

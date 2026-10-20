@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, LogOut, Menu, Search, ShieldCheck, Store, UserRound } from 'lucide-react';
-import { cerrarSesionAdmin } from '../../services/adminService.js';
+import { cerrarSesionAdmin, getAdminUser } from '../../services/adminService.js';
 import { listarClientes } from '../../services/clienteService.js';
 import { listarPedidos } from '../../services/pedidoService.js';
 import { listarProductos } from '../../services/productoService.js';
@@ -91,7 +91,7 @@ export default function AdminHeader({ onToggleDrawer }) {
       </div>
       <div className="relative" ref={userMenuRef}>
         <button type="button" className="admin-avatar-btn" title="Perfil de Administrador" onClick={() => { setMenuUsuarioAbierto((abierto) => !abierto); setMenuNotifAbierto(false); }}><UserRound size={19} /></button>
-        {menuUsuarioAbierto && <div className="admin-dropdown-menu"><div className="admin-dropdown-header"><strong>Administrador TERRA</strong><small>admin@terra.bo</small></div><div className="admin-dropdown-item" style={{ cursor: 'default' }}><Store size={16} color="#745a27" /><span>Sucursal Equipetrol</span></div><div className="admin-dropdown-item" style={{ cursor: 'default' }}><ShieldCheck size={16} color="#a6192e" /><span>Acceso Backoffice Seguro</span></div><hr style={{ border: 'none', borderTop: '1px solid #f0eded', margin: '0.4rem 0' }} /><button type="button" className="admin-dropdown-item danger" onClick={handleLogout}><LogOut size={16} /><span>Cerrar sesión</span></button></div>}
+        {menuUsuarioAbierto && <div className="admin-dropdown-menu"><div className="admin-dropdown-header"><strong>{getAdminUser()?.nombre || 'Administrador TERRA'}</strong><small>{getAdminUser()?.email || 'admin@terra.bo'}</small></div><div className="admin-dropdown-item" style={{ cursor: 'default' }}><Store size={16} color="#745a27" /><span>Sucursal Equipetrol</span></div><div className="admin-dropdown-item" style={{ cursor: 'default' }}><ShieldCheck size={16} color="#a6192e" /><span>Acceso Backoffice Seguro</span></div><hr style={{ border: 'none', borderTop: '1px solid #f0eded', margin: '0.4rem 0' }} /><button type="button" className="admin-dropdown-item danger" onClick={handleLogout}><LogOut size={16} /><span>Cerrar sesión</span></button></div>}
       </div>
     </div>
   </header>;

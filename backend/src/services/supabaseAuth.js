@@ -60,3 +60,22 @@ export async function eliminarUsuarioSupabase(id) {
   const { url, headers } = configuracionSupabase({ requiereAdmin: true });
   await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(id)}`, { method: 'DELETE', headers });
 }
+
+export async function autenticarUsuarioSupabase({ email, password }) {
+  const { url } = configuracionSupabase();
+  const key = PUBLIC_KEY || SERVICE_ROLE_KEY;
+  const respuesta = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!respuesta.ok) return null;
+
+  const data = await respuesta.json().catch(() => null);
+  return data?.user || null;
+}
+
