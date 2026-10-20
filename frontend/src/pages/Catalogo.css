@@ -1762,16 +1762,19 @@
 }
 
 /* ==== QR SCANNER (v2.0 feature) ==== */
+/* Va en la misma fila que el carrito flotante, a su izquierda, con las mismas
+   variables del layout (--floating-cart-*) para no pisarlo ni al asistente. */
 .catalog-qr-fab {
+  --qr-fab-cart-margin: 1rem;
   position: fixed;
-  right: 1.25rem;
-  bottom: 5rem;
+  right: calc(var(--floating-cart-size, 3.4rem) + var(--qr-fab-cart-margin) + 0.6rem);
+  bottom: var(--floating-cart-bottom, 4.5rem);
   z-index: 50;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  min-height: 3rem;
-  padding: 0.6rem 1rem;
+  height: var(--floating-cart-size, 3.4rem);
+  padding: 0 1rem;
   border: none;
   border-radius: 999px;
   background: var(--vino);
@@ -1784,6 +1787,17 @@
 }
 .catalog-qr-fab:hover { background: var(--vino-osc); box-shadow: 0 12px 32px rgba(166, 25, 46, 0.35); }
 .catalog-qr-fab:active { transform: scale(0.98); }
+/* El carrito reduce su margen derecho en pantallas chicas (CarritoFlotante.css y Responsive.css). */
+@media (max-width: 639px) {
+  .catalog-qr-fab { --qr-fab-cart-margin: 0.75rem; font-size: 0.85rem; padding: 0 0.85rem; }
+}
+@media (max-width: 520px) {
+  .catalog-qr-fab { --qr-fab-cart-margin: 0.6rem; }
+}
+@media (max-width: 380px) {
+  .catalog-qr-fab span { display: none; }
+  .catalog-qr-fab { padding: 0 0.8rem; }
+}
 .catalog-qr-fab b {
   display: inline-flex;
   align-items: center;
