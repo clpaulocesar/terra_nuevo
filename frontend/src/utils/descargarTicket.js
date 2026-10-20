@@ -11,6 +11,8 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
     timeStyle: 'short',
     timeZone: 'America/La_Paz',
   }).format(new Date(pedido.fecha || Date.now()));
+  const direccionEntrega = cliente?.direccion || pedido.direccion_entrega;
+  const referenciaEntrega = cliente?.referencia || pedido.referencia_entrega;
 
   const filas = (items.length > 0 ? items : (pedido.items || []))
     .map(
@@ -45,6 +47,8 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
       <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Cliente:</span> <b style="color: #1e293b;">${cliente?.nombre || 'Invitado'}</b></div>
       ${cliente?.telefono ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Teléfono:</span> <b style="color: #1e293b;">${cliente.telefono}</b></div>` : ''}
       ${cliente?.nit ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">NIT:</span> <b style="color: #1e293b;">${cliente.nit}</b></div>` : ''}
+      ${direccionEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Envío:</span> <b style="color: #1e293b;">${direccionEntrega}</b></div>` : ''}
+      ${referenciaEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Referencia:</span> <b style="color: #1e293b;">${referenciaEntrega}</b></div>` : ''}
       <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Estado:</span> <b style="color: #1e293b;">Pendiente de pago en caja</b></div>
     </div>
 

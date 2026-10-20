@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { CheckCircle2, LocateFixed, MapPin, Navigation, Store } from 'lucide-react';
+import { CheckCircle2, LocateFixed, MapPin, Navigation } from 'lucide-react';
 
 function parsearCoordenadas(gpsStr) {
   if (typeof gpsStr === 'string' && gpsStr.includes(',')) {
@@ -16,8 +16,8 @@ function parsearCoordenadas(gpsStr) {
   return [-17.768924, -63.18241];
 }
 
-function crearIconoAlmacen(razonSocial) {
-  const nombreCorto = (razonSocial || 'Almacén Central').slice(0, 24);
+function crearIconoEntrega(razonSocial) {
+  const nombreCorto = (razonSocial || 'Mi domicilio').slice(0, 24);
   const html = `
     <div class="leaflet-b2b-marker">
       <div class="leaflet-b2b-bubble">
@@ -46,7 +46,7 @@ function crearIconoAlmacen(razonSocial) {
 export default function MapaEntregaMayorista({
   gps,
   onGpsChange,
-  razonSocial = 'Almacén Central',
+  razonSocial = 'Mi domicilio',
   direccion = '',
   cargandoGps = false,
   onObtenerGps,
@@ -82,9 +82,9 @@ export default function MapaEntregaMayorista({
       })
       .addTo(map);
 
-    // Marcador de almacén B2B
+    // Marcador del domicilio de entrega
     const marker = L.marker(coordsIniciales, {
-      icon: crearIconoAlmacen(razonSocial),
+      icon: crearIconoEntrega(razonSocial),
       draggable: true,
       autoPan: true,
     }).addTo(map);
@@ -93,13 +93,13 @@ export default function MapaEntregaMayorista({
       marker.bindPopup(`
         <div style="font-family: inherit; font-size: 12px; line-height: 1.4; min-width: 170px;">
           <strong style="color: #8B1D34; font-size: 13px; display: block; margin-bottom: 2px;">
-            ${razonSocial || 'Almacén Central'}
+            ${razonSocial || 'Mi domicilio'}
           </strong>
           <span style="color: #4b5563; display: block; margin-bottom: 6px;">
-            ${direccion || 'Punto de entrega y descarga de camiones'}
+            ${direccion || 'Punto de entrega'}
           </span>
           <div style="display: inline-block; background: #ecfdf5; color: #047857; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px;">
-            Acceso de camiones verificado
+            Ubicación de entrega registrada
           </div>
           <div style="font-family: monospace; font-size: 10px; color: #6b7280;">
             GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}
@@ -146,7 +146,7 @@ export default function MapaEntregaMayorista({
   // Actualizar icono cuando cambie la razón social
   useEffect(() => {
     if (markerRef.current) {
-      markerRef.current.setIcon(crearIconoAlmacen(razonSocial));
+      markerRef.current.setIcon(crearIconoEntrega(razonSocial));
     }
   }, [razonSocial]);
 
@@ -164,8 +164,39 @@ export default function MapaEntregaMayorista({
     }
   }, [gps]);
 
+  // Actualizar popup cuando cambie la dirección o razón social
+  useEffect(() => {
+    if (!markerRef.current) return;
+    const pos = markerRef.current.getLatLng();
+    markerRef.current.bindPopup(`
+      <div style="font-family: inherit; font-size: 12px; line-height: 1.4; min-width: 170px;">
+        <strong style="color: #8B1D34; font-size: 13px; display: block; margin-bottom: 2px;">
+          ${razonSocial || 'Mi domicilio'}
+        </strong>
+        <span style="color: #4b5563; display: block; margin-bottom: 6px;">
+          ${direccion || 'Domicilio de entrega'}
+        </span>
+        <div style="display: inline-block; background: #ecfdf5; color: #047857; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px;">
+          Ubicación de entrega
+        </div>
+        <div style="font-family: monospace; font-size: 10px; color: #6b7280;">
+          GPS: ${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}
+        </div>
+      </div>
+    `);
+  }, [direccion, razonSocial]);
+
   const toggleModoFijar = () => {
-    setModoFijarActivo((prev) => !prev);
+    setModoFijarActivo((prev) => {
+      const nuevoEstado = !prev;
+      if (nuevoEstado && mapInstanceRef.current && markerRef.current) {
+        const centro = mapInstanceRef.current.getCenter();
+        markerRef.current.setLatLng(centro);
+        const nuevoGps = `${centro.lat.toFixed(6)}, ${centro.lng.toFixed(6)}`;
+        if (onGpsChange) onGpsChange(nuevoGps);
+      }
+      return nuevoEstado;
+    });
   };
 
   return (
@@ -173,8 +204,8 @@ export default function MapaEntregaMayorista({
       {/* Barra de controles superiores del mapa */}
       <div className="b2b-map-controls-row">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <strong style={{ fontSize: '0.75rem', color: '#374151' }}>Punto georreferenciado en el mapa</strong>
-          <span className="b2b-gps-badge">GPS: {gps}</span>
+          <strong style={{ fontSize: '0.75rem', color: '#374151' }}>Ubicación de entrega en el mapa</strong>
+          <span className="b2b-gps-badge">GPS: {gps || 'Sin definir'}</span>
         </div>
 
         <div className="b2b-map-action-buttons">
@@ -205,7 +236,7 @@ export default function MapaEntregaMayorista({
       {modoFijarActivo && (
         <div className="b2b-map-hint-banner">
           <Navigation size={13} style={{ color: 'var(--terra-wine-b2b)' }} />
-          <span>Haz clic en cualquier punto del mapa o arrastra el marcador para fijar la rampa de descarga.</span>
+          <span>Haz clic en cualquier punto del mapa o arrastra el marcador para fijar la ubicación de entrega.</span>
         </div>
       )}
 
@@ -213,10 +244,10 @@ export default function MapaEntregaMayorista({
       <div className="b2b-leaflet-container-frame">
         <div ref={mapContainerRef} className="b2b-leaflet-map-element" />
 
-        {/* Badge inferior de camiones pesados */}
+        {/* Badge inferior de ubicación de entrega */}
         <div className="b2b-map-truck-legend">
           <CheckCircle2 size={13} style={{ color: '#059669' }} />
-          <span>Mapa interactivo Leaflet: arrastra el pin o haz clic para marcar la descarga</span>
+          <span>Mapa interactivo: arrastra el pin o haz clic para marcar la ubicación de entrega</span>
         </div>
       </div>
     </div>

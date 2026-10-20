@@ -1,6 +1,6 @@
 import { useContext, useRef, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, CreditCard, QrCode, ReceiptText, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, CreditCard, QrCode, ReceiptText, ShieldCheck, Truck } from 'lucide-react';
 import { ClienteContext } from '../context/ClienteContext.jsx';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useCarrito } from '../hooks/useCarrito.js';
@@ -36,7 +36,7 @@ export default function Confirmacion() {
     try {
       // Conserva los datos de facturación antes de limpiar el kiosco compartido.
       const datosClienteTicket = esMayorista
-        ? { nombre: sesion?.nombre || 'Cliente mayorista', telefono: sesion?.telefono || '', nit: '' }
+        ? { nombre: sesion?.nombre || 'Cliente mayorista', telefono: sesion?.telefono || '', nit: sesion?.nit || '' }
         : { ...cliente };
       // El carrito se limpia al final; el ticket y WhatsApp necesitan conservar
       // todos los datos visuales de sus líneas (nombre, cantidad y color).
@@ -71,13 +71,24 @@ export default function Confirmacion() {
 
   return (
     <section className="confirm-page">
-      <Link className="confirm-back" to="/identificacion"><ArrowLeft size={19} /> Volver a identificación</Link>
+      <Link className="confirm-back" to={esMayorista ? '/mi-cuenta' : '/identificacion'}><ArrowLeft size={19} /> {esMayorista ? 'Volver a mi perfil' : 'Volver a identificación'}</Link>
       <header><span>Paso 3 de 3 · Confirmación</span><h1>Revisá y confirmá tu pedido</h1><p>Generaremos un ticket para pagar en caja. No se cobra nada desde este kiosco.</p></header>
       <div className="confirm-notice"><ReceiptText size={30} /><div><b>Pago en mostrador presencial</b><p>Presentá el código del pedido al cajero para efectuar el pago y coordinar la entrega.</p></div></div>
       <div className="confirm-layout">
         <div className="confirm-card">
           <h2>Datos del pedido</h2>
-          <div className="confirm-client"><ShieldCheck size={23} /><div><b>{cliente.nombre || 'Compra como invitado'}</b><span>{cliente.telefono || 'Sin teléfono registrado'} {cliente.nit && `· NIT ${cliente.nit}`}</span></div></div>
+          <div className="confirm-client"><ShieldCheck size={23} /><div><b>{esMayorista ? (sesion?.nombre || 'Cliente mayorista') : (cliente.nombre || 'Compra como invitado')}</b><span>{esMayorista ? (sesion?.telefono || 'Sin teléfono registrado') : (cliente.telefono || 'Sin teléfono registrado')} {(esMayorista ? sesion?.nit : cliente.nit) && `· NIT ${esMayorista ? sesion.nit : cliente.nit}`}</span></div></div>
+          {esMayorista && (
+            <div className="confirm-delivery">
+              <Truck size={21} />
+              <div>
+                <b>{sesion?.direccion ? 'Envío a domicilio' : 'Retiro en tienda'}</b>
+                <span>{sesion?.direccion || 'Todavía no registraste una dirección de envío.'}</span>
+                {sesion?.referencia && <small>Referencia: {sesion.referencia}</small>}
+                <Link to="/mi-cuenta">{sesion?.direccion ? 'Cambiar dirección' : 'Registrar dirección de envío'}</Link>
+              </div>
+            </div>
+          )}
           <h2>Artículos seleccionados ({items.length})</h2>
           {items.map((item) => <div className="confirm-item" key={item.id}><span>{item.cantidad} ×</span><div><b>{item.nombre}</b><small>{item.categoria}</small></div><strong>{formatoMoneda(item.precio * item.cantidad)}</strong></div>)}
         </div>

@@ -1,20 +1,23 @@
-import { useContext, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import {
   BadgeCheck,
   Building2,
   Camera,
   CheckCircle2,
+  Home,
   Info,
+  Loader2,
   Mail,
   PhoneCall,
   Save,
-  Store,
   Truck,
   Upload,
   User,
 } from 'lucide-react';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
+import { actualizarPerfilMayorista } from '../services/sesionClienteService.js';
+import { apiRequest } from '../services/api.js';
 import MapaEntregaMayorista from '../components/mayorista/MapaEntregaMayorista.jsx';
 import './PanelMayorista.css';
 
@@ -22,21 +25,36 @@ export default function PanelMayorista() {
   const { sesion, esMayorista, iniciarSesion } = useContext(SesionClienteContext);
 
   // Estados del formulario inicializados con datos de sesión o valores B2B institucionales
-  const [nombreTitular, setNombreTitular] = useState(
-    sesion?.titular || sesion?.nombre || 'Ana Patricia Valdivia Roca'
+  const [nombreTitular, setNombreTitular] = useState(sesion?.titular || '');
+  const [telefono, setTelefono] = useState(sesion?.telefono || '');
+  const [correo, setCorreo] = useState(sesion?.email || '');
+  const [razonSocial, setRazonSocial] = useState(sesion?.nombre || '');
+  const [nit, setNit] = useState(sesion?.nit || '');
+  const [direccion, setDireccion] = useState(sesion?.direccion || '');
+  const [referencia, setReferencia] = useState(sesion?.referencia || '');
+  const [gps, setGps] = useState(
+    sesion?.gps ||
+      (sesion?.latitud != null && sesion?.longitud != null
+        ? `${sesion.latitud}, ${sesion.longitud}`
+        : '')
   );
-  const [telefono, setTelefono] = useState(sesion?.telefono || '+591 710 44520');
-  const [correo, setCorreo] = useState(sesion?.email || 'ana.valdivia@muebleriavaldivia.bo');
-  const [razonSocial, setRazonSocial] = useState(sesion?.nombre || 'Mueblería Valdivia S.R.L.');
-  const [nit, setNit] = useState(sesion?.nit || '67874236');
-  const [direccion, setDireccion] = useState('Av. Banzer entre 3er y 4to Anillo #1420, Almacén Central');
-  const [referencia, setReferencia] = useState('Portón azul frente a Surtidor Genex, timbre almacén rampa 2');
-  const [gps, setGps] = useState('-17.768924, -63.182410');
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [guardadoExito, setGuardadoExito] = useState(false);
+  const [errorGuardado, setErrorGuardado] = useState('');
+  const [guardando, setGuardando] = useState(false);
   const [cargandoUbicacion, setCargandoUbicacion] = useState(false);
+  const [cargandoDireccion, setCargandoDireccion] = useState(false);
 
   const fileInputRef = useRef(null);
+  const geocodificacionRef = useRef({ timer: null, controller: null });
+  const direccionManualRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(geocodificacionRef.current.timer);
+      geocodificacionRef.current.controller?.abort();
+    };
+  }, []);
 
   if (!esMayorista) return <Navigate to="/catalogo" replace />;
 
@@ -49,21 +67,146 @@ export default function PanelMayorista() {
     .join('')
     .toUpperCase();
 
-  // Guardar cambios
-  const handleGuardar = (e) => {
+  const aplicarPerfil = (perfil) => {
+    if (!perfil) return;
+    setNombreTitular(perfil.titular || '');
+    setTelefono(perfil.telefono || '');
+    setCorreo(perfil.email || '');
+    setRazonSocial(perfil.nombre || '');
+    setNit(perfil.nit || '');
+    setDireccion(perfil.direccion || '');
+    setReferencia(perfil.referencia || '');
+    setGps(
+      perfil.gps ||
+        (perfil.latitud != null && perfil.longitud != null
+          ? `${perfil.latitud}, ${perfil.longitud}`
+          : '')
+    );
+  };
+
+  // Detectar la dirección escrita a partir de las coordenadas del mapa o del GPS.
+  const programarGeocodificacion = (valorGps) => {
+    const [lat, lng] = String(valorGps || '').split(',').map((parte) => Number(parte.trim()));
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+    clearTimeout(geocodificacionRef.current.timer);
+    geocodificacionRef.current.controller?.abort();
+    direccionManualRef.current = false;
+    setCargandoDireccion(true);
+
+    const controller = new AbortController();
+    geocodificacionRef.current.controller = controller;
+    geocodificacionRef.current.timer = setTimeout(async () => {
+      try {
+        let direccionDetectada = '';
+
+        // 1. Intentar con el backend local (/api/geocodificacion/reverse)
+        try {
+          const datos = await apiRequest(
+            `/geocodificacion/reverse?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`,
+            { signal: controller.signal }
+          );
+          direccionDetectada = datos?.direccion || '';
+        } catch (errBackend) {
+          if (errBackend.name === 'AbortError') throw errBackend;
+          // Si el backend no responde o devuelve 404, se continúa al fallback directo
+        }
+
+        // 2. Fallback directo a OpenStreetMap Nominatim desde el navegador
+        if (!direccionDetectada && !controller.signal.aborted) {
+          const params = new URLSearchParams({
+            format: 'jsonv2',
+            lat: String(lat),
+            lon: String(lng),
+            addressdetails: '1',
+            'accept-language': 'es',
+          });
+          const respuesta = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
+            headers: { Accept: 'application/json' },
+            signal: controller.signal,
+          });
+          if (respuesta.ok) {
+            const json = await respuesta.json();
+            const partes = json?.address || {};
+            const via =
+              partes.road ||
+              partes.pedestrian ||
+              partes.residential ||
+              partes.footway ||
+              partes.path ||
+              partes.cycleway ||
+              '';
+            const numero = partes.house_number ? ` #${partes.house_number}` : '';
+            const zona = partes.neighbourhood || partes.suburb || '';
+            if (via) {
+              const base = `${via}${numero}`.trim();
+              direccionDetectada = zona && !via.toLowerCase().includes(zona.toLowerCase())
+                ? `${base}, ${zona}`
+                : base;
+            } else {
+              direccionDetectada =
+                [partes.neighbourhood, partes.suburb, partes.city].filter(Boolean).join(', ') ||
+                String(json?.display_name || '').split(',').slice(0, 2).join(',').trim();
+            }
+          }
+        }
+
+        if (direccionDetectada && !controller.signal.aborted && !direccionManualRef.current) {
+          setDireccion(direccionDetectada);
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.warn('Geocodificación inversa no completada:', error);
+        }
+      } finally {
+        if (!controller.signal.aborted) setCargandoDireccion(false);
+      }
+    }, 250);
+  };
+
+  const handleGpsChange = (nuevoGps) => {
+    setGps(nuevoGps);
+    programarGeocodificacion(nuevoGps);
+  };
+
+  const handleDireccionChange = (e) => {
+    direccionManualRef.current = true;
+    setDireccion(e.target.value);
+  };
+
+  // Guardar cambios en Supabase y actualizar la sesión en memoria.
+  const handleGuardar = async (e) => {
     if (e) e.preventDefault();
-    if (iniciarSesion && sesion) {
-      iniciarSesion({
-        ...sesion,
+    if (!sesion?.token || guardando) return;
+
+    setGuardadoExito(false);
+    setErrorGuardado('');
+    if (!direccion.trim()) {
+      setErrorGuardado('Ingresá la dirección de envío antes de guardar.');
+      return;
+    }
+
+    setGuardando(true);
+
+    try {
+      const actualizado = await actualizarPerfilMayorista(sesion.token, {
         nombre: razonSocial,
         titular: nombreTitular,
-        email: correo,
         telefono,
         nit,
+        direccion,
+        referencia,
+        gps,
       });
+      iniciarSesion({ ...sesion, ...actualizado, token: sesion.token });
+      aplicarPerfil(actualizado);
+      setGuardadoExito(true);
+      setTimeout(() => setGuardadoExito(false), 4500);
+    } catch (error) {
+      setErrorGuardado(error.message || 'No se pudo guardar el perfil y la dirección de envío.');
+    } finally {
+      setGuardando(false);
     }
-    setGuardadoExito(true);
-    setTimeout(() => setGuardadoExito(false), 4500);
   };
 
   // Cargar imagen o logo
@@ -87,29 +230,27 @@ export default function PanelMayorista() {
       return;
     }
     setCargandoUbicacion(true);
+    setErrorGuardado('');
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setGps(`${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`);
+        const nuevoGps = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+        setGps(nuevoGps);
+        programarGeocodificacion(nuevoGps);
         setCargandoUbicacion(false);
       },
       () => {
-        setGps('-17.768924, -63.182410');
         setCargandoUbicacion(false);
+        setErrorGuardado('No se pudo obtener la ubicación GPS. Puedes fijar el punto manualmente en el mapa.');
       },
       { timeout: 7000 }
     );
   };
 
-  // Cancelar / Restablecer
+  // Cancelar / Restablecer los valores guardados en la sesión.
   const handleCancelar = () => {
-    setNombreTitular(sesion?.titular || sesion?.nombre || 'Ana Patricia Valdivia Roca');
-    setTelefono(sesion?.telefono || '+591 710 44520');
-    setCorreo(sesion?.email || 'ana.valdivia@muebleriavaldivia.bo');
-    setRazonSocial(sesion?.nombre || 'Mueblería Valdivia S.R.L.');
-    setNit(sesion?.nit || '67874236');
-    setDireccion('Av. Banzer entre 3er y 4to Anillo #1420, Almacén Central');
-    setReferencia('Portón azul frente a Surtidor Genex, timbre almacén rampa 2');
+    aplicarPerfil(sesion);
     setGuardadoExito(false);
+    setErrorGuardado('');
   };
 
   return (
@@ -125,15 +266,15 @@ export default function PanelMayorista() {
             <span className="b2b-breadcrumb-current">Mi Cuenta</span>
           </div>
           <h1>Mi Perfil Mayorista</h1>
-          <p>Actualiza tus datos de contacto comercial, facturación y ubicación de entrega para despachos.</p>
+          <p>Actualiza tus datos de contacto comercial, facturación y la ubicación de tu domicilio para la entrega de tus pedidos.</p>
         </div>
         <div className="b2b-profile-header__actions">
-          <button type="button" className="b2b-btn-cancel" onClick={handleCancelar}>
+          <button type="button" className="b2b-btn-cancel" onClick={handleCancelar} disabled={guardando}>
             Cancelar
           </button>
-          <button type="button" className="b2b-btn-save" onClick={handleGuardar}>
+          <button type="button" className="b2b-btn-save" onClick={handleGuardar} disabled={guardando}>
             <CheckCircle2 size={17} />
-            <span>Guardar Cambios</span>
+            <span>{guardando ? 'Guardando…' : 'Guardar Cambios'}</span>
           </button>
         </div>
       </section>
@@ -142,7 +283,13 @@ export default function PanelMayorista() {
       {guardadoExito && (
         <div className="b2b-success-alert" role="status">
           <CheckCircle2 size={18} />
-          <span>¡Datos de perfil comercial, facturación y despacho actualizados correctamente!</span>
+          <span>¡Datos de perfil comercial, facturación y dirección de envío actualizados correctamente!</span>
+        </div>
+      )}
+      {errorGuardado && (
+        <div className="b2b-success-alert" role="alert" style={{ background: '#fff1f2', borderColor: '#fecdd3', color: '#9f1239' }}>
+          <Info size={18} />
+          <span>{errorGuardado}</span>
         </div>
       )}
 
@@ -245,7 +392,7 @@ export default function PanelMayorista() {
 
             {/* Teléfono móvil */}
             <div className="b2b-field-box">
-              <label htmlFor="input-telefono">Teléfono móvil / WhatsApp directo (Despachos)</label>
+              <label htmlFor="input-telefono">Teléfono móvil / WhatsApp directo (Entrega)</label>
               <div className="b2b-input-container">
                 <span className="b2b-field-icon" style={{ color: '#059669' }}>
                   <PhoneCall size={18} />
@@ -260,7 +407,7 @@ export default function PanelMayorista() {
                   onChange={(e) => setTelefono(e.target.value)}
                 />
               </div>
-              <p className="b2b-field-helper">Utilizado para la coordinación del chofer antes de la descarga.</p>
+              <p className="b2b-field-helper">Utilizado para coordinar la entrega de tu pedido.</p>
             </div>
 
             {/* Correo electrónico */}
@@ -274,6 +421,8 @@ export default function PanelMayorista() {
                   id="input-correo"
                   className="b2b-text-input"
                   required
+                  readOnly
+                  title="El correo de acceso se gestiona con soporte TERRA"
                   type="email"
                   value={correo}
                   onChange={(e) => setCorreo(e.target.value)}
@@ -300,7 +449,8 @@ export default function PanelMayorista() {
                   id="input-nit"
                   className="b2b-text-input b2b-text-input--no-icon"
                   style={{ fontFamily: 'monospace', fontWeight: 700 }}
-                  required
+                  inputMode="numeric"
+                  maxLength="20"
                   type="text"
                   value={nit}
                   onChange={(e) => setNit(e.target.value)}
@@ -310,44 +460,59 @@ export default function PanelMayorista() {
           </div>
         </section>
 
-        {/* SECCIÓN B: Dirección de Envío y Despachos de Carga */}
+        {/* SECCIÓN B: Dirección de Envío */}
         <section className="b2b-form-section">
           <div className="b2b-form-section__header">
             <div className="b2b-section-title-wrap">
               <Truck size={20} style={{ color: 'var(--terra-wine-b2b)' }} />
               <div>
-                <h3>Dirección de Envío y Despachos de Carga</h3>
-                <p>Ubicación registrada para entrega de camiones de carga pesada Terra</p>
+                <h3>Dirección de Envío</h3>
               </div>
             </div>
             <span className="b2b-verified-badge">
               <CheckCircle2 size={14} />
-              Acceso de camiones verificado
+              Ubicación de entrega registrada
             </span>
           </div>
 
           <div className="b2b-fields-grid-2">
-            {/* Dirección escrita */}
+            {/* Dirección de envío / Domicilio */}
             <div className="b2b-field-box">
-              <label htmlFor="input-direccion">Dirección escrita de almacén / sucursal</label>
+              <label htmlFor="input-direccion">Dirección de envío / Domicilio</label>
               <div className="b2b-input-container">
                 <span className="b2b-field-icon">
-                  <Store size={18} />
+                  {cargandoDireccion ? (
+                    <Loader2 size={18} className="b2b-spinner-icon" style={{ color: 'var(--terra-wine-b2b)' }} />
+                  ) : (
+                    <Home size={18} />
+                  )}
                 </span>
                 <input
                   id="input-direccion"
                   className="b2b-text-input"
+                  placeholder="Ej.: Av. Banzer #123, Bartos"
                   required
+                  maxLength="250"
                   type="text"
                   value={direccion}
-                  onChange={(e) => setDireccion(e.target.value)}
+                  onChange={handleDireccionChange}
                 />
               </div>
+              <p className="b2b-field-helper">
+                {cargandoDireccion ? (
+                  <span style={{ color: 'var(--terra-wine-b2b)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <Loader2 size={12} className="b2b-spinner-icon" />
+                    Detectando dirección automáticamente desde el mapa…
+                  </span>
+                ) : (
+                  'Se completa y registra automáticamente al mover o hacer clic en el mapa. También puedes editarla manualmente.'
+                )}
+              </p>
             </div>
 
             {/* Referencias */}
             <div className="b2b-field-box">
-              <label htmlFor="input-referencia">Referencias para el chofer y estibadores</label>
+              <label htmlFor="input-referencia">Referencia para ubicar tu domicilio</label>
               <div className="b2b-input-container">
                 <span className="b2b-field-icon">
                   <Info size={18} />
@@ -355,6 +520,7 @@ export default function PanelMayorista() {
                 <input
                   id="input-referencia"
                   className="b2b-text-input"
+                  maxLength="250"
                   type="text"
                   value={referencia}
                   onChange={(e) => setReferencia(e.target.value)}
@@ -363,10 +529,10 @@ export default function PanelMayorista() {
             </div>
           </div>
 
-          {/* Mapa Leaflet interactivo para georreferenciación de almacén y entrega */}
+          {/* Mapa Leaflet interactivo para registrar el domicilio de entrega */}
           <MapaEntregaMayorista
             gps={gps}
-            onGpsChange={setGps}
+            onGpsChange={handleGpsChange}
             razonSocial={razonSocial}
             direccion={direccion}
             cargandoGps={cargandoUbicacion}
@@ -386,6 +552,7 @@ export default function PanelMayorista() {
               className="b2b-btn-cancel"
               style={{ flex: 1 }}
               onClick={handleCancelar}
+              disabled={guardando}
             >
               Cancelar
             </button>
@@ -393,9 +560,10 @@ export default function PanelMayorista() {
               type="submit"
               className="b2b-btn-save"
               style={{ flex: 1, justifyContent: 'center' }}
+              disabled={guardando}
             >
               <Save size={16} />
-              <span>Guardar cambios de perfil y dirección</span>
+              <span>{guardando ? 'Guardando cambios…' : 'Guardar cambios de perfil y dirección'}</span>
             </button>
           </div>
         </div>

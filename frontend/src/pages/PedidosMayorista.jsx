@@ -253,7 +253,9 @@ export default function PedidosMayorista() {
               estado: estadoKey,
               estadoTexto: estadoConfig.label,
               llegadaEstimada: estadoKey === 'completed' ? 'Entregado conforme' : 'En proceso de despacho',
-              lugarEntrega: 'Almacén Central Av. Banzer, 4to Anillo',
+              lugarEntrega: p.direccion_entrega || 'Retiro en tienda / coordinar en caja',
+              direccion_entrega: p.direccion_entrega || '',
+              referencia_entrega: p.referencia_entrega || '',
               chofer: 'Chofer asignado en planta',
               asesor: 'Carlos Mercado (+591 712-34567)',
               itemsDetalle: [
@@ -378,9 +380,9 @@ export default function PedidosMayorista() {
   const handleDescargarTicket = (pedido) => {
     if (!pedido) return;
     const clienteDatos = {
-      nombre: sesion?.nombre || 'Mueblería Valdivia S.R.L.',
-      nit: sesion?.nit || '67874236',
-      telefono: sesion?.telefono || '+591 712-34567',
+      nombre: sesion?.nombre || 'Cliente mayorista',
+      nit: sesion?.nit || '',
+      telefono: sesion?.telefono || '',
     };
     const itemsTicket = (pedido.itemsDetalle || []).map((it) => ({
       nombre: it.nombre,
@@ -428,7 +430,7 @@ export default function PedidosMayorista() {
             <h1>Mis pedidos</h1>
             <span className="orders-account-badge">
               <CheckCircle2 size={14} style={{ color: '#059669' }} />
-              {sesion?.nombre || 'Mueblería Valdivia S.R.L.'} • NIT: {sesion?.nit || '67874236'}
+              {sesion?.nombre || 'Cliente mayorista'} • NIT: {sesion?.nit || 'Sin NIT'}
             </span>
           </div>
           <p className="orders-page-header__desc">
