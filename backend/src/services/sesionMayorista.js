@@ -8,6 +8,6 @@ export async function obtenerMayoristaDesdeToken(authorization) {
   const respuesta = await fetch(`${url}/auth/v1/user`, { headers: { apikey: key, Authorization: `Bearer ${token}` } });
   const usuario = await respuesta.json().catch(() => null);
   if (!respuesta.ok || !usuario?.id) return null;
-  const perfil = await pool.query(`SELECT c.id AS cliente_id,c.name AS nombre,c.email,c.phone AS telefono,u.role AS rol FROM users u LEFT JOIN customers c ON c.auth_user_id=u.auth_user_id WHERE u.auth_user_id=$1 AND u.is_active=TRUE LIMIT 1`, [usuario.id]);
+  const perfil = await pool.query(`SELECT c.id AS cliente_id,c.name AS nombre,c.email,c.phone AS telefono,c.nit,u.role AS rol FROM users u LEFT JOIN customers c ON c.auth_user_id=u.auth_user_id WHERE u.auth_user_id=$1 AND u.is_active=TRUE LIMIT 1`, [usuario.id]);
   return perfil.rowCount && perfil.rows[0].rol === 'mayorista' ? perfil.rows[0] : null;
 }

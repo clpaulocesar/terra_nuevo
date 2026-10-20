@@ -3,7 +3,7 @@ import {
   BrowserRouter, Routes, Route, Navigate, Link,
   NavLink, Outlet, useNavigate, useLocation, useSearchParams,
 } from 'react-router-dom';
-import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut } from 'lucide-react';
+import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut, ChevronDown, BadgeCheck, BookOpen, ReceiptText, MessageCircle, FileText, Repeat2, ContactRound } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { useProductos } from '../hooks/useProductos.js';
 import { ClienteContext } from '../context/ClienteContext.jsx';
@@ -14,7 +14,7 @@ import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { validarDatosCliente } from '../utils/validaciones.js';
 import { crearCliente } from '../services/clienteService.js';
 import { crearPedido } from '../services/pedidoService.js';
-import { MODO_DEMO } from '../services/api.js';
+import { MODO_DEMO, WHATSAPP_COMPROBANTES } from '../services/api.js';
 import Bienvenida from '../pages/Bienvenida.jsx';
 import Categorias from '../pages/Categorias.jsx';
 import DetalleProducto from '../pages/DetalleProducto.jsx';
@@ -23,6 +23,8 @@ import IdentificacionPage from '../pages/Identificacion.jsx';
 import ConfirmacionPage from '../pages/Confirmacion.jsx';
 import PedidoGeneradoPage from '../pages/PedidoGenerado.jsx';
 import Catalogo from '../pages/Catalogo.jsx';
+import PedidosMayorista from '../pages/PedidosMayorista.jsx';
+import PanelMayorista from '../pages/PanelMayorista.jsx';
 import AdminLayout from '../components/admin/AdminLayout.jsx';
 import DashboardAdmin from '../pages/admin/DashboardAdmin.jsx';
 import ProductosAdmin from '../pages/admin/ProductosAdmin.jsx';
@@ -68,6 +70,8 @@ function Layout() {
     setMenuCuentaAbierto(false);
     navigate('/');
   };
+  const inicialesCuenta = String(sesion?.nombre || 'M').split(' ').filter(Boolean).slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
+  const enlaceAsesor = `https://wa.me/${WHATSAPP_COMPROBANTES}?text=${encodeURIComponent('Hola, necesito asesoramiento sobre mi cuenta mayorista TERRA.')}`;
 
   return (
     <div className="app-shell">
@@ -87,8 +91,28 @@ function Layout() {
         <div className="terra-header-right">
           <BotonTema />
           <div className="terra-account">
-            <button type="button" className="terra-login-button" aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : setCuentaAbierta(true)}><UserRound size={19} /><span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span></button>
-            {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu"><strong>{sesion?.nombre || 'Cliente mayorista'}</strong><small>Cuenta mayorista</small>{sesion?.email && <span>{sesion.email}</span>}{sesion?.telefono && <span>{sesion.telefono}</span>}<button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></section>}
+            <button type="button" className={`terra-login-button${esMayorista ? ' terra-login-button--mayorista' : ''}`} aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : setCuentaAbierta(true)}>{esMayorista ? <i className="terra-account-avatar">{inicialesCuenta}</i> : <UserRound size={19} />}<span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span>{esMayorista && <ChevronDown size={15} className={menuCuentaAbierto ? 'is-open' : ''} />}</button>
+            {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu">
+              <div className="terra-account-summary">
+                <i className="terra-account-avatar terra-account-avatar--large">{inicialesCuenta}</i>
+                <div>
+                  <div className="terra-account-name"><strong>{sesion?.nombre || 'Cliente mayorista'}</strong><b>Nivel Oro</b></div>
+                  <small className="terra-account-status">Cuenta mayorista autorizada</small>
+                  <span>{sesion?.email}</span>
+                  <span>NIT/CI: {sesion?.nit || 'Pendiente de registro'}</span>
+                </div>
+              </div>
+              <nav className="terra-account-links" aria-label="Opciones de cuenta mayorista">
+                <Link className="is-active" to="/mi-cuenta" onClick={() => setMenuCuentaAbierto(false)}><Home size={16} /> Mi panel mayorista<i /></Link>
+                <Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><BookOpen size={16} /> Catálogo mayorista con precios B2B</Link>
+                <Link to="/mi-cuenta/pedidos" onClick={() => setMenuCuentaAbierto(false)}><ReceiptText size={16} /> Mis pedidos</Link>
+                <button type="button" className="terra-account-link-disabled" title="Disponible próximamente"><FileText size={16} /> Mis cotizaciones y licitaciones</button>
+                <Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><Repeat2 size={16} /> Repetir compra rápida</Link>
+                <button type="button" className="terra-account-link-disabled" title="Disponible próximamente"><ContactRound size={16} /> Mi perfil y datos de facturación</button>
+                <a className="terra-account-support" href={enlaceAsesor} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Soporte por WhatsApp<i>Asesor en línea</i></a>
+              </nav>
+              <div className="terra-account-footer"><button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></div>
+            </section>}
           </div>
           <NavLink to="/carrito" className="cart-link terra-cart-link">
             <ShoppingCart size={18} />
@@ -242,6 +266,8 @@ export default function AppRoutes() {
           <Route path="confirmacion" element={<ConfirmacionPage />} />
           <Route path="pedido" element={<PedidoGeneradoPage />} />
           <Route path="pedido/:id" element={<PedidoGeneradoPage />} />
+          <Route path="mi-cuenta" element={<PanelMayorista />} />
+          <Route path="mi-cuenta/pedidos" element={<PedidosMayorista />} />
           <Route path="*" element={<NoEncontrado />} />
         </Route>
       </Routes>
