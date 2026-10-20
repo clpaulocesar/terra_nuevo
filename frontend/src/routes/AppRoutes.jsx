@@ -24,6 +24,7 @@ import ConfirmacionPage from '../pages/Confirmacion.jsx';
 import PedidoGeneradoPage from '../pages/PedidoGenerado.jsx';
 import Catalogo from '../pages/Catalogo.jsx';
 import PedidosMayorista from '../pages/PedidosMayorista.jsx';
+import PanelMayorista from '../pages/PanelMayorista.jsx';
 import AdminLayout from '../components/admin/AdminLayout.jsx';
 import DashboardAdmin from '../pages/admin/DashboardAdmin.jsx';
 import ProductosAdmin from '../pages/admin/ProductosAdmin.jsx';
@@ -98,7 +99,7 @@ function Layout() {
                 </div>
               </div>
               <nav className="terra-account-links" aria-label="Opciones de cuenta mayorista">
-                <Link className="is-active" to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><Home size={16} /> Mi panel mayorista<i /></Link>
+                <Link className="is-active" to="/mi-cuenta" onClick={() => setMenuCuentaAbierto(false)}><Home size={16} /> Mi panel mayorista<i /></Link>
                 <Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><BookOpen size={16} /> Catálogo mayorista con precios B2B</Link>
                 <Link to="/mi-cuenta/pedidos" onClick={() => setMenuCuentaAbierto(false)}><ReceiptText size={16} /> Mis pedidos</Link>
                 <button type="button" className="terra-account-link-disabled" title="Disponible próximamente"><FileText size={16} /> Mis cotizaciones y licitaciones</button>
@@ -261,6 +262,7 @@ export default function AppRoutes() {
           <Route path="confirmacion" element={<ConfirmacionPage />} />
           <Route path="pedido" element={<PedidoGeneradoPage />} />
           <Route path="pedido/:id" element={<PedidoGeneradoPage />} />
+          <Route path="mi-cuenta" element={<PanelMayorista />} />
           <Route path="mi-cuenta/pedidos" element={<PedidosMayorista />} />
           <Route path="*" element={<NoEncontrado />} />
         </Route>
