@@ -5,6 +5,7 @@ import { cerrarSesionAdmin } from '../../services/adminService.js';
 import { listarClientes } from '../../services/clienteService.js';
 import { listarPedidos } from '../../services/pedidoService.js';
 import { listarProductos } from '../../services/productoService.js';
+import BotonTema from '../ui/BotonTema.jsx';
 import './AdminHeader.css';
 import './AdminNavigationHidden.css';
 
@@ -77,6 +78,7 @@ export default function AdminHeader({ onToggleDrawer }) {
       <div className="admin-kiosk-status-pill"><span className="admin-kiosk-dot" /><span>Kioscos Showroom: En línea</span></div>
     </div>
     <div className="admin-header-right">
+      <BotonTema className="admin-theme-btn" />
       <div className="admin-search-box"><Search size={16} /><input type="text" placeholder="Buscar pedidos (Bs), productos, client..." value={busqueda} onChange={(event) => setBusqueda(event.target.value)} onKeyDown={handleBuscar} /></div>
       <div className="relative" ref={notifMenuRef}>
         <button type="button" className="admin-icon-btn" title="Actividad registrada" onClick={abrirNotificaciones}><Bell size={19} />{actividades.length > 0 && <span className="admin-notif-dot" />}</button>
