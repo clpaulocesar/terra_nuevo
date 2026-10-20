@@ -3,7 +3,7 @@ import {
   BrowserRouter, Routes, Route, Navigate, Link,
   NavLink, Outlet, useNavigate, useLocation, useSearchParams,
 } from 'react-router-dom';
-import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut } from 'lucide-react';
+import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut, ChevronDown, BadgeCheck, BookOpen, ReceiptText, MessageCircle } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { useProductos } from '../hooks/useProductos.js';
 import { ClienteContext } from '../context/ClienteContext.jsx';
@@ -14,7 +14,7 @@ import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { validarDatosCliente } from '../utils/validaciones.js';
 import { crearCliente } from '../services/clienteService.js';
 import { crearPedido } from '../services/pedidoService.js';
-import { MODO_DEMO } from '../services/api.js';
+import { MODO_DEMO, WHATSAPP_COMPROBANTES } from '../services/api.js';
 import Bienvenida from '../pages/Bienvenida.jsx';
 import Categorias from '../pages/Categorias.jsx';
 import DetalleProducto from '../pages/DetalleProducto.jsx';
@@ -23,6 +23,7 @@ import IdentificacionPage from '../pages/Identificacion.jsx';
 import ConfirmacionPage from '../pages/Confirmacion.jsx';
 import PedidoGeneradoPage from '../pages/PedidoGenerado.jsx';
 import Catalogo from '../pages/Catalogo.jsx';
+import PedidosMayorista from '../pages/PedidosMayorista.jsx';
 import AdminLayout from '../components/admin/AdminLayout.jsx';
 import DashboardAdmin from '../pages/admin/DashboardAdmin.jsx';
 import ProductosAdmin from '../pages/admin/ProductosAdmin.jsx';
@@ -65,6 +66,8 @@ function Layout() {
     setMenuCuentaAbierto(false);
     navigate('/');
   };
+  const inicialesCuenta = String(sesion?.nombre || 'M').split(' ').filter(Boolean).slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
+  const enlaceAsesor = `https://wa.me/${WHATSAPP_COMPROBANTES}?text=${encodeURIComponent('Hola, necesito asesoramiento sobre mi cuenta mayorista TERRA.')}`;
 
   return (
     <div className="app-shell">
@@ -83,8 +86,8 @@ function Layout() {
 
         <div className="terra-header-right">
           <div className="terra-account">
-            <button type="button" className="terra-login-button" aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : setCuentaAbierta(true)}><UserRound size={19} /><span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span></button>
-            {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu"><strong>{sesion?.nombre || 'Cliente mayorista'}</strong><small>Cuenta mayorista</small>{sesion?.email && <span>{sesion.email}</span>}{sesion?.telefono && <span>{sesion.telefono}</span>}<button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></section>}
+            <button type="button" className={`terra-login-button${esMayorista ? ' terra-login-button--mayorista' : ''}`} aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : setCuentaAbierta(true)}>{esMayorista ? <i className="terra-account-avatar">{inicialesCuenta}</i> : <UserRound size={19} />}<span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span>{esMayorista && <ChevronDown size={15} className={menuCuentaAbierto ? 'is-open' : ''} />}</button>
+            {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu"><div className="terra-account-summary"><i className="terra-account-avatar terra-account-avatar--large">{inicialesCuenta}</i><div><strong>{sesion?.nombre || 'Cliente mayorista'}</strong><small className="terra-account-status"><BadgeCheck size={12} /> Cuenta mayorista autorizada</small><span>{sesion?.email}</span>{sesion?.nit && <span>NIT/CI: {sesion.nit}</span>}</div></div><div className="terra-account-benefit"><BadgeCheck size={17} /><span><b>Precios mayoristas activos</b> en los productos con condición B2B configurada.</span></div><nav className="terra-account-links" aria-label="Opciones de cuenta mayorista"><Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><BookOpen size={16} /> Catálogo con precios mayoristas</Link><Link to="/mi-cuenta/pedidos" onClick={() => setMenuCuentaAbierto(false)}><ReceiptText size={16} /> Mis pedidos</Link><a href={enlaceAsesor} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Soporte por WhatsApp</a></nav><div className="terra-account-footer"><button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></div></section>}
           </div>
           <NavLink to="/carrito" className="cart-link terra-cart-link">
             <ShoppingCart size={18} />
@@ -238,6 +241,7 @@ export default function AppRoutes() {
           <Route path="confirmacion" element={<ConfirmacionPage />} />
           <Route path="pedido" element={<PedidoGeneradoPage />} />
           <Route path="pedido/:id" element={<PedidoGeneradoPage />} />
+          <Route path="mi-cuenta/pedidos" element={<PedidosMayorista />} />
           <Route path="*" element={<NoEncontrado />} />
         </Route>
       </Routes>

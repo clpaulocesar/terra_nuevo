@@ -628,11 +628,23 @@ export default function Catalogo() {
                   </button>
 
                   {menuCategoriasAbierto && (
-                    <div className="terra-cat-menu" role="listbox" aria-label="Elegir categoría">
-                      <div className="terra-cat-menu__header">
-                        <span>Categorías</span>
-                        <small>{categoriasDinamicas.length} líneas</small>
-                      </div>
+                    <>
+                      {/* Fondo oscuro: solo visible en móvil, donde el menú es una hoja inferior. */}
+                      <div className="terra-cat-backdrop" aria-hidden="true" onClick={() => setMenuCategoriasAbierto(false)} />
+                      <div className="terra-cat-menu" role="listbox" aria-label="Elegir categoría">
+                        <span className="terra-cat-menu__handle" aria-hidden="true" />
+                        <div className="terra-cat-menu__header">
+                          <span>Categorías</span>
+                          <small>{categoriasDinamicas.length} líneas</small>
+                          <button
+                            type="button"
+                            className="terra-cat-menu__close"
+                            aria-label="Cerrar categorías"
+                            onClick={() => setMenuCategoriasAbierto(false)}
+                          >
+                            <span className="material-symbols-outlined">close</span>
+                          </button>
+                        </div>
                       <button
                         type="button"
                         role="option"
@@ -663,7 +675,8 @@ export default function Catalogo() {
                           </button>
                         );
                       })}
-                    </div>
+                      </div>
+                    </>
                   )}
                 </div>
 
