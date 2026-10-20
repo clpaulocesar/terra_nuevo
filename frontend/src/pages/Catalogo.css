@@ -519,6 +519,154 @@
   50% { opacity: 0.4; }
 }
 
+/* ==== SELECTOR "TODOS" (desplegable con todas las categorías) ==== */
+.terra-categories__inner--abierto { overflow: visible; }
+
+.terra-cat-dropdown {
+  position: relative;
+  flex: none;
+}
+
+.terra-cat--selector {
+  padding-right: 10px;
+  border: 1.5px solid var(--linea);
+  background: #fff;
+}
+.terra-cat--selector.terra-cat--active {
+  background: var(--vino);
+  border-color: var(--vino);
+  color: #fff;
+}
+.terra-cat__arrow { font-size: 18px; margin-left: 2px; }
+
+.terra-cat--more {
+  background: #fff;
+  border: 1.5px dashed var(--linea);
+  color: var(--muted);
+}
+.terra-cat--more:hover { border-style: solid; }
+
+.terra-cat-menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: 300px;
+  max-height: min(60vh, 460px);
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--linea);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  z-index: 70;
+  animation: terraFadeIn 0.2s ease both;
+}
+
+.terra-cat-menu__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 6px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.terra-cat-menu__header small { font-size: 0.72rem; font-weight: 700; text-transform: none; letter-spacing: 0; }
+
+.terra-cat-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--tinta);
+  font-weight: 800;
+  font-size: 0.92rem;
+  cursor: pointer;
+  text-align: left;
+  transition-duration: 0.25s;
+}
+.terra-cat-menu__item .material-symbols-outlined { font-size: 20px; color: var(--vino); flex: none; }
+.terra-cat-menu__item:hover { background: var(--vino-suave); }
+.terra-cat-menu__item:active { transform: scale(0.98); }
+.terra-cat-menu__item--active { background: var(--vino); color: #fff; }
+.terra-cat-menu__item--active .material-symbols-outlined { color: #fff; }
+.terra-cat-menu__item--active:hover { background: var(--vino-osc); }
+
+.terra-cat-menu__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.terra-cat-menu__count {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--vino-suave);
+  color: var(--vino-osc);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+.terra-cat-menu__item--active .terra-cat-menu__count { background: rgba(255,255,255,0.22); color: #fff; }
+.terra-cat-menu__check { font-size: 18px !important; }
+
+/* ==== PAGINADOR ==== */
+.terra-paginador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 2rem auto 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--linea);
+}
+
+.terra-paginador__paginas {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.terra-paginador__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 46px;
+  height: 46px;
+  padding: 0 12px;
+  border: 1.5px solid var(--linea);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--tinta);
+  font-weight: 900;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition-duration: 0.25s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+}
+.terra-paginador__btn:hover:not(:disabled) { background: var(--vino); border-color: var(--vino); color: #fff; }
+.terra-paginador__btn:active:not(:disabled) { transform: scale(0.96); }
+.terra-paginador__btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+.terra-paginador__btn--active {
+  background: var(--vino);
+  border-color: var(--vino);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.terra-paginador__btn--nav { padding: 0 16px; }
+.terra-paginador__btn .material-symbols-outlined { font-size: 20px; }
+.terra-paginador__gap {
+  min-width: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
 /* ==== GRID DE PRODUCTOS ==== */
 .terra-grid-section {
   max-width: 1240px;
@@ -1160,6 +1308,24 @@
     box-shadow: 0 4px 10px rgba(166, 25, 46, 0.25);
   }
   .terra-cat--promo.terra-cat--active { background: var(--vino-osc); }
+
+  /* Selector de categorías: en pantallas chicas el menú ocupa el ancho disponible */
+  .terra-cat-menu {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    top: auto;
+    width: auto;
+    margin-top: 8px;
+    max-height: 55vh;
+  }
+  .terra-cat-menu__item { min-height: 48px; }
+
+  /* ---------- PAGINADOR ---------- */
+  .terra-paginador { gap: 6px; margin-top: 1.5rem; }
+  .terra-paginador__btn { min-width: 42px; height: 44px; padding: 0 10px; font-size: 0.9rem; }
+  .terra-paginador__btn--nav { padding: 0 12px; }
+  .terra-paginador__nav-label { display: none; }
 
   /* ---------- GRID DE PRODUCTOS ---------- */
   .terra-grid-section {
