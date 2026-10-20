@@ -49,7 +49,7 @@
     .qr-cart-remove { align-self: center; width: 34px; height: 34px; border: 0; border-radius: 9px; background: #fff0f1; color: var(--vino); font-size: 1.35rem; line-height: 1; cursor: pointer; }
     .qr-cart-remove:hover { background: #fbdde1; }
     .qr-cart-item:hover, .qr-cart-item.seleccionado { border-color: var(--vino); background: #fffafa; }
-    .qr-cart-item img, .qr-cart-item-placeholder { width: 54px; height: 54px; border-radius: 9px; object-fit: cover; background: #f6f1ea; }
+    .qr-cart-item img, .qr-cart-item-placeholder { width: 54px; height: 54px; border-radius: 9px; object-fit: contain; background: #f6f1ea; }
     .qr-cart-item-placeholder { display: grid; place-items: center; color: #a89d92; font-size: 1.2rem; }
     .qr-cart-item-info { min-width: 0; display: grid; gap: 3px; }
     .qr-cart-item-info b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; }
@@ -146,6 +146,8 @@
   </div>
 
   <script>
+    // Logo TERRA como imagen de respaldo cuando el producto no tiene foto.
+    var IMAGEN_FALLBACK = '/images/logo/Logo%20Terra%20Autoservicio%20y%20Descanso.png';
     (function () {
       var params = new URLSearchParams(location.search);
       // Acepta ?id=5  ?producto=5  ?p=5  o  #5
@@ -194,9 +196,7 @@
         document.getElementById('qrCartTotal').textContent = formatoBs(total);
         document.getElementById('qrCartProductos').innerHTML = items.length
           ? items.map(function (item) {
-            var imagen = item.imagen_url
-              ? '<img src="' + esc(item.imagen_url) + '" alt="">'
-              : '<span class="qr-cart-item-placeholder" aria-hidden="true">▦</span>';
+            var imagen = '<img src="' + esc(item.imagen_url || IMAGEN_FALLBACK) + '" alt="" onerror="this.onerror=null;this.src=IMAGEN_FALLBACK">';
             return '<article class="qr-cart-item' + (String(item.id) === productoSeleccionadoId ? ' seleccionado' : '') + '">'
               + '<button class="qr-cart-select" type="button" data-producto-id="' + esc(item.id) + '" aria-pressed="' + (String(item.id) === productoSeleccionadoId) + '">' + imagen
               + '<span class="qr-cart-item-info"><b>' + esc(item.nombre) + '</b>'
@@ -358,7 +358,7 @@
 
       function pintar(p) {
         if (!p) { contenido.innerHTML = '<div class="error-box">Producto no encontrado.</div>'; return; }
-        var imgs = Array.isArray(p.imagenes) && p.imagenes.length ? p.imagenes : (p.imagen_url ? [p.imagen_url] : []);
+        var imgs = Array.isArray(p.imagenes) && p.imagenes.length ? p.imagenes : (p.imagen_url ? [p.imagen_url] : [IMAGEN_FALLBACK]);
         var imagenesInstrucciones = imagenesDeInstrucciones(p.instrucciones_imagenes);
         var disponible = Number(p.stock) > 0;
         var video = mediaDeVideo(p.video_url);

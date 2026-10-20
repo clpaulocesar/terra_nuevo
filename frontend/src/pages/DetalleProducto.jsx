@@ -5,6 +5,7 @@ import { obtenerProducto, listarProductos } from '../services/productoService.js
 import { useCarrito } from '../hooks/useCarrito.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { mediaDeVideo } from '../utils/videoEmbed.js';
+import { IMAGEN_PRODUCTO_FALLBACK, imagenDeProducto, usarImagenFallback } from '../utils/imagenProducto.js';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import './DetalleProducto.css';
 import './DetalleProductoSpecs.css';
@@ -12,7 +13,7 @@ import './DetalleProductoRelated.css';
 import './DetalleProductoPalette.css';
 
 const colores = [{ nombre: 'Gris marengo', valor: '#54595f' }, { nombre: 'Gris perla', valor: '#9b9b9b' }, { nombre: 'Azul petróleo', valor: '#455a64' }, { nombre: 'Terracota', valor: '#8d5b4c' }, { nombre: 'Borgoña', valor: '#8e2828' }, { nombre: 'Verde oliva', valor: '#5d6b4f' }];
-const fallbackFotos = ['https://lh3.googleusercontent.com/aida-public/AB6AXuA_0IGZ5s0DjeFACULr5bK2zw8jNwY_4ygmGz_44Kd65Bb13xtjOAWf_fm_SD4sowQnCxMzCwU_ZD_DlXUGgV7nKlnEyI79XA31Ux46VzAsTssz8IaDziDvdlnriYJndVw-fukT_eKvBuoZjUQ7TIUvqEM4I4DJGnrYW6oGxCOdnHj9ITk2DfjrYEHNFCmMYaIS2C5r-2fvONkPGloLIafxeLD40KaqPvmWXpvg6uCzUefyXPRDfnq2'];
+const fallbackFotos = [IMAGEN_PRODUCTO_FALLBACK];
 const NOMBRES_COLOR = Object.fromEntries(colores.map((color) => [color.valor.toLowerCase(), color.nombre]));
 // El soporte de video (YouTube/Vimeo/MP4) vive en utils/videoEmbed.js
 
@@ -239,7 +240,7 @@ export default function DetalleProducto() {
                     Tu navegador no soporta la reproducción de video.
                   </video>
                 )))
-              : (fotos[indiceFoto] ? <img src={fotos[indiceFoto]} alt={producto.nombre} /> : null)}
+              : (fotos[indiceFoto] ? <img src={fotos[indiceFoto]} alt={producto.nombre} onError={usarImagenFallback} className={fotos === fallbackFotos ? 'img-fallback' : ''} /> : null)}
           </div>
           <div className="product-gallery__thumbs">
             {video && (
@@ -309,6 +310,6 @@ export default function DetalleProducto() {
       <div className="product-highlights"><article><Sparkles size={23} /><b>Confort superior</b><small>Materiales seleccionados</small></article><article><Check size={23} /><b>Calidad garantizada</b><small>Respaldo TERRA</small></article><article><Truck size={23} /><b>Despacho coordinado</b><small>Atención personalizada</small></article><article><ShieldCheck size={23} /><b>Compra segura</b><small>Soporte en showroom</small></article></div>
     </section>
     <section className="product-detail__bottom"><article><h2>Ficha técnica y dimensiones</h2><dl><dt>Modelo</dt><dd>{producto.nombre}</dd><dt>Categoría</dt><dd>{producto.categoria}</dd><dt>Medidas</dt><dd>{producto.medida || 'Consultar medidas disponibles'}</dd><dt>Disponibilidad</dt><dd>{disponible ? `${producto.stock} unidades disponibles` : 'Consultar en showroom'}</dd><dt>Garantía</dt><dd>Garantía oficial de fábrica TERRA</dd></dl>{lineasDescripcion.length > 0 && <details className="product-detail__specs"><summary>Descripción y características del producto</summary><div>{lineasDescripcion.map((linea, indice) => <p key={`${indice}-${linea}`}>{linea}</p>)}</div></details>}</article><aside><MapPin size={24} /><h2>Pruébalo en nuestro showroom</h2><p>Visitá nuestro espacio de descanso para conocer el producto y recibir asesoramiento.</p><Link to="/catalogo">Coordinar visita por WhatsApp</Link></aside></section>
-    {!!relacionados.length && <section className="product-related"><header><h2>Otros modelos que te pueden interesar</h2><Link to="/catalogo">Ver catálogo <ChevronRight size={16} /></Link></header><div>{relacionados.map((item) => <Link className="product-related-card" to={`/productos/${item.id}`} key={item.id}><figure>{item.imagen_url && <img src={item.imagen_url} alt={item.nombre} />}</figure><section><span className="product-related-card__category">{item.categoria}</span><h3>{item.nombre}</h3><p>{item.descripcion || 'Conocé sus características, disponibilidad y opciones de color.'}</p><div className="product-related-card__footer"><div><small className={Number(item.stock) > 0 ? 'in-stock' : 'out-stock'}>{Number(item.stock) > 0 ? 'Disponible' : 'Consultar stock'}</small><strong>{formatoMoneda(item.precio)}</strong></div><span>Ver detalle <ChevronRight size={15} /></span></div></section></Link>)}</div></section>}
+    {!!relacionados.length && <section className="product-related"><header><h2>Otros modelos que te pueden interesar</h2><Link to="/catalogo">Ver catálogo <ChevronRight size={16} /></Link></header><div>{relacionados.map((item) => <Link className="product-related-card" to={`/productos/${item.id}`} key={item.id}><figure><img src={imagenDeProducto(item.imagen_url)} alt={item.nombre} onError={usarImagenFallback} className={item.imagen_url ? '' : 'img-fallback'} /></figure><section><span className="product-related-card__category">{item.categoria}</span><h3>{item.nombre}</h3><p>{item.descripcion || 'Conocé sus características, disponibilidad y opciones de color.'}</p><div className="product-related-card__footer"><div><small className={Number(item.stock) > 0 ? 'in-stock' : 'out-stock'}>{Number(item.stock) > 0 ? 'Disponible' : 'Consultar stock'}</small><strong>{formatoMoneda(item.precio)}</strong></div><span>Ver detalle <ChevronRight size={15} /></span></div></section></Link>)}</div></section>}
   </main>;
 }

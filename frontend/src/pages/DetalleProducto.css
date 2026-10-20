@@ -11,3 +11,6 @@
 
 /* Fija el bloque de cantidad / acciones al fondo de la columna (elimina el espacio en blanco inferior). */
 .product-detail .product-buy__quantity{margin-top:auto}
+/* Logo TERRA como imagen de respaldo: centrado y con aire, sin estirarse */
+.product-gallery__main img.img-fallback{object-fit:contain;padding:18%;box-sizing:border-box;background:#faf5ef;opacity:.9}
+.product-related-card figure img.img-fallback{object-fit:contain;padding:22%;box-sizing:border-box;opacity:.9}

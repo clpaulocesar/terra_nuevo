@@ -8,6 +8,7 @@ import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { obtenerIconoCategoria } from '../data/categorias.js';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { LIMITE_CATALOGO, useCatalogoPaginado } from '../context/CatalogoContext.jsx';
+import { imagenDeProducto, usarImagenFallback } from '../utils/imagenProducto.js';
 import './Catalogo.css';
 
 // Cuántas categorías se muestran como chips sueltos junto al selector "Todos".
@@ -606,19 +607,7 @@ export default function Catalogo() {
               ))
             ) : (
               <>
-                {/* "Todos" vuelve a todo el catálogo con un toque. */}
-                <button
-                  type="button"
-                  className={`terra-cat ${!categoriaSeleccionada ? 'terra-cat--active' : ''}`}
-                  onClick={() => cambiarCategoria('')}
-                  title="Ver todos los productos"
-                >
-                  <span className="material-symbols-outlined terra-cat__icon">apps</span>
-                  <span className="terra-cat__label">Todos</span>
-                  {!categoriaSeleccionada && <span className="terra-cat__dot"></span>}
-                </button>
-
-                {/* Desplegable con todas las categorías para elegir una. */}
+                {/* Desplegable con todas las categorías; "Todos los productos" vive dentro. */}
                 <div className="terra-cat-dropdown" ref={menuCategoriasRef}>
                   <button
                     type="button"
@@ -763,9 +752,10 @@ export default function Catalogo() {
                     >
                       <div className="terra-card__media">
                         <img
-                          className="terra-card__img"
+                          className={`terra-card__img ${producto.imagen_url ? '' : 'img-fallback'}`}
                           alt={producto.nombre}
-                          src={producto.imagen_url}
+                          src={imagenDeProducto(producto.imagen_url)}
+                          onError={usarImagenFallback}
                           loading="lazy"
                         />
 

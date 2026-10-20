@@ -748,6 +748,15 @@
   display: block;
 }
 .terra-card:hover .terra-card__img { transform: scale(1.05); }
+/* Logo TERRA como imagen de respaldo: más chico y centrado, sin ocupar toda la caja. */
+.terra-card__img.img-fallback {
+  object-fit: contain;
+  padding: 18%;
+  box-sizing: border-box;
+  background: var(--crema);
+  opacity: 0.9;
+}
+.terra-card:hover .terra-card__img.img-fallback { transform: none; }
 
 .terra-card__badges {
   position: absolute;
