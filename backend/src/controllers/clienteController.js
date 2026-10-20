@@ -4,6 +4,7 @@ import {
   eliminarClienteBD,
   obtenerClienteBD,
   listarClientesBD,
+  actualizarPerfilMayoristaBD,
 } from '../models/clienteModel.js';
 import { crearPerfilMayoristaBD } from '../models/mayoristaModel.js';
 import { crearUsuarioSupabase, eliminarUsuarioSupabase } from '../services/supabaseAuth.js';
@@ -128,6 +129,69 @@ export async function obtenerSesionCliente(req, res, next) {
     const perfil = await obtenerMayoristaDesdeToken(req.headers.authorization);
     if (!perfil) return res.status(403).json({ success: false, mensaje: 'Esta cuenta no tiene acceso mayorista.' });
     return res.json({ success: true, data: perfil });
+  } catch (error) { next(error); }
+}
+
+export async function actualizarPerfilMayorista(req, res, next) {
+  try {
+    const perfil = await obtenerMayoristaDesdeToken(req.headers.authorization);
+    if (!perfil?.cliente_id) {
+      return res.status(403).json({ success: false, mensaje: 'La sesión mayorista no es válida.' });
+    }
+
+    const nombre = campoTexto(req.body?.nombre) || perfil.nombre;
+    const titular = campoTexto(req.body?.titular) || null;
+    const telefono = campoTexto(req.body?.telefono) || null;
+    const nit = campoTexto(req.body?.nit) || null;
+    const direccion = campoTexto(req.body?.direccion) || null;
+    const referencia = campoTexto(req.body?.referencia) || null;
+    const gps = campoTexto(req.body?.gps);
+
+    if (nombre.length < 2 || nombre.length > 120) {
+      return res.status(400).json({ success: false, mensaje: 'La razón social debe tener entre 2 y 120 caracteres.' });
+    }
+    if (titular && titular.length > 120) {
+      return res.status(400).json({ success: false, mensaje: 'El nombre del titular es demasiado largo.' });
+    }
+    if (telefono && telefono.length > 30) {
+      return res.status(400).json({ success: false, mensaje: 'El teléfono es demasiado largo.' });
+    }
+    if (nit && !/^[0-9]{5,20}$/.test(nit)) {
+      return res.status(400).json({ success: false, mensaje: 'NIT inválido: debe tener entre 5 y 20 dígitos.' });
+    }
+    if (direccion && direccion.length > 250) {
+      return res.status(400).json({ success: false, mensaje: 'La dirección de envío es demasiado larga.' });
+    }
+    if (referencia && referencia.length > 250) {
+      return res.status(400).json({ success: false, mensaje: 'La referencia de entrega es demasiado larga.' });
+    }
+
+    let latitud = null;
+    let longitud = null;
+    if (gps) {
+      const [latTexto, lngTexto] = gps.split(',');
+      const lat = Number(latTexto);
+      const lng = Number(lngTexto);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
+          lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        return res.status(400).json({ success: false, mensaje: 'Las coordenadas GPS no son válidas.' });
+      }
+      latitud = lat;
+      longitud = lng;
+    }
+
+    const actualizado = await actualizarPerfilMayoristaBD(perfil.cliente_id, {
+      nombre, titular, telefono, nit, direccion, referencia, latitud, longitud,
+    });
+    if (!actualizado) {
+      return res.status(404).json({ success: false, mensaje: 'No se encontró el perfil mayorista.' });
+    }
+
+    return res.json({
+      success: true,
+      mensaje: 'Perfil y dirección de envío actualizados correctamente.',
+      data: actualizado,
+    });
   } catch (error) { next(error); }
 }
 

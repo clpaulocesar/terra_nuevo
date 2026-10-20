@@ -24,7 +24,7 @@ export default function ClientesAdmin() {
   }, []);
 
   const lista = useMemo(() => clientes.filter((cliente) => {
-    const coincideBusqueda = `${cliente.nombre} ${cliente.telefono || ''} ${cliente.nit || ''}`.toLowerCase().includes(buscar.toLowerCase());
+    const coincideBusqueda = `${cliente.nombre} ${cliente.telefono || ''} ${cliente.nit || ''} ${cliente.direccion || ''}`.toLowerCase().includes(buscar.toLowerCase());
     const esMayorista = cliente.rol === 'mayorista';
     return coincideBusqueda && (tipo === 'todos' || (tipo === 'mayorista' ? esMayorista : !esMayorista));
   }), [clientes, buscar, tipo]);
@@ -95,7 +95,7 @@ export default function ClientesAdmin() {
             {lista.map((cliente) => <tr key={cliente.id}>
               <td><div className="client-name"><i>{iniciales(cliente.nombre)}</i><div><b>{cliente.nombre}</b><small>{new Date(cliente.fecha_registro).toLocaleDateString('es-BO')}</small></div></div></td>
               <td><span className={`client-type ${cliente.rol === 'mayorista' ? 'is-wholesale' : ''}`}>{cliente.rol === 'mayorista' ? 'Mayorista' : 'Minorista'}</span></td>
-              <td><b>{cliente.telefono || 'Sin teléfono'}</b><small>{cliente.nit ? `NIT ${cliente.nit}` : 'Sin NIT'}</small></td>
+              <td><b>{cliente.telefono || 'Sin teléfono'}</b><small>{cliente.nit ? `NIT ${cliente.nit}` : 'Sin NIT'}</small>{cliente.direccion && <small title={cliente.direccion}>{cliente.direccion}</small>}</td>
               <td><b>{cliente.compras || 0} compras</b></td><td><b>{formatoMoneda(cliente.gasto || 0)}</b></td>
               <td><div className="client-table-actions"><button type="button" className="client-delete" title="Eliminar cliente" aria-label={`Eliminar ${cliente.nombre}`} disabled={eliminando === cliente.id} onClick={() => borrarCliente(cliente)}><Trash2 size={18} /></button></div></td>
             </tr>)}

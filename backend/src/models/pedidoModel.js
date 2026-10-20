@@ -12,8 +12,19 @@ function asegurarColumnasPago() {
   return paymentColumnsReady;
 }
 
-export async function crearPedidoBD(clienteId, items, { precioMayorista = false } = {}) {
-  await asegurarEscalasMayoristasBD();
+let deliveryColumnsReady;
+function asegurarColumnasEntrega() {
+  if (!deliveryColumnsReady) deliveryColumnsReady = Promise.all([
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_address TEXT'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_reference TEXT'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_lat DOUBLE PRECISION'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_lng DOUBLE PRECISION'),
+  ]);
+  return deliveryColumnsReady;
+}
+
+export async function crearPedidoBD(clienteId, items, { precioMayorista = false, entrega = null } = {}) {
+  await Promise.all([asegurarEscalasMayoristasBD(), asegurarColumnasEntrega()]);
   const conexion = await pool.connect();
   try {
     await conexion.query('BEGIN');
@@ -44,10 +55,24 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false 
       detalles.push({ variantId: p.variant_id, nombre: p.name, sku: p.sku, cantidad: item.cantidad, precioUnitario: aMonto(p.price_minor), subtotal: aMonto(subtotalMinor) });
     }
     const ticket = `TER-${randomUUID().slice(0, 8).toUpperCase()}`;
+    const tipoEntrega = entrega?.direccion ? 'home_delivery' : 'store_pickup';
     const nuevo = await conexion.query(
-      `INSERT INTO orders (customer_id,status,fulfillment_type,subtotal_minor,discount_minor,delivery_fee_minor,total_minor,currency,ticket_number)
-       VALUES ($1,'pending','store_pickup',$2,0,0,$2,'BOB',$3)
-       RETURNING id, ticket_number AS codigo, customer_id AS cliente_id, total_minor, status AS estado, created_at AS fecha`, [clienteId, totalMinor, ticket]);
+      `INSERT INTO orders (
+         customer_id,status,fulfillment_type,subtotal_minor,discount_minor,
+         delivery_fee_minor,total_minor,currency,ticket_number,
+         delivery_address,delivery_reference,delivery_lat,delivery_lng
+       )
+       VALUES ($1,'pending',$2,$3,0,0,$3,'BOB',$4,$5,$6,$7,$8)
+       RETURNING id, ticket_number AS codigo, customer_id AS cliente_id, total_minor,
+                 status AS estado, created_at AS fecha, fulfillment_type AS tipo_entrega,
+                 delivery_address AS direccion_entrega, delivery_reference AS referencia_entrega,
+                 delivery_lat AS latitud_entrega, delivery_lng AS longitud_entrega`,
+      [
+        clienteId, tipoEntrega, totalMinor, ticket,
+        entrega?.direccion || null, entrega?.referencia || null,
+        entrega?.latitud ?? null, entrega?.longitud ?? null,
+      ]
+    );
     for (const d of detalles) {
       await conexion.query(`INSERT INTO order_items (order_id,product_variant_id,product_name,sku,quantity,unit_price_minor,discount_minor,total_minor,currency) VALUES ($1,$2,$3,$4,$5,$6,0,$7,'BOB')`, [nuevo.rows[0].id, d.variantId, d.nombre, d.sku, d.cantidad, Math.round(d.precioUnitario*100), Math.round(d.subtotal*100)]);
     }
@@ -57,10 +82,13 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false 
 }
 
 export async function obtenerPedidoBD(id) {
-  await asegurarColumnasPago();
+  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega()]);
   const { rows } = await pool.query(
     `SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor,o.status AS estado,o.created_at AS fecha,
             o.payment_receipt_url AS comprobante_url,o.payment_method AS metodo_pago,
+            o.fulfillment_type AS tipo_entrega,
+            o.delivery_address AS direccion_entrega,o.delivery_reference AS referencia_entrega,
+            o.delivery_lat AS latitud_entrega,o.delivery_lng AS longitud_entrega,
             c.name AS cliente_nombre,c.phone AS cliente_telefono,c.nit AS cliente_nit
      FROM orders o LEFT JOIN customers c ON c.id=o.customer_id WHERE o.id=$1`,
     [id]
@@ -77,18 +105,21 @@ export async function obtenerPedidoBD(id) {
 }
 
 export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 } = {}) {
-  await asegurarColumnasPago();
+  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega()]);
   const valores=[]; const condiciones=[];
   if(buscar){valores.push(`%${buscar}%`);condiciones.push(`(o.ticket_number ILIKE $${valores.length} OR COALESCE(c.name,'') ILIKE $${valores.length})`);}
   if(estado){valores.push(estado);condiciones.push(`o.status=$${valores.length}`);}
   valores.push(limite); const where=condiciones.length?`WHERE ${condiciones.join(' AND ')}`:'';
-  const { rows } = await pool.query(`SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor/100.0 AS total,o.status AS estado,o.created_at AS fecha,o.payment_receipt_url AS comprobante_url,o.payment_method AS metodo_pago,COALESCE(c.name,'Compra como invitado') AS cliente,COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items FROM orders o LEFT JOIN customers c ON c.id=o.customer_id LEFT JOIN order_items i ON i.order_id=o.id ${where} GROUP BY o.id,c.name ORDER BY o.created_at DESC LIMIT $${valores.length}`, valores);
+  const { rows } = await pool.query(`SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor/100.0 AS total,o.status AS estado,o.created_at AS fecha,o.payment_receipt_url AS comprobante_url,o.payment_method AS metodo_pago,o.fulfillment_type AS tipo_entrega,o.delivery_address AS direccion_entrega,o.delivery_reference AS referencia_entrega,COALESCE(c.name,'Compra como invitado') AS cliente,COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items FROM orders o LEFT JOIN customers c ON c.id=o.customer_id LEFT JOIN order_items i ON i.order_id=o.id ${where} GROUP BY o.id,c.name ORDER BY o.created_at DESC LIMIT $${valores.length}`, valores);
   return rows;
 }
 
 export async function listarPedidosPorClienteBD(clienteId, limite = 50) {
+  await asegurarColumnasEntrega();
   const { rows } = await pool.query(
     `SELECT o.id,o.ticket_number AS codigo,o.total_minor/100.0 AS total,o.status AS estado,o.created_at AS fecha,
+            o.fulfillment_type AS tipo_entrega,o.delivery_address AS direccion_entrega,
+            o.delivery_reference AS referencia_entrega,
             COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items
      FROM orders o
      LEFT JOIN order_items i ON i.order_id=o.id
