@@ -37,11 +37,14 @@ import RutaAdmin from '../components/admin/RutaAdmin.jsx';
 import ChatAsistente from '../components/chat/ChatAsistente.jsx';
 import CarritoFlotante from '../components/cart/CarritoFlotante.jsx';
 import WebAccountModal from '../components/WebAccountModal.jsx';
+import BotonTema from '../components/ui/BotonTema.jsx';
 import './Layout.css';
 import './NavigationFix.css';
 import './ClienteTheme.css';
 import '../Responsive.css';
 import './HeaderOptionsHidden.css';
+// Modo noche: va al final para que sus reglas pisen las de todas las páginas.
+import '../theme-dark.css';
 
 function Layout() {
   const { cantidadTotal } = useCarrito();
@@ -82,6 +85,7 @@ function Layout() {
         </nav>
 
         <div className="terra-header-right">
+          <BotonTema />
           <div className="terra-account">
             <button type="button" className="terra-login-button" aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : setCuentaAbierta(true)}><UserRound size={19} /><span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span></button>
             {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu"><strong>{sesion?.nombre || 'Cliente mayorista'}</strong><small>Cuenta mayorista</small>{sesion?.email && <span>{sesion.email}</span>}{sesion?.telefono && <span>{sesion.telefono}</span>}<button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></section>}

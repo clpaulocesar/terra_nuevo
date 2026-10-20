@@ -12,6 +12,24 @@
       --tinta: #231a16; --muted: #7a6f68; --linea: #eadfd3;
       --ok: #1e7e46; --radius: 18px;
     }
+    /* Modo noche: misma preferencia que la app (localStorage "terra_tema") o la del sistema. */
+    html[data-theme="dark"] {
+      --crema: #1e1917; --tinta: #f4ede8; --muted: #b5a79f; --linea: #3d3330; --ok: #58c986;
+      color-scheme: dark;
+    }
+    html[data-theme="dark"] body { background: #151110; }
+    html[data-theme="dark"] .card, html[data-theme="dark"] .qr-cart-panel, html[data-theme="dark"] .qr-cart-item { background: #1e1917; border-color: #3d3330; color: #f4ede8; }
+    html[data-theme="dark"] .qr-cart-select:hover, html[data-theme="dark"] .qr-cart-item.seleccionado .qr-cart-select,
+    html[data-theme="dark"] .qr-cart-item:hover, html[data-theme="dark"] .qr-cart-item.seleccionado { background: #33181d; }
+    html[data-theme="dark"] .qr-cart-remove { background: #3a1a20; color: #ffb3bd; }
+    html[data-theme="dark"] .qr-cart-item img, html[data-theme="dark"] .qr-cart-item-placeholder,
+    html[data-theme="dark"] .galeria-principal, html[data-theme="dark"] .instrucciones-galeria img { background: #282120; }
+    html[data-theme="dark"] .qr-cart-confirm:disabled { background: #4a3f3b; }
+    html[data-theme="dark"] .thumbs button { background: #282120; border-color: #3d3330; }
+    /* Logo PNG transparente sobre fondo oscuro: placa clara alrededor del logo. */
+    html[data-theme="dark"] .qr-top img { background: #faf5ef; }
+    html[data-theme="dark"] .galeria-principal img[src$="Descanso.png"],
+    html[data-theme="dark"] .qr-cart-item img[src$="Descanso.png"] { background: #faf5ef; background-clip: content-box; padding: 14%; border-radius: 16px; }
     * { box-sizing: border-box; }
     body {
       margin: 0; font-family: Manrope, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
@@ -146,6 +164,15 @@
   </div>
 
   <script>
+    // Aplica el modo día/noche elegido en la app (o el del sistema si no hay elección).
+    (function () {
+      var tema = null;
+      try { tema = localStorage.getItem('terra_tema'); } catch (e) { tema = null; }
+      if (tema !== 'claro' && tema !== 'oscuro') {
+        tema = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro';
+      }
+      document.documentElement.setAttribute('data-theme', tema === 'oscuro' ? 'dark' : 'light');
+    })();
     // Logo TERRA como imagen de respaldo cuando el producto no tiene foto.
     var IMAGEN_FALLBACK = '/images/logo/Logo%20Terra%20Autoservicio%20y%20Descanso.png';
     (function () {
