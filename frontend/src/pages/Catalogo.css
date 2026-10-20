@@ -2030,3 +2030,25 @@
 .catalog-qr-summary button:hover { background: var(--vino-osc); }
 .catalog-qr-summary button:active { transform: scale(0.96); }
 .catalog-qr-summary button:disabled { background: #adb7b1; cursor: not-allowed; }
+
+/* --- Carga perezosa de imágenes (ImagenPerezosa) --- */
+/* Mientras la imagen real no se pidió o no terminó de bajar, la tarjeta muestra
+   un esqueleto animado. La imagen aparece con un fundido al cargar. */
+.terra-card__img.imagen-perezosa {
+  transition: transform 0.4s ease, opacity 0.35s ease;
+}
+.terra-card__img.imagen-perezosa:not(.imagen-perezosa--lista) {
+  opacity: 0;
+}
+.terra-card__media:has(.imagen-perezosa:not(.imagen-perezosa--lista)) {
+  background: linear-gradient(100deg, #f1ebe7 20%, #faf7f5 40%, #f1ebe7 60%);
+  background-size: 220% 100%;
+  animation: terraShimmer 1.3s ease-in-out infinite;
+}
+@keyframes terraShimmer {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .terra-card__media:has(.imagen-perezosa:not(.imagen-perezosa--lista)) { animation: none; }
+}
