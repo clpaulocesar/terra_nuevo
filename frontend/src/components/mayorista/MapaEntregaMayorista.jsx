@@ -96,10 +96,10 @@ export default function MapaEntregaMayorista({
             ${razonSocial || 'Mi domicilio'}
           </strong>
           <span style="color: #4b5563; display: block; margin-bottom: 6px;">
-            ${direccion || 'Domicilio de entrega'}
+            ${direccion || 'Punto de entrega'}
           </span>
           <div style="display: inline-block; background: #ecfdf5; color: #047857; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-bottom: 4px;">
-            Ubicación de entrega
+            Ubicación de entrega registrada
           </div>
           <div style="font-family: monospace; font-size: 10px; color: #6b7280;">
             GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}
@@ -236,7 +236,7 @@ export default function MapaEntregaMayorista({
       {modoFijarActivo && (
         <div className="b2b-map-hint-banner">
           <Navigation size={13} style={{ color: 'var(--terra-wine-b2b)' }} />
-          <span>Haz clic en cualquier punto del mapa o arrastra el marcador para fijar la ubicación de tu domicilio.</span>
+          <span>Haz clic en cualquier punto del mapa o arrastra el marcador para fijar la ubicación de entrega.</span>
         </div>
       )}
 
@@ -247,7 +247,7 @@ export default function MapaEntregaMayorista({
         {/* Badge inferior de ubicación de entrega */}
         <div className="b2b-map-truck-legend">
           <CheckCircle2 size={13} style={{ color: '#059669' }} />
-          <span>Mapa interactivo: arrastra el pin o haz clic para marcar tu domicilio</span>
+          <span>Mapa interactivo: arrastra el pin o haz clic para marcar la ubicación de entrega</span>
         </div>
       </div>
     </div>
