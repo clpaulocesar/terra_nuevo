@@ -10,6 +10,7 @@ import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { LIMITE_CATALOGO, useCatalogoPaginado } from '../context/CatalogoContext.jsx';
 import { imagenDeProducto, usarImagenFallback } from '../utils/imagenProducto.js';
 import { useAccesibilidad } from '../context/AccesibilidadContext.jsx';
+import ImagenPerezosa from '../components/ui/ImagenPerezosa.jsx';
 import './Catalogo.css';
 
 // Cuántas categorías se muestran como chips sueltos junto al selector "Todos".
@@ -828,12 +829,11 @@ export default function Catalogo() {
                       }}
                     >
                       <div className="terra-card__media">
-                        <img
+                        <ImagenPerezosa
                           className={`terra-card__img ${producto.imagen_url ? '' : 'img-fallback'}`}
                           alt={producto.nombre}
                           src={imagenDeProducto(producto.imagen_url)}
                           onError={usarImagenFallback}
-                          loading="lazy"
                         />
 
                         <div className="terra-card__badges">
