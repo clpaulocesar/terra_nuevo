@@ -6,7 +6,6 @@ import {
   actualizarProductoBD,
   actualizarStockBD,
   eliminarProductoBD,
-  ORDENES_PRODUCTOS,
 } from '../models/productoModel.js';
 import { migrateAndSeed } from '../config/migrate_seed.js';
 
@@ -29,13 +28,12 @@ export async function listarProductos(req, res, next) {
   try {
     const buscar = String(req.query.buscar ?? '').trim();
     const categoria = String(req.query.categoria ?? '').trim();
-    const orden = String(req.query.orden ?? 'recomendados').trim();
+    const orden = ORDENES_VALIDOS.includes(String(req.query.orden ?? '')) ? String(req.query.orden) : 'recomendados';
     const pagina = Number(req.query.pagina ?? 1);
     const limite = Number(req.query.limite ?? 100);
     const soloActivos = req.query.todos === 'true' ? false : true;
     const soloPromos = req.query.promos === 'true';
     const conStock = req.query.stock === 'true';
-    const orden = ORDENES_VALIDOS.includes(String(req.query.orden ?? '')) ? String(req.query.orden) : 'recomendados';
     const precioMin = req.query.precioMin != null && req.query.precioMin !== '' ? Number(req.query.precioMin) : null;
     const precioMax = req.query.precioMax != null && req.query.precioMax !== '' ? Number(req.query.precioMax) : null;
 
@@ -52,16 +50,6 @@ export async function listarProductos(req, res, next) {
       });
     }
 
-<<<<<<< Updated upstream
-    if (!ORDENES_PRODUCTOS.includes(orden)) {
-      return res.status(400).json({
-        success: false,
-        mensaje: `Orden inválido. Valores permitidos: ${ORDENES_PRODUCTOS.join(', ')}`,
-      });
-    }
-
-    const { productos, total } = await listarProductosBD({
-=======
     if (
       (precioMin !== null && (!Number.isFinite(precioMin) || precioMin < 0)) ||
       (precioMax !== null && (!Number.isFinite(precioMax) || precioMax < 0))
@@ -70,19 +58,15 @@ export async function listarProductos(req, res, next) {
     }
 
     const { productos, total } = await listarProductosPaginadoBD({
->>>>>>> Stashed changes
       buscar,
       categoria,
       pagina,
       limite,
       soloActivos,
-<<<<<<< Updated upstream
-=======
       soloPromos,
       conStock,
       precioMin,
       precioMax,
->>>>>>> Stashed changes
       orden,
     });
 
@@ -95,13 +79,9 @@ export async function listarProductos(req, res, next) {
         pagina,
         limite,
         total,
-<<<<<<< Updated upstream
         totalPaginas,
         tieneAnterior: pagina > 1,
         tieneSiguiente: pagina < totalPaginas,
-=======
-        totalPaginas: Math.max(1, Math.ceil(total / limite)),
->>>>>>> Stashed changes
       },
     });
   } catch (error) {

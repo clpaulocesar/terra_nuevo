@@ -5,13 +5,6 @@ const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, 
   COALESCE(p.public_price, 0) AS precio, p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
   p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
 
-<<<<<<< Updated upstream
-const ORDENES = {
-  recomendados: 'p.created_at DESC, p.id DESC',
-  'precio-asc': 'COALESCE(p.public_price, 0) ASC, p.name ASC',
-  'precio-desc': 'COALESCE(p.public_price, 0) DESC, p.name ASC',
-  nombre: 'p.name ASC',
-=======
 const EXISTE_PROMOCION = `EXISTS (
   SELECT 1 FROM promotion_products pp
   JOIN promotions pr ON pr.id = pp.promotion_id
@@ -34,26 +27,10 @@ const ORDENES = {
   'precio-desc': 'COALESCE(p.public_price, 0) DESC, p.name ASC, p.id ASC',
   precio_desc: 'COALESCE(p.public_price, 0) DESC, p.name ASC, p.id ASC',
   nombre: 'p.name ASC, p.id ASC',
->>>>>>> Stashed changes
 };
 
 export const ORDENES_PRODUCTOS = Object.keys(ORDENES);
 
-<<<<<<< Updated upstream
-// Devuelve una página de productos y el total de filas que cumplen el filtro
-// (COUNT(*) OVER() evita una segunda consulta). Filtros y orden viven aquí para
-// que la paginación del frontend sea exacta sin traer todo el catálogo.
-export async function listarProductosBD({ buscar = '', categoria = '', pagina = 1, limite = 100, soloActivos = false, orden = 'recomendados' } = {}) {
-  const valores = [];
-  const condiciones = [];
-  if (soloActivos) condiciones.push('COALESCE(p.activo, p.is_active, TRUE) = TRUE');
-  if (buscar) {
-    valores.push(`%${buscar}%`);
-    const i = valores.length;
-    condiciones.push(`(p.name ILIKE $${i} OR COALESCE(p.description, '') ILIKE $${i} OR COALESCE(p.codigo_terra, p.internal_code, '') ILIKE $${i} OR COALESCE(c.name, p.product_group, '') ILIKE $${i} OR COALESCE(p.size, '') ILIKE $${i})`);
-  }
-  if (categoria && categoria !== 'Todos') { valores.push(categoria); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
-=======
 const CTE_VENTAS = `WITH ventas AS (
   SELECT LOWER(product_name) AS nombre, SUM(COALESCE(quantity, 0))::integer AS unidades
   FROM order_items
@@ -66,7 +43,8 @@ function construirFiltros({ buscar = '', categoria = '', soloActivos = false, so
   const condiciones = [];
   if (soloActivos) condiciones.push('COALESCE(p.activo, p.is_active, TRUE) = TRUE');
   if (buscar) { valores.push(`%${buscar}%`); condiciones.push(`(p.name ILIKE $${valores.length} OR COALESCE(p.codigo_terra, p.internal_code, '') ILIKE $${valores.length} OR COALESCE(p.description, '') ILIKE $${valores.length})`); }
-  if (categoria && categoria !== 'Todos') { valores.push(categoria); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
+  const categoriaLimpia = String(categoria || '').trim();
+  if (categoriaLimpia && !['todos', 'todas'].includes(categoriaLimpia.toLowerCase())) { valores.push(categoriaLimpia); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
   if (soloPromos) condiciones.push(EXISTE_PROMOCION);
   if (conStock) condiciones.push('COALESCE(p.stock_quantity, 0) > 0');
   if (Number.isFinite(precioMin)) { valores.push(precioMin); condiciones.push(`COALESCE(p.public_price, 0) >= $${valores.length}`); }
@@ -74,10 +52,21 @@ function construirFiltros({ buscar = '', categoria = '', soloActivos = false, so
   return { valores, condiciones };
 }
 
-export async function listarProductosBD({ buscar = '', categoria = '', pagina = 1, limite = 100, soloActivos = false } = {}) {
-  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos });
-  valores.push(limite, (pagina - 1) * limite);
->>>>>>> Stashed changes
+// Devuelve una página de productos y el total de filas que cumplen el filtro.
+// Filtros y orden viven aquí para que la paginación del frontend sea exacta.
+export async function listarProductosBD({
+  buscar = '',
+  categoria = '',
+  pagina = 1,
+  limite = 100,
+  soloActivos = false,
+  soloPromos = false,
+  conStock = false,
+  precioMin = null,
+  precioMax = null,
+  orden = 'recomendados',
+} = {}) {
+  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, conStock, precioMin, precioMax });
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
   const orderBy = ORDENES[orden] || ORDENES.recomendados;
   const valoresFiltro = [...valores];

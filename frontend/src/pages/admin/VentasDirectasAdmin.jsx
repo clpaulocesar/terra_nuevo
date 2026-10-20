@@ -23,6 +23,7 @@ import { listarCategorias, listarProductosPaginado, obtenerProducto } from '../.
 import { listarClientes } from '../../services/clienteService.js';
 import { crearVentaDirecta } from '../../services/pedidoService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
+import { imagenDeProducto, usarImagenFallback } from '../../utils/imagenProducto.js';
 import './VentasDirectasAdmin.css';
 
 const TODAS = 'Todas';
@@ -485,11 +486,13 @@ export default function VentasDirectasAdmin() {
               {productos.map((producto) => (
                 <article className="direct-card" key={producto.id}>
                   <div className="direct-card__media">
-                    {producto.imagen_url ? (
-                      <img src={producto.imagen_url} alt={producto.nombre} loading="lazy" />
-                    ) : (
-                      <span className="direct-card__media-empty">Sin foto</span>
-                    )}
+                    <img
+                      className="direct-card__img"
+                      alt={producto.nombre}
+                      src={imagenDeProducto(producto.imagen_url)}
+                      onError={usarImagenFallback}
+                      loading="lazy"
+                    />
                     {producto.promocion && <span className="direct-badge direct-badge--promo">PROMO</span>}
                     {!producto.promocion && Number(producto.ventas || 0) > 0 && <span className="direct-badge direct-badge--vendido">MÁS VENDIDO</span>}
                   </div>

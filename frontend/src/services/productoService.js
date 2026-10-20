@@ -1,4 +1,4 @@
-import { API_URL, apiRequest, MODO_DEMO } from './api.js';
+import { apiRequest, MODO_DEMO } from './api.js';
 
 export function normalizarProducto(producto) {
   const precio = Number(producto.precio || 0);
@@ -28,13 +28,27 @@ export function normalizarProducto(producto) {
   };
 }
 function exigirConexionReal() { if (MODO_DEMO) throw new Error('El modo demostración está activo. Configura VITE_MODO_DEMO=false para usar PostgreSQL.'); }
-<<<<<<< Updated upstream
-function construirQueryProductos({ buscar = '', categoria = '', pagina = 1, limite = 100, todos = false, orden = '' } = {}) {
-  const p = new URLSearchParams({ pagina, limite });
+function construirQueryProductos({
+  buscar = '',
+  categoria = '',
+  pagina = 1,
+  limite = 100,
+  todos = false,
+  orden = '',
+  promos = false,
+  stock = false,
+  precioMin = null,
+  precioMax = null,
+} = {}) {
+  const p = new URLSearchParams({ pagina: String(pagina), limite: String(limite) });
   if (buscar) p.set('buscar', buscar);
-  if (categoria && categoria !== 'Todos') p.set('categoria', categoria);
+  if (categoria && categoria !== 'Todos' && categoria !== 'Todas') p.set('categoria', categoria);
   if (orden) p.set('orden', orden);
   if (todos) p.set('todos', 'true');
+  if (promos) p.set('promos', 'true');
+  if (stock) p.set('stock', 'true');
+  if (precioMin !== null && precioMin !== '' && Number.isFinite(Number(precioMin))) p.set('precioMin', String(precioMin));
+  if (precioMax !== null && precioMax !== '' && Number.isFinite(Number(precioMax))) p.set('precioMax', String(precioMax));
   return p;
 }
 
@@ -45,20 +59,12 @@ export async function listarProductos({ signal, ...filtros } = {}) {
 }
 
 // Igual que listarProductos pero conserva la metadata de paginación que devuelve el backend.
-// apiRequest desenvuelve `data`, así que aquí se hace el fetch completo para leer `paginacion`.
+// apiRequest con `raw` devuelve el sobre completo (`data` + `paginacion`).
 export async function listarProductosPaginado({ signal, ...filtros } = {}) {
   exigirConexionReal();
-  let respuesta;
-  try {
-    respuesta = await fetch(`${API_URL}/productos?${construirQueryProductos(filtros)}`, { signal, headers: { 'Content-Type': 'application/json' } });
-  } catch (error) {
-    if (error.name === 'AbortError') throw error;
-    throw new Error('No se pudo conectar al backend. Comprueba que esté encendido.');
-  }
-  const datos = await respuesta.json().catch(() => null);
-  if (!respuesta.ok || datos?.success === false) throw new Error(datos?.mensaje || `Error HTTP ${respuesta.status}`);
+  const datos = await apiRequest(`/productos?${construirQueryProductos(filtros)}`, { signal, raw: true });
   const lista = Array.isArray(datos) ? datos : datos?.data || [];
-  const limite = Number(datos?.paginacion?.limite ?? filtros.limite ?? 100);
+  const limite = Number(datos?.paginacion?.limite ?? filtros.limite ?? 18);
   const pagina = Number(datos?.paginacion?.pagina ?? filtros.pagina ?? 1);
   // Un backend anterior no manda `total`: en ese caso queda en null y la
   // paginación avanza "a ciegas" mientras la página venga completa.
@@ -74,46 +80,6 @@ export async function listarProductosPaginado({ signal, ...filtros } = {}) {
     productos: lista.map(normalizarProducto),
     paginacion: { pagina, limite, total, totalPaginas, tieneSiguiente },
   };
-=======
-export async function listarProductos({ buscar = '', categoria = '', pagina = 1, limite = 100, todos = false, signal } = {}) {
-  exigirConexionReal();
-  const p = new URLSearchParams({ pagina, limite });
-  if (buscar) p.set('buscar', buscar);
-  if (categoria && categoria !== 'Todos') p.set('categoria', categoria);
-  if (todos) p.set('todos', 'true');
-  const r = await apiRequest(`/productos?${p}`, { signal });
-  return (Array.isArray(r) ? r : r?.data || []).map(normalizarProducto);
-}
-
-// Listado paginado del catálogo (caja administrativa): trae el sobre completo
-// para conocer el total de referencias y calcular las páginas en el servidor.
-export async function listarProductosPaginado({
-  buscar = '',
-  categoria = '',
-  pagina = 1,
-  limite = 18,
-  todos = false,
-  orden = 'recomendados',
-  promos = false,
-  stock = false,
-  precioMin = null,
-  precioMax = null,
-  signal,
-} = {}) {
-  exigirConexionReal();
-  const p = new URLSearchParams({ pagina: String(pagina), limite: String(limite), orden });
-  if (buscar) p.set('buscar', buscar);
-  if (categoria && categoria !== 'Todos') p.set('categoria', categoria);
-  if (todos) p.set('todos', 'true');
-  if (promos) p.set('promos', 'true');
-  if (stock) p.set('stock', 'true');
-  if (Number.isFinite(Number(precioMin)) && precioMin !== null && precioMin !== '') p.set('precioMin', String(precioMin));
-  if (Number.isFinite(Number(precioMax)) && precioMax !== null && precioMax !== '') p.set('precioMax', String(precioMax));
-  const r = await apiRequest(`/productos?${p}`, { signal, raw: true });
-  const productos = (Array.isArray(r?.data) ? r.data : []).map(normalizarProducto);
-  const paginacion = r?.paginacion || { pagina: 1, limite, total: productos.length, totalPaginas: 1 };
-  return { productos, paginacion };
->>>>>>> Stashed changes
 }
 export async function obtenerProducto(id) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}`)); }
 export async function crearProducto(datos) { exigirConexionReal(); return normalizarProducto(await apiRequest('/productos', { method: 'POST', body: datos })); }
