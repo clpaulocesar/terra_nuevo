@@ -39,9 +39,9 @@ export default function Bienvenida() {
         <h1>Bienvenido a <span>TERRA</span></h1>
         <p>Tu hogar merece lo mejor. Encuentra los muebles ideales para cada espacio, con la calidad y el confort que estás buscando.</p>
         <div className="welcome-actions">
-          <Link to="/catalogo" className="welcome-cta">
+          <Link to="/categorias" className="welcome-cta">
             <span><ShoppingBag size={23} /></span>
-            <div><b>Comenzar compra</b><small>Ver catálogo completo</small></div>
+            <div><b>Comenzar compra</b><small>Ver las categorías</small></div>
             <ArrowRight size={22} />
           </Link>
         </div>
@@ -75,7 +75,7 @@ export default function Bienvenida() {
         <aside className="welcome-spot">
           <span><Sofa size={14} /> Poltronas</span>
           <b>Poltronas y Sofas Cama</b>
-          <footer><Link to="/catalogo">Probar aquí <ArrowRight size={14} /></Link></footer>
+          <footer><Link to="/categorias">Probar aquí <ArrowRight size={14} /></Link></footer>
         </aside>
       </div>
     </section>

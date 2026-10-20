@@ -4,8 +4,8 @@ function firma(payload) {
   return createHmac('sha256', process.env.ADMIN_TOKEN_SECRET).update(payload).digest('base64url');
 }
 
-export function crearTokenAdmin() {
-  const payload = Buffer.from(JSON.stringify({ rol: 'admin', exp: Date.now() + 8 * 60 * 60 * 1000 })).toString('base64url');
+export function crearTokenAdmin(datosExtra = {}) {
+  const payload = Buffer.from(JSON.stringify({ rol: 'admin', ...datosExtra, exp: Date.now() + 8 * 60 * 60 * 1000 })).toString('base64url');
   return `${payload}.${firma(payload)}`;
 }
 

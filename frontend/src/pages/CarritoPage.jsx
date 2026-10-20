@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import {
+  ArrowLeft,
   ArrowRight,
   Minus,
   PackageOpen,
@@ -42,6 +43,9 @@ export default function CarritoPage() {
   return (
     <section className="cart-page">
       <header className="cart-heading">
+        <Link to="/catalogo" className="cart-back-link">
+          <ArrowLeft size={18} /> Volver al catálogo
+        </Link>
         <div>
           <h1>Revisá tu pedido</h1>
           <p>
@@ -54,8 +58,8 @@ export default function CarritoPage() {
         <ShoppingBag size={24} />
         <div>
           <b>Pago en mostrador presencial</b>
-          <i>Tu pedido se generará para pagar en caja. No se realizará ningún
-            cobro en este kiosco.</i>
+          <p>Tu pedido se generará para pagar en caja. No se realizará ningún
+            cobro en este kiosco.</p>
         </div>
       </div>
       <div className="cart-layout">

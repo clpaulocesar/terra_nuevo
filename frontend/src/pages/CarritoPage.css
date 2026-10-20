@@ -23,9 +23,31 @@
 /* ==== ENCABEZADO ==== */
 .cart-heading {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.9rem;
+}
+
+/* Botón "Volver al catálogo" */
+.cart-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #fff;
+  border: 1px solid var(--cp-linea);
+  border-radius: 999px;
+  color: var(--cp-tinta);
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.55rem 1rem;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.cart-back-link:hover {
+  background: var(--cp-vino);
+  border-color: var(--cp-vino);
+  color: #fff;
 }
 .cart-heading span {
   display: inline-flex;
@@ -550,8 +572,5 @@
 
   .cart-summary > small { display: block; margin-top: 0.7rem; text-align: center; color: var(--cp-muted); font-size: 0.72rem; }
 
-  /* Ocultar carrito flotante en esta página */
-  .app-shell:has(.cart-page) .cart-widget {
-    display: none;
-  }
+  /* El carrito flotante sigue visible en esta página. */
 }
