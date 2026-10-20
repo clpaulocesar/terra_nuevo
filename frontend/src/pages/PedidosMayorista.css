@@ -1214,69 +1214,7 @@
   font-size: 0.7rem;
 }
 
-/* ==========================================================================
-   6. BOTONES FLOTANTES DE ACCIÓN RÁPIDA
-   ========================================================================== */
-.b2b-floating-actions {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  z-index: 40;
-}
 
-.b2b-floating-qr {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.15rem;
-  background-color: var(--terra-wine);
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 9999px;
-  border: none;
-  box-shadow: 0 12px 30px -4px rgba(166, 25, 50, 0.35);
-  cursor: pointer;
-  transition: transform 0.15s ease, background-color 0.15s ease;
-  text-decoration: none;
-}
-.b2b-floating-qr:hover {
-  background-color: var(--terra-wine-dark);
-  transform: scale(1.05);
-}
-
-.b2b-floating-qr__icon {
-  padding: 0.25rem;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.b2b-floating-chat {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1rem;
-  background-color: #111827;
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: 9999px;
-  border: none;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  align-self: flex-end;
-  transition: transform 0.15s ease, background-color 0.15s ease;
-}
-.b2b-floating-chat:hover {
-  background-color: #000000;
-  transform: scale(1.05);
-}
 
 /* ==========================================================================
    7. FOOTER INSTITUCIONAL B2B

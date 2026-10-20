@@ -1,9 +1,9 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import {
   BrowserRouter, Routes, Route, Navigate, Link,
   NavLink, Outlet, useNavigate, useLocation, useSearchParams,
 } from 'react-router-dom';
-import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut, ChevronDown, BadgeCheck, BookOpen, ReceiptText, MessageCircle, FileText, Repeat2, ContactRound } from 'lucide-react';
+import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut, ChevronDown, BadgeCheck, BookOpen, ReceiptText, MessageCircle, FileText, Repeat2, ContactRound, QrCode } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { useProductos } from '../hooks/useProductos.js';
 import { ClienteContext } from '../context/ClienteContext.jsx';
@@ -14,6 +14,7 @@ import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { validarDatosCliente } from '../utils/validaciones.js';
 import { crearCliente } from '../services/clienteService.js';
 import { crearPedido } from '../services/pedidoService.js';
+import { leerCarritoQr } from '../services/qrCartService.js';
 import { MODO_DEMO, WHATSAPP_COMPROBANTES } from '../services/api.js';
 import Bienvenida from '../pages/Bienvenida.jsx';
 import Categorias from '../pages/Categorias.jsx';
@@ -47,6 +48,7 @@ import './NavigationFix.css';
 import './ClienteTheme.css';
 import '../Responsive.css';
 import './HeaderOptionsHidden.css';
+import './FloatingActions.css';
 // Modo noche: va al final para que sus reglas pisen las de todas las páginas.
 import '../theme-dark.css';
 
@@ -55,8 +57,17 @@ function Layout() {
   const { sesion, esMayorista, cerrarSesion } = useContext(SesionClienteContext);
   const [cuentaAbierta, setCuentaAbierta] = useState(false);
   const [menuCuentaAbierto, setMenuCuentaAbierto] = useState(false);
+  const [unidadesQr, setUnidadesQr] = useState(() => (leerCarritoQr() || []).reduce((t, i) => t + Number(i.cantidad || 0), 0));
   const navigate = useNavigate();
+  const location = useLocation();
   const pulsacionesLogo = useRef([]);
+
+  useEffect(() => {
+    const actualizar = () => setUnidadesQr((leerCarritoQr() || []).reduce((t, i) => t + Number(i.cantidad || 0), 0));
+    actualizar();
+    window.addEventListener('storage', actualizar);
+    return () => window.removeEventListener('storage', actualizar);
+  }, [location.pathname]);
 
   const abrirAdminConLogo = (event) => {
     const ahora = Date.now();
@@ -171,6 +182,15 @@ function Layout() {
 
       <CarritoFlotante />
       <ChatAsistente />
+      <button
+        type="button"
+        className="catalog-qr-fab"
+        onClick={() => navigate(`/catalogo?abrirQr=1&t=${Date.now()}`)}
+        aria-label={unidadesQr ? `Comprar por QR, ${unidadesQr} unidades agregadas` : 'Comprar por QR, abrir cámara'}
+      >
+        <QrCode size={21} />
+        {unidadesQr > 0 && <b>{unidadesQr}</b>}
+      </button>
     </div>
   );
 }

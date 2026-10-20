@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef, useContext } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Camera, Check, ExternalLink, QrCode, ShoppingCart, X } from 'lucide-react';
+import { ArrowRight, Camera, Check, ExternalLink, ShoppingCart, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { obtenerProducto } from '../services/productoService.js';
 import { agregarProductoCarritoQr, leerCarritoQr } from '../services/qrCartService.js';
@@ -228,7 +228,10 @@ export default function Catalogo() {
   const escanerProcesandoRef = useRef(false);
 
   useEffect(() => {
-    if (abrirCamaraAlEntrar) navigate('/catalogo', { replace: true });
+    if (abrirCamaraAlEntrar) {
+      setEscanerAbierto(true);
+      navigate('/catalogo', { replace: true });
+    }
   }, [abrirCamaraAlEntrar, navigate]);
 
   // Lista completa de categorías (desde la API, con total de productos por categoría).
@@ -1017,17 +1020,6 @@ export default function Catalogo() {
           </div>
         </div>
       )}
-
-      <button
-        type="button"
-        className="catalog-qr-fab"
-        onClick={() => setEscanerAbierto(true)}
-        aria-label={unidadesQr ? `Comprar por QR, ${unidadesQr} unidades agregadas` : 'Comprar por QR, abrir cámara'}
-      >
-        <QrCode size={21} />
-        <span>Comprar por QR</span>
-        {unidadesQr > 0 && <b>{unidadesQr}</b>}
-      </button>
 
       {escanerAbierto && (
         <div className="catalog-qr-overlay" onClick={() => setEscanerAbierto(false)}>

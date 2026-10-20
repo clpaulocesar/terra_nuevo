@@ -3,7 +3,7 @@
   position: fixed;
   right: 1rem;
   /* Se apila sobre el carrito usando las mismas medidas responsivas. */
-  bottom: calc(var(--floating-cart-bottom, 4.5rem) + var(--floating-cart-size, 3.4rem) + var(--floating-controls-gap, 0.9rem));
+  bottom: var(--floating-cart-bottom, 4.5rem);
   z-index: 70;
   display: flex;
   flex-direction: column;
@@ -156,8 +156,6 @@
   .chat-fab span { display: none; }
   .chat-fab { padding: 0.9rem; }
   .chat-panel { height: min(520px, calc(100vh - 11rem)); }
-  /* En el catálogo la barra del pedido ocupa la zona baja: el botón sube por encima */
-  .app-shell:has(.catalogo-container) .chat-widget { bottom: calc(var(--floating-cart-bottom) + var(--floating-cart-size) + var(--floating-controls-gap)); }
 }
 
 /* Tableta: píldora compacta y panel algo más angosto */
