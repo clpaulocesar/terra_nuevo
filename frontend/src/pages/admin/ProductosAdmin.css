@@ -39,3 +39,28 @@
 @media(max-width:520px){.product-view-main{flex-direction:column;align-items:flex-start}.product-view-price{text-align:left;margin-left:0}.product-view-stats{grid-template-columns:1fr}}
 
 
+
+/* DataTable mejorado */
+.products-table .products-scroll table { border-collapse: separate; border-spacing: 0; }
+.products-table thead th { position: sticky; top: 0; z-index: 2; background: #f6f3f2; color: #404944; font-size: .7rem; font-weight: 800; letter-spacing: .02em; padding: .75rem .85rem; border-bottom: 2px solid #e4e2e1; }
+.products-table tbody td { padding: .7rem .85rem; border-bottom: 1px solid #f0eded; font-size: .82rem; vertical-align: middle; }
+.products-table tbody tr { transition: background .12s ease; }
+.products-table tbody tr:hover { background: #fcf9f8; }
+.products-table tbody tr:nth-child(even) { background: #faf7f6; }
+.products-table tbody tr:nth-child(even):hover { background: #f3efed; }
+.products-table .product-info b { font-size: .85rem; }
+.products-table .product-info small { color: #707974; font-size: .7rem; }
+.products-table .product-thumb { box-shadow: 0 2px 6px #00000018; }
+.products-table .stock { font-weight: 800; }
+.products-table .stock.low { color: #ba1a1a; background: #ffdad6; padding: .2rem .5rem; border-radius: 99px; font-size: .72rem; }
+.products-table .kiosk { font-size: .7rem; }
+.products-table .product-actions button { border-radius: .5rem; transition: transform .12s, background .12s; }
+.products-table .product-actions button:hover { background: #a6192e; color: #fff; transform: translateY(-1px); }
+.products-pagination { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .85rem 1rem; border-top: 1px solid #eee6e5; background: #fcf9f8; flex-wrap: wrap; }
+.products-pagination .info { color: #56605c; font-size: .8rem; font-weight: 600; }
+.products-pagination .controls { display: flex; gap: .4rem; align-items: center; }
+.products-pagination button { background: #fff; color: #404944; border: 1px solid #e4e2e1; padding: .45rem .85rem; font-size: .8rem; border-radius: .5rem; }
+.products-pagination button:hover:not(:disabled) { background: #a6192e; color: #fff; border-color: #a6192e; }
+.products-pagination button:disabled { opacity: .4; cursor: not-allowed; }
+.products-pagination select { border: 1px solid #e4e2e1; border-radius: .5rem; padding: .4rem .6rem; font-size: .8rem; background: #fff; }
+.products-pagination .page-pill { background: #a6192e; color: #fff; border-radius: 99px; padding: .3rem .7rem; font-size: .75rem; font-weight: 800; }

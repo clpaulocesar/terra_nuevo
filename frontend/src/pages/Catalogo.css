@@ -63,6 +63,11 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Mientras la fuente de iconos no esté lista, se oculta el texto de las ligaduras
+   (search, expand_more, add_shopping_cart…) para que no aparezcan palabras en inglés. */
+.terra-catalogo .material-symbols-outlined { visibility: hidden; }
+html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visible; }
+
 /* ==== HEADER ==== */
 .terra-header {
   position: fixed;
