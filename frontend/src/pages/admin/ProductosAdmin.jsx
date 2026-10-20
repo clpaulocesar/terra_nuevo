@@ -642,6 +642,7 @@ export default function ProductosAdmin() {
   const registrarProducto = async event => {
     event.preventDefault();
     const datos = new FormData(event.currentTarget);
+    const generarQr = datos.get('generar_qr') === 'on';
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
@@ -671,6 +672,12 @@ export default function ProductosAdmin() {
       setColoresNuevo([]);
       setColorImagenNuevo('');
       setCategoria('Todos');
+      // Abre el QR del producto nuevo para descargarlo, imprimirlo o copiar su enlace.
+      // El QR apunta a la ficha pública y no necesita guardar una imagen en la base.
+      if (generarQr) {
+        setQrProducto(formateado);
+        setQrCopiado(false);
+      }
       await avisoExito({ titulo: '¡Producto creado!', texto: `${payload.nombre || payload.sku} se guardó correctamente en la base de datos.` });
     } catch (err) {
       await avisoError(`Error al registrar en servidor: ${err.message}`);
@@ -1267,6 +1274,10 @@ export default function ProductosAdmin() {
 
             <label className="product-kiosk-check">
               <input name="visible" type="checkbox" defaultChecked /> Publicar este producto en kioscos al guardarlo
+            </label>
+            <label className="product-kiosk-check">
+              <input name="generar_qr" type="checkbox" defaultChecked /> Generar QR del producto al guardarlo
+              <small>Podrás descargarlo, imprimirlo o copiar el enlace de su ficha.</small>
             </label>
 
             <footer>
