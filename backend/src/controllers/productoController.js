@@ -5,6 +5,7 @@ import {
   actualizarProductoBD,
   actualizarStockBD,
   eliminarProductoBD,
+  ORDENES_PRODUCTOS,
 } from '../models/productoModel.js';
 import { migrateAndSeed } from '../config/migrate_seed.js';
 
@@ -25,6 +26,7 @@ export async function listarProductos(req, res, next) {
   try {
     const buscar = String(req.query.buscar ?? '').trim();
     const categoria = String(req.query.categoria ?? '').trim();
+    const orden = String(req.query.orden ?? 'recomendados').trim();
     const pagina = Number(req.query.pagina ?? 1);
     const limite = Number(req.query.limite ?? 100);
     const soloActivos = req.query.todos === 'true' ? false : true;
@@ -42,13 +44,23 @@ export async function listarProductos(req, res, next) {
       });
     }
 
-    const productos = await listarProductosBD({
+    if (!ORDENES_PRODUCTOS.includes(orden)) {
+      return res.status(400).json({
+        success: false,
+        mensaje: `Orden inválido. Valores permitidos: ${ORDENES_PRODUCTOS.join(', ')}`,
+      });
+    }
+
+    const { productos, total } = await listarProductosBD({
       buscar,
       categoria,
       pagina,
       limite,
       soloActivos,
+      orden,
     });
+
+    const totalPaginas = Math.max(1, Math.ceil(total / limite));
 
     return res.json({
       success: true,
@@ -56,6 +68,10 @@ export async function listarProductos(req, res, next) {
       paginacion: {
         pagina,
         limite,
+        total,
+        totalPaginas,
+        tieneAnterior: pagina > 1,
+        tieneSiguiente: pagina < totalPaginas,
       },
     });
   } catch (error) {

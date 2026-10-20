@@ -62,10 +62,11 @@ app.get('/openapi', (req, res) => {
             { name: 'buscar', in: 'query', schema: { type: 'string' } },
             { name: 'categoria', in: 'query', schema: { type: 'string' } },
             { name: 'pagina', in: 'query', schema: { type: 'integer', default: 1 } },
-            { name: 'limite', in: 'query', schema: { type: 'integer', default: 100 } },
+            { name: 'limite', in: 'query', schema: { type: 'integer', default: 100, maximum: 200 } },
+            { name: 'orden', in: 'query', schema: { type: 'string', enum: ['recomendados', 'precio-asc', 'precio-desc', 'nombre'], default: 'recomendados' } },
             { name: 'todos', in: 'query', schema: { type: 'boolean', default: false } },
           ],
-          responses: { 200: { description: 'Lista de productos paginada' } },
+          responses: { 200: { description: 'Lista de productos paginada. Incluye `paginacion` con pagina, limite, total, totalPaginas, tieneAnterior y tieneSiguiente.' } },
         },
         post: {
           summary: 'Crear nuevo producto',

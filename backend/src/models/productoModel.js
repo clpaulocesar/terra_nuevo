@@ -5,16 +5,53 @@ const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, 
   COALESCE(p.public_price, 0) AS precio, p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
   p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, COALESCE(p.activo, p.is_active, TRUE) AS activo`;
 
-export async function listarProductosBD({ buscar = '', categoria = '', pagina = 1, limite = 100, soloActivos = false } = {}) {
+const ORDENES = {
+  recomendados: 'p.created_at DESC, p.id DESC',
+  'precio-asc': 'COALESCE(p.public_price, 0) ASC, p.name ASC',
+  'precio-desc': 'COALESCE(p.public_price, 0) DESC, p.name ASC',
+  nombre: 'p.name ASC',
+};
+
+export const ORDENES_PRODUCTOS = Object.keys(ORDENES);
+
+// Devuelve una página de productos y el total de filas que cumplen el filtro
+// (COUNT(*) OVER() evita una segunda consulta). Filtros y orden viven aquí para
+// que la paginación del frontend sea exacta sin traer todo el catálogo.
+export async function listarProductosBD({ buscar = '', categoria = '', pagina = 1, limite = 100, soloActivos = false, orden = 'recomendados' } = {}) {
   const valores = [];
   const condiciones = [];
   if (soloActivos) condiciones.push('COALESCE(p.activo, p.is_active, TRUE) = TRUE');
-  if (buscar) { valores.push(`%${buscar}%`); condiciones.push(`(p.name ILIKE $${valores.length} OR COALESCE(p.codigo_terra, p.internal_code, '') ILIKE $${valores.length})`); }
+  if (buscar) {
+    valores.push(`%${buscar}%`);
+    const i = valores.length;
+    condiciones.push(`(p.name ILIKE $${i} OR COALESCE(p.description, '') ILIKE $${i} OR COALESCE(p.codigo_terra, p.internal_code, '') ILIKE $${i} OR COALESCE(c.name, p.product_group, '') ILIKE $${i} OR COALESCE(p.size, '') ILIKE $${i})`);
+  }
   if (categoria && categoria !== 'Todos') { valores.push(categoria); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
-  valores.push(limite, (pagina - 1) * limite);
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
-  const { rows } = await pool.query(`SELECT ${campos} FROM products p LEFT JOIN categories c ON c.id=p.category_id LEFT JOIN product_instructions pi ON pi.product_id=p.id ${where} ORDER BY p.created_at DESC LIMIT $${valores.length - 1} OFFSET $${valores.length}`, valores);
-  return rows;
+  const orderBy = ORDENES[orden] || ORDENES.recomendados;
+  const valoresFiltro = [...valores];
+  valores.push(limite, (pagina - 1) * limite);
+  const { rows } = await pool.query(
+    `SELECT ${campos}, COUNT(*) OVER()::integer AS total_filas
+     FROM products p
+     LEFT JOIN categories c ON c.id=p.category_id
+     LEFT JOIN product_instructions pi ON pi.product_id=p.id
+     ${where}
+     ORDER BY ${orderBy}
+     LIMIT $${valores.length - 1} OFFSET $${valores.length}`,
+    valores
+  );
+  let total = rows[0]?.total_filas;
+  if (total === undefined) {
+    // Página vacía (más allá del final): el total se obtiene aparte.
+    const { rows: conteo } = await pool.query(
+      `SELECT COUNT(*)::integer AS total FROM products p LEFT JOIN categories c ON c.id=p.category_id ${where}`,
+      valoresFiltro
+    );
+    total = conteo[0]?.total ?? 0;
+  }
+  const productos = rows.map(({ total_filas: _omitido, ...resto }) => resto);
+  return { productos, total };
 }
 
 export async function obtenerProductoBD(id) {
