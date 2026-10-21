@@ -10,12 +10,14 @@
 
 /* Barra lateral fija y estable en todas las vistas */
 .seller-sidebar {
-  background: #fff;
-  border-right: 1px solid #ebe6e5;
+  background: #ffffff;
+  border-right: 1px solid #e7e5e4;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.03);
+  color: #1b1c1c;
   display: flex;
   flex-direction: column;
-  padding: 1.25rem 1rem;
-  width: 250px;
+  padding: 1.25rem 0.85rem;
+  width: 240px;
   box-sizing: border-box;
   height: 100vh;
   height: 100dvh;
@@ -29,18 +31,20 @@
 .seller-sidebar header,
 .seller-sidebar__header {
   align-items: center;
-  border-bottom: 1px solid #eee8e7;
+  border-bottom: 1px solid #f0eded;
   display: flex;
   justify-content: space-between;
-  padding: .3rem .3rem 1.25rem;
+  padding: 0.25rem 0.5rem 1.25rem;
+  margin-bottom: 1rem;
   flex-shrink: 0;
 }
 
 .seller-sidebar header img,
 .seller-sidebar__header img {
-  height: 38px;
+  display: block;
+  height: 2.2rem;
+  width: auto;
   object-fit: contain;
-  width: 140px;
 }
 
 .seller-sidebar header button,
@@ -50,28 +54,8 @@
   color: #707974;
   cursor: pointer;
   display: none;
-  padding: 0.25rem;
-  border-radius: 6px;
-}
-
-.seller-sidebar__title {
-  color: #a6192e;
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  padding: 1rem 0.5rem 0.75rem;
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
-
-.seller-sidebar__title small {
-  color: #7c8581;
-  display: block;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0;
-  margin-top: 0.25rem;
-  text-transform: none;
+  padding: 0.35rem;
+  border-radius: 0.5rem;
 }
 
 /* Navegación lateral compacta y ordenada */
@@ -86,14 +70,14 @@
 
 .seller-sidebar nav a,
 .seller-sidebar__nav a {
-  align-items: center;
-  border-radius: 0.7rem;
-  color: #404944;
   display: flex;
-  font-size: 0.84rem;
-  font-weight: 700;
+  align-items: center;
   gap: 0.75rem;
   padding: 0.7rem 0.85rem;
+  border-radius: 0.7rem;
+  color: #404944;
+  font-size: 0.82rem;
+  font-weight: 700;
   text-decoration: none;
   transition: all 0.15s ease;
 }
@@ -127,24 +111,24 @@
 
 .seller-sidebar footer div.seller-user-card,
 .seller-user-card {
-  align-items: center;
-  background: #f8f5f4;
-  border-radius: 0.75rem;
   display: flex;
+  align-items: center;
   gap: 0.65rem;
+  background: #f6f3f2;
+  border-radius: 0.75rem;
   padding: 0.65rem 0.75rem;
-  border: 1px solid #eae7e7;
+  margin-bottom: 0.75rem;
 }
 
 .seller-user-card > span {
-  align-items: center;
-  background: #a6192e;
-  border-radius: 50%;
-  color: #fff;
   display: flex;
-  height: 2.2rem;
+  align-items: center;
   justify-content: center;
-  width: 2.2rem;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 50%;
+  background: #a6192e;
+  color: #ffffff;
   flex-shrink: 0;
 }
 
@@ -155,43 +139,43 @@
 }
 
 .seller-user-card b {
-  font-size: 0.82rem;
+  display: block;
+  font-size: 0.75rem;
   color: #1b1c1c;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .seller-user-card small {
+  display: block;
+  font-size: 0.62rem;
   color: #707974;
-  font-size: 0.68rem;
-  font-weight: 600;
   margin-top: 0.1rem;
 }
 
 .seller-sidebar footer button,
 .seller-sidebar-logout {
-  align-items: center;
-  background: #fff;
-  border: 1px solid #efd9dc;
-  border-radius: 0.65rem;
-  color: #a6192e;
-  cursor: pointer;
   display: flex;
-  font-size: 0.82rem;
-  font-weight: 800;
-  gap: 0.5rem;
+  align-items: center;
   justify-content: center;
-  margin-top: 0.75rem;
-  padding: 0.65rem 0.75rem;
+  gap: 0.5rem;
   width: 100%;
+  background: #ffffff;
+  border: 1px solid #ffdad6;
+  color: #ba1a1a;
+  border-radius: 0.65rem;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .seller-sidebar footer button:hover,
 .seller-sidebar-logout:hover {
-  background: #fff1f2;
-  border-color: #fca5a5;
+  background: #ffdad640;
 }
 
 /* Contenedor principal */
