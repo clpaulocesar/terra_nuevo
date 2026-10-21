@@ -109,9 +109,9 @@ export default function TimbrePedidos() {
 
   useEffect(() => {
     montado.current = true;
-    consultar();
+    const inicial = setTimeout(consultar, 0);
     const id = setInterval(consultar, INTERVALO_MS);
-    return () => { montado.current = false; clearInterval(id); };
+    return () => { montado.current = false; clearTimeout(inicial); clearInterval(id); };
   }, [consultar]);
 
   useEffect(() => {
