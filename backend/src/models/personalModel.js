@@ -39,14 +39,19 @@ export async function crearPersonalBD({ authUserId, nombre, email, rol }) {
   return rows[0];
 }
 
-export async function obtenerPersonalPorEmailBD(email) {
+// Busca una cuenta del equipo (staff_accounts) por correo.
+// Si además existe en la tabla `users` (clientes), se toma el rol de staff.
+export async function buscarCuentaStaffBD(email) {
   await asegurarTablaPersonal();
+  const correo = String(email || '').trim().toLowerCase();
+  if (!correo) return null;
   const { rows } = await pool.query(`
-    SELECT id, auth_user_id, name AS nombre, email, role AS rol, is_active AS activo, created_at AS fecha_registro
+    SELECT id, auth_user_id, name AS nombre, email, role AS rol, is_active AS activo
     FROM staff_accounts
-    WHERE LOWER(email) = LOWER($1)
+    WHERE lower(email) = $1
     LIMIT 1
-  `, [email]);
-  return rows[0] || null;
+  `, [correo]);
+  if (!rows.length) return null;
+  const cuenta = rows[0];
+  return { ...cuenta, activo: cuenta.activo !== false };
 }
-

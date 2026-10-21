@@ -1,11 +1,11 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect, useRef } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, Delete, ShieldCheck, UserRound } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ShieldCheck, UserRound } from 'lucide-react';
 import { ClienteContext } from '../context/ClienteContext.jsx';
-import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { validarDatosCliente } from '../utils/validaciones.js';
 import './Identificacion.css';
+import TecladoTactil from '../components/ui/TecladoTactil.jsx';
 
 const campos = [
   ['nombre', 'Nombre y apellidos', UserRound, 'Ej: Carlos Mendoza'],
@@ -13,33 +13,77 @@ const campos = [
   ['nit', 'NIT', null, 'Ej: 5123456'],
 ];
 
-const TECLADO_LETRAS = [
-  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ'],
-  ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
-];
-const TECLADO_NUMEROS = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['0']];
-
 export default function Identificacion() {
   const { cliente, setCliente, limpiarCliente } = useContext(ClienteContext);
-  const { esMayorista } = useContext(SesionClienteContext);
   const { items } = useCarrito();
   const [datos, setDatos] = useState(cliente);
   const [errores, setErrores] = useState({});
   const [activo, setActivo] = useState('nombre');
   const [whatsapp, setWhatsapp] = useState(true);
-  const [mayusculas, setMayusculas] = useState(true);
+  const [tecladoAbierto, setTecladoAbierto] = useState(false);
+  const [esTactil, setEsTactil] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+  );
+  const [campoActivo, setCampoActivo] = useState(null);
+  const tecladoRef = useRef(null);
   const nav = useNavigate();
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const mq = window.matchMedia('(pointer: coarse)');
+    const actualizar = (e) => setEsTactil(e.matches);
+    mq.addEventListener('change', actualizar);
+    return () => mq.removeEventListener('change', actualizar);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!tecladoAbierto || !esTactil) return;
+      if (tecladoRef.current && !tecladoRef.current.contains(event.target)) {
+        if (!event.target.closest('input')) {
+          cerrarTeclado();
+        }
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [tecladoAbierto, esTactil]);
+
   if (!items.length) return <Navigate to="/carrito" replace />;
-  if (esMayorista) return <Navigate to="/confirmacion" replace />;
+
+  const agregarCaracter = (caracter) => {
+    if (!campoActivo) return;
+    setDatos((anterior) => ({ ...anterior, [campoActivo]: anterior[campoActivo] + caracter }));
+  };
+
+
+  const borrarCaracter = () => {
+    if (!campoActivo) return;
+    setDatos((anterior) => {
+      const valor = anterior[campoActivo];
+      return { ...anterior, [campoActivo]: valor.slice(0, -1) };
+    });
+  };
+
+  const limpiarCampo = () => {
+    if (!campoActivo) return;
+    setDatos((anterior) => ({ ...anterior, [campoActivo]: '' }));
+  };
+
+  const abrirTeclado = (id) => {
+    setCampoActivo(id);
+    if (esTactil) setTecladoAbierto(true);
+  };
+
+  const cerrarTeclado = () => {
+    setTecladoAbierto(false);
+    setCampoActivo(null);
+  };
 
   const seguir = (event) => {
     event.preventDefault();
+    cerrarTeclado();
     const erroresNuevos = validarDatosCliente(datos);
-    if (whatsapp && !datos.telefono.trim()) {
-      erroresNuevos.telefono = 'Ingresa tu número para recibir el comprobante por WhatsApp';
-    }
     setErrores(erroresNuevos);
     if (Object.keys(erroresNuevos).length) return;
 
@@ -53,21 +97,11 @@ export default function Identificacion() {
     nav('/confirmacion');
   };
 
-  const esNumerico = activo === 'telefono' || activo === 'nit';
-  const actualizarCampo = (valor) => setDatos((anterior) => ({
-    ...anterior,
-    [activo]: esNumerico ? valor.replace(/\D/g, '').slice(0, 20) : valor.slice(0, 120),
-  }));
-  const agregarTecla = (tecla) => {
-    const valor = datos[activo] || '';
-    actualizarCampo(`${valor}${esNumerico ? tecla : (mayusculas ? tecla : tecla.toLowerCase())}`);
-  };
-  const borrarTecla = () => actualizarCampo((datos[activo] || '').slice(0, -1));
-  const bloquearTecladoNativo = (event) => event.preventDefault();
-
   return (
-    <section className="ident-page">
-      <header><Link to="/carrito"><ArrowLeft size={19} /> Volver al carrito</Link><span>Paso 2 de 3 · Identificación</span></header>
+    <section className="ident-page" style={{ paddingBottom: tecladoAbierto && esTactil ? 320 : 0 }}>
+      <header>
+        <Link to="/carrito"><ArrowLeft size={19} /> Volver al carrito</Link>
+      </header>
       <h1>Datos para tu pedido en tienda</h1>
       <p className="ident-lead">Ingresá tus datos para asociar el ticket y llamarte en caja o coordinar el despacho.</p>
       <div className="ident-layout">
@@ -86,52 +120,39 @@ export default function Identificacion() {
                     <input
                       value={datos[id]}
                       placeholder={placeholder}
-                      inputMode="none"
+                      inputMode={esTactil ? 'none' : id === 'telefono' || id === 'nit' ? 'numeric' : 'text'}
                       autoComplete={id === 'nombre' ? 'name' : id === 'telefono' ? 'tel' : 'off'}
-                      readOnly
-                      onFocus={() => setActivo(id)}
-                      onClick={() => setActivo(id)}
-                      onKeyDown={bloquearTecladoNativo}
-                      onPaste={bloquearTecladoNativo}
-                      onDrop={bloquearTecladoNativo}
+                      readOnly={esTactil}
+                      onFocus={() => { setActivo(id); abrirTeclado(id); }}
+                      onChange={(event) => setDatos((anterior) => ({
+                        ...anterior,
+                        [id]: id === 'nit' ? event.target.value.replace(/\D/g, '').slice(0, 20) : event.target.value,
+                      }))}
                     />
                   </div>
                   {errores[id] && <small>{errores[id]}</small>}
                 </label>
               ))}
             </div>
-            <section className="ident-keyboard" aria-label={`Teclado para ${campos.find(([id]) => id === activo)?.[1]}`}>
-              <header>
-                <span>{esNumerico ? 'Teclado numérico' : 'Teclado alfabético'}</span>
-                <small>Usá este teclado para completar el campo seleccionado</small>
-              </header>
-              {esNumerico ? (
-                <div className="ident-keyboard__numeric">
-                  {TECLADO_NUMEROS.flat().map((tecla) => <button type="button" key={tecla} onClick={() => agregarTecla(tecla)}>{tecla}</button>)}
-                </div>
-              ) : (
-                <div className="ident-keyboard__letters">
-                  {TECLADO_LETRAS.map((fila) => <div key={fila.join('')}>
-                    {fila.map((tecla) => <button type="button" key={tecla} onClick={() => agregarTecla(tecla)}>{mayusculas ? tecla : tecla.toLowerCase()}</button>)}
-                  </div>)}
-                  <div className="ident-keyboard__actions">
-                    <button type="button" className={mayusculas ? 'selected' : ''} onClick={() => setMayusculas((valor) => !valor)}>Aa</button>
-                    <button type="button" className="space" onClick={() => agregarTecla(' ')}>espacio</button>
-                  </div>
-                </div>
-              )}
-              <button type="button" className="ident-keyboard__delete" onClick={borrarTecla} aria-label="Borrar último carácter"><Delete size={20} /> Borrar</button>
-            </section>
             <button className="ident-whatsapp" type="button" onClick={() => setWhatsapp(!whatsapp)}>
               <span>{whatsapp && <Check size={17} />}</span>
-              <div><b>Deseo recibir mi comprobante por WhatsApp</b><small>Lo solicitarás al WhatsApp TERRA: 75335697</small></div>
+              <div><b>Deseo recibir mi comprobante por WhatsApp</b><small>Notificación instantánea con link de seguimiento</small></div>
             </button>
             <button className="ident-next" type="submit">Continuar a confirmación <ArrowRight size={20} /></button>
-            <button className="ident-guest" type="button" onClick={() => { limpiarCliente(); nav('/confirmacion'); }}>Continuar como invitado</button>
+            <button className="ident-guest" type="button" onClick={() => { cerrarTeclado(); limpiarCliente(); nav('/confirmacion'); }}>Continuar como invitado</button>
           </div>
           <aside><ShieldCheck size={23} /><p>Tu privacidad está protegida. Solo utilizaremos tus datos para procesar este pedido.</p></aside>
         </form>
       </div>
+        {esTactil && tecladoAbierto && (
+          <TecladoTactil
+            ref={tecladoRef}
+            onCaracter={agregarCaracter}
+            onBorrar={borrarCaracter}
+            onLimpiar={limpiarCampo}
+            onCerrar={cerrarTeclado}
+          />
+        )}
     </section>
   );
 }
