@@ -2091,3 +2091,52 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 .terra-cat--ofertas.terra-cat--active { background: linear-gradient(135deg, #a6192e, #e0304a); color: #fff; border-color: transparent; }
 .terra-cat--ofertas:hover .terra-cat__icon,
 .terra-cat--ofertas.terra-cat--active .terra-cat__icon { color: #ffd08a; }
+
+/* --- Escáner QR: lectura en pausa y cantidad del producto leído --- */
+.catalog-qr-camera.is-paused video { filter: brightness(0.45) saturate(0.6); }
+.catalog-qr-camera-pause {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.85rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+.catalog-qr-camera-pause svg { background: var(--ok); border-radius: 50%; padding: 6px; width: 42px; height: 42px; }
+.catalog-qr-scanned {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.75rem;
+  margin-top: 0.25rem;
+  background: #fff;
+  border: 1px solid var(--vino);
+  box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.08);
+  border-radius: 12px;
+}
+.catalog-qr-scanned__info { flex: 1 1 140px; display: grid; gap: 0.15rem; min-width: 0; }
+.catalog-qr-scanned__info b { color: var(--tinta); font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.catalog-qr-scanned__info small { color: var(--muted); font-size: 0.72rem; }
+.catalog-qr-scanned__qty { display: inline-flex; align-items: center; gap: 0.35rem; background: #faf7f5; border: 1px solid var(--linea); border-radius: 10px; padding: 3px; }
+.catalog-qr-scanned__qty button {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border: none; border-radius: 8px;
+  background: #fff; color: var(--vino); cursor: pointer;
+}
+.catalog-qr-scanned__qty button:hover { background: var(--vino-suave); }
+.catalog-qr-scanned__qty button:disabled { color: #adb7b1; cursor: not-allowed; background: transparent; }
+.catalog-qr-scanned__qty strong { min-width: 1.8rem; text-align: center; font-size: 1rem; color: var(--tinta); }
+.catalog-qr-scanned__next {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  height: 40px; padding: 0 14px; border-radius: 10px;
+  border: 2px solid var(--vino); background: #fff; color: var(--vino);
+  font-weight: 900; font-size: 0.85rem; cursor: pointer;
+}
+.catalog-qr-scanned__next:hover { background: var(--vino); color: #fff; }
