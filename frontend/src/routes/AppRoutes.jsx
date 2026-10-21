@@ -37,6 +37,9 @@ import CategoriasAdmin from '../pages/admin/CategoriasAdmin.jsx';
 import ReportesAdmin from '../pages/admin/ReportesAdmin.jsx';
 import LoginAdmin from '../pages/admin/LoginAdmin.jsx';
 import RutaAdmin from '../components/admin/RutaAdmin.jsx';
+import VendedorLayout from '../components/vendedor/VendedorLayout.jsx';
+import DashboardVendedor from '../pages/vendedor/DashboardVendedor.jsx';
+import LoginVendedor from '../pages/vendedor/LoginVendedor.jsx';
 import ChatAsistente from '../components/chat/ChatAsistente.jsx';
 import CarritoFlotante from '../components/cart/CarritoFlotante.jsx';
 import WebAccountModal from '../components/WebAccountModal.jsx';
@@ -271,6 +274,7 @@ export default function AppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="admin/login" element={<LoginAdmin />} />
+        <Route path="vendedor/login" element={<LoginVendedor />} />
         <Route path="admin" element={<RutaAdmin><AdminLayout /></RutaAdmin>}>
           <Route index element={<DashboardAdmin />} />
           <Route path="productos" element={<RutaAdmin roles={['admin']}><ProductosAdmin /></RutaAdmin>} />
@@ -280,6 +284,12 @@ export default function AppRoutes() {
           <Route path="clientes" element={<RutaAdmin roles={['admin', 'vendedor']}><ClientesAdmin /></RutaAdmin>} />
           <Route path="personal" element={<RutaAdmin roles={['admin']}><PersonalAdmin /></RutaAdmin>} />
           <Route path="reportes" element={<RutaAdmin roles={['admin']}><ReportesAdmin /></RutaAdmin>} />
+        </Route>
+        <Route path="vendedor" element={<RutaAdmin roles={['vendedor']}><VendedorLayout /></RutaAdmin>}>
+          <Route index element={<DashboardVendedor />} />
+          <Route path="ventas" element={<VentasDirectasAdmin />} />
+          <Route path="pedidos" element={<PedidosAdmin />} />
+          <Route path="clientes" element={<ClientesAdmin />} />
         </Route>
         <Route element={<Layout />}>
           <Route index element={<Bienvenida />} />
