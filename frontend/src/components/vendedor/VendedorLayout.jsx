@@ -93,15 +93,6 @@ export default function VendedorLayout() {
           <div className="seller-header__actions">
             <TimbrePedidos />
             <span className="seller-role-badge">Vendedor</span>
-            <button
-              type="button"
-              className="seller-header-logout"
-              onClick={salir}
-              title="Cerrar sesión de vendedor"
-            >
-              <LogOut size={16} />
-              <span>Cerrar sesión</span>
-            </button>
           </div>
         </header>
         <main className="seller-content">
