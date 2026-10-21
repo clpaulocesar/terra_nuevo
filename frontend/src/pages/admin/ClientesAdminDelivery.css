@@ -1,0 +1,6 @@
+.clients-table table { min-width: 1020px; }
+.client-delivery { display: grid; gap: .25rem; max-width: 185px; }
+.client-delivery b { color: #39423e; font-size: .74rem; line-height: 1.3; }
+.client-delivery small { color: #78817d; font-size: .66rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.client-delivery span, .client-delivery--na { color: #858d89; font-size: .7rem; font-style: italic; }
+.client-delivery span { color: #a67a1a; font-style: normal; font-weight: 700; }

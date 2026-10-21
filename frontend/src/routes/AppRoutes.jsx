@@ -304,7 +304,7 @@ export default function AppRoutes() {
           <Route path="personal" element={<RutaAdmin roles={['admin']}><PersonalAdmin /></RutaAdmin>} />
           <Route path="reportes" element={<RutaAdmin roles={['admin']}><ReportesAdmin /></RutaAdmin>} />
         </Route>
-        <Route path="vendedor" element={<RutaAdmin roles={['vendedor']}><VendedorLayout /></RutaAdmin>}>
+        <Route path="vendedor" element={<RutaAdmin roles={['vendedor', 'admin']}><VendedorLayout /></RutaAdmin>}>
           <Route index element={<DashboardVendedor />} />
           <Route path="ventas" element={<VentasDirectasAdmin />} />
           <Route path="pedidos" element={<PedidosAdmin />} />

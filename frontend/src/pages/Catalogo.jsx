@@ -300,6 +300,7 @@ export default function Catalogo() {
 
   // Búsqueda, categoría y orden ya vienen aplicados desde el backend por página.
   const productosFiltrados = productosOrdenados;
+  const ventasMaximas = Math.max(0, ...productosFiltrados.map((producto) => Number(producto.ventas || 0)));
 
   const handleAgregar = (producto, cantidad = 1) => {
     if (!agregarProducto(producto, cantidad)) { anunciar(`No se pudo agregar ${producto.nombre}.`); return; }
@@ -738,6 +739,12 @@ export default function Catalogo() {
                         />
 
                         <div className="terra-card__badges">
+                          {ventasMaximas > 0 && Number(producto.ventas || 0) === ventasMaximas && (
+                            <span className="terra-badge terra-badge--bestseller">
+                              <span className="material-symbols-outlined terra-badge__icon">workspace_premium</span>
+                              Más vendido
+                            </span>
+                          )}
                           {producto.descuento && (
                             <span className="terra-badge terra-badge--promo">
                               <span className="material-symbols-outlined terra-badge__icon">local_fire_department</span>
