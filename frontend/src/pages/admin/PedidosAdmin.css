@@ -1,4 +1,14 @@
 /* Adjunto de comprobante de pago en el modal de cobro de Pedidos */
+.orders-list-tools{align-items:center;display:flex;flex-wrap:wrap;gap:.5rem}
+.orders-list-tools label{flex:1 1 240px;min-width:0}
+.orders-refresh{align-items:center;background:#f0eded;border:0;border-radius:.6rem;color:#404944;cursor:pointer;display:inline-flex;font-size:.78rem;font-weight:800;gap:.35rem;min-height:2.5rem;padding:0 .8rem;transition:background .15s,color .15s}
+.orders-refresh:hover{background:#e4e2e1;color:#a6192e}
+.orders-refresh:disabled{cursor:progress;opacity:.65}
+.orders-refresh .is-spinning{animation:orders-spin 1s linear infinite}
+.orders-client-data{color:#404944!important;font-size:.82rem;font-weight:700;margin:.15rem 0 0!important}
+@keyframes orders-spin{to{transform:rotate(360deg)}}
+@media(max-width:700px){.orders-list>header{align-items:flex-start;flex-direction:column;gap:.75rem}.orders-list-tools{width:100%}}
+
 .orders-modal .orders-receipt{background:#f6f3f2;border:1px dashed #dcd9d9;border-radius:.8rem;margin-top:1rem;padding:.85rem 1rem}
 .orders-modal .orders-receipt-head{align-items:center;display:flex;gap:.5rem;justify-content:space-between}
 .orders-modal .orders-receipt-head b{align-items:center;color:#1b1c1c;display:flex;font-size:.85rem;gap:.4rem}

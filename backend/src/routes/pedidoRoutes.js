@@ -15,7 +15,7 @@ const router = Router();
 
 router.post('/', crearPedido);
 router.post('/venta-directa', authAdmin, crearVentaDirecta);
-router.get('/', listarPedidos);
+router.get('/', authAdmin, listarPedidos);
 router.patch('/:id/estado', actualizarEstadoPedido);
 router.patch('/:id/pago', registrarPagoPedido);
 router.get('/:id', obtenerPedido);

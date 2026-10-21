@@ -101,7 +101,7 @@ function construirFiltros({ buscar = '', categoria = '', soloActivos = false, so
   // Filtro hardcoded: solo estos productos
   const placeholders = PRODUCTOS_PERMITIDOS.map((_, i) => `$${valores.length + 1 + i}`).join(', ');
   PRODUCTOS_PERMITIDOS.forEach(n => valores.push(n));
-  condiciones.push(`p.name IN (${placeholders})`);
+  condiciones.push(`(p.name IN (${placeholders}) OR UPPER(COALESCE(c.name, '')) = 'ALMOHADA')`);
   if (Number.isFinite(precioMin)) { valores.push(precioMin); condiciones.push(`COALESCE(p.public_price, 0) >= $${valores.length}`); }
   if (Number.isFinite(precioMax)) { valores.push(precioMax); condiciones.push(`COALESCE(p.public_price, 0) <= $${valores.length}`); }
   return { valores, condiciones };

@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { ClipboardList, LayoutDashboard, LogOut, Menu, ShoppingCart, Users, X } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, ReceiptText, ShoppingCart, Users, X } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { cerrarSesionAdmin, getAdminUser } from '../../services/adminService.js';
+import TimbrePedidos from '../admin/TimbrePedidos.jsx';
 import './VendedorLayout.css';
 
 const enlaces = [
-  { to: '/vendedor', label: 'Inicio', icon: LayoutDashboard, end: true },
-  { to: '/vendedor/ventas', label: 'Nueva venta', icon: ShoppingCart },
-  { to: '/vendedor/pedidos', label: 'Pedidos', icon: ClipboardList },
+  { to: '/vendedor', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/vendedor/pedidos', label: 'Pedidos', icon: ReceiptText },
+  { to: '/vendedor/ventas', label: 'Ventas directas', icon: ShoppingCart },
   { to: '/vendedor/clientes', label: 'Clientes', icon: Users },
 ];
 
@@ -18,7 +19,7 @@ export default function VendedorLayout() {
 
   const salir = () => {
     cerrarSesionAdmin();
-    navigate('/vendedor/login', { replace: true });
+    navigate('/', { replace: true });
   };
 
   return (
@@ -43,11 +44,6 @@ export default function VendedorLayout() {
             <X size={20} />
           </button>
         </header>
-
-        <div className="seller-sidebar__title">
-          Portal de ventas
-          <small>Sucursal Equipetrol</small>
-        </div>
 
         <nav className="seller-sidebar__nav">
           {enlaces.map(({ to, label, icon: Icon, end }) => (
@@ -95,16 +91,8 @@ export default function VendedorLayout() {
             <strong>Hola, {usuario.nombre}</strong>
           </div>
           <div className="seller-header__actions">
+            <TimbrePedidos />
             <span className="seller-role-badge">Vendedor</span>
-            <button
-              type="button"
-              className="seller-header-logout"
-              onClick={salir}
-              title="Cerrar sesión de vendedor"
-            >
-              <LogOut size={16} />
-              <span>Cerrar sesión</span>
-            </button>
           </div>
         </header>
         <main className="seller-content">
