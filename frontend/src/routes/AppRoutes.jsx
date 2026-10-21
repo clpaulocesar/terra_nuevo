@@ -3,7 +3,7 @@ import {
   BrowserRouter, Routes, Route, Navigate, Link,
   NavLink, Outlet, useNavigate, useLocation, useSearchParams,
 } from 'react-router-dom';
-import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut, ChevronDown, BadgeCheck, BookOpen, ReceiptText, MessageCircle, FileText, Repeat2, ContactRound, QrCode } from 'lucide-react';
+import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut, ChevronDown, BadgeCheck, BookOpen, ReceiptText, MessageCircle, FileText, Repeat2, ContactRound, QrCode, Menu, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { useProductos } from '../hooks/useProductos.js';
 import { ClienteContext } from '../context/ClienteContext.jsx';
@@ -61,6 +61,7 @@ function Layout() {
   const { sesion, esMayorista, cerrarSesion } = useContext(SesionClienteContext);
   const [cuentaAbierta, setCuentaAbierta] = useState(false);
   const [menuCuentaAbierto, setMenuCuentaAbierto] = useState(false);
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
   const [unidadesQr, setUnidadesQr] = useState(() => (leerCarritoQr() || []).reduce((t, i) => t + Number(i.cantidad || 0), 0));
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,6 +72,10 @@ function Layout() {
     actualizar();
     window.addEventListener('storage', actualizar);
     return () => window.removeEventListener('storage', actualizar);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    setMenuMovilAbierto(false);
   }, [location.pathname]);
 
   const abrirAdminConLogo = (event) => {
@@ -101,6 +106,18 @@ function Layout() {
           </Link>
         </div>
 
+        <button
+          type="button"
+          className="terra-menu-toggle"
+          aria-label={menuMovilAbierto ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={menuMovilAbierto}
+          aria-controls="terra-menu-movil"
+          onClick={() => setMenuMovilAbierto((abierto) => !abierto)}
+        >
+          {menuMovilAbierto ? <X size={20} /> : <Menu size={20} />}
+        </button>
+
+        <div id="terra-menu-movil" className={`terra-header-nav${menuMovilAbierto ? ' is-open' : ''}`}>
         {/* Desktop & Tablet Navigation */}
         <nav className="desktop-nav" aria-label="Navegación principal">
           <NavLink to="/catalogo"><Package size={17} /> <span>Catálogo de Productos</span></NavLink>
@@ -111,7 +128,7 @@ function Layout() {
           <BotonesVoz />
           <BotonTema />
           <div className="terra-account">
-            <button type="button" className={`terra-login-button${esMayorista ? ' terra-login-button--mayorista' : ''}`} aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : setCuentaAbierta(true)}>{esMayorista ? <i className="terra-account-avatar">{inicialesCuenta}</i> : <UserRound size={19} />}<span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span>{esMayorista && <ChevronDown size={15} className={menuCuentaAbierto ? 'is-open' : ''} />}</button>
+            <button type="button" className={`terra-login-button${esMayorista ? ' terra-login-button--mayorista' : ''}`} aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => { setMenuMovilAbierto(false); return esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : setCuentaAbierta(true); }}>{esMayorista ? <i className="terra-account-avatar">{inicialesCuenta}</i> : <UserRound size={19} />}<span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span>{esMayorista && <ChevronDown size={15} className={menuCuentaAbierto ? 'is-open' : ''} />}</button>
             {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu">
               <div className="terra-account-summary">
                 <i className="terra-account-avatar terra-account-avatar--large">{inicialesCuenta}</i>
@@ -140,7 +157,9 @@ function Layout() {
           </NavLink>
           <NavLink to="/" end className="terra-home-btn" title="Inicio">
             <Home size={18} />
+            <span>Inicio</span>
           </NavLink>
+        </div>
         </div>
       </header>
       {cuentaAbierta && <WebAccountModal onClose={() => setCuentaAbierta(false)} />}

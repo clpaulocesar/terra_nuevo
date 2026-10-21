@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import { crearTokenAdmin } from '../middlewares/authAdmin.js';
-import { obtenerPersonalPorEmailBD } from '../models/personalModel.js';
+import { buscarCuentaStaffBD } from '../models/personalModel.js';
 import { autenticarUsuarioSupabase } from '../services/supabaseAuth.js';
 
 function coincide(valor, esperado) {
@@ -43,7 +43,7 @@ export async function iniciarSesionAdmin(req, res, next) {
     }
 
     // 2. Personal administrativo registrado en base de datos (staff_accounts)
-    const personal = await obtenerPersonalPorEmailBD(emailNormalizado).catch(() => null);
+    const personal = await buscarCuentaStaffBD(emailNormalizado).catch(() => null);
 
     if (personal) {
       if (!personal.activo) {
@@ -96,4 +96,3 @@ export function perfilAdmin(req, res) {
     },
   });
 }
-
