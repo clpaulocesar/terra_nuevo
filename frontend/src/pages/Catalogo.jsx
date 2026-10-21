@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect, useRef, useContext } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Camera, Check, ExternalLink, ShoppingCart, X } from 'lucide-react';
+import { ArrowRight, Camera, Check, ExternalLink, Minus, Plus, ScanLine, ShoppingCart, Trash2, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { obtenerProducto } from '../services/productoService.js';
-import { agregarProductoCarritoQr, leerCarritoQr } from '../services/qrCartService.js';
+import { agregarProductoCarritoQr, leerCarritoQr, actualizarCantidadCarritoQr } from '../services/qrCartService.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { obtenerIconoCategoria } from '../data/categorias.js';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
@@ -232,6 +232,11 @@ export default function Catalogo() {
   const [estadoEscaner, setEstadoEscaner] = useState('');
   const [errorEscaner, setErrorEscaner] = useState(false);
   const [ultimoProductoQrId, setUltimoProductoQrId] = useState('');
+  // Tras leer un QR el escáner queda en pausa: así un mismo código no se suma
+  // varias veces mientras sigue delante de la cámara. La cantidad se ajusta a
+  // mano y "Escanear otro" reanuda la lectura.
+  const [escaneoPausado, setEscaneoPausado] = useState(false);
+  const escaneoPausadoRef = useRef(false);
 
   const videoEscanerRef = useRef(null);
   const escanerProcesandoRef = useRef(false);
@@ -371,6 +376,27 @@ export default function Catalogo() {
     return /^[a-zA-Z0-9_-]{1,100}$/.test(valor) ? valor : null;
   };
 
+  const itemQrEscaneado = ultimoProductoQrId
+    ? carritoQr.find((item) => item.id === ultimoProductoQrId && !item.color) || null
+    : null;
+
+  const reanudarEscaneo = () => {
+    escaneoPausadoRef.current = false;
+    escanerProcesandoRef.current = false;
+    setEscaneoPausado(false);
+    setErrorEscaner(false);
+    setEstadoEscaner('Apuntá la cámara al siguiente código QR.');
+  };
+
+  const cambiarCantidadQr = (id, cantidad) => {
+    const items = actualizarCantidadCarritoQr(id, cantidad);
+    setCarritoQr(items);
+    if (!items.some((item) => item.id === id && !item.color)) {
+      setUltimoProductoQrId('');
+      reanudarEscaneo();
+    }
+  };
+
   const confirmarCompraQr = () => {
     if (!unidadesQr) return;
     setEscanerAbierto(false);
@@ -382,6 +408,8 @@ export default function Catalogo() {
     let cancelado = false;
     let controlesCamara;
     escanerProcesandoRef.current = false;
+    escaneoPausadoRef.current = false;
+    setEscaneoPausado(false);
     setEstadoEscaner('Solicitando acceso a la cámara…');
     setErrorEscaner(false);
     const mostrarErrorCamara = (error) => {
@@ -403,7 +431,7 @@ export default function Catalogo() {
           { video: { facingMode: { ideal: 'environment' } } },
           videoEscanerRef.current,
           async (resultado) => {
-            if (cancelado || !resultado || escanerProcesandoRef.current) return;
+            if (cancelado || !resultado || escanerProcesandoRef.current || escaneoPausadoRef.current) return;
             escanerProcesandoRef.current = true;
             const idProducto = obtenerIdDelQr(resultado.getText());
             if (!idProducto) {
@@ -420,13 +448,16 @@ export default function Catalogo() {
               setUltimoProductoQrId(String(producto.id));
               const resultadoAgregar = agregarProductoCarritoQr(producto);
               setCarritoQr(resultadoAgregar.items);
+              // Pausa hasta que el usuario toque "Escanear otro".
+              escaneoPausadoRef.current = true;
+              setEscaneoPausado(true);
               if (!resultadoAgregar.agregado) {
                 setEstadoEscaner(resultadoAgregar.motivo === 'stock-maximo'
                   ? `Ya agregaste todas las unidades disponibles de ${producto.nombre}.`
                   : `${producto.nombre} no está disponible para la compra.`);
                 setErrorEscaner(true);
               } else {
-                setEstadoEscaner(`${producto.nombre} agregado. Escaneá otro producto o confirmá la compra.`);
+                setEstadoEscaner(`${producto.nombre} agregado. Ajustá la cantidad, escaneá otro producto o confirmá la compra.`);
               }
             } catch (err) {
               if (!cancelado) {
@@ -975,13 +1006,39 @@ export default function Catalogo() {
             </header>
             <h2 id="catalog-qr-title">Escaneá un producto</h2>
             <p>Apuntá la cámara al código QR de un producto. Podés escanear varios antes de confirmar.</p>
-            <div className="catalog-qr-camera">
+            <div className={`catalog-qr-camera${escaneoPausado ? ' is-paused' : ''}`}>
               <video ref={videoEscanerRef} autoPlay muted playsInline aria-label="Vista de cámara para escanear códigos QR" />
               <span className="catalog-qr-camera-frame" aria-hidden="true" />
+              {escaneoPausado && (
+                <div className="catalog-qr-camera-pause" aria-hidden="true">
+                  <Check size={28} />
+                  <span>Código leído · lectura en pausa</span>
+                </div>
+              )}
             </div>
             <p className={`catalog-qr-status${errorEscaner ? ' is-error' : ''}`} role="status" aria-live="polite">
               {estadoEscaner || 'La cámara se activará para leer el código.'}
             </p>
+            {escaneoPausado && itemQrEscaneado && (
+              <div className="catalog-qr-scanned">
+                <div className="catalog-qr-scanned__info">
+                  <b>{itemQrEscaneado.nombre}</b>
+                  <small>{formatoMoneda(itemQrEscaneado.precio)} c/u · {itemQrEscaneado.stock} disponibles</small>
+                </div>
+                <div className="catalog-qr-scanned__qty" aria-label={`Cantidad de ${itemQrEscaneado.nombre}`}>
+                  <button type="button" aria-label="Quitar una unidad" onClick={() => cambiarCantidadQr(itemQrEscaneado.id, itemQrEscaneado.cantidad - 1)}>
+                    {itemQrEscaneado.cantidad <= 1 ? <Trash2 size={16} /> : <Minus size={16} />}
+                  </button>
+                  <strong>{itemQrEscaneado.cantidad}</strong>
+                  <button type="button" aria-label="Agregar una unidad" disabled={itemQrEscaneado.cantidad >= itemQrEscaneado.stock} onClick={() => cambiarCantidadQr(itemQrEscaneado.id, itemQrEscaneado.cantidad + 1)}>
+                    <Plus size={16} />
+                  </button>
+                </div>
+                <button type="button" className="catalog-qr-scanned__next" onClick={reanudarEscaneo}>
+                  <ScanLine size={16} /> Escanear otro
+                </button>
+              </div>
+            )}
             <div className="catalog-qr-summary">
               <div>
                 <b><ShoppingCart size={16} /> {unidadesQr} {unidadesQr === 1 ? 'unidad' : 'unidades'}</b>
