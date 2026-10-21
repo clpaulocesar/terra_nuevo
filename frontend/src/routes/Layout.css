@@ -83,12 +83,27 @@
   border-color: #a6192e;
 }
 
+.terra-home-btn span {
+  display: none;
+}
+
+.terra-menu-toggle {
+  display: none;
+}
+
+/* Contenedor de navegación + acciones del encabezado */
+.terra-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
 /* Navegación para PC y Tablet */
 .desktop-nav {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-left: auto;
 }
 
 .desktop-nav a {
@@ -217,6 +232,10 @@
 /* En tablet conservamos los accesos del encabezado sin forzar un ancho mayor
    que la pantalla: el catálogo queda representado por su icono. */
 @media (max-width: 768px) {
+  .site-header.terra-header {
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
   .site-header.terra-header .desktop-nav {
     flex: 0 1 auto;
     margin-left: 0;
@@ -243,6 +262,9 @@
   .site-header.terra-header {
     padding: 0.5rem 1rem;
     min-height: 56px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow: visible !important;
   }
 
   .terra-header .terra-logo img {
@@ -258,11 +280,138 @@
     display: none;
   }
 
-  /* Ocultar botones de voz (lectura + micrófono), tema (día/noche) y login en móvil */
-  .terra-header-right .terra-voz,
-  .terra-header-right .terra-theme-btn,
-  .terra-header-right .terra-account {
+  /* En móvil la navegación y las acciones se agrupan en un menú hamburguesa */
+  .terra-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-left: auto;
+    border-radius: 0.75rem;
+    border: 1px solid #dcd9d9;
+    background-color: #f6f3f2;
+    color: #404944;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .terra-menu-toggle:hover {
+    background-color: #f0eded;
+    color: #a6192e;
+  }
+
+  .terra-menu-toggle[aria-expanded="true"] {
+    background-color: #a6192e;
+    border-color: #a6192e;
+    color: #ffffff;
+  }
+
+  .terra-header-nav {
     display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0.85rem 1rem 1rem;
+    background: #ffffff;
+    border-bottom: 1px solid #e7e5e4;
+    box-shadow: 0 14px 24px rgba(0, 0, 0, 0.12);
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
+    z-index: 55;
+  }
+
+  .terra-header-nav.is-open {
+    display: flex;
+  }
+
+  #terra-menu-movil .desktop-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+  }
+
+  #terra-menu-movil .desktop-nav a {
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    gap: 0.55rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: 0.7rem;
+    font-size: 0.9rem;
+  }
+
+  #terra-menu-movil .desktop-nav a span,
+  #terra-menu-movil .terra-home-btn span {
+    display: inline;
+  }
+
+  #terra-menu-movil .terra-header-right {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0;
+    padding-top: 0.6rem;
+    border-top: 1px solid #efeceb;
+  }
+
+  #terra-menu-movil .terra-header-right .terra-voz {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  #terra-menu-movil .terra-header-right .terra-theme-btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+  }
+
+  #terra-menu-movil .terra-header-right .terra-account {
+    display: flex;
+  }
+
+  #terra-menu-movil .terra-account,
+  #terra-menu-movil .terra-cart-link,
+  #terra-menu-movil .terra-home-btn {
+    flex: 1 0 100%;
+    width: 100%;
+  }
+
+  #terra-menu-movil .terra-login-button {
+    width: 100%;
+    height: 44px;
+    justify-content: flex-start;
+  }
+
+  #terra-menu-movil .terra-account-menu {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    margin-top: 0.5rem;
+    box-shadow: none;
+  }
+
+  #terra-menu-movil .terra-cart-link {
+    justify-content: flex-start;
+    background-color: #f6f3f2;
+    border: 1px solid #dcd9d9;
+  }
+
+  #terra-menu-movil .terra-home-btn {
+    width: 100%;
+    height: 2.75rem;
+    justify-content: flex-start;
+    gap: 0.55rem;
+    padding: 0 0.8rem;
+    border-radius: 0.7rem;
   }
 
 .page-content {
@@ -341,7 +490,7 @@
 }
 
 @media (max-width: 360px) {
-  .terra-header-right .terra-cart-link > span {
+  .site-header > .terra-header-right .terra-cart-link > span {
     display: none;
   }
 }
