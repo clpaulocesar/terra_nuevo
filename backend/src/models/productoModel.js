@@ -48,6 +48,23 @@ const EXISTE_PROMOCION = `EXISTS (
     AND (pr.ends_at IS NULL OR pr.ends_at >= NOW())
 )`;
 
+// Productos permitidos (hardcoded por requerimiento)
+const PRODUCTOS_PERMITIDOS = [
+  'Somier Diamante 2 PLZ',
+  'Chester 2 PLZ',
+  'Brillante 1.5 PLZ',
+  'Betty',
+  'Sahara',
+  'Niky',
+  'Cristal',
+  'Honor',
+  'Diamante',
+  'Wert',
+  'Bugatti',
+  'Kit lary',
+  'Lila'
+];
+
 // Cada opción tiene su propio ORDER BY fijo: nunca se interpola texto del request.
 // Se aceptan alias en kebab-case y snake_case para no romper clientes existentes.
 // "recomendados" (y su alias "relevancia") pone primero los productos en oferta
@@ -86,6 +103,10 @@ function construirFiltros({ buscar = '', categoria = '', soloActivos = false, so
   if (soloPromos) condiciones.push(EXISTE_PROMOCION);
   if (soloOfertas) condiciones.push('COALESCE(p.en_oferta, FALSE) = TRUE');
   if (conStock) condiciones.push('COALESCE(p.stock_quantity, 0) > 0');
+  // Filtro hardcoded: solo estos productos
+  const placeholders = PRODUCTOS_PERMITIDOS.map((_, i) => `$${valores.length + 1 + i}`).join(', ');
+  PRODUCTOS_PERMITIDOS.forEach(n => valores.push(n));
+  condiciones.push(`(p.name IN (${placeholders}) OR UPPER(COALESCE(c.name, '')) = 'ALMOHADA')`);
   if (Number.isFinite(precioMin)) { valores.push(precioMin); condiciones.push(`COALESCE(p.public_price, 0) >= $${valores.length}`); }
   if (Number.isFinite(precioMax)) { valores.push(precioMax); condiciones.push(`COALESCE(p.public_price, 0) <= $${valores.length}`); }
   return { valores, condiciones };

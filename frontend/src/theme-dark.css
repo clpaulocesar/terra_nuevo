@@ -71,6 +71,46 @@ html[data-theme="dark"] .mobile-nav-item,
 html[data-theme="dark"] .mobile-nav-item svg { color: var(--td-muted); }
 html[data-theme="dark"] .mobile-nav-item.active,
 html[data-theme="dark"] .mobile-nav-item.active svg { color: #ffb3bd; }
+html[data-theme="dark"] .terra-menu-toggle {
+  background: var(--td-surface-2);
+  border-color: var(--td-line);
+  color: var(--td-text);
+}
+html[data-theme="dark"] .terra-menu-toggle[aria-expanded="true"] {
+  background: var(--td-accent);
+  border-color: var(--td-accent);
+  color: #fff;
+}
+html[data-theme="dark"] .terra-header-nav {
+  background: var(--td-surface);
+  border-bottom-color: var(--td-line);
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.45);
+}
+html[data-theme="dark"] #terra-menu-movil .terra-header-right {
+  border-top-color: var(--td-line);
+}
+html[data-theme="dark"] #terra-menu-movil .terra-cart-link {
+  background: var(--td-surface-2);
+  border-color: var(--td-line);
+  color: var(--td-text);
+}
+html[data-theme="dark"] #terra-menu-movil .terra-home-btn {
+  background: var(--td-surface-2);
+  border-color: var(--td-line);
+  color: var(--td-text);
+}
+html[data-theme="dark"] #terra-menu-movil .terra-login-button {
+  background: var(--td-surface-2);
+  border-color: var(--td-line);
+  color: var(--td-text);
+}
+html[data-theme="dark"] #terra-menu-movil .desktop-nav a {
+  color: var(--td-text);
+}
+html[data-theme="dark"] #terra-menu-movil .desktop-nav a:hover {
+  background: var(--td-surface-3);
+  color: #ffb3bd;
+}
 
 /* ---------- Estilos genéricos (index.css) ---------- */
 html[data-theme="dark"] .feature-card,
