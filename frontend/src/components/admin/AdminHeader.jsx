@@ -25,6 +25,8 @@ export default function AdminHeader({ onToggleDrawer }) {
   const [cargandoActividad, setCargandoActividad] = useState(false);
   const userMenuRef = useRef(null);
   const notifMenuRef = useRef(null);
+  const usuario = getAdminUser() || { nombre: 'Administrador TERRA', email: 'admin@terra.local', rol: 'admin' };
+  const etiquetaRol = usuario.rol === 'vendedor' ? 'Vendedor' : usuario.rol === 'despacho' ? 'Despacho' : 'Administrador';
   const nombrePaginaActual = TITULOS_RUTAS[location.pathname] || 'Panel Principal';
 
   useEffect(() => {
@@ -90,7 +92,7 @@ export default function AdminHeader({ onToggleDrawer }) {
         </div>}
       </div>
       <div className="relative" ref={userMenuRef}>
-        <button type="button" className="admin-avatar-btn" title="Perfil de Administrador" onClick={() => { setMenuUsuarioAbierto((abierto) => !abierto); setMenuNotifAbierto(false); }}><UserRound size={19} /></button>
+        <button type="button" className="admin-avatar-btn" title={`Perfil: ${usuario.nombre}`} onClick={() => { setMenuUsuarioAbierto((abierto) => !abierto); setMenuNotifAbierto(false); }}><UserRound size={19} /><span>{usuario.nombre}</span></button>
         {menuUsuarioAbierto && <div className="admin-dropdown-menu"><div className="admin-dropdown-header"><strong>{getAdminUser()?.nombre || 'Administrador TERRA'}</strong><small>{getAdminUser()?.email || 'admin@terra.bo'}</small></div><div className="admin-dropdown-item" style={{ cursor: 'default' }}><Store size={16} color="#745a27" /><span>Sucursal Equipetrol</span></div><div className="admin-dropdown-item" style={{ cursor: 'default' }}><ShieldCheck size={16} color="#a6192e" /><span>Acceso Backoffice Seguro</span></div><hr style={{ border: 'none', borderTop: '1px solid #f0eded', margin: '0.4rem 0' }} /><button type="button" className="admin-dropdown-item danger" onClick={handleLogout}><LogOut size={16} /><span>Cerrar sesión</span></button></div>}
       </div>
     </div>
