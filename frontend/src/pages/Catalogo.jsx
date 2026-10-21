@@ -761,7 +761,7 @@ export default function Catalogo() {
                         />
 
                         <div className="terra-card__badges">
-                          {producto.en_oferta && (
+{producto.en_oferta && (
                             <span className="terra-badge terra-badge--oferta">
                               <span className="material-symbols-outlined terra-badge__icon">local_fire_department</span>
                               Oferta

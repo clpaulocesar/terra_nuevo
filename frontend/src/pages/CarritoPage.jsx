@@ -1,5 +1,4 @@
-import { useEffect, useRef } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
@@ -7,17 +6,14 @@ import {
   PackageOpen,
   Plus,
   ShoppingBag,
-  ShoppingCart,
   Trash2,
 } from "lucide-react";
 import { useCarrito } from "../hooks/useCarrito.js";
 import { formatoMoneda } from "../utils/formatoMoneda.js";
-import { limpiarCarritoQr, leerCarritoQr } from "../services/qrCartService.js";
+import { emojiCategoria } from "../data/categorias.js";
 import "./CarritoPage.css";
 
 export default function CarritoPage() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const {
     items,
     subtotal,
@@ -25,68 +21,7 @@ export default function CarritoPage() {
     actualizarCantidad,
     quitarProducto,
     vaciarCarrito,
-    importarProductosQr,
   } = useCarrito();
-  const importacionQrProcesada = useRef(false);
-  const confirmarQr = searchParams.get("confirmarQr") === "1";
-  const errorQr = searchParams.get("errorQr");
-
-  useEffect(() => {
-    if (!confirmarQr || importacionQrProcesada.current) return;
-    importacionQrProcesada.current = true;
-
-    try {
-      const productosQr = leerCarritoQr();
-      if (!productosQr.length) {
-        navigate("/carrito?errorQr=vacio", { replace: true });
-        return;
-      }
-      importarProductosQr(productosQr);
-      limpiarCarritoQr();
-      navigate("/carrito", { replace: true });
-    } catch {
-      navigate("/carrito?errorQr=almacenamiento", { replace: true });
-    }
-  }, [confirmarQr, importarProductosQr, navigate]);
-
-  if (confirmarQr) {
-    return (
-      <section className="cart-page cart-empty">
-        <div className="cart-empty__wrap">
-          <div className="cart-empty__icon">
-            <PackageOpen size={64} />
-          </div>
-          <h1 className="cart-empty__title">Preparando tu compra</h1>
-          <p className="cart-empty__subtitle">
-            Estamos reuniendo los productos que agregaste al escanear los
-            códigos QR.
-          </p>
-        </div>
-      </section>
-    );
-  }
-  if (errorQr) {
-    return (
-      <section className="cart-page cart-empty">
-        <div className="cart-empty__wrap">
-          <div className="cart-empty__icon">
-            <PackageOpen size={64} />
-          </div>
-          <h1 className="cart-empty__title">
-            No se pudo confirmar la compra QR
-          </h1>
-          <p className="cart-empty__subtitle" role="alert">
-            {errorQr === "vacio"
-              ? "No encontramos productos escaneados. Volvé a escanear los códigos QR y agregalos antes de confirmar."
-              : "No se pudo recuperar la compra QR. Habilitá el almacenamiento del sitio y volvé a intentarlo."}
-          </p>
-          <Link to="/catalogo" className="cart-empty__cta">
-            Volver al catálogo <ArrowRight size={18} />
-          </Link>
-        </div>
-      </section>
-    );
-  }
   if (!items.length) {
     return (
       <section className="cart-page cart-empty">
