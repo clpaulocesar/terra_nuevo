@@ -1,12 +1,128 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Badge, Eye, EyeOff, Headset, Lock, MapPin, ShieldCheck, Wifi } from 'lucide-react';
+import { Badge, Eye, EyeOff, Headset, Lock, MapPin, ShieldCheck, Wifi } from 'lucide-react';
 import { iniciarSesionAdmin } from '../../services/adminService.js';
 import './Admin.css';
 import './LoginAdminTheme.css';
 
 export default function LoginAdmin() {
-  const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [visible, setVisible] = useState(false); const [error, setError] = useState(''); const [cargando, setCargando] = useState(false); const navigate = useNavigate();
-  async function enviar(event) { event.preventDefault(); setCargando(true); setError(''); try { const usuario = await iniciarSesionAdmin(email, password); navigate(usuario?.rol === 'vendedor' ? '/vendedor' : '/admin', { replace: true }); } catch (err) { setError(err.message); } finally { setCargando(false); } }
-  return <main className="terra-login"><div className="terra-login-bg"/><div className="terra-login-content"><section className="terra-login-card"><header><img src="/images/logo-terra.png" alt="TERRA Autoservicio" style={{ height: '4rem', width: 'auto', objectFit: 'contain', margin: '0 auto 1rem', display: 'block' }} /><span>TERRA Sleep & Living</span><h1>Acceso administrativo</h1><p>Sucursal Equipetrol — Santa Cruz de la Sierra</p></header><form onSubmit={enviar}><label>Correo electrónico corporativo<small>Credencial autorizada</small><div><Badge size={20}/><input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="admin@terra.bo" required autoComplete="username"/></div></label><label>Contraseña segura<button type="button" onClick={()=>alert('Contacte a soporte@terra.bo para recuperar el acceso.')}>¿Olvidó contraseña?</button><div><Lock size={20}/><input type={visible?'text':'password'} value={password} onChange={(e)=>setPassword(e.target.value)} placeholder="••••••••••••" required autoComplete="current-password"/><button className="terra-eye" type="button" onClick={()=>setVisible(!visible)} aria-label="Mostrar u ocultar contraseña">{visible?<EyeOff/>:<Eye/>}</button></div></label><div className="terra-login-options"><label><input type="checkbox" defaultChecked/> Recordar sesión en esta terminal</label><span><Lock size={15}/> POS seguro</span></div>{error&&<p className="admin-error">{error}</p>}<button className="terra-login-submit" disabled={cargando}>{cargando?'Autenticando terminal…':<>Iniciar sesión en panel de control <ArrowRight size={20}/></>}</button></form><footer><span><Headset size={18}/> Mesa de ayuda TI: <b>soporte@terra.bo</b></span><span>v2.4.1 TERRA ERP</span></footer></section><div className="terra-login-location"><span><MapPin size={16}/> Av. San Martín 1550, Equipetrol</span><b>•</b><span><Wifi size={16}/> Red privada showroom</span></div></div></main>;
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [visible, setVisible] = useState(false);
+  const [error, setError] = useState('');
+  const [cargando, setCargando] = useState(false);
+  const navigate = useNavigate();
+
+  async function enviar(event) {
+    event.preventDefault();
+    setCargando(true);
+    setError('');
+    try {
+      await iniciarSesionAdmin(email, password);
+      navigate('/admin', { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  return (
+    <main className="terra-login">
+      <div className="terra-login-content">
+        <aside className="terra-login-brand">
+          <div className="terra-brand-top">
+            <span className="terra-brand-logo-tile">
+              <img src="/images/logo-terra.png" alt="TERRA Autoservicio" />
+            </span>
+            <span className="terra-brand-tag">Autoservicio</span>
+          </div>
+
+          <div className="terra-brand-copy">
+            <h2>Cada pedido empieza en el showroom.</h2>
+            <p>Colchones, sommiers y camas que el cliente arma y paga solo.</p>
+          </div>
+
+          <div className="terra-brand-meta">
+            <span><MapPin size={16} />Sucursal 1 Central</span>
+            <span><Wifi size={16} /> Red privada del showroom</span>
+            <span><ShieldCheck size={16} /> Terminal EQ-01 · TERRA ERP v2.4.1</span>
+          </div>
+        </aside>
+
+        <section className="terra-login-card">
+          <header>
+            <span className="terra-login-eyebrow">Panel de control</span>
+            <h1>Acceso administrativo</h1>
+            <p>Sucursal 1 Central · Santa Cruz de la Sierra</p>
+          </header>
+
+          <form onSubmit={enviar}>
+            <label>
+              Correo corporativo
+              <small>@terra.bo</small>
+              <div>
+                <Badge size={20} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="gerencia@terra.bo"
+                  required
+                  autoComplete="username"
+                />
+              </div>
+            </label>
+
+            <label>
+              Contraseña
+              <button
+                type="button"
+                onClick={() => alert('Contacte a soporte@terra.bo para recuperar el acceso.')}
+              >
+                ¿La olvidaste?
+              </button>
+              <div>
+                <Lock size={20} />
+                <input
+                  type={visible ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  className="terra-eye"
+                  type="button"
+                  onClick={() => setVisible(!visible)}
+                  aria-label="Mostrar u ocultar contraseña"
+                >
+                  {visible ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </label>
+
+            <div className="terra-login-options">
+              <label>
+                <input type="checkbox" defaultChecked />
+                Recordar sesión en esta terminal
+              </label>
+              <span><Lock size={14} /> POS seguro</span>
+            </div>
+
+            {error && <p className="admin-error">{error}</p>}
+
+            <button className="terra-login-submit" disabled={cargando}>
+              {cargando ? 'Autenticando…' : 'Iniciar sesión'}
+            </button>
+          </form>
+
+          <footer>
+            <span><Headset size={16} /> Mesa de ayuda: <b>soporte@terra.bo</b></span>
+          </footer>
+        </section>
+      </div>
+    </main>
+  );
 }
