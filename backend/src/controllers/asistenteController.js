@@ -1,4 +1,4 @@
-import { buscarProductosChatBD } from '../models/asistenteModel.js';
+import { buscarProductosChatBD, buscarInstruccionesChatBD } from '../models/asistenteModel.js';
 import { crearPedidoBD } from '../models/pedidoModel.js';
 
 export async function buscarProductosChat(req, res, next) {
@@ -20,6 +20,20 @@ export async function buscarProductosChat(req, res, next) {
         mensaje: 'La tabla products no tiene las columnas esperadas por el asistente.',
       });
     }
+    next(error);
+  }
+}
+
+// Instrucciones de producto para el chatbot: GET|POST /api/asistente/instrucciones?termino=
+// Devuelve [{ id, producto, sku, categoria, instrucciones, detalle_completo, colores, videos_url, imagenes_url }].
+export async function buscarInstruccionesChat(req, res, next) {
+  try {
+    const termino = String(req.query.termino ?? req.body?.termino ?? '').trim();
+    if (termino.length > 120) return res.status(400).json({ success: false, mensaje: 'El término no puede superar 120 caracteres.' });
+    const instrucciones = await buscarInstruccionesChatBD(termino);
+    return res.json({ success: true, termino, total: instrucciones.length, data: instrucciones });
+  } catch (error) {
+    if (error.code === '42P01') return res.status(503).json({ success: false, mensaje: 'No se encontró la tabla product_instructions.' });
     next(error);
   }
 }
