@@ -5,11 +5,13 @@ import {
   Clock3,
   Download,
   Home,
+  MessageCircle,
   QrCode,
   ReceiptText,
   ShoppingBag,
 } from "lucide-react";
 import { obtenerPedido } from "../services/pedidoService.js";
+import { WHATSAPP_COMPROBANTES } from "../services/api.js";
 import { formatoMoneda } from "../utils/formatoMoneda.js";
 import { descargarTicket } from "../utils/descargarTicket.js";
 import "./PedidoGenerado.css";
@@ -21,6 +23,29 @@ function formatoFechaPedido(fecha) {
     timeStyle: "short",
     timeZone: "America/La_Paz",
   }).format(Number.isNaN(valor.getTime()) ? new Date() : valor);
+}
+
+function crearMensajeComprobante({ pedido, cliente, items }) {
+  const lineas = (items || []).map((item) => {
+    const nombre = item.nombre || item.product_name || "Producto";
+    const cantidad = item.cantidad || item.quantity || 1;
+    const color = item.color?.nombre || item.color;
+    return `• ${cantidad} × ${nombre}${color ? ` (${color})` : ""}`;
+  });
+
+  return [
+    "SOLICITUD DE COMPROBANTE — TERRA",
+    `Pedido: ${pedido.codigo || pedido.id}`,
+    `Cliente: ${cliente?.nombre || "No registrado"}`,
+    `WhatsApp del cliente: +591 ${cliente?.telefono || "No registrado"}`,
+    ...(pedido.direccion_entrega ? [`Envío: ${pedido.direccion_entrega}`, ...(pedido.referencia_entrega ? [`Referencia: ${pedido.referencia_entrega}`] : [])] : []),
+    "",
+    "Productos:",
+    ...(lineas.length ? lineas : ["• Consulta el detalle del pedido"]),
+    "",
+    `Total: ${formatoMoneda(pedido.total)}`,
+    "Por favor, envíen el comprobante a este cliente.",
+  ].join("\n");
 }
 
 export default function PedidoGenerado() {
@@ -66,6 +91,15 @@ export default function PedidoGenerado() {
     state?.cliente?.nombre || state?.cliente?.nit
       ? state.cliente
       : pedido.cliente;
+  // El carrito se limpia al crear el pedido. Si la navegación trae una lista vacía,
+  // conservamos el detalle devuelto por el backend para el ticket y WhatsApp.
+  const itemsTicket = state?.items?.length ? state.items : (pedido.items || []);
+  const solicitarComprobante = Boolean(clienteTicket?.whatsapp && WHATSAPP_COMPROBANTES);
+  const mensajeWhatsApp = encodeURIComponent(crearMensajeComprobante({
+    pedido,
+    cliente: clienteTicket,
+    items: itemsTicket,
+  }));
 
   return (
     <section className="pedido-page">
@@ -148,12 +182,20 @@ export default function PedidoGenerado() {
         <button
           type="button"
           onClick={() =>
-            descargarTicket(pedido, clienteTicket, state?.items || pedido.items)
+            descargarTicket(pedido, clienteTicket, itemsTicket)
           }
           className="pedido-download"
         >
           <Download size={20} /> Descargar ticket
         </button>
+        {solicitarComprobante && <a
+          className="pedido-whatsapp"
+          href={`https://wa.me/${WHATSAPP_COMPROBANTES}?text=${mensajeWhatsApp}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <MessageCircle size={20} /> Enviar ticket a WhatsApp TERRA
+        </a>}
         <Link to="/" className="pedido-home">
           <Home size={20} /> Nueva compra
         </Link>

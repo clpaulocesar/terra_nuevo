@@ -119,9 +119,29 @@
 .tt-key--num { height: 2.2rem; min-width: 2.2rem; font-size: 0.9rem; }
 
 @media (max-width: 639px) {
-  .tt-board { padding: 8px 8px 12px; }
-  .tt-board__row { gap: 4px; }
-  .tt-key { height: 2.1rem; min-width: 2.1rem; font-size: 0.88rem; }
-  .tt-key--num { height: 2rem; min-width: 2rem; }
-  .tt-board__row--numbers { gap: 5px; }
+  .tt-board { padding: 8px 8px 12px; gap: 5px; }
+  .tt-board__letters { gap: 5px; }
+  /* Sin wrap: las teclas se reparten el ancho disponible de la fila. */
+  .tt-board__row { gap: 4px; flex-wrap: nowrap; }
+  .tt-key {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 2.35rem;
+    padding: 0 0.2rem;
+    font-size: 0.88rem;
+    border-radius: 10px;
+  }
+  .tt-key--mode,
+  .tt-key--clear { flex: 0 0 auto; padding: 0 0.6rem; }
+  .tt-key--space { flex: 1 1 auto; max-width: none; padding: 0 0.5rem; }
+  .tt-key--num { height: 2.1rem; min-width: 0; flex: 1 1 0; border-radius: 10px; }
+  .tt-board__row--numbers { gap: 4px; flex-wrap: nowrap; }
+}
+
+@media (max-width: 380px) {
+  .tt-key { height: 2.2rem; font-size: 0.82rem; }
+  .tt-key--mode,
+  .tt-key--clear { font-size: 0.76rem; padding: 0 0.45rem; }
+  .tt-key--space { font-size: 0.8rem; }
+  .tt-key--num { height: 2rem; font-size: 0.78rem; }
 }

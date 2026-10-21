@@ -68,6 +68,8 @@ export async function eliminarCategoria(req, res, next) {
 
 export async function listarCategorias(req, res, next) {
   try {
+    const categoriasPermitidas = ['COLCHON', 'SOMIER', 'POLTRONA', 'SOFA CAMA'];
+    const placeholders = categoriasPermitidas.map((_, i) => `$${i + 1}`).join(', ');
     const resultado = await pool.query(`
       WITH ventas_categoria AS (
         SELECT c2.id AS categoria_id, SUM(COALESCE(oi.quantity, 0))::integer AS unidades
@@ -81,10 +83,10 @@ export async function listarCategorias(req, res, next) {
       FROM categories c
       LEFT JOIN products p ON p.category_id = c.id AND COALESCE(p.activo, p.is_active, TRUE) = TRUE
       LEFT JOIN ventas_categoria vc ON vc.categoria_id = c.id
-      WHERE c.is_active = TRUE
+      WHERE c.is_active = TRUE AND UPPER(c.name) IN (${placeholders})
       GROUP BY c.id, c.name, vc.unidades
       ORDER BY total DESC, c.name ASC
-    `);
+    `, categoriasPermitidas);
 
     const categoriasConIcono = resultado.rows.map((row) => {
       const n = row.nombre.toLowerCase();

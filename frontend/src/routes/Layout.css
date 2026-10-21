@@ -258,7 +258,14 @@
     display: none;
   }
 
-  .page-content {
+  /* Ocultar botones de voz (lectura + micrófono), tema (día/noche) y login en móvil */
+  .terra-header-right .terra-voz,
+  .terra-header-right .terra-theme-btn,
+  .terra-header-right .terra-account {
+    display: none;
+  }
+
+.page-content {
     padding: 0.75rem 0.75rem 5.5rem 0.75rem; /* Margen inferior para que la barra móvil no tape el contenido */
   }
 

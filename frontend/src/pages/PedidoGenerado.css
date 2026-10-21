@@ -182,6 +182,13 @@
   background: #e4e2e1;
   color: #1b1c1c;
 }
+.pedido-whatsapp {
+  background: #25d366;
+  color: #073b1c;
+}
+.pedido-whatsapp:hover {
+  background: #1fbd59;
+}
 @media (max-width: 768px) {
   .pedido-page {
     padding: 1.5rem 0;
