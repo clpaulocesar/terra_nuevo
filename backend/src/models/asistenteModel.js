@@ -3,8 +3,13 @@ import { pool } from '../config/database.js';
 // El asistente consulta directamente la tabla `products` (con su categoría).
 // No usamos la vista `public.v_productos_chat`: no existe en Supabase y no se crea.
 // Expone `id` y `stock` para que el chatbot pueda armar pedidos (POST /api/asistente/pedidos).
-export async function buscarProductosChatBD(termino = '') {
-  const texto = String(termino || '').trim().slice(0, 120);
+// Términos que significan "mostrame las ofertas": no buscan por nombre, filtran en_oferta.
+const TERMINOS_OFERTA = /^(en |las |los |con )?(ofertas?|promos?|promociones?|promocion|descuentos?|rebajas?|liquidacion)$/;
+
+export async function buscarProductosChatBD(termino = '', { soloOfertas = false } = {}) {
+  let texto = String(termino || '').trim().slice(0, 120);
+  const normalizado = texto.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+  if (TERMINOS_OFERTA.test(normalizado)) { soloOfertas = true; texto = ''; }
   const { rows } = await pool.query(
     `WITH base AS (
        SELECT
@@ -27,6 +32,7 @@ export async function buscarProductosChatBD(termino = '') {
        FROM products p
        LEFT JOIN categories c ON c.id = p.category_id
        WHERE COALESCE(p.activo, p.is_active, TRUE) = TRUE
+         AND ($2::boolean = FALSE OR COALESCE(p.en_oferta, FALSE) = TRUE)
      ),
      filtrados AS (
        SELECT * FROM base
@@ -40,9 +46,9 @@ export async function buscarProductosChatBD(termino = '') {
      SELECT id, nombre, stock, en_oferta, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
      FROM base
      WHERE NOT EXISTS (SELECT 1 FROM filtrados)
-     ORDER BY precio_venta
+     ORDER BY en_oferta DESC, precio_venta
      `,
-    [texto]
+    [texto, Boolean(soloOfertas)]
   );
   return rows;
 }
