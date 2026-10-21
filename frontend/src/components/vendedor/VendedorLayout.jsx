@@ -23,7 +23,7 @@ export default function VendedorLayout() {
       <header><img src="/logo-terra.png" alt="TERRA Autoservicio" /><button type="button" onClick={() => setMenuAbierto(false)} aria-label="Cerrar menú"><X size={20} /></button></header>
       <div className="seller-sidebar__title">Portal de ventas<small>Sucursal Equipetrol</small></div>
       <nav>{menu()}</nav>
-      <footer><div><b>{usuario.nombre}</b><small>Vendedor autorizado</small></div><button type="button" onClick={salir}><LogOut size={16} /> Cerrar sesión</button></footer>
+      <footer><div className="seller-user-card"><span><Users size={17} /></span><section><b>{usuario.nombre}</b><small>Vendedor · Sucursal Equipetrol</small></section></div><button type="button" onClick={salir}><LogOut size={16} /> Cerrar sesión</button></footer>
     </aside>
     <div className="seller-main"><header className="seller-header"><button type="button" onClick={() => setMenuAbierto(true)} aria-label="Abrir menú"><Menu size={21} /></button><div><small>Portal de ventas</small><strong>Hola, {usuario.nombre}</strong></div><span>Vendedor</span></header><main className="seller-content"><Outlet /></main></div>
   </div>;
