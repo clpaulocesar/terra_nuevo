@@ -1,0 +1,146 @@
+/* Timbre de nuevos pedidos: campana con contador, menú de pedidos por cobrar
+   y aviso flotante. Se usa igual en el backoffice y en el portal del vendedor. */
+.timbre { align-items: center; display: flex; position: relative; }
+
+.timbre__btn {
+  align-items: center;
+  background: #f0eded;
+  border: none;
+  border-radius: 12px;
+  color: #404944;
+  cursor: pointer;
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  position: relative;
+  transition: background-color .15s, transform .1s, color .15s;
+  width: 40px;
+}
+
+.timbre__btn:hover { background: #e4e2e1; }
+.timbre__btn:active { transform: scale(.96); }
+.timbre__btn.is-nuevo { animation: timbre-latido 1.1s ease-in-out infinite; background: #fdecee; color: #a6192e; }
+
+.timbre__badge {
+  background: #a6192e;
+  border: 2px solid #fcf9f8;
+  border-radius: 999px;
+  color: #fff;
+  font-size: .62rem;
+  font-weight: 800;
+  line-height: 1;
+  min-width: 18px;
+  padding: 3px 5px;
+  position: absolute;
+  right: -6px;
+  top: -6px;
+}
+
+.timbre__badge.is-nuevo { animation: timbre-pulso 1.6s ease-out infinite; background: #d21f3c; }
+
+.timbre__menu {
+  animation: timbre-aparecer .15s ease-out;
+  background: #fff;
+  border: 1px solid #e4e7e4;
+  border-radius: 1rem;
+  box-shadow: 0 12px 32px #0000001f;
+  max-height: min(70vh, 520px);
+  min-width: 336px;
+  overflow-y: auto;
+  padding: .65rem;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 55;
+}
+
+.timbre__head { align-items: center; align-items: flex-start; border-bottom: 1px solid #f0eded; display: flex; gap: .5rem; justify-content: space-between; padding: .35rem .4rem .6rem; }
+.timbre__head strong { color: #1b1c1c; display: block; font-size: .84rem; }
+.timbre__head small { color: #707974; font-size: .7rem; }
+.timbre__refresh { align-items: center; background: #f6f3f2; border: none; border-radius: 8px; color: #636d67; cursor: pointer; display: flex; height: 28px; justify-content: center; width: 28px; }
+.timbre__refresh:hover { background: #ece8e6; color: #a6192e; }
+
+.timbre__hint { background: #fdf6e8; border-radius: .5rem; color: #8c5a12; font-size: .68rem; margin: .45rem .3rem .1rem; padding: .4rem .55rem; }
+
+.timbre__empty,
+.timbre__error { color: #707974; font-size: .74rem; line-height: 1.45; margin: 0; padding: .9rem .5rem; }
+.timbre__error { background: #ffdad6; border-radius: .5rem; color: #93000a; margin: .4rem .3rem; padding: .5rem .6rem; }
+
+.timbre__item {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #f6f3f2;
+  border-radius: .6rem;
+  cursor: pointer;
+  display: grid;
+  gap: .15rem;
+  padding: .6rem .5rem;
+  text-align: left;
+  width: 100%;
+}
+
+.timbre__item:hover { background: #f8f4f3; }
+.timbre__item-top { align-items: baseline; display: flex; gap: .5rem; justify-content: space-between; }
+.timbre__item-top b { color: #a6192e; font-size: .78rem; letter-spacing: .02em; }
+.timbre__item-top strong { color: #1b1c1c; font-size: .82rem; }
+.timbre__item-cliente { color: #262b28; font-size: .79rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.timbre__item-meta { color: #707974; display: flex; flex-wrap: wrap; font-size: .68rem; gap: .15rem .6rem; }
+.timbre__item-meta span:first-child { color: #404944; font-weight: 700; }
+
+.timbre__foot { align-items: center; display: flex; gap: .5rem; justify-content: space-between; padding: .55rem .4rem .2rem; }
+.timbre__foot small { color: #929d96; font-size: .68rem; }
+.timbre__foot button { background: none; border: none; color: #a6192e; cursor: pointer; font-size: .74rem; font-weight: 800; padding: 0; }
+.timbre__foot button:hover { text-decoration: underline; }
+
+.timbre__toast {
+  align-items: center;
+  animation: timbre-entrar .22s ease-out;
+  background: #a6192e;
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 12px 28px #4a0a1480;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  gap: .7rem;
+  max-width: calc(100vw - 32px);
+  padding: .7rem .9rem;
+  position: fixed;
+  right: 18px;
+  text-align: left;
+  top: 76px;
+  z-index: 80;
+}
+
+.timbre__toast-icon { align-items: center; background: #ffffff2b; border-radius: 10px; display: flex; height: 38px; justify-content: center; width: 38px; }
+.timbre__toast-text { display: grid; gap: .1rem; }
+.timbre__toast-text b { font-size: .84rem; }
+.timbre__toast-text small { color: #ffffffd6; font-size: .72rem; }
+.timbre__toast-cta { background: #fff; border-radius: 999px; color: #a6192e; font-size: .7rem; font-weight: 800; padding: .3rem .7rem; }
+
+@keyframes timbre-latido {
+  0%, 100% { transform: rotate(0) scale(1); }
+  25% { transform: rotate(-9deg) scale(1.04); }
+  60% { transform: rotate(9deg) scale(1.04); }
+}
+
+@keyframes timbre-pulso {
+  0% { box-shadow: 0 0 0 0 #d21f3c99; }
+  70% { box-shadow: 0 0 0 7px #d21f3c00; }
+  100% { box-shadow: 0 0 0 0 #d21f3c00; }
+}
+
+@keyframes timbre-aparecer {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes timbre-entrar {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 560px) {
+  .timbre__menu { min-width: min(88vw, 336px); right: -8px; }
+  .timbre__toast { left: 12px; right: 12px; top: 70px; }
+}
