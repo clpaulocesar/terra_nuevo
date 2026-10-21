@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { LayoutDashboard, LogOut, Menu, ReceiptText, ShoppingCart, Users, X } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { cerrarSesionAdmin, getAdminUser } from '../../services/adminService.js';
+import TimbrePedidos from '../admin/TimbrePedidos.jsx';
 import './VendedorLayout.css';
 
 const enlaces = [
@@ -90,6 +91,7 @@ export default function VendedorLayout() {
             <strong>Hola, {usuario.nombre}</strong>
           </div>
           <div className="seller-header__actions">
+            <TimbrePedidos />
             <span className="seller-role-badge">Vendedor</span>
             <button
               type="button"
