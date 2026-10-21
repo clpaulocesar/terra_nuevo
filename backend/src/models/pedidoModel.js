@@ -107,10 +107,25 @@ export async function obtenerPedidoBD(id) {
 export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 } = {}) {
   await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega()]);
   const valores=[]; const condiciones=[];
-  if(buscar){valores.push(`%${buscar}%`);condiciones.push(`(o.ticket_number ILIKE $${valores.length} OR COALESCE(c.name,'') ILIKE $${valores.length})`);}
+  const termino=String(buscar||'').trim();
+  if(termino){
+    // En caja el vendedor identifica al cliente por teléfono, NIT o nombre:
+    // el ticket impreso no siempre está a mano. Además de buscar los números
+    // tal cual se escriben, se comparan sin separadores para que "71234567"
+    // encuentre "+591 712-34567" y para que "59171234567" encuentre "712-34567".
+    valores.push(`%${termino}%`);
+    const difuso=`$${valores.length}`;
+    const digitos=termino.replace(/[^0-9]/g,'');
+    let busqueda=`o.ticket_number ILIKE ${difuso} OR COALESCE(c.name,'') ILIKE ${difuso} OR COALESCE(c.contact_name,'') ILIKE ${difuso} OR COALESCE(c.nit,'') ILIKE ${difuso} OR COALESCE(c.phone,'') ILIKE ${difuso} OR COALESCE(c.email,'') ILIKE ${difuso}`;
+    if(digitos.length>=4){
+      valores.push(`%${digitos}%`);
+      busqueda+=` OR regexp_replace(COALESCE(c.phone,''),'[^0-9]','','g') LIKE $${valores.length}`;
+    }
+    condiciones.push(`(${busqueda})`);
+  }
   if(estado){valores.push(estado);condiciones.push(`o.status=$${valores.length}`);}
   valores.push(limite); const where=condiciones.length?`WHERE ${condiciones.join(' AND ')}`:'';
-  const { rows } = await pool.query(`SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor/100.0 AS total,o.status AS estado,o.created_at AS fecha,o.payment_receipt_url AS comprobante_url,o.payment_method AS metodo_pago,o.fulfillment_type AS tipo_entrega,o.delivery_address AS direccion_entrega,o.delivery_reference AS referencia_entrega,COALESCE(c.name,'Compra como invitado') AS cliente,COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items FROM orders o LEFT JOIN customers c ON c.id=o.customer_id LEFT JOIN order_items i ON i.order_id=o.id ${where} GROUP BY o.id,c.name ORDER BY o.created_at DESC LIMIT $${valores.length}`, valores);
+  const { rows } = await pool.query(`SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor/100.0 AS total,o.status AS estado,o.created_at AS fecha,o.payment_receipt_url AS comprobante_url,o.payment_method AS metodo_pago,o.fulfillment_type AS tipo_entrega,o.delivery_address AS direccion_entrega,o.delivery_reference AS referencia_entrega,COALESCE(c.name,'Compra como invitado') AS cliente,COALESCE(c.contact_name,'') AS cliente_titular,COALESCE(c.phone,'') AS cliente_telefono,COALESCE(c.nit,'') AS cliente_nit,COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items FROM orders o LEFT JOIN customers c ON c.id=o.customer_id LEFT JOIN order_items i ON i.order_id=o.id ${where} GROUP BY o.id,c.id,c.name ORDER BY o.created_at DESC LIMIT $${valores.length}`, valores);
   return rows;
 }
 
