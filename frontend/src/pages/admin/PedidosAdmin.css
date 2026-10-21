@@ -6,6 +6,7 @@
 .orders-refresh:disabled{cursor:progress;opacity:.65}
 .orders-refresh .is-spinning{animation:orders-spin 1s linear infinite}
 .orders-client-data{color:#404944!important;font-size:.82rem;font-weight:700;margin:.15rem 0 0!important}
+.order-actions{display:flex;flex-wrap:wrap;gap:.4rem}.order-actions .order-ticket{background:#f4ecee;color:#a6192e}.order-actions button:disabled{cursor:progress;opacity:.65}
 @keyframes orders-spin{to{transform:rotate(360deg)}}
 @media(max-width:700px){.orders-list>header{align-items:flex-start;flex-direction:column;gap:.75rem}.orders-list-tools{width:100%}}
 
