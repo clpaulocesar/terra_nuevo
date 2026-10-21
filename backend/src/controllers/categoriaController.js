@@ -66,21 +66,27 @@ export async function eliminarCategoria(req, res, next) {
   } catch (error) { next(error); }
 }
 
-// Lista pública: solo categorías activas con al menos un producto activo
-// (products.category_id). Con `?todas=1` devuelve también las vacías, que es lo
-// que necesita el backoffice para asignar o editar categorías recién creadas.
 export async function listarCategorias(req, res, next) {
   try {
-    const incluirVacias = ['1', 'true'].includes(String(req.query.todas ?? '').toLowerCase());
+    const categoriasPermitidas = ['COLCHON', 'SOMIER', 'POLTRONA', 'SOFA CAMA'];
+    const placeholders = categoriasPermitidas.map((_, i) => `$${i + 1}`).join(', ');
     const resultado = await pool.query(`
-      SELECT c.id, c.name AS nombre, COUNT(p.id)::integer AS total, MIN(p.imagen_url) AS imagen_url
+      WITH ventas_categoria AS (
+        SELECT c2.id AS categoria_id, SUM(COALESCE(oi.quantity, 0))::integer AS unidades
+        FROM order_items oi
+        JOIN products p2 ON LOWER(p2.name) = LOWER(oi.product_name)
+        JOIN categories c2 ON c2.id = p2.category_id
+        GROUP BY c2.id
+      )
+      SELECT c.id, c.name AS nombre, COUNT(p.id)::integer AS total, MIN(p.imagen_url) AS imagen_url,
+             COALESCE(vc.unidades, 0)::integer AS ventas
       FROM categories c
       LEFT JOIN products p ON p.category_id = c.id AND COALESCE(p.activo, p.is_active, TRUE) = TRUE
-      WHERE c.is_active = TRUE
-      GROUP BY c.id, c.name
-      ${incluirVacias ? '' : 'HAVING COUNT(p.id) > 0'}
+      LEFT JOIN ventas_categoria vc ON vc.categoria_id = c.id
+      WHERE c.is_active = TRUE AND UPPER(c.name) IN (${placeholders})
+      GROUP BY c.id, c.name, vc.unidades
       ORDER BY total DESC, c.name ASC
-    `);
+    `, categoriasPermitidas);
 
     const categoriasConIcono = resultado.rows.map((row) => {
       const n = row.nombre.toLowerCase();
@@ -101,6 +107,7 @@ export async function listarCategorias(req, res, next) {
         id: row.id,
         nombre: row.nombre,
         total: row.total,
+        ventas: Number(row.ventas || 0),
         icon,
         emoji,
         imagen_url: row.imagen_url,
