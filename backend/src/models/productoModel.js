@@ -103,10 +103,13 @@ function construirFiltros({ buscar = '', categoria = '', soloActivos = false, so
   if (soloPromos) condiciones.push(EXISTE_PROMOCION);
   if (soloOfertas) condiciones.push('COALESCE(p.en_oferta, FALSE) = TRUE');
   if (conStock) condiciones.push('COALESCE(p.stock_quantity, 0) > 0');
-  // Filtro hardcoded: solo estos productos
-  const placeholders = PRODUCTOS_PERMITIDOS.map((_, i) => `$${valores.length + 1 + i}`).join(', ');
-  PRODUCTOS_PERMITIDOS.forEach(n => valores.push(n));
-  condiciones.push(`(p.name IN (${placeholders}) OR UPPER(COALESCE(c.name, '')) = 'ALMOHADA')`);
+  // Filtro hardcoded: solo estos productos en el catálogo público. El backoffice
+  // consulta con todos=true (soloActivos=false) y necesita ver todo el inventario.
+  if (soloActivos) {
+    const placeholders = PRODUCTOS_PERMITIDOS.map((_, i) => `$${valores.length + 1 + i}`).join(', ');
+    PRODUCTOS_PERMITIDOS.forEach(n => valores.push(n));
+    condiciones.push(`(p.name IN (${placeholders}) OR UPPER(COALESCE(c.name, '')) = 'ALMOHADA')`);
+  }
   if (Number.isFinite(precioMin)) { valores.push(precioMin); condiciones.push(`COALESCE(p.public_price, 0) >= $${valores.length}`); }
   if (Number.isFinite(precioMax)) { valores.push(precioMax); condiciones.push(`COALESCE(p.public_price, 0) <= $${valores.length}`); }
   return { valores, condiciones };

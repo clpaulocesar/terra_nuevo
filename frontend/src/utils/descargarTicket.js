@@ -13,6 +13,9 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
   }).format(new Date(pedido.fecha || Date.now()));
   const direccionEntrega = cliente?.direccion || pedido.direccion_entrega;
   const referenciaEntrega = cliente?.referencia || pedido.referencia_entrega;
+  const estadoClave = String(pedido.estado || '').toLowerCase();
+  const cobrado = ['completed', 'paid', 'pagado', 'delivered', 'entregado', 'shipped', 'ready_for_pickup', 'out_for_delivery'].includes(estadoClave);
+  const estadoTexto = cobrado ? 'Cobrado' : 'Pendiente de pago';
 
   const filas = (items.length > 0 ? items : (pedido.items || []))
     .map(
@@ -49,7 +52,7 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
       ${cliente?.nit ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">NIT:</span> <b style="color: #1e293b;">${cliente.nit}</b></div>` : ''}
       ${direccionEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Envío:</span> <b style="color: #1e293b;">${direccionEntrega}</b></div>` : ''}
       ${referenciaEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Referencia:</span> <b style="color: #1e293b;">${referenciaEntrega}</b></div>` : ''}
-      <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Estado:</span> <b style="color: #1e293b;">Pendiente de pago en caja</b></div>
+      <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Estado:</span> <b style="color: ${cobrado ? '#146440' : '#9a6513'};">${estadoTexto}</b></div>
     </div>
 
     <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px;">
@@ -63,12 +66,12 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
     </table>
 
     <div style="border-top: 2px solid #0f172a; padding-top: 14px; display: flex; justify-content: space-between; align-items: center; font-size: 17px; font-weight: 800;">
-      <span>Total a pagar:</span>
+      <span>${cobrado ? 'Total cobrado:' : 'Total a pagar:'}</span>
       <span style="color: #a6192e; font-size: 20px;">${formatoMoneda(pedido.total)}</span>
     </div>
 
     <div style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 24px; border-top: 1px dashed #e2e8f0; padding-top: 14px; line-height: 1.5;">
-      Presenta este código en caja para pagar y retirar tus productos.<br />
+      ${cobrado ? 'Conserva este comprobante como constancia de tu compra.' : 'Presenta este código en caja para pagar y retirar tus productos.'}<br />
       ¡Gracias por tu compra en TERRA!
     </div>
   </div>`;

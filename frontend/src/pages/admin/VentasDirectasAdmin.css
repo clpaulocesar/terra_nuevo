@@ -946,6 +946,28 @@
   padding: .55rem .65rem;
 }
 
+.direct-ticket {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #bfe3cd;
+  border-radius: .55rem;
+  color: #146440;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: .78rem;
+  font-weight: 800;
+  gap: .4rem;
+  justify-content: center;
+  margin: 0 0 .6rem;
+  min-height: 2.4rem;
+  padding: .5rem .75rem;
+  width: 100%;
+}
+
+.direct-ticket:hover {
+  background: #f1faf5;
+}
+
 /* ---------- modal escáner ---------- */
 .direct-scan-modal {
   align-items: center;
