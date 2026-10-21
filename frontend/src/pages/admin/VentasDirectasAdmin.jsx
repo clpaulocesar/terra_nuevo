@@ -94,7 +94,7 @@ export default function VentasDirectasAdmin() {
   const chipsRef = useRef(null);
 
   useEffect(() => {
-    listarCategorias().then(setCategorias).catch(() => setCategorias([]));
+    listarCategorias({ todas: true }).then(setCategorias).catch(() => setCategorias([]));
     listarClientes({ limite: 200 }).then(setClientes).catch(() => setClientes([]));
   }, []);
 
