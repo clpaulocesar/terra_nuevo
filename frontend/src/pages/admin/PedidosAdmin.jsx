@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Barcode, CheckCircle2, CreditCard, ExternalLink, ImagePlus, Package, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { Barcode, CheckCircle2, CreditCard, Download, ExternalLink, ImagePlus, Package, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { listarPedidos, registrarPagoPedido } from '../../services/pedidoService.js';
+import { listarPedidos, obtenerPedido, registrarPagoPedido } from '../../services/pedidoService.js';
 import { subirComprobantePago } from '../../services/storageService.js';
 import QRCode from 'react-qr-code';
+import { descargarTicket } from '../../utils/descargarTicket.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import './Admin.css';
 import './PedidosAdmin.css';
@@ -25,6 +26,7 @@ export default function PedidosAdmin() {
   const [metodo, setMetodo] = useState('qr');
   const [archivoComprobante, setArchivoComprobante] = useState(null);
   const [subiendoPago, setSubiendoPago] = useState(false);
+  const [descargandoTicket, setDescargandoTicket] = useState(null);
 
   const cargarPedidos = useCallback(async ({ silencioso = false } = {}) => {
     if (!silencioso) setCargando(true);
@@ -55,6 +57,21 @@ export default function PedidosAdmin() {
   }, [cargarPedidos]);
 
   const actualizar = () => { setActualizando(true); cargarPedidos({ silencioso: true }); };
+
+  // El listado solo trae los artículos como texto; el ticket necesita el detalle
+  // con precios, así que pedimos el pedido completo antes de generarlo.
+  const descargarTicketPedido = async (pedido) => {
+    setDescargandoTicket(pedido.id);
+    setError('');
+    try {
+      const completo = await obtenerPedido(pedido.id);
+      await descargarTicket(completo, completo?.cliente || {}, completo?.items || []);
+    } catch (err) {
+      setError(err.message || 'No se pudo descargar el ticket.');
+    } finally {
+      setDescargandoTicket(null);
+    }
+  };
 
   const vista = useMemo(() => pedidos.filter((pedido) => {
     if (tab === 'todos') return true;
@@ -89,7 +106,7 @@ export default function PedidosAdmin() {
   return <main className="orders"><header className="orders-hero"><div><h1>Recepción y despacho de pedidos</h1></div><form onSubmit={(event) => event.preventDefault()}><Barcode size={25} /><input value={buscar} onChange={(event) => setBuscar(event.target.value)} placeholder={TEXTO_BUSQUEDA} /><button>Buscar</button></form></header>
     <section className="orders-metrics"><article><b>{pendientes} pedidos</b><span>Por cobrar en caja</span></article><article><b>{pedidos.length} pedidos</b><span>Registrados en Supabase</span></article><article><b>{pedidos.filter((pedido) => EN_DESPACHO.includes(pedido.estado)).length} pedidos</b><span>En despacho</span></article></section>
     <nav className="orders-tabs">{[['todos', 'Todos'], ['pending', 'Pendientes de pago'], ['completed', 'Cobrados'], ['shipped', 'En despacho']].map(([id, etiqueta]) => <button className={tab === id ? 'active' : ''} onClick={() => setTab(id)} key={id}>{etiqueta}</button>)}</nav>
-    <section className="orders-list"><header><div><span>Órdenes de autoservicio</span><h2>Pedidos en operación</h2></div><div className="orders-list-tools"><label><Search size={18} /><input value={buscar} onChange={(event) => setBuscar(event.target.value)} placeholder={TEXTO_BUSQUEDA} /></label><button type="button" className="orders-refresh" onClick={actualizar} disabled={actualizando} title="Actualizar pedidos"><RefreshCw size={16} className={actualizando ? 'is-spinning' : ''} /> Actualizar</button></div></header>{cargando && pedidos.length === 0 && <p>Cargando pedidos reales...</p>}{error && <p className="error-box">{error}</p>}{!cargando && !error && vista.length === 0 && <p>{buscar.trim() ? `No hay pedidos que coincidan con «${buscar.trim()}».` : 'No hay pedidos registrados todavía.'}</p>}{vista.map((pedido) => <article key={pedido.id}><div><b>#{pedido.codigo}</b><small>{new Date(pedido.fecha).toLocaleString('es-BO')}</small></div><div><b>{pedido.cliente}</b><small>{telefonoCliente(pedido) ? `Tel. ${telefonoCliente(pedido)}` : pedido.comprobante_url ? 'Comprobante adjunto' : 'Sin teléfono registrado'}{nitCliente(pedido) ? ` · NIT ${nitCliente(pedido)}` : ''}</small></div><p>{pedido.items || 'Sin artículos'}</p><strong>{formatoMoneda(pedido.total)}</strong><i className={pedido.estado}>{etiquetas[pedido.estado] || pedido.estado}</i><div className="order-actions"><button onClick={() => abrirPedido(pedido)}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={18} /> Cobrar</> : 'Ver detalle'}</button></div></article>)}</section>
+    <section className="orders-list"><header><div><span>Órdenes de autoservicio</span><h2>Pedidos en operación</h2></div><div className="orders-list-tools"><label><Search size={18} /><input value={buscar} onChange={(event) => setBuscar(event.target.value)} placeholder={TEXTO_BUSQUEDA} /></label><button type="button" className="orders-refresh" onClick={actualizar} disabled={actualizando} title="Actualizar pedidos"><RefreshCw size={16} className={actualizando ? 'is-spinning' : ''} /> Actualizar</button></div></header>{cargando && pedidos.length === 0 && <p>Cargando pedidos reales...</p>}{error && <p className="error-box">{error}</p>}{!cargando && !error && vista.length === 0 && <p>{buscar.trim() ? `No hay pedidos que coincidan con «${buscar.trim()}».` : 'No hay pedidos registrados todavía.'}</p>}{vista.map((pedido) => <article key={pedido.id}><div><b>#{pedido.codigo}</b><small>{new Date(pedido.fecha).toLocaleString('es-BO')}</small></div><div><b>{pedido.cliente}</b><small>{telefonoCliente(pedido) ? `Tel. ${telefonoCliente(pedido)}` : pedido.comprobante_url ? 'Comprobante adjunto' : 'Sin teléfono registrado'}{nitCliente(pedido) ? ` · NIT ${nitCliente(pedido)}` : ''}</small></div><p>{pedido.items || 'Sin artículos'}</p><strong>{formatoMoneda(pedido.total)}</strong><i className={pedido.estado}>{etiquetas[pedido.estado] || pedido.estado}</i><div className="order-actions"><button onClick={() => abrirPedido(pedido)}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={18} /> Cobrar</> : 'Ver detalle'}</button><button type="button" className="order-ticket" onClick={() => descargarTicketPedido(pedido)} disabled={descargandoTicket === pedido.id} title="Descargar ticket"><Download size={16} /> {descargandoTicket === pedido.id ? 'Generando...' : 'Ticket'}</button></div></article>)}</section>
     {seleccion && <div className="orders-modal"><section><header><div><span>Caja Equipetrol</span><h2>#{seleccion.codigo}</h2><p>Cliente: {seleccion.cliente}</p>{(seleccion.cliente_telefono || seleccion.cliente_nit) && <p className="orders-client-data">{seleccion.cliente_telefono ? `Tel. ${seleccion.cliente_telefono}` : ''}{seleccion.cliente_telefono && seleccion.cliente_nit ? ' · ' : ''}{seleccion.cliente_nit ? `NIT ${seleccion.cliente_nit}` : ''}</p>}{seleccion.direccion_entrega && <p className="orders-hint"><Package size={16} /> Envío: {seleccion.direccion_entrega}{seleccion.referencia_entrega ? ` · ${seleccion.referencia_entrega}` : ''}</p>}</div><button onClick={() => setSeleccion(null)}>×</button></header><div className="orders-total"><span>Monto a liquidar</span><b>{formatoMoneda(seleccion.total)}</b></div><h3>Artículos</h3><p>{seleccion.items || 'Sin artículos registrados'}</p><div className="orders-methods"><button className={metodo === 'qr' ? 'active' : ''} onClick={() => setMetodo('qr')}><QrCode />QR Simple</button><button className={metodo === 'efectivo' ? 'active' : ''} onClick={() => setMetodo('efectivo')}><Package />Efectivo</button><button className={metodo === 'tarjeta' ? 'active' : ''} onClick={() => setMetodo('tarjeta')}><CreditCard />Tarjeta</button></div>{metodo === 'qr' && <div className="orders-qr" title={`Contenido del QR: TERRA-PRUEBA|${seleccion.codigo}|${Number(seleccion.total)}`}><b>Imagen de prueba</b><QRCode value={`TERRA-PRUEBA|${seleccion.codigo}|${Number(seleccion.total)}`} size={200} /><p>Escanea el código para simular el pago del cliente</p><small>#{seleccion.codigo} · {formatoMoneda(seleccion.total)}</small></div>}{metodo === 'efectivo' && <p className="orders-hint">Cobra el monto en efectivo en caja y luego confirma el pago.</p>}{metodo === 'tarjeta' && <p className="orders-hint">Pasa la tarjeta por el POS y luego confirma el pago.</p>}
       <section className="orders-receipt"><div className="orders-receipt-head"><div><b><ImagePlus size={17} /> Comprobante de pago</b><span>Opcional · JPG, PNG o WEBP · máximo 8 MB</span></div>{comprobanteActual && <a href={comprobanteActual} target="_blank" rel="noreferrer" title="Abrir comprobante"><ExternalLink size={17} /></a>}</div><label className="orders-receipt-btn"><ImagePlus size={17} /> {archivoComprobante ? 'Cambiar imagen' : comprobanteActual ? 'Reemplazar imagen' : 'Cargar comprobante'}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setArchivoComprobante(event.target.files?.[0] || null)} /></label>{comprobanteActual ? <div className="orders-receipt-preview"><img src={comprobanteActual} alt="Comprobante de pago" /><div><p>{archivoComprobante ? archivoComprobante.name : 'Comprobante guardado en Supabase'}</p>{archivoComprobante && <button type="button" className="orders-receipt-remove" onClick={() => setArchivoComprobante(null)}><Trash2 size={14} /> Quitar cambio</button>}</div></div> : <span className="orders-receipt-empty">Aún no se adjuntó una imagen.</span>}</section>
       {error && <p className="orders-alert is-error">{error}</p>}

@@ -24,6 +24,7 @@ export function normalizarProducto(producto) {
     imagen_url: imagenes[0] || null,
     video_url: producto.video_url ? String(producto.video_url).trim() : null,
     visible: producto.activo !== false,
+    en_oferta: producto.en_oferta === true,
     activo: producto.activo !== false,
     detalle: producto.detalle || producto.medida || '',
     descripcion: producto.descripcion || '',
@@ -41,6 +42,7 @@ function construirQueryProductos({
   todos = false,
   orden = '',
   promos = false,
+  ofertas = false,
   stock = false,
   precioMin = null,
   precioMax = null,
@@ -53,6 +55,7 @@ function construirQueryProductos({
   if (orden) p.set('orden', orden);
   if (todos) p.set('todos', 'true');
   if (promos) p.set('promos', 'true');
+  if (ofertas) p.set('ofertas', 'true');
   if (stock) p.set('stock', 'true');
   if (precioMin !== null && precioMin !== '' && Number.isFinite(Number(precioMin))) p.set('precioMin', String(precioMin));
   if (precioMax !== null && precioMax !== '' && Number.isFinite(Number(precioMax))) p.set('precioMax', String(precioMax));

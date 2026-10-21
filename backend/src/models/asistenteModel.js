@@ -11,6 +11,7 @@ export async function buscarProductosChatBD(termino = '') {
          p.id,
          p.name AS nombre,
          COALESCE(p.stock_quantity, 0)::int AS stock,
+         COALESCE(p.en_oferta, FALSE) AS en_oferta,
          COALESCE(c.name, p.product_group, 'General') AS categoria,
          p.marca,
          p.size AS medida,
@@ -33,10 +34,10 @@ export async function buscarProductosChatBD(termino = '') {
          AND translate(lower(busqueda), 'áéíóúüñ', 'aeiouun')
              ILIKE '%' || translate(lower($1), 'áéíóúüñ', 'aeiouun') || '%'
      )
-     SELECT id, nombre, stock, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
+     SELECT id, nombre, stock, en_oferta, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
      FROM filtrados
      UNION ALL
-     SELECT id, nombre, stock, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
+     SELECT id, nombre, stock, en_oferta, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
      FROM base
      WHERE NOT EXISTS (SELECT 1 FROM filtrados)
      ORDER BY precio_venta

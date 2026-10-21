@@ -3,6 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CreditCard,
+  Download,
   Flame,
   Home,
   Minus,
@@ -22,6 +23,7 @@ import {
 import { listarCategorias, listarProductosPaginado, obtenerProducto } from '../../services/productoService.js';
 import { listarClientes } from '../../services/clienteService.js';
 import { crearVentaDirecta } from '../../services/pedidoService.js';
+import { descargarTicket } from '../../utils/descargarTicket.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import { imagenDeProducto, usarImagenFallback } from '../../utils/imagenProducto.js';
 import './VentasDirectasAdmin.css';
@@ -83,6 +85,7 @@ export default function VentasDirectasAdmin() {
   const [metodoPago, setMetodoPago] = useState('efectivo');
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
+  const [ultimaVenta, setUltimaVenta] = useState(null);
   const [guardando, setGuardando] = useState(false);
 
   const [escanerAbierto, setEscanerAbierto] = useState(false);
@@ -231,6 +234,7 @@ export default function VentasDirectasAdmin() {
     setGuardando(true);
     setError('');
     setExito('');
+    setUltimaVenta(null);
     try {
       const venta = await crearVentaDirecta({
         clienteId: clienteId || null,
@@ -239,6 +243,7 @@ export default function VentasDirectasAdmin() {
         items: carrito.map((item) => ({ productoId: item.id, cantidad: item.cantidad })),
       });
       setExito(`Venta ${venta.codigo} registrada por ${formatoMoneda(venta.total)}.`);
+      setUltimaVenta(venta);
       setCarrito([]);
       setClienteId('');
       setTipoNuevo('minorista');
@@ -675,6 +680,15 @@ export default function VentasDirectasAdmin() {
 
           {error && <p className="error-box">{error}</p>}
           {exito && <p className="direct-success">{exito}</p>}
+          {ultimaVenta && (
+            <button
+              type="button"
+              className="direct-ticket"
+              onClick={() => descargarTicket(ultimaVenta, ultimaVenta.cliente || {}, ultimaVenta.items || [])}
+            >
+              <Download size={16} /> Descargar ticket de la venta
+            </button>
+          )}
 
           <button type="button" className="direct-save" disabled={guardando || !carrito.length} onClick={guardar}>
             {metodoPago === 'qr' ? <QrCode size={19} /> : <CreditCard size={19} />}

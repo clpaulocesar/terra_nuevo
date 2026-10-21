@@ -96,6 +96,8 @@ export default function Catalogo() {
     return equivalencias[categoria] || categoria;
   });
   const [orden, setOrden] = useState('recomendados');
+  // Chip "Ofertas": limita el listado a products.en_oferta = true (se combina con categoría y búsqueda).
+  const [soloOfertas, setSoloOfertas] = useState(() => searchParams.get('ofertas') === '1');
   const [menuOrdenAbierto, setMenuOrdenAbierto] = useState(false);
   const [menuCategoriasAbierto, setMenuCategoriasAbierto] = useState(false);
   const [pagina, setPagina] = useState(() => {
@@ -111,6 +113,12 @@ export default function Catalogo() {
     anunciar(valor ? `Categoría ${valor} seleccionada.` : 'Mostrando todos los productos.');
   };
   const cambiarOrden = (valor) => { setOrden(valor); setPagina(1); setMenuOrdenAbierto(false); };
+  const alternarOfertas = () => {
+    const activo = !soloOfertas;
+    setSoloOfertas(activo);
+    setPagina(1);
+    anunciar(activo ? 'Mostrando solo productos en oferta.' : 'Mostrando todos los productos.');
+  };
   const cambiarBusqueda = (valor) => { setBuscar(valor); setPagina(1); };
 
   const {
@@ -130,6 +138,7 @@ export default function Catalogo() {
     orden,
     pagina,
     limite: LIMITE_CATALOGO,
+    soloOfertas,
   });
 
   // Si el backend devuelve menos páginas de las que pide la URL, se corrige.
@@ -145,7 +154,7 @@ export default function Catalogo() {
   // Orden de respaldo dentro de la página: si el backend ya ordenó, no cambia nada;
   // si es una versión anterior que ignora `orden`, al menos la página se ve ordenada.
   const productosOrdenados = useMemo(() => {
-    if (orden === 'recomendados') return productos;
+    if (orden === 'recomendados' || orden === 'ofertas') return productos;
     const copia = [...productos];
     if (orden === 'precio-asc') copia.sort((a, b) => a.precio - b.precio);
     else if (orden === 'precio-desc') copia.sort((a, b) => b.precio - a.precio);
@@ -342,6 +351,7 @@ export default function Catalogo() {
 
   const nombreOrdenActual = {
     'recomendados': 'Recomendados',
+    'ofertas': 'En oferta',
     'precio-asc': 'Menor precio',
     'precio-desc': 'Mayor precio',
     'nombre': 'Nombre A-Z',
@@ -513,6 +523,7 @@ export default function Catalogo() {
                   <div className="terra-dropdown-menu">
                     {[
                       { id: 'recomendados', label: 'Recomendados' },
+                      { id: 'ofertas', label: 'En oferta' },
                       { id: 'precio-asc', label: 'Precio menor a mayor' },
                       { id: 'precio-desc', label: 'Precio mayor a menor' },
                       { id: 'nombre', label: 'Nombre A-Z' },
@@ -630,6 +641,17 @@ export default function Catalogo() {
                   )}
                 </div>
 
+                <button
+                  type="button"
+                  className={`terra-cat terra-cat--ofertas ${soloOfertas ? 'terra-cat--active' : ''}`}
+                  aria-pressed={soloOfertas}
+                  onClick={alternarOfertas}
+                >
+                  <span className="material-symbols-outlined terra-cat__icon">local_fire_department</span>
+                  <span className="terra-cat__label">Ofertas</span>
+                  {soloOfertas && <span className="terra-cat__dot"></span>}
+                </button>
+
                 {categoriasEnRiel.map((cat) => {
                   const activa = esCategoriaActiva(cat.id);
                   return (
@@ -716,7 +738,7 @@ export default function Catalogo() {
                   return (
                     <article
                       key={producto.id}
-                      className={`terra-card ${!disponible ? 'terra-card--agotado' : ''} ${recienAgregado ? 'terra-card--agregado' : ''}`}
+                      className={`terra-card ${!disponible ? 'terra-card--agotado' : ''} ${recienAgregado ? 'terra-card--agregado' : ''} ${producto.en_oferta ? 'terra-card--oferta' : ''}`}
                       tabIndex={0}
                       aria-label={`${producto.nombre}, ${formatoMoneda(esMayorista && Number.isFinite(Number(producto.precioMayorista)) ? producto.precioMayorista : producto.precio)}, ${disponible ? 'disponible' : 'agotado'}. Enter para ver el detalle.`}
                       onKeyDown={(event) => {
@@ -739,6 +761,12 @@ export default function Catalogo() {
                         />
 
                         <div className="terra-card__badges">
+                          {producto.en_oferta && (
+                            <span className="terra-badge terra-badge--oferta">
+                              <span className="material-symbols-outlined terra-badge__icon">local_fire_department</span>
+                              Oferta
+                            </span>
+                          )}
                           {ventasMaximas > 0 && Number(producto.ventas || 0) === ventasMaximas && (
                             <span className="terra-badge terra-badge--bestseller">
                               <span className="material-symbols-outlined terra-badge__icon">workspace_premium</span>
@@ -827,6 +855,7 @@ export default function Catalogo() {
                           {!esMayorista && <span className="terra-card__precio-actual">
                             {formatoMoneda(producto.precio)}
                           </span>}
+                          {!esMayorista && producto.en_oferta && <span className="terra-card__oferta-tag">En oferta</span>}
                         </div>
 
                         {esMayorista && <div className="terra-wholesale-quantity" aria-label={`Cantidad de ${producto.nombre}`}>
