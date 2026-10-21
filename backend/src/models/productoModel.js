@@ -3,7 +3,7 @@ import { pool } from '../config/database.js';
 const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, p.slug AS slug,
   p.name AS nombre, p.description AS descripcion, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
   COALESCE(p.public_price, 0) AS precio, p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
-  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, COALESCE(p.activo, p.is_active, TRUE) AS activo,
+  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, COALESCE(p.activo, p.is_active, TRUE) AS activo, COALESCE(p.en_oferta, FALSE) AS en_oferta,
   COALESCE((SELECT json_agg(json_build_object('minCantidad', w.minimum_quantity, 'precio', w.unit_price) ORDER BY w.minimum_quantity)
     FROM wholesale_price_tiers w WHERE w.product_id=p.id), '[]'::json) AS escalas_mayorista`;
 
@@ -50,9 +50,13 @@ const EXISTE_PROMOCION = `EXISTS (
 
 // Cada opción tiene su propio ORDER BY fijo: nunca se interpola texto del request.
 // Se aceptan alias en kebab-case y snake_case para no romper clientes existentes.
+// "recomendados" (y su alias "relevancia") pone primero los productos en oferta
+// (products.en_oferta), también cuando se filtra por categoría. "ofertas" además
+// limita el listado a esos productos (ver construirFiltros).
 const ORDENES = {
-  recomendados: 'COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
-  relevancia: 'COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
+  recomendados: 'COALESCE(p.en_oferta, FALSE) DESC, COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
+  relevancia: 'COALESCE(p.en_oferta, FALSE) DESC, COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
+  ofertas: 'COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
   'mas-vendidos': 'COALESCE(v.unidades, 0) DESC, p.created_at DESC, p.id DESC',
   mas_vendidos: 'COALESCE(v.unidades, 0) DESC, p.created_at DESC, p.id DESC',
   nuevos: 'p.created_at DESC, p.id DESC',
@@ -72,7 +76,7 @@ const CTE_VENTAS = `WITH ventas AS (
   GROUP BY LOWER(product_name)
 )`;
 
-function construirFiltros({ buscar = '', categoria = '', soloActivos = false, soloPromos = false, conStock = false, precioMin = null, precioMax = null } = {}) {
+function construirFiltros({ buscar = '', categoria = '', soloActivos = false, soloPromos = false, soloOfertas = false, conStock = false, precioMin = null, precioMax = null } = {}) {
   const valores = [];
   const condiciones = [];
   if (soloActivos) condiciones.push('COALESCE(p.activo, p.is_active, TRUE) = TRUE');
@@ -80,6 +84,7 @@ function construirFiltros({ buscar = '', categoria = '', soloActivos = false, so
   const categoriaLimpia = String(categoria || '').trim();
   if (categoriaLimpia && !['todos', 'todas'].includes(categoriaLimpia.toLowerCase())) { valores.push(categoriaLimpia); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
   if (soloPromos) condiciones.push(EXISTE_PROMOCION);
+  if (soloOfertas) condiciones.push('COALESCE(p.en_oferta, FALSE) = TRUE');
   if (conStock) condiciones.push('COALESCE(p.stock_quantity, 0) > 0');
   if (Number.isFinite(precioMin)) { valores.push(precioMin); condiciones.push(`COALESCE(p.public_price, 0) >= $${valores.length}`); }
   if (Number.isFinite(precioMax)) { valores.push(precioMax); condiciones.push(`COALESCE(p.public_price, 0) <= $${valores.length}`); }
@@ -95,13 +100,14 @@ export async function listarProductosBD({
   limite = 100,
   soloActivos = false,
   soloPromos = false,
+  soloOfertas = false,
   conStock = false,
   precioMin = null,
   precioMax = null,
   orden = 'recomendados',
 } = {}) {
   await asegurarEscalasMayoristasBD();
-  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, conStock, precioMin, precioMax });
+  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, soloOfertas: soloOfertas || orden === 'ofertas', conStock, precioMin, precioMax });
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
   const orderBy = ORDENES[orden] || ORDENES.recomendados;
   const valoresFiltro = [...valores];
@@ -140,13 +146,14 @@ export async function listarProductosPaginadoBD({
   limite = 18,
   soloActivos = false,
   soloPromos = false,
+  soloOfertas = false,
   conStock = false,
   precioMin = null,
   precioMax = null,
   orden = 'recomendados',
 } = {}) {
   await asegurarEscalasMayoristasBD();
-  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, conStock, precioMin, precioMax });
+  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, soloOfertas: soloOfertas || orden === 'ofertas', conStock, precioMin, precioMax });
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
   const orderBy = ORDENES[orden] || ORDENES.recomendados;
 

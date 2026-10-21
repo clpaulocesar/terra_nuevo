@@ -51,6 +51,7 @@ export async function listarProductos(req, res, next) {
     const limite = Number(req.query.limite ?? 100);
     const soloActivos = req.query.todos === 'true' ? false : true;
     const soloPromos = req.query.promos === 'true';
+    const soloOfertas = req.query.ofertas === 'true';
     const conStock = req.query.stock === 'true';
     const precioMin = req.query.precioMin != null && req.query.precioMin !== '' ? Number(req.query.precioMin) : null;
     const precioMax = req.query.precioMax != null && req.query.precioMax !== '' ? Number(req.query.precioMax) : null;
@@ -82,6 +83,7 @@ export async function listarProductos(req, res, next) {
       limite,
       soloActivos,
       soloPromos,
+      soloOfertas,
       conStock,
       precioMin,
       precioMax,
