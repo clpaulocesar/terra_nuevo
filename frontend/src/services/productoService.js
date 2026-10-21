@@ -45,7 +45,9 @@ function construirQueryProductos({
   precioMin = null,
   precioMax = null,
 } = {}) {
-  const p = new URLSearchParams({ pagina: String(pagina), limite: String(limite) });
+  // El backend en produccion valida limite <= 200. Se normaliza a un maximo de 200 para evitar error 400.
+  const limiteNormalizado = Math.min(Math.max(1, Number(limite) || 100), 200);
+  const p = new URLSearchParams({ pagina: String(pagina), limite: String(limiteNormalizado) });
   if (buscar) p.set('buscar', buscar);
   if (categoria && categoria !== 'Todos' && categoria !== 'Todas') p.set('categoria', categoria);
   if (orden) p.set('orden', orden);
@@ -90,8 +92,30 @@ export async function obtenerProducto(id) { exigirConexionReal(); return normali
 export async function crearProducto(datos) { exigirConexionReal(); return normalizarProducto(await apiRequest('/productos', { method: 'POST', body: datos })); }
 export async function actualizarProducto(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}`, { method: 'PUT', body: datos })); }
 export async function actualizarStock(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}/stock`, { method: 'PATCH', body: datos })); }
+export async function cambiarVisibilidadProducto(id, activo) {
+  exigirConexionReal();
+  try {
+    const res = await apiRequest(`/productos/${id}/visibilidad`, {
+      method: 'PATCH',
+      body: { activo: Boolean(activo) },
+    });
+    const data = res?.data || res;
+    return normalizarProducto(data);
+  } catch (err) {
+    if (err.message?.includes('Ruta no encontrada') || err.message?.includes('404')) {
+      const resFallback = await apiRequest(`/productos/${id}`, {
+        method: 'PUT',
+        body: { activo: Boolean(activo) },
+      });
+      const dataFallback = resFallback?.data || resFallback;
+      return normalizarProducto(dataFallback);
+    }
+    throw err;
+  }
+}
 export async function eliminarProducto(id) { exigirConexionReal(); return apiRequest(`/productos/${id}`, { method: 'DELETE' }); }
-export async function listarCategorias({ signal } = {}) { try { const r = await apiRequest('/categorias', { signal }); return Array.isArray(r) ? r : r?.data || []; } catch { return []; } }
+// `todas: true` incluye las categorías sin productos (uso del backoffice); el catálogo público solo recibe las que tienen productos activos.
+export async function listarCategorias({ signal, todas = false } = {}) { try { const r = await apiRequest(todas ? '/categorias?todas=1' : '/categorias', { signal }); return Array.isArray(r) ? r : r?.data || []; } catch { return []; } }
 export async function crearCategoria(datos) { exigirConexionReal(); return apiRequest('/categorias', { method: 'POST', body: datos }); }
 export async function actualizarCategoria(id, datos) { exigirConexionReal(); return apiRequest(`/categorias/${id}`, { method: 'PUT', body: datos }); }
 export async function eliminarCategoria(id) { exigirConexionReal(); return apiRequest(`/categorias/${id}`, { method: 'DELETE' }); }

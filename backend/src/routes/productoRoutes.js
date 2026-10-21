@@ -6,6 +6,7 @@ import {
   actualizarProducto,
   actualizarStock,
   eliminarProducto,
+  cambiarVisibilidadProducto,
   seedProductos,
 } from '../controllers/productoController.js';
 import { listarCategorias } from '../controllers/categoriaController.js';
@@ -20,6 +21,9 @@ router.get('/:id', obtenerProducto);
 router.post('/', crearProducto);
 router.put('/:id', actualizarProducto);
 router.patch('/:id/stock', actualizarStock);
+router.patch('/:id/visibilidad', cambiarVisibilidadProducto);
+router.patch('/:id', cambiarVisibilidadProducto);
 router.delete('/:id', eliminarProducto);
 
 export default router;
+

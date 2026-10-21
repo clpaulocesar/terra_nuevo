@@ -209,6 +209,73 @@ html[data-theme="dark"] .product-related-card figure { background: var(--td-surf
 html[data-theme="dark"] .product-related-card p { color: var(--td-muted); }
 html[data-theme="dark"] .product-related-card__footer { border-top-color: var(--td-line); }
 
+/* Detalle: bloque de compra (controles con fondo blanco en la hoja clara) */
+html[data-theme="dark"] .product-buy h1 { color: var(--td-text); }
+html[data-theme="dark"] .product-buy__rating small,
+html[data-theme="dark"] .product-buy__choice small,
+html[data-theme="dark"] .product-buy__guarantees span,
+html[data-theme="dark"] .product-buy__extra { color: var(--td-muted); }
+html[data-theme="dark"] .product-buy__choice small strong { color: var(--td-text); }
+html[data-theme="dark"] .product-buy__price { border-bottom-color: var(--td-line); }
+html[data-theme="dark"] .product-buy__price small { color: var(--td-ok); }
+html[data-theme="dark"] .product-buy__quantity > div { border-color: var(--td-line); }
+html[data-theme="dark"] .product-buy__quantity button { background: var(--td-surface-2); color: var(--td-text); }
+html[data-theme="dark"] .product-buy__quantity span { border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .product-buy__now { border-color: var(--td-text); color: var(--td-text); }
+html[data-theme="dark"] .product-buy__now:hover { background: var(--td-text); color: var(--td-bg); }
+html[data-theme="dark"] .product-buy__add:disabled { background: #4a3f3b; color: var(--td-muted); }
+html[data-theme="dark"] .product-detail__specs summary { color: #ffb3bd; }
+html[data-theme="dark"] .product-detail__specs > div { border-left-color: var(--td-accent-soft); }
+html[data-theme="dark"] .product-detail__specs p { color: var(--td-muted); }
+
+/* Detalle: galería (badge de color, paleta lateral) */
+html[data-theme="dark"] .product-gallery__color-badge,
+html[data-theme="dark"] .product-gallery__colors,
+html[data-theme="dark"] .paleta-cuadros { background: rgba(30, 25, 23, 0.96); border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .paleta-custom { background: var(--td-surface-2); }
+html[data-theme="dark"] .paleta-cuadros button { border-color: var(--td-line); }
+html[data-theme="dark"] .product-gallery__colors button.active,
+html[data-theme="dark"] .paleta-cuadros button.active,
+html[data-theme="dark"] .product-buy__choice button.active { box-shadow: 0 0 0 2px var(--td-surface), 0 0 0 4px var(--td-accent); }
+
+/* Detalle: destacados, acordeón de descripción, ficha técnica y showroom */
+html[data-theme="dark"] .product-highlights { border-top-color: var(--td-line); }
+html[data-theme="dark"] .product-highlights b { color: var(--td-text); }
+html[data-theme="dark"] .product-highlights small { color: var(--td-muted); }
+html[data-theme="dark"] .product-detail__accordion .accordion-item { background: var(--td-surface); border-color: var(--td-line); }
+html[data-theme="dark"] .product-detail__accordion .accordion-header { background: var(--td-surface); color: var(--td-text); }
+html[data-theme="dark"] .product-detail__accordion .accordion-header:hover { background: var(--td-surface-2); }
+html[data-theme="dark"] .product-detail__accordion .accordion-chevron { color: var(--td-muted); }
+html[data-theme="dark"] .product-detail__accordion .accordion-body { border-top-color: var(--td-line); }
+html[data-theme="dark"] .product-detail__accordion .accordion-body p { color: var(--td-muted); }
+html[data-theme="dark"] .product-detail__bottom > article,
+html[data-theme="dark"] .product-detail__bottom > aside { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .product-detail__bottom aside { background: var(--td-surface-2); }
+html[data-theme="dark"] .product-detail__bottom h2 { color: var(--td-text); }
+html[data-theme="dark"] .product-detail__bottom dt,
+html[data-theme="dark"] .product-detail__bottom dd { border-top-color: var(--td-line); }
+html[data-theme="dark"] .product-detail__bottom dt { color: var(--td-muted); }
+html[data-theme="dark"] .product-detail__bottom dd { color: var(--td-text); }
+html[data-theme="dark"] .product-detail__bottom aside > svg { background: var(--td-accent-soft); color: #ffb3bd; }
+html[data-theme="dark"] .product-detail__bottom aside p { color: var(--td-muted); }
+html[data-theme="dark"] .product-detail__bottom aside a { background: var(--td-surface); border-color: var(--td-line); color: #ffb3bd; }
+
+/* Detalle: "Otros modelos que te pueden interesar" */
+html[data-theme="dark"] .product-related h2 { color: var(--td-text); }
+html[data-theme="dark"] .product-related header a { color: #ffb3bd; }
+html[data-theme="dark"] .product-related > div > a { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .product-related figure { background: var(--td-surface-2); }
+html[data-theme="dark"] .product-related h3,
+html[data-theme="dark"] .product-related strong { color: var(--td-text); }
+html[data-theme="dark"] .product-related p { color: var(--td-muted); }
+html[data-theme="dark"] .product-related-card h3 { color: var(--td-text); }
+html[data-theme="dark"] .product-related-card__category { color: #ffb3bd; }
+html[data-theme="dark"] .product-related-card__footer .in-stock { color: var(--td-ok); }
+html[data-theme="dark"] .product-related-card__footer > span { color: #ffb3bd; }
+html[data-theme="dark"] .product-related-card:hover { box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5); }
+html[data-theme="dark"] .detalle-status { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .detalle-status a { color: #ffb3bd; }
+
 /* ---------- Carrito (página) ---------- */
 html[data-theme="dark"] .cart-heading p,
 html[data-theme="dark"] .cart-empty p { color: var(--td-muted); }
@@ -232,7 +299,14 @@ html[data-theme="dark"] .cart-payments span { background: var(--td-surface-2); c
 html[data-theme="dark"] .cart-total span,
 html[data-theme="dark"] .cart-total b,
 html[data-theme="dark"] .cart-empty svg { color: var(--td-ok); }
-html[data-theme="dark"] .cart-back { color: var(--td-text); }
+html[data-theme="dark"] .cart-back { background: var(--td-surface-2); border: 1px solid var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .cart-back:hover { background: var(--td-surface-3); }
+html[data-theme="dark"] .cart-summary-box hr { border-top-color: var(--td-line); }
+html[data-theme="dark"] .cart-list-title button,
+html[data-theme="dark"] .cart-delete { color: #ff8a95; }
+html[data-theme="dark"] .cart-item-color { color: var(--td-muted); }
+html[data-theme="dark"] .cart-item-color i { border: 1px solid var(--td-line); }
+html[data-theme="dark"] .cart-quantity button:disabled { opacity: .4; }
 
 /* ---------- Carrito flotante y asistente ---------- */
 html[data-theme="dark"] .cart-drawer,
@@ -300,6 +374,285 @@ html[data-theme="dark"] .ident-card + aside { background: var(--td-surface-2); }
 html[data-theme="dark"] .ident-whatsapp > span { background: var(--td-surface-3); }
 html[data-theme="dark"] .ident-guest { background: var(--td-surface-3); color: var(--td-text); }
 html[data-theme="dark"] .ident-guest:hover { background: #3f3431; }
+
+/* ---------- Confirmación de pedido ---------- */
+html[data-theme="dark"] .confirm-page { color: var(--td-text); }
+html[data-theme="dark"] .confirm-back { background: var(--td-surface-2); color: var(--td-text); }
+html[data-theme="dark"] .confirm-page header span { color: #ffd08a; }
+html[data-theme="dark"] .confirm-page header p { color: var(--td-muted); }
+html[data-theme="dark"] .confirm-notice { background: #3a2b10; }
+html[data-theme="dark"] .confirm-notice svg,
+html[data-theme="dark"] .confirm-notice p { color: #ffdb9b; }
+html[data-theme="dark"] .confirm-card,
+html[data-theme="dark"] .confirm-summary { background: var(--td-surface); color: var(--td-text); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4); }
+html[data-theme="dark"] .confirm-client,
+html[data-theme="dark"] .confirm-item,
+html[data-theme="dark"] .confirm-summary > div,
+html[data-theme="dark"] .confirm-payment i { background: var(--td-surface-2); color: var(--td-text); }
+html[data-theme="dark"] .confirm-client svg { color: #ffb3bd; }
+html[data-theme="dark"] .confirm-client span,
+html[data-theme="dark"] .confirm-item small,
+html[data-theme="dark"] .confirm-payment span,
+html[data-theme="dark"] .confirm-summary > small { color: var(--td-muted); }
+html[data-theme="dark"] .confirm-item > span { background: var(--td-accent-soft); color: #ffb3bd; }
+html[data-theme="dark"] .confirm-summary hr { border-top-color: var(--td-line); }
+html[data-theme="dark"] .confirm-total span,
+html[data-theme="dark"] .confirm-total b { color: #ffb3bd; }
+html[data-theme="dark"] .confirm-summary > a { background: var(--td-surface-2); border: 1px solid var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .confirm-summary > a:hover { background: var(--td-surface-3); }
+html[data-theme="dark"] .confirm-error { background: #3a1a1c !important; color: #ff9a92; }
+html[data-theme="dark"] .confirm-delivery { background: var(--td-ok-bg); border-color: #24503a; }
+html[data-theme="dark"] .confirm-delivery svg { color: var(--td-ok); }
+html[data-theme="dark"] .confirm-delivery b { color: var(--td-text); }
+html[data-theme="dark"] .confirm-delivery span,
+html[data-theme="dark"] .confirm-delivery small { color: var(--td-muted); }
+html[data-theme="dark"] .confirm-delivery a { color: #ffb3bd; }
+
+/* ---------- Pedido generado ---------- */
+html[data-theme="dark"] .pedido-page { color: var(--td-text); }
+html[data-theme="dark"] .pedido-success { color: #ffb3bd; }
+html[data-theme="dark"] .pedido-lead { color: var(--td-muted); }
+html[data-theme="dark"] .pedido-ticket,
+html[data-theme="dark"] .pedido-steps { background: var(--td-surface); color: var(--td-text); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45); }
+html[data-theme="dark"] .pedido-ticket header { border-bottom-color: var(--td-line); }
+html[data-theme="dark"] .pedido-ticket header svg,
+html[data-theme="dark"] .pedido-code strong,
+html[data-theme="dark"] .pedido-code svg,
+html[data-theme="dark"] .pedido-row b { color: #ffb3bd; }
+html[data-theme="dark"] .pedido-ticket header span,
+html[data-theme="dark"] .pedido-code span,
+html[data-theme="dark"] .pedido-steps span { color: var(--td-muted); }
+html[data-theme="dark"] .pedido-code,
+html[data-theme="dark"] .pedido-time { background: var(--td-surface-2); color: var(--td-text); }
+html[data-theme="dark"] .pedido-ticket footer { background: var(--td-accent-soft); color: #ffb3bd; }
+html[data-theme="dark"] .pedido-time svg { color: #ffd08a; }
+html[data-theme="dark"] .pedido-catalog { background: var(--td-surface-2); border: 1px solid var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .pedido-catalog:hover { background: var(--td-surface-3); }
+
+/* ---------- Identificación: acentos de ClienteTheme.css ---------- */
+html[data-theme="dark"] .ident-page h1,
+html[data-theme="dark"] .ident-card label.active > div,
+html[data-theme="dark"] .keyboard-title svg,
+html[data-theme="dark"] .keyboard-title b,
+html[data-theme="dark"] .ident-order b,
+html[data-theme="dark"] .ident-card + aside svg { color: #ffb3bd; }
+html[data-theme="dark"] .keyboard-title b { background: var(--td-accent-soft); }
+
+/* ---------- Acentos rojos de ClienteTheme.css, Bienvenida y Categorías ---------- */
+html[data-theme="dark"] .detalle-back,
+html[data-theme="dark"] .detalle-cart-link,
+html[data-theme="dark"] .detalle-delivery > svg,
+html[data-theme="dark"] .detalle-price strong,
+html[data-theme="dark"] .in-stock,
+html[data-theme="dark"] .categoria-body strong,
+html[data-theme="dark"] .welcome-eyebrow,
+html[data-theme="dark"] .welcome-copy h1 span,
+html[data-theme="dark"] .welcome-spot a:hover,
+html[data-theme="dark"] .welcome-trust svg { color: #ffb3bd; }
+html[data-theme="dark"] .categorias-offer-icon { background: var(--td-accent-soft); color: #ffb3bd; }
+html[data-theme="dark"] .categorias-pills a:first-child,
+html[data-theme="dark"] .categoria-body a { background: var(--td-surface-2); color: var(--td-text); }
+
+/* ---------- Genéricos restantes (index.css) ---------- */
+html[data-theme="dark"] .cart-emoji { background: var(--td-surface-2); }
+html[data-theme="dark"] .cart-description p { color: var(--td-muted); }
+html[data-theme="dark"] .quantity-controls button { background: var(--td-surface-2); color: var(--td-text); }
+html[data-theme="dark"] .icon-danger { background: #3a1a1c; color: #ff9a92; }
+html[data-theme="dark"] .summary strong { color: #ffb3bd; }
+html[data-theme="dark"] .field-error { color: #ff9a92; }
+html[data-theme="dark"] .success-icon { color: var(--td-ok); }
+html[data-theme="dark"] .code-card { background: var(--td-surface); color: var(--td-text); }
+html[data-theme="dark"] .code-card strong { color: var(--td-ok); }
+
+/* ---------- Catálogo: restos (teclado, compra mayorista, skeleton, paleta) ---------- */
+html[data-theme="dark"] .terra-key--delete { background: #3a1a1c; color: #ff9a92; }
+html[data-theme="dark"] .terra-wholesale-saving { background: var(--td-ok-bg); color: var(--td-ok); }
+html[data-theme="dark"] .terra-wholesale-quantity button { background: var(--td-surface-2); color: var(--td-text); }
+html[data-theme="dark"] .terra-wholesale-cart { background: var(--td-surface); color: var(--td-text); }
+html[data-theme="dark"] .terra-wholesale-cart__items article { background: var(--td-surface-2); }
+html[data-theme="dark"] .terra-wholesale-cart__items small { color: var(--td-ok); }
+html[data-theme="dark"] .terra-wholesale-cart__items button { color: #ff8a95; }
+html[data-theme="dark"] .terra-wholesale-cart__total span { color: var(--td-muted); }
+html[data-theme="dark"] .terra-card__media:has(.imagen-perezosa:not(.imagen-perezosa--lista)) { background: linear-gradient(100deg, #282120 20%, #332a28 40%, #282120 60%); }
+html[data-theme="dark"] .product-buy__choice .product-buy__palette button { background: var(--td-surface-2); color: var(--td-text); }
+html[data-theme="dark"] .product-buy__choice .product-buy__palette button.active { background: var(--td-accent-soft); }
+
+/* ---------- Carrito flotante y asistente: restos ---------- */
+html[data-theme="dark"] .cart-drawer-thumb,
+html[data-theme="dark"] .cart-drawer-del { color: #ffb3bd; }
+html[data-theme="dark"] .chat-cancelar-grabacion:hover { background: var(--td-surface-3); color: var(--td-text); }
+
+/* ---------- Menú de cuenta en la cabecera (Layout.css) ---------- */
+html[data-theme="dark"] .terra-login-button:hover { background: var(--td-surface-3); color: #ffb3bd; }
+html[data-theme="dark"] .terra-account-menu small { color: #ffb3bd; }
+html[data-theme="dark"] .terra-account-menu button:hover { background: #4a2228; }
+html[data-theme="dark"] .terra-account-avatar { background: var(--td-accent-soft); color: #ffb3bd; }
+html[data-theme="dark"] .terra-account-summary { background: var(--td-surface-2); }
+html[data-theme="dark"] .terra-account-summary strong { color: var(--td-text); }
+html[data-theme="dark"] .terra-account-status { background: var(--td-accent-soft); color: #ffb3bd !important; }
+html[data-theme="dark"] .terra-account-benefit { background: var(--td-surface-2); color: var(--td-muted); }
+html[data-theme="dark"] .terra-account-benefit svg,
+html[data-theme="dark"] .terra-account-benefit b { color: #ffb3bd; }
+html[data-theme="dark"] .terra-account-links a,
+html[data-theme="dark"] .terra-account-links button,
+html[data-theme="dark"] .terra-account-links .terra-account-support { color: var(--td-text); }
+html[data-theme="dark"] .terra-account-links a:hover { background: var(--td-surface-2); color: #ffb3bd; }
+html[data-theme="dark"] .terra-account-links a:last-child:hover { background: var(--td-ok-bg); color: var(--td-ok); }
+html[data-theme="dark"] .terra-account-links a:last-child svg { color: var(--td-ok); }
+html[data-theme="dark"] .terra-account-links .is-active { background: var(--td-accent-soft); color: #ffb3bd; }
+html[data-theme="dark"] .terra-account-links .terra-account-support > i { background: var(--td-ok-bg); color: var(--td-ok); }
+html[data-theme="dark"] .terra-account-footer { background: var(--td-surface-2); }
+html[data-theme="dark"] .terra-account-menu .terra-account-footer button { color: #ffb3bd; }
+html[data-theme="dark"] .terra-account-menu .terra-account-footer button:hover { background: var(--td-accent-soft); }
+html[data-theme="dark"] .terra-account-name > b { background: #3a2b10; color: #ffdb9b; }
+
+/* ---------- Modal de cuenta web (WebAccountModal.css) ---------- */
+html[data-theme="dark"] .account-modal { background: rgba(0, 0, 0, 0.7); }
+html[data-theme="dark"] .account-modal__panel { background: var(--td-surface); color: var(--td-text); }
+html[data-theme="dark"] .account-modal__panel > header { border-bottom-color: var(--td-line); }
+html[data-theme="dark"] .account-modal__panel > header i { background: var(--td-line); }
+html[data-theme="dark"] .account-modal__panel > header b,
+html[data-theme="dark"] .account-modal__title,
+html[data-theme="dark"] .account-modal form > label { color: var(--td-text); }
+html[data-theme="dark"] .account-modal form input:not([type=checkbox]) { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .account-modal__forgot { color: #ffb3bd; }
+html[data-theme="dark"] .account-modal__options label,
+html[data-theme="dark"] .account-modal__advisor { color: var(--td-muted); }
+html[data-theme="dark"] .account-modal__message { background: #3a1a1c; color: #ff9a92; }
+html[data-theme="dark"] .account-modal__advisor:before,
+html[data-theme="dark"] .account-modal__advisor:after { background: var(--td-line); }
+html[data-theme="dark"] .account-modal__whatsapp { background: var(--td-ok-bg); border-color: #24503a; color: var(--td-ok); }
+html[data-theme="dark"] .account-modal footer { background: var(--td-surface-2); color: var(--td-muted); }
+
+/* ---------- Alertas SweetAlert (styles/alertas.css) ---------- */
+html[data-theme="dark"] .terra-swal.swal2-popup,
+html[data-theme="dark"] .terra-swal { background: var(--td-surface) !important; color: var(--td-text); }
+html[data-theme="dark"] .terra-swal .swal2-title { color: var(--td-text); }
+html[data-theme="dark"] .terra-swal .swal2-html-container,
+html[data-theme="dark"] .terra-swal .swal2-content { color: var(--td-muted); }
+html[data-theme="dark"] .terra-swal .btn-danger { background: var(--td-surface-2); color: var(--td-text); }
+html[data-theme="dark"] .terra-swal .btn-danger:hover { background: var(--td-surface-3); }
+
+/* ---------- Perfil mayorista (PanelMayorista.css) ---------- */
+html[data-theme="dark"] .wholesale-profile-view { color: var(--td-text); }
+html[data-theme="dark"] .b2b-breadcrumb-current,
+html[data-theme="dark"] .b2b-profile-header p,
+html[data-theme="dark"] .b2b-profile-meta,
+html[data-theme="dark"] .b2b-section-title-wrap p,
+html[data-theme="dark"] .b2b-field-helper,
+html[data-theme="dark"] .b2b-sync-notice { color: var(--td-muted); }
+html[data-theme="dark"] .b2b-profile-header h1,
+html[data-theme="dark"] .b2b-profile-title-row h2,
+html[data-theme="dark"] .b2b-profile-meta strong,
+html[data-theme="dark"] .b2b-section-title-wrap h3,
+html[data-theme="dark"] .b2b-field-box label { color: var(--td-text); }
+html[data-theme="dark"] .b2b-profile-card,
+html[data-theme="dark"] .b2b-form-section { background: var(--td-surface); border-color: var(--td-line); }
+html[data-theme="dark"] .b2b-btn-cancel,
+html[data-theme="dark"] .b2b-avatar-cam-btn,
+html[data-theme="dark"] .b2b-btn-upload-logo,
+html[data-theme="dark"] .b2b-map-zoom-btn,
+html[data-theme="dark"] .b2b-btn-map-action,
+html[data-theme="dark"] .b2b-gps-badge { background-color: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .b2b-btn-cancel:hover,
+html[data-theme="dark"] .b2b-avatar-cam-btn:hover,
+html[data-theme="dark"] .b2b-map-zoom-btn:hover,
+html[data-theme="dark"] .b2b-btn-map-action:hover { background-color: var(--td-surface-3); color: var(--td-text); }
+html[data-theme="dark"] .b2b-verified-badge,
+html[data-theme="dark"] .b2b-success-alert { background-color: var(--td-ok-bg); border-color: #24503a; color: var(--td-ok); }
+html[data-theme="dark"] .b2b-text-input { background-color: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .b2b-map-hint-banner { background-color: #3a1a1c; border-color: #5a2a2e; color: #ff9a92; }
+html[data-theme="dark"] .b2b-leaflet-container-frame,
+html[data-theme="dark"] .b2b-map-frame { background-color: var(--td-surface-2); }
+html[data-theme="dark"] .leaflet-b2b-bubble,
+html[data-theme="dark"] .b2b-map-truck-legend { background-color: rgba(30, 25, 23, 0.96); color: var(--td-text); }
+
+/* ---------- Pedidos mayorista (PedidosMayorista.css) ---------- */
+html[data-theme="dark"] .wholesale-orders-dashboard {
+  --terra-border: var(--td-line);
+  --terra-surface: var(--td-surface);
+  --terra-bg-soft: var(--td-surface-2);
+  --terra-text-dark: var(--td-text);
+  --terra-text-muted: var(--td-muted);
+  --terra-wine-light: var(--td-accent-soft);
+  color: var(--td-text);
+}
+html[data-theme="dark"] .orders-page-header,
+html[data-theme="dark"] .orders-kpi-bar,
+html[data-theme="dark"] .orders-filter-container,
+html[data-theme="dark"] .orders-table-wrapper,
+html[data-theme="dark"] .order-detail-panel-card,
+html[data-theme="dark"] .orders-institutional-footer { background: var(--td-surface); border-color: var(--td-line); }
+html[data-theme="dark"] .orders-institutional-footer,
+html[data-theme="dark"] .orders-footer-links a,
+html[data-theme="dark"] .kpi-title-tiny,
+html[data-theme="dark"] .btn-filter-clear,
+html[data-theme="dark"] .segmented-tab-btn,
+html[data-theme="dark"] .orders-table-counter,
+html[data-theme="dark"] .orders-data-table thead tr,
+html[data-theme="dark"] .cell-payment-cond,
+html[data-theme="dark"] .detail-head-date,
+html[data-theme="dark"] .detail-location-pin,
+html[data-theme="dark"] .detail-driver-text,
+html[data-theme="dark"] .item-meta-titles p,
+html[data-theme="dark"] .detail-cost-total-row span,
+html[data-theme="dark"] .detail-credit-label,
+html[data-theme="dark"] .orders-table-pagination { color: var(--td-muted); }
+html[data-theme="dark"] .kpi-number-bold,
+html[data-theme="dark"] .orders-table-title-left strong,
+html[data-theme="dark"] .cell-order-code--dark,
+html[data-theme="dark"] .cell-date-bold,
+html[data-theme="dark"] .cell-items-text,
+html[data-theme="dark"] .cell-total-bold,
+html[data-theme="dark"] .detail-head-number,
+html[data-theme="dark"] .detail-section-title-sm,
+html[data-theme="dark"] .item-meta-titles h5,
+html[data-theme="dark"] .detail-item-price-bold,
+html[data-theme="dark"] .tracking-step-label--bold,
+html[data-theme="dark"] .btn-filter-clear:hover,
+html[data-theme="dark"] .segmented-tab-btn:hover { color: var(--td-text); }
+html[data-theme="dark"] .btn-export-excel,
+html[data-theme="dark"] .btn-table-action-secondary,
+html[data-theme="dark"] .btn-invoice-pdf-subtle,
+html[data-theme="dark"] .pagination-btn-base,
+html[data-theme="dark"] .segmented-pill-box,
+html[data-theme="dark"] .item-qty-sq,
+html[data-theme="dark"] .orders-table-counter,
+html[data-theme="dark"] .orders-search-field { background-color: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .btn-export-excel:hover,
+html[data-theme="dark"] .btn-table-action-secondary:hover,
+html[data-theme="dark"] .btn-invoice-pdf-subtle:hover,
+html[data-theme="dark"] .pagination-btn-base:hover:not(:disabled),
+html[data-theme="dark"] .orders-search-field:focus,
+html[data-theme="dark"] .segmented-tab-btn.is-active { background-color: var(--td-surface-3); color: var(--td-text); }
+html[data-theme="dark"] .orders-table-bar-top,
+html[data-theme="dark"] .orders-data-table thead tr,
+html[data-theme="dark"] .orders-table-pagination,
+html[data-theme="dark"] .detail-item-pill-card,
+html[data-theme="dark"] .detail-panel-head { background: var(--td-surface-2); }
+html[data-theme="dark"] .orders-data-table tbody tr { border-bottom-color: var(--td-line-soft); }
+html[data-theme="dark"] .orders-data-table tbody tr:hover { background-color: var(--td-surface-2); }
+html[data-theme="dark"] .orders-data-table tbody tr.is-selected:hover { background-color: var(--td-accent-soft); }
+html[data-theme="dark"] .kpi-icon-square--blue,
+html[data-theme="dark"] .kpi-pill-badge--blue,
+html[data-theme="dark"] .status-pill-clean--blue,
+html[data-theme="dark"] .status-badge-pulse-wrap { background-color: #1b2a44; border-color: #2d4470; color: #93b4ff; }
+html[data-theme="dark"] .detail-head-eta,
+html[data-theme="dark"] .tracking-step-label--active { color: #93b4ff; }
+html[data-theme="dark"] .kpi-icon-square--green,
+html[data-theme="dark"] .status-pill-clean--green { background-color: var(--td-ok-bg); border-color: #24503a; color: var(--td-ok); }
+html[data-theme="dark"] .kpi-pill-badge--green,
+html[data-theme="dark"] .cell-payment-cond--green,
+html[data-theme="dark"] .detail-item-b2b-tag { color: var(--td-ok); }
+html[data-theme="dark"] .kpi-icon-square--amber,
+html[data-theme="dark"] .status-pill-clean--amber { background-color: #3a2b10; border-color: #5a4311; color: #ffd08a; }
+html[data-theme="dark"] .cell-payment-cond--amber { color: #ffd08a; }
+html[data-theme="dark"] .status-pill-clean--slate { background-color: var(--td-surface-3); border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .status-pill-clean--rose,
+html[data-theme="dark"] .btn-repeat-order-subtle { background-color: var(--td-accent-soft); border-color: #5a2a2e; color: #ffb3bd; }
+html[data-theme="dark"] .btn-repeat-order-subtle:hover { background-color: #4a2228; }
+html[data-theme="dark"] .tracking-step-circle--gray { background-color: var(--td-surface-3); }
+html[data-theme="dark"] .orders-account-badge { background-color: var(--td-ok-bg); border-color: #24503a; color: var(--td-ok); }
 
 /* ---------- Backoffice (admin) ---------- */
 html[data-theme="dark"] .admin-shell,

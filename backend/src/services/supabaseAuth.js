@@ -157,3 +157,22 @@ export async function verificarCredencialesSupabase({ email, password }) {
   }
   return { ok: false, mensaje: detalle || 'No se pudo validar la cuenta.' };
 }
+
+export async function autenticarUsuarioSupabase({ email, password }) {
+  const { url } = configuracionSupabase();
+  const key = PUBLIC_KEY || SERVICE_ROLE_KEY;
+  const respuesta = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!respuesta.ok) return null;
+
+  const data = await respuesta.json().catch(() => null);
+  return data?.user || null;
+}
+

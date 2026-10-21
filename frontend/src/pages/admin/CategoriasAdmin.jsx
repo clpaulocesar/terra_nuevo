@@ -13,7 +13,7 @@ export default function CategoriasAdmin() {
   const [editor, setEditor] = useState(null); const [guardando, setGuardando] = useState(false);
 
   const cargar = async () => { setCargando(true); setError(''); try {
-    const [listaCategorias, listaProductos] = await Promise.all([listarCategorias(), listarProductos({ todos: true, limite: 100 })]);
+    const [listaCategorias, listaProductos] = await Promise.all([listarCategorias({ todas: true }), listarProductos({ todos: true, limite: 100 })]);
     setCategorias(listaCategorias.map((categoria) => ({ ...categoria, nombre: texto(categoria.nombre || categoria.nombre_categoria) })));
     setProductos(listaProductos);
   } catch (err) { setError(err.message || 'No se pudieron cargar las categorías.'); } finally { setCargando(false); } };

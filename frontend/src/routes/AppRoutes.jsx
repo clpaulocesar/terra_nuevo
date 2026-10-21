@@ -51,6 +51,7 @@ import './HeaderOptionsHidden.css';
 import './FloatingActions.css';
 // Modo noche: va al final para que sus reglas pisen las de todas las páginas.
 import '../theme-dark.css';
+import '../theme-dark-admin.css';
 
 function Layout() {
   const { cantidadTotal } = useCarrito();
@@ -272,13 +273,13 @@ export default function AppRoutes() {
         <Route path="admin/login" element={<LoginAdmin />} />
         <Route path="admin" element={<RutaAdmin><AdminLayout /></RutaAdmin>}>
           <Route index element={<DashboardAdmin />} />
-          <Route path="productos" element={<ProductosAdmin />} />
-          <Route path="ventas-directas" element={<VentasDirectasAdmin />} />
-          <Route path="categorias" element={<CategoriasAdmin />} />
-          <Route path="pedidos" element={<PedidosAdmin />} />
-          <Route path="clientes" element={<ClientesAdmin />} />
-          <Route path="personal" element={<PersonalAdmin />} />
-          <Route path="reportes" element={<ReportesAdmin />} />
+          <Route path="productos" element={<RutaAdmin roles={['admin']}><ProductosAdmin /></RutaAdmin>} />
+          <Route path="ventas-directas" element={<RutaAdmin roles={['admin', 'vendedor']}><VentasDirectasAdmin /></RutaAdmin>} />
+          <Route path="categorias" element={<RutaAdmin roles={['admin']}><CategoriasAdmin /></RutaAdmin>} />
+          <Route path="pedidos" element={<RutaAdmin roles={['admin', 'vendedor', 'despacho']}><PedidosAdmin /></RutaAdmin>} />
+          <Route path="clientes" element={<RutaAdmin roles={['admin', 'vendedor']}><ClientesAdmin /></RutaAdmin>} />
+          <Route path="personal" element={<RutaAdmin roles={['admin']}><PersonalAdmin /></RutaAdmin>} />
+          <Route path="reportes" element={<RutaAdmin roles={['admin']}><ReportesAdmin /></RutaAdmin>} />
         </Route>
         <Route element={<Layout />}>
           <Route index element={<Bienvenida />} />

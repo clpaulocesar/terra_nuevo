@@ -118,10 +118,19 @@ export async function crearPedido(req, res, next) {
       })
     );
 
+    const entrega = mayorista?.direccion
+      ? {
+          direccion: mayorista.direccion,
+          referencia: mayorista.referencia || null,
+          latitud: mayorista.latitud ?? null,
+          longitud: mayorista.longitud ?? null,
+        }
+      : null;
+
     const pedido = await crearPedidoBD(
       clienteId,
       itemsNormalizados,
-      { precioMayorista: Boolean(mayorista) }
+      { precioMayorista: Boolean(mayorista), entrega }
     );
 
     return res.status(201).json({
