@@ -6,7 +6,7 @@ import './BienvenidaFeaturedHidden.css';
 
 const garantias = [
   { icono: Truck, texto: 'Pedido en Línea' },
-  { icono: ShieldCheck, texto: 'Garantía oficial de 10 años' },
+  { icono: ShieldCheck, texto: 'Garantía oficial de Terra' },
   { icono: CreditCard, texto: 'Pago seguro en caja' },
 ];
 
