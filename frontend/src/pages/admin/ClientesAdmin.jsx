@@ -5,9 +5,14 @@ import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import { avisoEliminado, avisoError, confirmarEliminacion } from '../../utils/alertas.js';
 import './Admin.css';
 import './ClientesAdmin.css';
+import './ClientesAdminDelivery.css';
 import './AdminViewsColorFix.css';
 
 const iniciales = (nombre) => String(nombre || '?').split(' ').slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
+const direccionCorta = (direccion) => {
+  const texto = String(direccion || '').trim();
+  return texto.length > 42 ? `${texto.slice(0, 42).trim()}…` : texto;
+};
 
 export default function ClientesAdmin() {
   const [clientes, setClientes] = useState([]);
@@ -91,11 +96,12 @@ export default function ClientesAdmin() {
       <section className="clients-layout">
         <section className="clients-table">
           <header><div><h2>Registros recientes</h2><span>{lista.length} clientes reales</span></div></header>
-          <div className="clients-scroll"><table><thead><tr><th>Cliente</th><th>Tipo</th><th>Contacto</th><th>Compras</th><th>Gasto</th><th>Acciones</th></tr></thead><tbody>
+          <div className="clients-scroll"><table><thead><tr><th>Cliente</th><th>Tipo</th><th>Contacto</th><th>Entrega mayorista</th><th>Compras</th><th>Gasto</th><th>Acciones</th></tr></thead><tbody>
             {lista.map((cliente) => <tr key={cliente.id}>
               <td><div className="client-name"><i>{iniciales(cliente.nombre)}</i><div><b>{cliente.nombre}</b><small>{new Date(cliente.fecha_registro).toLocaleDateString('es-BO')}</small></div></div></td>
               <td><span className={`client-type ${cliente.rol === 'mayorista' ? 'is-wholesale' : ''}`}>{cliente.rol === 'mayorista' ? 'Mayorista' : 'Minorista'}</span></td>
               <td><b>{cliente.telefono || 'Sin teléfono'}</b><small>{cliente.nit ? `NIT ${cliente.nit}` : 'Sin NIT'}</small>{cliente.direccion && <small title={cliente.direccion}>{cliente.direccion}</small>}</td>
+              <td>{cliente.rol === 'mayorista' ? <div className="client-delivery">{cliente.direccion ? <><b title={cliente.direccion}>{direccionCorta(cliente.direccion)}</b>{cliente.referencia && <small title={cliente.referencia}>{cliente.referencia}</small>}</> : <span>Dirección pendiente</span>}</div> : <span className="client-delivery--na">No aplica</span>}</td>
               <td><b>{cliente.compras || 0} compras</b></td><td><b>{formatoMoneda(cliente.gasto || 0)}</b></td>
               <td><div className="client-table-actions"><button type="button" className="client-delete" title="Eliminar cliente" aria-label={`Eliminar ${cliente.nombre}`} disabled={eliminando === cliente.id} onClick={() => borrarCliente(cliente)}><Trash2 size={18} /></button></div></td>
             </tr>)}
