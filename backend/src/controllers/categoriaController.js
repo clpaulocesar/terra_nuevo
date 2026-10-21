@@ -66,14 +66,19 @@ export async function eliminarCategoria(req, res, next) {
   } catch (error) { next(error); }
 }
 
+// Lista pública: solo categorías activas con al menos un producto activo
+// (products.category_id). Con `?todas=1` devuelve también las vacías, que es lo
+// que necesita el backoffice para asignar o editar categorías recién creadas.
 export async function listarCategorias(req, res, next) {
   try {
+    const incluirVacias = ['1', 'true'].includes(String(req.query.todas ?? '').toLowerCase());
     const resultado = await pool.query(`
       SELECT c.id, c.name AS nombre, COUNT(p.id)::integer AS total, MIN(p.imagen_url) AS imagen_url
       FROM categories c
       LEFT JOIN products p ON p.category_id = c.id AND COALESCE(p.activo, p.is_active, TRUE) = TRUE
       WHERE c.is_active = TRUE
       GROUP BY c.id, c.name
+      ${incluirVacias ? '' : 'HAVING COUNT(p.id) > 0'}
       ORDER BY total DESC, c.name ASC
     `);
 

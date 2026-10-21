@@ -497,7 +497,7 @@ export default function ProductosAdmin() {
   // Categorías reales desde la base de datos (endpoint /categorias)
   useEffect(() => {
     let activo = true;
-    listarCategorias()
+    listarCategorias({ todas: true })
       .then((cats) => {
         if (!activo) return;
         setCategoriasApi(Array.isArray(cats) ? cats.map((c) => c?.nombre).filter(Boolean) : []);
