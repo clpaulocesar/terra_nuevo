@@ -21,10 +21,17 @@ export function authAdmin(req, res, next) {
   try {
     const datos = JSON.parse(Buffer.from(payload, 'base64url').toString());
     const valido = firmaRecibida && firmaRecibida.length === firmaEsperada.length && timingSafeEqual(Buffer.from(firmaRecibida), Buffer.from(firmaEsperada));
-    if (!valido || datos.rol !== 'admin' || datos.exp < Date.now()) throw new Error('Token inválido');
+    if (!valido || !['admin', 'vendedor', 'despacho'].includes(datos.rol) || datos.exp < Date.now()) throw new Error('Token inválido');
     req.admin = datos;
     return next();
   } catch {
     return res.status(401).json({ success: false, mensaje: 'Sesión de administrador inválida o vencida' });
   }
+}
+
+export function requiereRol(...roles) {
+  return (req, res, next) => {
+    if (!req.admin || !roles.includes(req.admin.rol)) return res.status(403).json({ success: false, mensaje: 'No tienes permisos para esta operación.' });
+    return next();
+  };
 }
