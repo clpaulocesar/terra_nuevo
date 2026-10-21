@@ -50,8 +50,8 @@ export async function iniciarSesionAdmin(req, res, next) {
         return res.status(403).json({ success: false, mensaje: 'Esta cuenta de personal se encuentra desactivada.' });
       }
 
-      if (personal.rol !== 'admin') {
-        return res.status(403).json({ success: false, mensaje: 'Esta cuenta no tiene permisos de administrador para ingresar al panel.' });
+      if (!['admin', 'vendedor', 'despacho'].includes(personal.rol)) {
+        return res.status(403).json({ success: false, mensaje: 'Esta cuenta no tiene un rol autorizado para ingresar al panel.' });
       }
 
       const usuarioAuth = await autenticarUsuarioSupabase({ email: personal.email, password }).catch(() => null);
