@@ -10,6 +10,7 @@ import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { LIMITE_CATALOGO, useCatalogoPaginado } from '../context/CatalogoContext.jsx';
 import { imagenDeProducto, usarImagenFallback } from '../utils/imagenProducto.js';
 import { useAccesibilidad } from '../context/AccesibilidadContext.jsx';
+import TecladoTactil from '../components/ui/TecladoTactil.jsx';
 import ImagenPerezosa from '../components/ui/ImagenPerezosa.jsx';
 import './Catalogo.css';
 
@@ -197,7 +198,6 @@ export default function Catalogo() {
   const [modalAsesorAbierto, setModalAsesorAbierto] = useState(false);
 
   const [tecladoAbierto, setTecladoAbierto] = useState(false);
-  const [modoNumerico, setModoNumerico] = useState(false);
   const tecladoRef = useRef(null);
 
   const [esTactil, setEsTactil] = useState(
@@ -315,9 +315,6 @@ export default function Catalogo() {
   const agregarCaracter = (caracter) => {
     setBuscar((prev) => prev + caracter);
     setPagina(1);
-  };
-  const alternarModoNumerico = () => {
-    setModoNumerico((prev) => !prev);
   };
   const borrarCaracter = () => {
     setBuscar((prev) => prev.slice(0, -1));
@@ -537,109 +534,13 @@ export default function Catalogo() {
         </section>
 
         {tecladoAbierto && (
-          <div className="terra-keyboard" ref={tecladoRef}>
-            <div className="terra-keyboard__header">
-              <span className="terra-keyboard__title">Teclado Táctil TERRA</span>
-              <button
-                type="button"
-                onClick={() => setTecladoAbierto(false)}
-                className="terra-btn-ghost-sm"
-              >
-                Cerrar teclado
-              </button>
-            </div>
-            {[
-              ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-              ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ'],
-              ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
-            ].map((row, i) => (
-              <div key={i} className="terra-keyboard__row">
-                {row.map((letra) => (
-                  <button
-                    key={letra}
-                    type="button"
-                    onClick={() => agregarCaracter(letra)}
-                    className="terra-key"
-                  >
-                    {letra}
-                  </button>
-                ))}
-                {i === 2 && (
-                  <button
-                    type="button"
-                    onClick={borrarCaracter}
-                    className="terra-key terra-key--delete"
-                  >
-                    <span className="material-symbols-outlined">backspace</span>
-                  </button>
-                )}
-              </div>
-            ))}
-            <div className="terra-keyboard__row terra-keyboard__row--wide">
-              <button
-                type="button"
-                onClick={alternarModoNumerico}
-                className="terra-key terra-key--mode"
-              >
-                {modoNumerico ? 'ABC' : '123'}
-              </button>
-              <button
-                type="button"
-                onClick={() => agregarCaracter(' ')}
-                className="terra-key terra-key--space"
-              >
-                Espacio
-              </button>
-              <button
-                type="button"
-                onClick={() => cambiarBusqueda('')}
-                className="terra-key terra-key--clear"
-              >
-                Limpiar
-              </button>
-            </div>
-            {modoNumerico && (
-              <>
-                <div className="terra-keyboard__row">
-                  {['1', '2', '3'].map((n) => (
-                    <button key={n} type="button" onClick={() => agregarCaracter(n)} className="terra-key">
-                      {n}
-                    </button>
-                  ))}
-                </div>
-                <div className="terra-keyboard__row">
-                  {['4', '5', '6'].map((n) => (
-                    <button key={n} type="button" onClick={() => agregarCaracter(n)} className="terra-key">
-                      {n}
-                    </button>
-                  ))}
-                </div>
-                <div className="terra-keyboard__row">
-                  {['7', '8', '9'].map((n) => (
-                    <button key={n} type="button" onClick={() => agregarCaracter(n)} className="terra-key">
-                      {n}
-                    </button>
-                  ))}
-                </div>
-                <div className="terra-keyboard__row terra-keyboard__row--wide">
-                  <button
-                    type="button"
-                    onClick={() => agregarCaracter('0')}
-                    className="terra-key terra-key--space"
-                  >
-                    0
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => agregarCaracter('+')}
-                    className="terra-key"
-                  >
-                    +
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          <TecladoTactil
+            ref={tecladoRef}
+            onCaracter={agregarCaracter}
+            onBorrar={borrarCaracter}
+            onLimpiar={() => cambiarBusqueda('')}
+            onCerrar={() => setTecladoAbierto(false)}
+          />
         )}
 
         <div className="terra-categories">
