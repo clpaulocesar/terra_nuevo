@@ -2060,3 +2060,34 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 @media (prefers-reduced-motion: reduce) {
   .terra-card__media:has(.imagen-perezosa:not(.imagen-perezosa--lista)) { animation: none; }
 }
+
+/* --- Producto en oferta (products.en_oferta) --- */
+.terra-card--oferta { border-color: var(--vino); box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.10); }
+.terra-card--oferta:hover { box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.16), var(--shadow-sm); }
+.terra-badge--oferta {
+  background: linear-gradient(135deg, #a6192e, #e0304a);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.terra-card__oferta-tag {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #fdeeee;
+  color: var(--vino);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+/* --- Chip "Ofertas": filtra products.en_oferta. Acento rojo fijo para distinguirlo de las categorías. --- */
+.terra-cat--ofertas { background: #fdeeee; color: var(--vino); border: 1px solid rgba(166, 25, 46, 0.25); }
+.terra-cat--ofertas .terra-cat__icon { color: var(--alerta); }
+.terra-cat--ofertas:hover,
+.terra-cat--ofertas.terra-cat--active { background: linear-gradient(135deg, #a6192e, #e0304a); color: #fff; border-color: transparent; }
+.terra-cat--ofertas:hover .terra-cat__icon,
+.terra-cat--ofertas.terra-cat--active .terra-cat__icon { color: #ffd08a; }
