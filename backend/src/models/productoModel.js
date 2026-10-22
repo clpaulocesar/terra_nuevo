@@ -8,7 +8,7 @@ const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, 
   p.name AS nombre, p.description AS descripcion, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
   ${PRECIO_EFECTIVO} AS precio, COALESCE(p.public_price, 0) AS precio_lista, p.precio_oferta AS precio_oferta, p.precio_fabrica AS precio_fabrica,
   p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
-  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, COALESCE(p.activo, p.is_active, TRUE) AS activo, COALESCE(p.en_oferta, FALSE) AS en_oferta,
+  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, pi.intrucciones AS instrucciones, pi.detalle_completo AS instrucciones_detalle, pi.videos_url AS instrucciones_video, COALESCE(p.activo, p.is_active, TRUE) AS activo, COALESCE(p.en_oferta, FALSE) AS en_oferta,
   COALESCE((SELECT json_agg(json_build_object('minCantidad', w.minimum_quantity, 'precio', w.unit_price) ORDER BY w.minimum_quantity)
     FROM wholesale_price_tiers w WHERE w.product_id=p.id), '[]'::json) AS escalas_mayorista`;
 
@@ -92,11 +92,39 @@ const CTE_VENTAS = `WITH ventas AS (
   GROUP BY LOWER(product_name)
 )`;
 
+// Comparación sin acentos ni mayúsculas en SQL.
+const SIN_ACENTOS = (expr) => `translate(lower(${expr}), 'áéíóúüñ', 'aeiouun')`;
+
+// Raíz de un término de búsqueda: minúsculas, sin acentos y sin la terminación de
+// plural ("colchones" -> "colchon", "almohadas" -> "almohada", "sofás" -> "sofa").
+// Sólo se recorta cuando el término es largo, para no romper códigos cortos.
+export function raizDeBusqueda(termino) {
+  const base = String(termino || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const palabras = base.split(/\s+/).filter(Boolean).map((palabra) => {
+    if (palabra.length > 5 && palabra.endsWith('es')) return palabra.slice(0, -2);
+    if (palabra.length > 4 && palabra.endsWith('s')) return palabra.slice(0, -1);
+    return palabra;
+  });
+  return palabras.join(' ');
+}
+
 function construirFiltros({ buscar = '', categoria = '', soloActivos = false, soloPromos = false, soloOfertas = false, conStock = false, precioMin = null, precioMax = null } = {}) {
   const valores = [];
   const condiciones = [];
   if (soloActivos) condiciones.push('COALESCE(p.activo, p.is_active, TRUE) = TRUE');
-  if (buscar) { valores.push(`%${buscar}%`); condiciones.push(`(p.name ILIKE $${valores.length} OR COALESCE(p.codigo_terra, p.internal_code, '') ILIKE $${valores.length} OR COALESCE(p.description, '') ILIKE $${valores.length})`); }
+  if (buscar) {
+    // La búsqueda compara sin acentos y también contra la categoría del producto, con
+    // la raíz del término para tolerar singular/plural: "colchón", "colchon" y
+    // "colchones" encuentran todo lo que está en la categoría COLCHON.
+    const raiz = raizDeBusqueda(buscar);
+    valores.push(`%${raiz}%`);
+    const n = valores.length;
+    condiciones.push(`(${SIN_ACENTOS('p.name')} ILIKE $${n}
+      OR ${SIN_ACENTOS("COALESCE(p.codigo_terra, p.internal_code, '')")} ILIKE $${n}
+      OR ${SIN_ACENTOS("COALESCE(p.description, '')")} ILIKE $${n}
+      OR ${SIN_ACENTOS("COALESCE(c.name, '')")} ILIKE $${n}
+      OR ${SIN_ACENTOS("COALESCE(p.product_group, '')")} ILIKE $${n})`);
+  }
   const categoriaLimpia = String(categoria || '').trim();
   if (categoriaLimpia && !['todos', 'todas'].includes(categoriaLimpia.toLowerCase())) { valores.push(categoriaLimpia); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
   if (soloPromos) condiciones.push(EXISTE_PROMOCION);
@@ -223,6 +251,41 @@ function precioOpcional(valor) {
   return Number.isFinite(numero) && numero >= 0 ? numero : null;
 }
 
+// Guarda las instrucciones de armado/uso del producto en `product_instructions`
+// (una fila por producto). Si todos los campos vienen vacíos, borra la fila para
+// que el chatbot no devuelva instrucciones en blanco. `undefined` = no tocar.
+function textoONulo(valor) {
+  const texto = String(valor ?? '').trim();
+  return texto ? texto : null;
+}
+export async function guardarInstruccionesProductoBD(productoId, instrucciones) {
+  if (!instrucciones || typeof instrucciones !== 'object') return;
+  const fila = {
+    intrucciones: textoONulo(instrucciones.texto ?? instrucciones.instrucciones),
+    detalle_completo: textoONulo(instrucciones.detalle),
+    videos_url: textoONulo(instrucciones.video_url),
+    imagenes_url: textoONulo(instrucciones.imagenes_url),
+  };
+  const vacia = Object.values(fila).every((valor) => valor === null);
+  if (vacia) {
+    await pool.query('DELETE FROM product_instructions WHERE product_id = $1', [productoId]);
+    return;
+  }
+  const { rowCount } = await pool.query(
+    `UPDATE product_instructions
+     SET intrucciones = $2, detalle_completo = $3, videos_url = $4, imagenes_url = $5
+     WHERE product_id = $1`,
+    [productoId, fila.intrucciones, fila.detalle_completo, fila.videos_url, fila.imagenes_url]
+  );
+  if (!rowCount) {
+    await pool.query(
+      `INSERT INTO product_instructions (product_id, intrucciones, detalle_completo, videos_url, imagenes_url)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [productoId, fila.intrucciones, fila.detalle_completo, fila.videos_url, fila.imagenes_url]
+    );
+  }
+}
+
 export async function crearProductoBD(datos) {
   await asegurarEscalasMayoristasBD();
   const baseSlug = String(datos.nombre || 'producto').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -236,6 +299,7 @@ export async function crearProductoBD(datos) {
     [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), datos.precioMayorista ?? null, Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.video_url || null, Array.isArray(datos.colores) ? datos.colores : [], datos.activo ?? true, datos.medida || null, datos.detalle || null, datos.categoria, codigoInterno, precioOpcional(datos.precioFabrica), precioOpcional(datos.precioOferta), Boolean(datos.enOferta)]
   );
   await reemplazarEscalasMayoristas(rows[0].id, datos.escalasMayorista || []);
+  await guardarInstruccionesProductoBD(rows[0].id, datos.instrucciones);
   return obtenerProductoBD(rows[0].id);
 }
 
@@ -270,6 +334,7 @@ export async function actualizarProductoBD(id, datos) {
     ]
   );
   if (rows[0] && Array.isArray(datos.escalasMayorista)) await reemplazarEscalasMayoristas(rows[0].id, datos.escalasMayorista);
+  if (rows[0]) await guardarInstruccionesProductoBD(rows[0].id, datos.instrucciones);
   return rows[0] ? obtenerProductoBD(rows[0].id) : null;
 }
 
