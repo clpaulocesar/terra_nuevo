@@ -1,7 +1,15 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import App from './App.jsx';
 import './index.css';
+
+// Auditoría de accesibilidad sólo en desarrollo: axe-core informa en la consola
+// los problemas WCAG de lo que se renderiza (no se incluye en el build de producción).
+if (import.meta.env.DEV) {
+  import('@axe-core/react').then(({ default: axe }) => axe(React, ReactDOM, 1000)).catch(() => {});
+}
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

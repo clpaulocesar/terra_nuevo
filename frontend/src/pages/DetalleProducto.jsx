@@ -105,6 +105,16 @@ export default function DetalleProducto() {
   };
   const [agregado, setAgregado] = useState(false);
 
+  // Escape cierra el video ampliado (accesibilidad de teclado).
+  useEffect(() => {
+    if (!videoAmpliado) return undefined;
+    const alEscape = (e) => {
+      if (e.key === "Escape") setVideoAmpliado(false);
+    };
+    document.addEventListener("keydown", alEscape);
+    return () => document.removeEventListener("keydown", alEscape);
+  }, [videoAmpliado]);
+
   useEffect(() => {
     let activo = true;
     setCargando(true);
@@ -347,6 +357,7 @@ export default function DetalleProducto() {
                         onClick={() => setCuadrosAbiertos((v) => !v)}
                         aria-expanded={cuadrosAbiertos}
                         title="Más colores"
+                        aria-label="Más colores"
                       >
                         +
                       </button>
@@ -435,7 +446,13 @@ export default function DetalleProducto() {
                 className="video-modal"
                 onClick={() => setVideoAmpliado(false)}
               >
-                <div className="video-box" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="video-box"
+                  onClick={(e) => e.stopPropagation()}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={`Video de ${producto.nombre}`}
+                >
                   <button
                     type="button"
                     className="video-close"

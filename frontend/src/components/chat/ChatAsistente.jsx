@@ -7,6 +7,8 @@ import {
   enviarMensajeChat,
 } from '../../services/chatService.js';
 import MensajeMarkdown from './MensajeMarkdown.jsx';
+import { useNavegacion } from '../../navegacion/NavegacionContext.jsx';
+import { CLAVES_CHAT } from '../../navegacion/registroNavegacion.js';
 import { convertirAudioAWav } from '../../utils/audioWav.js';
 import './ChatAsistente.css';
 
@@ -47,6 +49,20 @@ function formatearDuracion(segundos) {
 export default function ChatAsistente() {
   const [abierto, setAbierto] = useState(false);
   const [mensajes, setMensajes] = useState([BIENVENIDA]);
+  const { ejecutarIntencion } = useNavegacion();
+
+  // El agente (n8n) puede terminar su respuesta con [[NAVEGAR:clave]]. Se quita del
+  // texto y, si la clave está en la lista blanca del chat, se navega. El backoffice
+  // nunca es alcanzable desde el chat aunque el modelo lo pida.
+  const procesarRespuesta = (texto) => {
+    const original = String(texto || '');
+    const coincidencia = original.match(/\[\[NAVEGAR:([a-zA-Z]+)\]\]/);
+    const limpio = original.replace(/\[\[NAVEGAR:[^\]]*\]\]/g, '').trim();
+    if (coincidencia && CLAVES_CHAT.includes(coincidencia[1])) {
+      window.setTimeout(() => ejecutarIntencion({ destino: coincidencia[1] }, { origen: 'chat' }), 0);
+    }
+    return limpio;
+  };
   const [entrada, setEntrada] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [grabando, setGrabando] = useState(false);
@@ -100,10 +116,11 @@ export default function ChatAsistente() {
     abortRef.current = new AbortController();
     try {
       const respuesta = await peticion(abortRef.current.signal);
+      const textoLimpio = procesarRespuesta(respuesta);
       agregarMensaje({
         id: `a-${Date.now()}`,
         rol: 'asistente',
-        texto: respuesta || 'No recibí respuesta del asistente.',
+        texto: textoLimpio || 'No recibí respuesta del asistente.',
       });
     } catch (err) {
       if (err.name === 'AbortError') return;

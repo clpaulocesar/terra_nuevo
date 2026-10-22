@@ -101,6 +101,14 @@ export default function PedidosAdmin() {
     return () => window.removeEventListener('terra:pedidos-nuevos', refrescar);
   }, [cargarPedidos]);
 
+  // Escape cierra el modal del pedido (accesibilidad de teclado).
+  useEffect(() => {
+    if (!seleccion) return undefined;
+    const alEscape = (event) => { if (event.key === 'Escape') setSeleccion(null); };
+    document.addEventListener('keydown', alEscape);
+    return () => document.removeEventListener('keydown', alEscape);
+  }, [seleccion]);
+
   const tabs = useMemo(() => {
     const base = [
       ['todos', 'Todos'],
@@ -398,7 +406,7 @@ export default function PedidosAdmin() {
   const pendiente = seleccion && POR_COBRAR.includes(seleccion.estado);
 
   return <main className="orders">
-    <header className="orders-hero"><div><h1>{esVendedor ? 'Pedidos' : 'Recepción y despacho de pedidos'}</h1></div><form onSubmit={(event) => event.preventDefault()}><Barcode size={25} /><input value={buscar} onChange={(event) => setBuscar(event.target.value)} placeholder={TEXTO_BUSQUEDA} /><button>Buscar</button></form></header>
+    <header className="orders-hero"><div><h1>{esVendedor ? 'Pedidos' : 'Recepción y despacho de pedidos'}</h1></div><form onSubmit={(event) => event.preventDefault()}><Barcode size={25} /><input value={buscar} onChange={(event) => setBuscar(event.target.value)} placeholder={TEXTO_BUSQUEDA} aria-label={`Buscar pedido: ${TEXTO_BUSQUEDA}`} /><button>Buscar</button></form></header>
     <section className="orders-metrics">
       <article><b>{pendientes} pedidos</b><span>Por cobrar en caja</span></article>
       <article><b>{productosVendidos} unidades</b><span>Productos vendidos</span></article>
@@ -407,7 +415,7 @@ export default function PedidosAdmin() {
     </section>
     <nav className="orders-tabs">{tabs.map(([id, etiqueta]) => <button className={tab === id ? 'active' : ''} onClick={() => setTab(id)} key={id}>{etiqueta}</button>)}</nav>
     <section className="orders-list">
-      <header><div><span>Órdenes de autoservicio</span><h2>Pedidos en operación</h2></div><div className="orders-list-tools"><label><Search size={18} /><input value={buscar} onChange={(event) => setBuscar(event.target.value)} placeholder={TEXTO_BUSQUEDA} /></label><ReportePedidosVendedor pedidos={pedidos} /><button type="button" className="orders-refresh" onClick={actualizar} disabled={actualizando}><RefreshCw size={16} className={actualizando ? 'is-spinning' : ''} /> Actualizar</button></div></header>
+      <header><div><span>Órdenes de autoservicio</span><h2>Pedidos en operación</h2></div><div className="orders-list-tools"><label><Search size={18} /><input value={buscar} onChange={(event) => setBuscar(event.target.value)} placeholder={TEXTO_BUSQUEDA} aria-label={`Filtrar pedidos: ${TEXTO_BUSQUEDA}`} /></label><ReportePedidosVendedor pedidos={pedidos} /><button type="button" className="orders-refresh" onClick={actualizar} disabled={actualizando}><RefreshCw size={16} className={actualizando ? 'is-spinning' : ''} /> Actualizar</button></div></header>
       {cargando && pedidos.length === 0 && <p>Cargando pedidos reales...</p>}{error && <p className="error-box">{error}</p>}
       {!cargando && !error && vista.length === 0 && <p>{buscar.trim() ? `No hay pedidos que coincidan con «${buscar.trim()}».` : 'No hay pedidos registrados todavía.'}</p>}
       {vista.map((pedido) => <article key={pedido.id}><div><b>{pedido.numero ? `Pedido #${pedido.numero}` : ''} {pedido.codigo ? `· #${pedido.codigo}` : ''}</b><small>{formatoFechaHora(pedido.fecha)}</small></div><div><b>{pedido.cliente}</b><small>{pedido.cliente_telefono ? `Tel. ${pedido.cliente_telefono}` : pedido.comprobante_url ? 'Comprobante adjunto' : 'Sin teléfono registrado'}{pedido.cliente_nit ? ` · NIT ${pedido.cliente_nit}` : ''}</small></div><p>{pedido.items || 'Sin artículos'}</p><strong>{formatoMoneda(pedido.total)}</strong><i className={pedido.estado}>{etiquetas[pedido.estado] || pedido.estado}</i>
@@ -422,7 +430,7 @@ export default function PedidosAdmin() {
         </div>
       </article>)}
     </section>
-    {seleccion && <div className="orders-modal"><section><header><div><span>Caja Equipetrol</span><h2>{seleccion.numero ? `Pedido #${seleccion.numero} · ` : ''}#{seleccion.codigo}</h2><p>Cliente: {seleccion.cliente}</p>{(seleccion.cliente_telefono || seleccion.cliente_nit) && <p className="orders-client-data">{seleccion.cliente_telefono ? `Tel. ${seleccion.cliente_telefono}` : ''}{seleccion.cliente_telefono && seleccion.cliente_nit ? ' · ' : ''}{seleccion.cliente_nit ? `NIT ${seleccion.cliente_nit}` : ''}</p>}{seleccion.direccion_entrega && <p className="orders-hint"><Package size={16} /> Envío: {seleccion.direccion_entrega}{seleccion.referencia_entrega ? ` · ${seleccion.referencia_entrega}` : ''}</p>}</div><button onClick={() => setSeleccion(null)}>×</button></header><div className="orders-total"><span>Monto a liquidar</span><b>{formatoMoneda(seleccion.total)}</b></div>
+    {seleccion && <div className="orders-modal"><section role="dialog" aria-modal="true" aria-labelledby="pedido-modal-titulo"><header><div><span>Caja Equipetrol</span><h2 id="pedido-modal-titulo">{seleccion.numero ? `Pedido #${seleccion.numero} · ` : ''}#{seleccion.codigo}</h2><p>Cliente: {seleccion.cliente}</p>{(seleccion.cliente_telefono || seleccion.cliente_nit) && <p className="orders-client-data">{seleccion.cliente_telefono ? `Tel. ${seleccion.cliente_telefono}` : ''}{seleccion.cliente_telefono && seleccion.cliente_nit ? ' · ' : ''}{seleccion.cliente_nit ? `NIT ${seleccion.cliente_nit}` : ''}</p>}{seleccion.direccion_entrega && <p className="orders-hint"><Package size={16} /> Envío: {seleccion.direccion_entrega}{seleccion.referencia_entrega ? ` · ${seleccion.referencia_entrega}` : ''}</p>}</div><button onClick={() => setSeleccion(null)} aria-label="Cerrar">×</button></header><div className="orders-total"><span>Monto a liquidar</span><b>{formatoMoneda(seleccion.total)}</b></div>
       <div className="orders-items-section">
         <div className="orders-items-head">
           <h3>Artículos del pedido</h3>
@@ -449,7 +457,7 @@ export default function PedidosAdmin() {
                         <small>{item.sku ? `SKU: ${item.sku} · ` : ''}{formatoMoneda(item.precioUnitario)} c/u</small>
                       </div>
                       <div className="orders-item-qty">
-                        <button type="button" onClick={() => cambiarCantidadItem(idx, -1)} disabled={item.cantidad <= 1}>
+                        <button type="button" onClick={() => cambiarCantidadItem(idx, -1)} disabled={item.cantidad <= 1} aria-label="Quitar una unidad">
                           <Minus size={14} />
                         </button>
                         <input
@@ -458,8 +466,9 @@ export default function PedidosAdmin() {
                           max="100"
                           value={item.cantidad}
                           onChange={(e) => fijarCantidadItem(idx, e.target.value)}
+                          aria-label={`Cantidad de ${item.nombre}`}
                         />
-                        <button type="button" onClick={() => cambiarCantidadItem(idx, 1)} disabled={item.cantidad >= 100}>
+                        <button type="button" onClick={() => cambiarCantidadItem(idx, 1)} disabled={item.cantidad >= 100} aria-label="Agregar una unidad">
                           <Plus size={14} />
                         </button>
                       </div>
@@ -471,6 +480,7 @@ export default function PedidosAdmin() {
                         className="orders-item-remove"
                         onClick={() => eliminarItem(idx)}
                         title="Eliminar este producto"
+                        aria-label="Eliminar este producto"
                         disabled={itemsEditados.length <= 1}
                       >
                         <Trash2 size={15} />
@@ -480,10 +490,11 @@ export default function PedidosAdmin() {
                 </div>
 
                 <div className="orders-add-product-box">
-                  <label>Agregar más productos al pedido:</label>
+                  <label htmlFor="pedido-buscar-producto">Agregar más productos al pedido:</label>
                   <div className="orders-search-input-wrap">
                     <Search size={16} />
                     <input
+                      id="pedido-buscar-producto"
                       type="text"
                       placeholder="Buscar por nombre o SKU..."
                       value={busquedaCatalogo}
@@ -491,7 +502,7 @@ export default function PedidosAdmin() {
                       onChange={(e) => { setBusquedaCatalogo(e.target.value); setMostrarCatalogo(true); }}
                     />
                     {busquedaCatalogo && (
-                      <button type="button" className="orders-clear-search" onClick={() => setBusquedaCatalogo('')}>
+                      <button type="button" className="orders-clear-search" onClick={() => setBusquedaCatalogo('')} aria-label="Limpiar búsqueda">
                         <X size={14} />
                       </button>
                     )}
@@ -506,7 +517,10 @@ export default function PedidosAdmin() {
                           <div
                             key={prod.id}
                             className="orders-catalog-item"
+                            role="button"
+                            tabIndex={0}
                             onClick={() => agregarProductoAlPedido(prod)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); agregarProductoAlPedido(prod); } }}
                           >
                             <div className="orders-catalog-item-info">
                               <b>{prod.nombre}</b>
@@ -553,7 +567,7 @@ export default function PedidosAdmin() {
         )}
       </div>
       <div className="orders-methods"><button className={metodo === 'qr' ? 'active' : ''} onClick={() => setMetodo('qr')}><QrCode />QR Simple</button><button className={metodo === 'efectivo' ? 'active' : ''} onClick={() => setMetodo('efectivo')}><Package />Efectivo</button><button className={metodo === 'tarjeta' ? 'active' : ''} onClick={() => setMetodo('tarjeta')}><CreditCard />Tarjeta</button></div>{metodo === 'qr' && <div className="orders-qr"><b>Imagen de prueba</b><QRCode value={`TERRA-PRUEBA|${seleccion.codigo}|${Number(seleccion.total)}`} size={200} /><p>Escanea el código para simular el pago del cliente</p><small>#{seleccion.codigo} · {formatoMoneda(seleccion.total)}</small></div>}{metodo === 'efectivo' && <p className="orders-hint">Cobra el monto en efectivo en caja y luego confirma el pago.</p>}{metodo === 'tarjeta' && <p className="orders-hint">Pasa la tarjeta por el POS y luego confirma el pago.</p>}
-      <section className="orders-receipt"><div className="orders-receipt-head"><div><b><ImagePlus size={17} /> Comprobante de pago</b><span>Opcional · JPG, PNG o WEBP · máximo 8 MB</span></div>{comprobanteActual && <a href={comprobanteActual} target="_blank" rel="noreferrer"><ExternalLink size={17} /></a>}</div><label className="orders-receipt-btn"><ImagePlus size={17} /> {archivoComprobante ? 'Cambiar imagen' : comprobanteActual ? 'Reemplazar imagen' : 'Cargar comprobante'}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setArchivoComprobante(event.target.files?.[0] || null)} /></label>{comprobanteActual ? <div className="orders-receipt-preview"><img src={comprobanteActual} alt="Comprobante de pago" /><div><p>{archivoComprobante ? archivoComprobante.name : 'Comprobante guardado en Supabase'}</p>{archivoComprobante && <button type="button" className="orders-receipt-remove" onClick={() => setArchivoComprobante(null)}><Trash2 size={14} /> Quitar cambio</button>}</div></div> : <span className="orders-receipt-empty">Aún no se adjuntó una imagen.</span>}</section>
+      <section className="orders-receipt"><div className="orders-receipt-head"><div><b><ImagePlus size={17} /> Comprobante de pago</b><span>Opcional · JPG, PNG o WEBP · máximo 8 MB</span></div>{comprobanteActual && <a href={comprobanteActual} target="_blank" rel="noreferrer" aria-label="Ver comprobante en una pestaña nueva"><ExternalLink size={17} /></a>}</div><label className="orders-receipt-btn"><ImagePlus size={17} /> {archivoComprobante ? 'Cambiar imagen' : comprobanteActual ? 'Reemplazar imagen' : 'Cargar comprobante'}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setArchivoComprobante(event.target.files?.[0] || null)} /></label>{comprobanteActual ? <div className="orders-receipt-preview"><img src={comprobanteActual} alt="Comprobante de pago" /><div><p>{archivoComprobante ? archivoComprobante.name : 'Comprobante guardado en Supabase'}</p>{archivoComprobante && <button type="button" className="orders-receipt-remove" onClick={() => setArchivoComprobante(null)}><Trash2 size={14} /> Quitar cambio</button>}</div></div> : <span className="orders-receipt-empty">Aún no se adjuntó una imagen.</span>}</section>
       {error && <p className="orders-alert is-error">{error}</p>}<footer><button onClick={() => setSeleccion(null)}>Cerrar</button><button type="button" className="orders-modal-ticket-btn" onClick={() => imprimirTicket(seleccion)} disabled={imprimiendoId === seleccion.id}>{imprimiendoId === seleccion.id ? 'Generando…' : <><Printer size={16} /> Imprimir ticket</>}</button>{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={iniciarEdicion}><Edit3 size={15} /> Editar / Agregar</button>)}<button onClick={registrarPago} disabled={subiendoPago}>{subiendoPago ? 'Guardando…' : pendiente ? <><CheckCircle2 /> Confirmar pago</> : <><CheckCircle2 /> Guardar comprobante</>}</button></footer></section></div>}
   </main>;
 }

@@ -3,6 +3,10 @@ import { LayoutDashboard, LogOut, Menu, ReceiptText, ShoppingCart, Users, X } fr
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { cerrarSesionAdmin, getAdminUser } from '../../services/adminService.js';
 import TimbrePedidos from '../admin/TimbrePedidos.jsx';
+import BotonesVoz from '../accesibilidad/BotonesVoz.jsx';
+import LectorVoz from '../accesibilidad/LectorVoz.jsx';
+import SaltarContenido from '../../accesibilidad/SaltarContenido.jsx';
+import BotonAccesibilidad from '../../accesibilidad/BotonAccesibilidad.jsx';
 import './VendedorLayout.css';
 
 const enlaces = [
@@ -24,6 +28,8 @@ export default function VendedorLayout() {
 
   return (
     <div className="seller-shell">
+      <SaltarContenido />
+      <BotonAccesibilidad />
       {menuAbierto && (
         <button
           type="button"
@@ -91,11 +97,13 @@ export default function VendedorLayout() {
             <strong>Hola, {usuario.nombre}</strong>
           </div>
           <div className="seller-header__actions">
+            <BotonesVoz className="seller-voz" />
             <TimbrePedidos />
             <span className="seller-role-badge">Vendedor</span>
           </div>
         </header>
-        <main className="seller-content">
+        <main className="seller-content" id="contenido" tabIndex={-1}>
+          <LectorVoz />
           <Outlet />
         </main>
       </div>

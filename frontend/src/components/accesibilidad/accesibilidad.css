@@ -41,3 +41,47 @@
 .terra-cat:focus-visible,
 .terra-paginador__btn:focus-visible,
 .terra-btn-agregar:focus-visible { outline: 3px solid #a6192e; outline-offset: 3px; }
+
+/* ---- Panel "¿Qué puedo decir?" del micrófono ---- */
+.terra-voz__mic { position: relative; display: inline-flex; align-items: center; gap: 0.2rem; }
+.terra-voz__ayuda {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; padding: 0; border-radius: 50%;
+  border: 1px solid #dcd9d9; background: #f6f3f2; color: #707974; cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.terra-voz__ayuda:hover, .terra-voz__ayuda.is-on { background: #a6192e; border-color: #a6192e; color: #fff; }
+.terra-voz__ayuda:focus-visible { outline: 3px solid #a6192e; outline-offset: 2px; }
+.terra-voz__panel {
+  position: absolute; top: calc(100% + 12px); right: 0; z-index: 1200;
+  width: 272px; max-width: calc(100vw - 24px);
+  padding: 0.75rem 0.85rem 0.65rem;
+  background: #fff; color: #1b1c1c;
+  border: 1px solid #e4e2e1; border-radius: 12px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
+  font-size: 0.78rem; line-height: 1.35; text-align: left;
+  pointer-events: none; /* es un tooltip: no roba foco ni clics */
+  animation: terraPanelVoz 0.16s ease-out;
+}
+@keyframes terraPanelVoz { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.terra-voz__panel-flecha {
+  position: absolute; top: -7px; right: 36px; width: 12px; height: 12px;
+  background: #fff; border-left: 1px solid #e4e2e1; border-top: 1px solid #e4e2e1;
+  transform: rotate(45deg);
+}
+.terra-voz__panel-titulo { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 900; color: #a6192e; margin-bottom: 0.45rem; }
+.terra-voz__panel-titulo--escuchando { color: #168147; }
+.terra-voz__panel-texto { margin: 0; color: #404944; }
+.terra-voz__panel-texto em { font-style: normal; font-weight: 800; color: #1b1c1c; }
+.terra-voz__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; }
+.terra-voz__lista li { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; }
+.terra-voz__lista li span { color: #404944; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.terra-voz__lista li em { font-style: normal; color: #a6192e; font-weight: 800; white-space: nowrap; }
+.terra-voz__lista-fijo:first-of-type { margin-top: 0.3rem; padding-top: 0.3rem; border-top: 1px dashed #e4e2e1; }
+.terra-voz__panel-pie { display: block; margin-top: 0.5rem; color: #707974; font-size: 0.7rem; }
+.terra-voz__panel-pie strong { color: #a6192e; }
+/* En pantallas angostas el panel se ancla a los bordes para no salirse. */
+@media (max-width: 640px) {
+  .terra-voz__panel { position: fixed; top: 72px; left: 12px; right: 12px; width: auto; max-width: none; }
+  .terra-voz__panel-flecha { display: none; }
+}

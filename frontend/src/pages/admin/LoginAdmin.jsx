@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { consumirDestinoPendiente } from '../../navegacion/registroNavegacion.js';
 import { Badge, Eye, EyeOff, Headset, Lock, MapPin, ShieldCheck, Wifi } from 'lucide-react';
 import { iniciarSesionAdmin } from '../../services/adminService.js';
 import './Admin.css';
@@ -18,8 +19,9 @@ export default function LoginAdmin() {
     setCargando(true);
     setError('');
     try {
-      await iniciarSesionAdmin(email, password);
-      navigate('/admin', { replace: true });
+      const usuario = await iniciarSesionAdmin(email, password);
+      // Si llegó aquí por voz/chat pidiendo una sección, se lo lleva ahí (si su rol lo permite).
+      navigate(consumirDestinoPendiente(usuario?.rol, 'admin') || '/admin', { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {

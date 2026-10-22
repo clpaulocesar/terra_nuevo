@@ -4,6 +4,7 @@ import { LogOut, Menu, Search, ShieldCheck, Store, UserRound } from 'lucide-reac
 import { cerrarSesionAdmin, getAdminUser } from '../../services/adminService.js';
 import TimbrePedidos from './TimbrePedidos.jsx';
 import BotonTema from '../ui/BotonTema.jsx';
+import BotonesVoz from '../accesibilidad/BotonesVoz.jsx';
 import './AdminHeader.css';
 import './AdminNavigationHidden.css';
 
@@ -46,6 +47,7 @@ export default function AdminHeader({ onToggleDrawer }) {
       <div className="admin-kiosk-status-pill"><span className="admin-kiosk-dot" /><span>Kioscos Showroom: En línea</span></div>
     </div>
     <div className="admin-header-right">
+      <BotonesVoz className="admin-voz" />
       <BotonTema className="admin-theme-btn" />
       <div className="admin-search-box"><Search size={16} /><input type="text" placeholder="Buscar pedidos, productos, client..." value={busqueda} onChange={(event) => setBusqueda(event.target.value)} onKeyDown={handleBuscar} /></div>
       <TimbrePedidos />

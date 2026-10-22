@@ -150,7 +150,7 @@ export default function Identificacion() {
                 </label>
               ))}
             </div>
-            <button className="ident-whatsapp" type="button" onClick={() => setWhatsapp(!whatsapp)}>
+            <button className="ident-whatsapp" type="button" onClick={() => setWhatsapp(!whatsapp)} aria-pressed={whatsapp}>
               <span>{whatsapp && <Check size={17} />}</span>
               <div><b>Deseo recibir mi comprobante por WhatsApp</b><small>Notificación instantánea con link de seguimiento</small></div>
             </button>

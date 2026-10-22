@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef, useContext } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Camera, CameraOff, Check, ExternalLink, Minus, Plus, ScanLine, ShoppingCart, Trash2, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { obtenerProducto } from '../services/productoService.js';
@@ -65,8 +65,20 @@ const coloresDeProducto = (producto) => {
   return lista;
 };
 
+// "oferta de toallas" / "ofertas en almohadas" / "toallas en oferta" -> { termino: 'toallas', ofertas: true }
+function separarOfertasDeBusqueda(texto) {
+  const limpio = String(texto || '').trim();
+  const sinAcento = limpio.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const delante = sinAcento.match(/^(?:ofertas?|promociones?|promos?|descuentos?)\s+(?:de|en|para|del)\s+(.+)$/);
+  if (delante) return { termino: limpio.slice(limpio.length - delante[1].length).trim(), ofertas: true };
+  const detras = sinAcento.match(/^(.+?)\s+(?:en|con)\s+(?:ofertas?|promocion|descuento)$/);
+  if (detras) return { termino: limpio.slice(0, detras[1].length).trim(), ofertas: true };
+  return { termino: limpio, ofertas: false };
+}
+
 export default function Catalogo() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { items, cantidadTotal, subtotal, agregarProducto, quitarProducto } = useCarrito();
   const { esMayorista } = useContext(SesionClienteContext);
@@ -82,7 +94,7 @@ export default function Catalogo() {
   // página por cada tecla pulsada en el teclado táctil.
   const [buscarAplicado, setBuscarAplicado] = useState(() => (searchParams.get('buscar') || '').trim());
   useEffect(() => {
-    const temporizador = setTimeout(() => setBuscarAplicado(buscar.trim()), 300);
+    const temporizador = setTimeout(() => setBuscarAplicado(separarOfertasDeBusqueda(buscar).termino), 300);
     return () => clearTimeout(temporizador);
   }, [buscar]);
 
@@ -117,8 +129,35 @@ export default function Catalogo() {
     const activo = !soloOfertas;
     setSoloOfertas(activo);
     setPagina(1);
+    // La URL refleja el filtro para poder compartirla o volver con "atrás".
+    navigate(activo ? '/catalogo?ofertas=1' : '/catalogo', { replace: true });
     anunciar(activo ? 'Mostrando solo productos en oferta.' : 'Mostrando todos los productos.');
   };
+
+  // Escribir "oferta de toallas" o "toallas en oferta" en el buscador enciende el
+  // chip Ofertas (la parte "oferta de" no se manda al backend).
+  useEffect(() => {
+    if (separarOfertasDeBusqueda(buscar).ofertas && !soloOfertas) { setSoloOfertas(true); setPagina(1); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buscar]);
+
+  // Los estados se inicializan desde la URL al montar. Si la URL cambia con el
+  // catálogo ya abierto (voz, chat, enlaces internos: /catalogo?ofertas=1,
+  // ?categoria=, ?buscar=), se vuelven a sincronizar aquí.
+  const primeraSincronizacionRef = useRef(true);
+  useEffect(() => {
+    if (primeraSincronizacionRef.current) { primeraSincronizacionRef.current = false; return; }
+    const ofertasUrl = searchParams.get('ofertas') === '1';
+    const categoriaUrl = (searchParams.get('categoria') || '').trim();
+    const buscarUrl = (searchParams.get('buscar') || '').trim();
+    let cambio = false;
+    if (ofertasUrl !== soloOfertas) { setSoloOfertas(ofertasUrl); cambio = true; }
+    if (searchParams.has('categoria') && categoriaUrl !== categoriaSeleccionada) { setCategoriaSeleccionada(categoriaUrl); cambio = true; }
+    if (searchParams.has('buscar') && buscarUrl !== buscarAplicado) { setBuscar(buscarUrl); setBuscarAplicado(buscarUrl); cambio = true; }
+    if (cambio) setPagina(1);
+    // Sólo debe correr cuando cambia la navegación, no cuando el usuario toca los chips.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key]);
   const cambiarBusqueda = (valor) => { setBuscar(valor); setPagina(1); };
 
   const {
@@ -224,6 +263,7 @@ export default function Catalogo() {
   const [segundosSesion, setSegundosSesion] = useState(180);
 
   const searchInputRef = useRef(null);
+  const ultimaTarjetaLeidaRef = useRef(null);
 
   const [escanerAbierto, setEscanerAbierto] = useState(abrirCamaraAlEntrar);
   const [carritoQr, setCarritoQr] = useState(() => {
@@ -787,9 +827,17 @@ export default function Catalogo() {
                     ? Math.round(((precioMinorista - precioMayorista) / precioMinorista) * 100)
                     : 0;
 
+                  const lecturaTarjeta = [
+                    producto.nombre,
+                    producto.tagMedida || producto.medida,
+                    `${formatoMoneda(esMayorista && Number.isFinite(Number(producto.precioMayorista)) ? producto.precioMayorista : producto.precio)}`,
+                    producto.en_oferta ? 'en oferta' : '',
+                    disponible ? '' : 'agotado',
+                  ].filter(Boolean).join(', ');
                   return (
                     <article
                       key={producto.id}
+                      data-lectura={lecturaTarjeta}
                       className={`terra-card ${!disponible ? 'terra-card--agotado' : ''} ${recienAgregado ? 'terra-card--agregado' : ''} ${producto.en_oferta ? 'terra-card--oferta' : ''}`}
                       tabIndex={0}
                       aria-label={`${producto.nombre}, ${formatoMoneda(esMayorista && Number.isFinite(Number(producto.precioMayorista)) ? producto.precioMayorista : producto.precio)}, ${disponible ? 'disponible' : 'agotado'}. Enter para ver el detalle.`}
@@ -799,9 +847,21 @@ export default function Catalogo() {
                         if (event.key === ' ' && disponible) { event.preventDefault(); handleAgregar(producto); }
                       }}
                       onClick={(event) => {
-                        if (!event.target.closest('button, a')) {
-                          navigate(`/productos/${producto.id}`);
+                        if (event.target.closest('button, a')) return;
+                        // Modo accesible con lectura: el primer toque lee la tarjeta, el segundo la abre.
+                        const raiz = document.documentElement;
+                        if (raiz.classList.contains('modo-accesible') && raiz.classList.contains('a11y-leer')) {
+                          const ahora = Date.now();
+                          const reciente = ultimaTarjetaLeidaRef.current;
+                          if (!(reciente && reciente.id === producto.id && ahora - reciente.en < 6000)) {
+                            ultimaTarjetaLeidaRef.current = { id: producto.id, en: ahora };
+                            event.currentTarget.classList.add('is-leida');
+                            window.setTimeout((el) => el?.classList.remove('is-leida'), 6000, event.currentTarget);
+                            return; // la lectura la hace LectorVoz con data-lectura
+                          }
+                          ultimaTarjetaLeidaRef.current = null;
                         }
+                        navigate(`/productos/${producto.id}`);
                       }}
                     >
                       <div className="terra-card__media">
