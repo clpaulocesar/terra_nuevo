@@ -759,9 +759,13 @@ export default function ProductosAdmin() {
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
+      codigoInterno: datos.get('codigo_interno') || null,
       categoria: datos.get('categoria'),
       precio: Number(datos.get('precio')),
       precioMayorista: datos.get('precio_mayorista') === '' ? null : Number(datos.get('precio_mayorista')),
+      precioFabrica: datos.get('precio_fabrica') === '' || datos.get('precio_fabrica') === null ? null : Number(datos.get('precio_fabrica')),
+      precioOferta: datos.get('precio_oferta') === '' || datos.get('precio_oferta') === null ? null : Number(datos.get('precio_oferta')),
+      enOferta: datos.get('en_oferta') === 'on',
       showroom: Number(datos.get('showroom')),
       activo: datos.get('visible') === 'on',
       medida: datos.get('medida') || null,
@@ -771,6 +775,9 @@ export default function ProductosAdmin() {
       video_url: String(datos.get('video_url') || '').trim() || null,
       colores: coloresNuevo.map((registro) => guardarColor(leerColor(registro))),
     };
+
+    if (payload.enOferta && !(payload.precioOferta > 0)) { await avisoError('Para activar "En oferta" indicá un precio de oferta mayor a 0.'); return; }
+    if (payload.enOferta && payload.precioOferta >= payload.precio) { await avisoError('El precio de oferta debe ser menor al precio de venta.'); return; }
 
     try {
       const creado = await crearProducto(payload);
@@ -804,9 +811,13 @@ export default function ProductosAdmin() {
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
+      codigoInterno: datos.get('codigo_interno') || null,
       categoria: datos.get('categoria'),
-      precio: precioNumerico > 0 ? precioNumerico : Number(String(editarProducto.precio).replace(/\./g, '').replace(/,/g, '.')),
+      precio: precioNumerico > 0 ? precioNumerico : (editarProducto.precioLista ?? Number(String(editarProducto.precio).replace(/\./g, '').replace(/,/g, '.'))),
       precioMayorista: datos.get('precio_mayorista') === '' ? null : Number(datos.get('precio_mayorista')),
+      precioFabrica: datos.get('precio_fabrica') === '' || datos.get('precio_fabrica') === null ? null : Number(datos.get('precio_fabrica')),
+      precioOferta: datos.get('precio_oferta') === '' || datos.get('precio_oferta') === null ? null : Number(datos.get('precio_oferta')),
+      enOferta: datos.get('en_oferta') === 'on',
       medida: datos.get('medida') || editarProducto.medida,
       descripcion: datos.get('descripcion') || editarProducto.descripcion,
       showroom: Number(datos.get('showroom')),
@@ -816,6 +827,9 @@ export default function ProductosAdmin() {
       video_url: String(datos.get('video_url') || '').trim() || null,
       colores: coloresEdit.map((registro) => guardarColor(leerColor(registro))),
     };
+
+    if (payload.enOferta && !(payload.precioOferta > 0)) { await avisoError('Para activar "En oferta" indicá un precio de oferta mayor a 0.'); return; }
+    if (payload.enOferta && payload.precioOferta >= payload.precio) { await avisoError('El precio de oferta debe ser menor al precio de venta.'); return; }
 
     try {
       const actualizado = await actualizarProducto(editarProducto.id, payload);
@@ -1284,12 +1298,21 @@ export default function ProductosAdmin() {
               </label>
 
               <label>
-                SKU / Código interno
+                Código Terra (SKU)
                 <input
                   name="sku"
                   required
-                  defaultValue={editarProducto.sku}
-                  placeholder="TRR-SOM-B160"
+                  defaultValue={editarProducto.codigoTerra || editarProducto.sku}
+                  placeholder="Ej. COLN00590"
+                />
+              </label>
+              <label>
+                Código interno
+                <input
+                  name="codigo_interno"
+                  required
+                  defaultValue={editarProducto.codigoInterno || editarProducto.sku}
+                  placeholder="Ej. 9376"
                 />
               </label>
 
@@ -1307,7 +1330,7 @@ export default function ProductosAdmin() {
                   required
                   min="0"
                   type="number"
-                  defaultValue={Number(String(editarProducto.precio).replace(/[^0-9]/g, '')) || 0}
+                  defaultValue={editarProducto.precioLista ?? (Number(String(editarProducto.precio).replace(/[^0-9]/g, '')) || 0)}
                   placeholder="0.00"
                 />
               </label>
@@ -1322,6 +1345,18 @@ export default function ProductosAdmin() {
                   placeholder="0.00"
                 />
               </label>
+              <label>
+                Precio de fábrica (Bs) <small>Opcional · costo, no se muestra al cliente</small>
+                <input name="precio_fabrica" min="0" step="0.01" type="number" defaultValue={editarProducto.precioFabrica ?? ''} placeholder="0.00" />
+              </label>
+              <label>
+                Precio de oferta (Bs) <small>Se cobra en lugar del precio de venta cuando "En oferta" está activo</small>
+                <input name="precio_oferta" min="0" step="0.01" type="number" defaultValue={editarProducto.precioOferta ?? ''} placeholder="0.00" />
+              </label>
+              <label className="product-form-check">
+                <input name="en_oferta" type="checkbox" defaultChecked={editarProducto.enOferta === true} />
+                <span>En oferta <small>Muestra el precio de oferta y la etiqueta en el catálogo</small></span>
+              </label>
 
               <label>
                 Medidas / Especificación
@@ -1333,7 +1368,7 @@ export default function ProductosAdmin() {
               </label>
 
               <label>
-                Stock showroom
+                Stock en sala
                 <input
                   name="showroom"
                   required
@@ -1420,8 +1455,12 @@ export default function ProductosAdmin() {
                 <input name="nombre" required placeholder="Ej. Colchón Terra Comfort King" />
               </label>
               <label>
-                SKU / código interno
-                <input name="sku" required placeholder="TRR-COL-K200" />
+                Código Terra (SKU)
+                <input name="sku" required placeholder="Ej. COLN00590" />
+              </label>
+              <label>
+                Código interno
+                <input name="codigo_interno" required placeholder="Ej. 9376" />
               </label>
               <label>
                 Categoría
@@ -1439,11 +1478,23 @@ export default function ProductosAdmin() {
                 <input name="precio_mayorista" min="0" type="number" placeholder="0.00" />
               </label>
               <label>
+                Precio de fábrica (Bs) <small>Opcional · costo, no se muestra al cliente</small>
+                <input name="precio_fabrica" min="0" step="0.01" type="number" placeholder="0.00" />
+              </label>
+              <label>
+                Precio de oferta (Bs) <small>Se cobra en lugar del precio de venta cuando "En oferta" está activo</small>
+                <input name="precio_oferta" min="0" step="0.01" type="number" placeholder="0.00" />
+              </label>
+              <label className="product-form-check">
+                <input name="en_oferta" type="checkbox" />
+                <span>En oferta <small>Muestra el precio de oferta y la etiqueta en el catálogo</small></span>
+              </label>
+              <label>
                 Medidas / Detalle
                 <input name="medida" placeholder="Ej. King · 200 × 200 cm" />
               </label>
               <label>
-                Stock showroom
+                Stock en sala
                 <input name="showroom" required min="0" type="number" defaultValue="0" />
               </label>
               <label className="product-form-wide">

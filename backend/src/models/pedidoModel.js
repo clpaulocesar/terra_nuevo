@@ -42,6 +42,7 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
                 ROUND(COALESCE(
                   CASE WHEN $2 THEN (SELECT w.unit_price FROM wholesale_price_tiers w WHERE w.product_id=p.id AND w.minimum_quantity <= $3 ORDER BY w.minimum_quantity DESC LIMIT 1) END,
                   CASE WHEN $2 THEN NULLIF(BTRIM(p.precio_mayorista::text), '')::numeric END,
+                  CASE WHEN COALESCE(p.en_oferta, FALSE) AND COALESCE(p.precio_oferta, 0) > 0 THEN p.precio_oferta END,
                   p.public_price, 0) * 100)::bigint AS price_minor,
                 CASE WHEN $2 THEN COALESCE((SELECT MIN(w.minimum_quantity) FROM wholesale_price_tiers w WHERE w.product_id=p.id), 1) ELSE 1 END AS minimum_order_quantity
          FROM products p
@@ -182,21 +183,51 @@ export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 }
   return rows;
 }
 
+export async function obtenerAnaliticaHorariaBD({ desde, hasta, horaInicio = null, horaFin = null } = {}) {
+  const valores = [desde, hasta];
+  const filtroHora = [];
+  if (horaInicio !== null) { valores.push(horaInicio); filtroHora.push(`EXTRACT(HOUR FROM (o.created_at AT TIME ZONE 'America/La_Paz')) >= $${valores.length}`); }
+  if (horaFin !== null) { valores.push(horaFin); filtroHora.push(`EXTRACT(HOUR FROM (o.created_at AT TIME ZONE 'America/La_Paz')) <= $${valores.length}`); }
+  const horario = filtroHora.length ? ` AND ${filtroHora.join(' AND ')}` : '';
+  const base = `o.status IN ('completed','paid','pagado','shipped','delivered')
+    AND (o.created_at AT TIME ZONE 'America/La_Paz')::date BETWEEN $1::date AND $2::date`;
+  const porHora = await pool.query(
+    `SELECT EXTRACT(HOUR FROM (o.created_at AT TIME ZONE 'America/La_Paz'))::int AS hora,
+            COUNT(DISTINCT o.id)::int AS pedidos, COALESCE(SUM(o.total_minor),0)/100.0 AS ventas,
+            COALESCE(SUM(oi.quantity),0)::int AS unidades
+     FROM orders o LEFT JOIN order_items oi ON oi.order_id=o.id
+     WHERE ${base} GROUP BY hora ORDER BY hora`, valores.slice(0, 2),
+  );
+  const productos = await pool.query(
+    `SELECT oi.product_name AS nombre, COALESCE(SUM(oi.quantity),0)::int AS unidades,
+            COALESCE(SUM(oi.total_minor),0)/100.0 AS ventas
+     FROM orders o JOIN order_items oi ON oi.order_id=o.id
+     WHERE ${base}${horario}
+     GROUP BY oi.product_name ORDER BY unidades DESC, ventas DESC, oi.product_name ASC LIMIT 8`, valores,
+  );
+  const horas = Array.from({ length: 24 }, (_, hora) => {
+    const fila = porHora.rows.find((item) => Number(item.hora) === hora);
+    return { hora, pedidos: Number(fila?.pedidos || 0), ventas: Number(fila?.ventas || 0), unidades: Number(fila?.unidades || 0) };
+  });
+  return { horas, productos: productos.rows.map((fila) => ({ nombre: fila.nombre, unidades: Number(fila.unidades), ventas: Number(fila.ventas) })) };
+}
+
 export async function listarPedidosPorClienteBD(clienteId, limite = 50) {
-  await asegurarColumnasEntrega();
+  await Promise.all([asegurarColumnasEntrega(), asegurarColumnasPago()]);
   const { rows } = await pool.query(
     `WITH pedidos_base AS (
        SELECT o.*, ROW_NUMBER() OVER (ORDER BY o.created_at ASC) AS numero_pedido
        FROM orders o
      )
      SELECT p.id,p.numero_pedido::integer AS numero,p.ticket_number AS codigo,p.total_minor/100.0 AS total,p.status AS estado,p.created_at AS fecha,
+            p.payment_method AS metodo_pago,
             p.fulfillment_type AS tipo_entrega,p.delivery_address AS direccion_entrega,
             p.delivery_reference AS referencia_entrega,
             COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items
      FROM pedidos_base p
      LEFT JOIN order_items i ON i.order_id=p.id
      WHERE p.customer_id=$1
-     GROUP BY p.id, p.numero_pedido, p.ticket_number, p.total_minor, p.status, p.created_at,
+     GROUP BY p.id, p.numero_pedido, p.ticket_number, p.total_minor, p.status, p.created_at, p.payment_method,
               p.fulfillment_type, p.delivery_address, p.delivery_reference
      ORDER BY p.created_at DESC
      LIMIT $2`,

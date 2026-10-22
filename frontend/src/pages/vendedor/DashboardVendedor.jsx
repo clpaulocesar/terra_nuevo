@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Boxes, ClipboardList, PackageCheck, Printer, RefreshCw, ShoppingBag, Users, WalletCards } from 'lucide-react';
+import { Boxes, ClipboardList, Clock3, PackageCheck, Printer, RefreshCw, ShoppingBag, Users, WalletCards } from 'lucide-react';
 import { listarPedidos } from '../../services/pedidoService.js';
 import { listarClientes } from '../../services/clienteService.js';
 import { imprimirTicketPedido } from '../../utils/imprimirTicket.js';
+import AnaliticaHoraria from '../../components/analytics/AnaliticaHoraria.jsx';
 import './DashboardVendedor.css';
 
 const ESTADOS_EN_GESTION = ['pendiente', 'confirmado', 'en_proceso', 'en preparación', 'preparando', 'enviado'];
+
+const ESTADOS_COBRADOS = new Set(['completed', 'paid', 'pagado', 'shipped', 'delivered']);
+const horaBolivia = (fecha) => new Intl.DateTimeFormat('es-BO', { hour: '2-digit', hourCycle: 'h23', timeZone: 'America/La_Paz' }).format(new Date(fecha));
 
 function esDelDia(fecha) {
   if (!fecha) return false;
@@ -85,6 +89,14 @@ export default function DashboardVendedor() {
     );
     const pedidosHoy = pedidosValidos.filter((pedido) => esDelDia(pedido.fecha || pedido.created_at));
 
+    const cobradosHoy = pedidosHoy.filter((pedido) => ESTADOS_COBRADOS.has(String(pedido.estado || '').toLowerCase()));
+    const horas = cobradosHoy.reduce((conteo, pedido) => {
+      const hora = horaBolivia(pedido.fecha || pedido.created_at);
+      conteo.set(hora, (conteo.get(hora) || 0) + 1);
+      return conteo;
+    }, new Map());
+    const horaMasVendida = [...horas.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0] || null;
+
     const ventasHoy = pedidosHoy.reduce(
       (total, pedido) => total + Number(pedido.total || pedido.total_final || 0),
       0,
@@ -113,6 +125,7 @@ export default function DashboardVendedor() {
       totalProductosVendidos,
       enGestion,
       clientesConContacto,
+      horaMasVendida,
     };
   }, [clientes, pedidos]);
 
@@ -140,6 +153,10 @@ export default function DashboardVendedor() {
       {error && <div className="vendedor-dashboard__error">{error}</div>}
 
       <div className="vendedor-dashboard__metrics">
+        <article className="vendedor-metric">
+          <span className="vendedor-metric__icon"><Clock3 size={22} /></span>
+          <div><p>Hora más vendida</p><strong>{cargando ? '—' : resumen.horaMasVendida ? `${resumen.horaMasVendida[0]}:00` : '—'}</strong><small>{cargando ? '' : resumen.horaMasVendida ? `${resumen.horaMasVendida[1]} pedido${resumen.horaMasVendida[1] === 1 ? '' : 's'} cobrado${resumen.horaMasVendida[1] === 1 ? '' : 's'}` : 'Sin ventas cobradas'}</small></div>
+        </article>
         <article className="vendedor-metric vendedor-metric--primary">
           <span className="vendedor-metric__icon"><WalletCards size={22} /></span>
           <div><p>Ventas registradas hoy</p><strong>{cargando ? '—' : moneda(resumen.ventasHoy)}</strong></div>
@@ -166,6 +183,7 @@ export default function DashboardVendedor() {
         </article>
       </div>
 
+      <AnaliticaHoraria modo="vendedor" />
       <article className="vendedor-dashboard__orders">
         <div className="vendedor-dashboard__section-head">
           <div><h2>Últimos pedidos registrados</h2><p>Seguimiento rápido de la actividad reciente.</p></div>

@@ -68,3 +68,8 @@
 .products-table .product-actions .product-action-vis.is-hidden:hover { background: #ba1a1a; color: #fff; }
 .kiosk-badge-btn { background: none; border: none; padding: 0; cursor: pointer; display: inline-flex; }
 .kiosk-badge-btn:hover .kiosk { filter: brightness(0.92); transform: scale(1.04); }
+/* Checkbox "En oferta" dentro de la grilla del formulario de producto */
+.product-form-check { align-items: center; display: flex !important; flex-direction: row !important; gap: .6rem; padding-top: 1.4rem; }
+.product-form-check input[type="checkbox"] { accent-color: #a6192e; height: 1.15rem; width: 1.15rem; margin: 0; flex: none; }
+.product-form-check span { display: grid; font-weight: 800; }
+.product-form-check small { color: #707974; font-weight: 500; }
