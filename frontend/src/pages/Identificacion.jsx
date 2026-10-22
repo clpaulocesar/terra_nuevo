@@ -78,11 +78,6 @@ export default function Identificacion() {
     });
   };
 
-  const limpiarCampo = () => {
-    if (!campoActivo) return;
-    setDatos((anterior) => ({ ...anterior, [campoActivo]: '' }));
-  };
-
   const abrirTeclado = (id) => {
     setCampoActivo(id);
     if (esTactil) setTecladoAbierto(true);
@@ -166,7 +161,6 @@ export default function Identificacion() {
             ref={tecladoRef}
             onCaracter={agregarCaracter}
             onBorrar={borrarCaracter}
-            onLimpiar={limpiarCampo}
             onCerrar={cerrarTeclado}
             onPegar={agregarCaracter}
             valorActual={campoActivo ? datos[campoActivo] : ''}

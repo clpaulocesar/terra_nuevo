@@ -640,7 +640,6 @@ export default function Catalogo() {
             ref={tecladoRef}
             onCaracter={agregarCaracter}
             onBorrar={borrarCaracter}
-            onLimpiar={() => cambiarBusqueda('')}
             onCerrar={() => setTecladoAbierto(false)}
             onPegar={pegarCaracteres}
             valorActual={buscar}
