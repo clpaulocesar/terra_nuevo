@@ -7,6 +7,45 @@
 .orders-refresh .is-spinning{animation:orders-spin 1s linear infinite}
 .orders-client-data{color:#404944!important;font-size:.82rem;font-weight:700;margin:.15rem 0 0!important}
 .order-actions{display:flex;flex-wrap:wrap;gap:.4rem}.order-actions .order-ticket{background:#f4ecee;color:#a6192e}.order-actions button:disabled{cursor:progress;opacity:.65}
+.order-actions .order-edit-action {
+  background: #fdf2f4;
+  color: #ad1934;
+  border: 1px solid #f3d4d8;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .75rem;
+  font-weight: 800;
+  border-radius: .55rem;
+  padding: 0 .75rem;
+  min-height: 2.2rem;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.order-actions .order-edit-action:hover {
+  background: #ad1934;
+  color: #fff;
+  border-color: #ad1934;
+}
+.orders-modal-edit-btn {
+  align-items: center;
+  background: #fff5f6 !important;
+  border: 1px solid #ebd3d6 !important;
+  border-radius: .6rem;
+  color: #ad1934 !important;
+  cursor: pointer;
+  display: inline-flex !important;
+  font-size: .82rem;
+  font-weight: 800;
+  gap: .4rem;
+  padding: .55rem .95rem;
+  transition: all .15s ease;
+}
+.orders-modal-edit-btn:hover {
+  background: #ad1934 !important;
+  color: #fff !important;
+  border-color: #ad1934 !important;
+}
 @keyframes orders-spin{to{transform:rotate(360deg)}}
 @media(max-width:700px){.orders-list>header{align-items:flex-start;flex-direction:column;gap:.75rem}.orders-list-tools{width:100%}}
 
