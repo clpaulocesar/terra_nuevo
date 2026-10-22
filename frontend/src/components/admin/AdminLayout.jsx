@@ -12,6 +12,7 @@ import './AdminSidebarFix.css';
 import './AdminNavigationHidden.css';
 import './AdminContentFix.css';
 import './AdminTheme.css';
+import '../../theme-dark-admin.css';
 
 const enlaces = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true, roles: ['admin', 'vendedor', 'despacho'] },

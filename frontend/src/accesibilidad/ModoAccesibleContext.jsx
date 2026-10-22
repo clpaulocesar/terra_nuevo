@@ -81,6 +81,19 @@ function preferenciaSistema(consulta) {
 
 const soportaLectura = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
+// Hoja de Atkinson Hyperlegible: se inyecta como <link> la primera vez que se enciende
+// "Fuente legible" (no va en el CSS del bundle para no bloquear la carga del kiosco).
+const ID_FUENTE_LEGIBLE = 'terra-fuente-legible';
+const URL_FUENTE_LEGIBLE = 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap';
+function cargarFuenteLegible() {
+  if (typeof document === 'undefined' || document.getElementById(ID_FUENTE_LEGIBLE)) return;
+  const enlace = document.createElement('link');
+  enlace.id = ID_FUENTE_LEGIBLE;
+  enlace.rel = 'stylesheet';
+  enlace.href = URL_FUENTE_LEGIBLE;
+  document.head.appendChild(enlace);
+}
+
 export function ModoAccesibleProvider({ children }) {
   const { anunciar, cambiarVoz, vozActiva, detener } = useAccesibilidad();
   const [estado, setEstado] = useState(() => leerGuardado() || ESTADO_INICIAL);
@@ -123,6 +136,7 @@ export function ModoAccesibleProvider({ children }) {
       'a11y-mas-tiempo': activo && estado.masTiempo,
     };
     for (const [clase, encendida] of Object.entries(clases)) raiz.classList.toggle(clase, Boolean(encendida));
+    if (clases['a11y-fuente']) cargarFuenteLegible();
     if (activo && estado.textoGrande !== 100) raiz.style.fontSize = `${estado.textoGrande}%`;
     else raiz.style.removeProperty('font-size');
     configurarAlertas({ masTiempo: activo && estado.masTiempo });

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { lazy, Suspense, useRef, useState, useEffect } from 'react';
 import {
   BrowserRouter, Routes, Route, Navigate, Link,
   NavLink, Outlet, useNavigate, useLocation, useSearchParams,
@@ -24,24 +24,26 @@ import IdentificacionPage from '../pages/Identificacion.jsx';
 import ConfirmacionPage from '../pages/Confirmacion.jsx';
 import PedidoGeneradoPage from '../pages/PedidoGenerado.jsx';
 import Catalogo from '../pages/Catalogo.jsx';
-import PedidosMayorista from '../pages/PedidosMayorista.jsx';
-import PanelMayorista from '../pages/PanelMayorista.jsx';
-import InicioMayorista from '../pages/InicioMayorista.jsx';
-import AdminLayout from '../components/admin/AdminLayout.jsx';
-import DashboardAdmin from '../pages/admin/DashboardAdmin.jsx';
-import ProductosAdmin from '../pages/admin/ProductosAdmin.jsx';
-import VentasDirectasAdmin from '../pages/admin/VentasDirectasAdmin.jsx';
-import PedidosAdmin from '../pages/admin/PedidosAdmin.jsx';
-import ClientesAdmin from '../pages/admin/ClientesAdmin.jsx';
-import PersonalAdmin from '../pages/admin/PersonalAdmin.jsx';
-import CategoriasAdmin from '../pages/admin/CategoriasAdmin.jsx';
-import AlmacenAdmin from '../pages/admin/AlmacenAdmin.jsx';
-import ReportesAdmin from '../pages/admin/ReportesAdmin.jsx';
-import LoginAdmin from '../pages/admin/LoginAdmin.jsx';
 import RutaAdmin from '../components/admin/RutaAdmin.jsx';
-import VendedorLayout from '../components/vendedor/VendedorLayout.jsx';
-import DashboardVendedor from '../pages/vendedor/DashboardVendedor.jsx';
-import LoginVendedor from '../pages/vendedor/LoginVendedor.jsx';
+// Backoffice y cuenta mayorista: se descargan sólo cuando se entra a esas rutas, así el
+// kiosco no carga su JS ni su CSS (Vite genera un chunk por cada import()).
+const PedidosMayorista = lazy(() => import('../pages/PedidosMayorista.jsx'));
+const PanelMayorista = lazy(() => import('../pages/PanelMayorista.jsx'));
+const InicioMayorista = lazy(() => import('../pages/InicioMayorista.jsx'));
+const AdminLayout = lazy(() => import('../components/admin/AdminLayout.jsx'));
+const DashboardAdmin = lazy(() => import('../pages/admin/DashboardAdmin.jsx'));
+const ProductosAdmin = lazy(() => import('../pages/admin/ProductosAdmin.jsx'));
+const VentasDirectasAdmin = lazy(() => import('../pages/admin/VentasDirectasAdmin.jsx'));
+const PedidosAdmin = lazy(() => import('../pages/admin/PedidosAdmin.jsx'));
+const ClientesAdmin = lazy(() => import('../pages/admin/ClientesAdmin.jsx'));
+const PersonalAdmin = lazy(() => import('../pages/admin/PersonalAdmin.jsx'));
+const CategoriasAdmin = lazy(() => import('../pages/admin/CategoriasAdmin.jsx'));
+const AlmacenAdmin = lazy(() => import('../pages/admin/AlmacenAdmin.jsx'));
+const ReportesAdmin = lazy(() => import('../pages/admin/ReportesAdmin.jsx'));
+const LoginAdmin = lazy(() => import('../pages/admin/LoginAdmin.jsx'));
+const VendedorLayout = lazy(() => import('../components/vendedor/VendedorLayout.jsx'));
+const DashboardVendedor = lazy(() => import('../pages/vendedor/DashboardVendedor.jsx'));
+const LoginVendedor = lazy(() => import('../pages/vendedor/LoginVendedor.jsx'));
 import ChatAsistente from '../components/chat/ChatAsistente.jsx';
 import CarritoFlotante from '../components/cart/CarritoFlotante.jsx';
 import WebAccountModal from '../components/WebAccountModal.jsx';
@@ -59,8 +61,8 @@ import '../Responsive.css';
 import './HeaderOptionsHidden.css';
 import './FloatingActions.css';
 // Modo noche: va al final para que sus reglas pisen las de todas las páginas.
+// (theme-dark-admin.css lo importan los layouts y logins del backoffice, que son lazy.)
 import '../theme-dark.css';
-import '../theme-dark-admin.css';
 
 function Layout() {
   const { cantidadTotal } = useCarrito();
@@ -293,6 +295,16 @@ function PedidoGenerado() {
   );
 }
 
+// Mientras baja el chunk de una ruta lazy.
+function CargandoRuta() {
+  return (
+    <div className="terra-empty terra-empty--loading" role="status" aria-live="polite">
+      <div className="terra-loader" aria-hidden="true" />
+      <p className="terra-empty__text">Cargando…</p>
+    </div>
+  );
+}
+
 function NoEncontrado() {
   return <div className="empty-state"><h1>Página no encontrada</h1><Link className="btn btn-primary" to="/">Volver al inicio</Link></div>;
 }
@@ -301,6 +313,7 @@ export default function AppRoutes() {
   return (
     <BrowserRouter>
       <NavegacionProvider>
+      <Suspense fallback={<CargandoRuta />}>
       <Routes>
         <Route path="admin/login" element={<LoginAdmin />} />
         <Route path="vendedor/login" element={<LoginVendedor />} />
@@ -337,6 +350,7 @@ export default function AppRoutes() {
           <Route path="*" element={<NoEncontrado />} />
         </Route>
       </Routes>
+      </Suspense>
       </NavegacionProvider>
     </BrowserRouter>
   );

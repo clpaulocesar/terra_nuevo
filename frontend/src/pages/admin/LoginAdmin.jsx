@@ -5,6 +5,7 @@ import { Badge, Eye, EyeOff, Headset, Lock, MapPin, ShieldCheck, Wifi } from 'lu
 import { iniciarSesionAdmin } from '../../services/adminService.js';
 import './Admin.css';
 import './LoginAdminTheme.css';
+import '../../theme-dark-admin.css';
 
 export default function LoginAdmin() {
   const [email, setEmail] = useState('');

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { consumirDestinoPendiente } from '../../navegacion/registroNavegacion.js';
 import { iniciarSesionAdmin } from '../../services/adminService.js';
 import './LoginVendedor.css';
+import '../../theme-dark-admin.css';
 
 export default function LoginVendedor() {
   const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [ver, setVer] = useState(false); const [error, setError] = useState(''); const [cargando, setCargando] = useState(false); const navigate = useNavigate();
