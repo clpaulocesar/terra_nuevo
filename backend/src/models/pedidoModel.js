@@ -11,7 +11,6 @@ function asegurarColumnasPago() {
   ]);
   return paymentColumnsReady;
 }
-
 let deliveryColumnsReady;
 function asegurarColumnasEntrega() {
   if (!deliveryColumnsReady) deliveryColumnsReady = Promise.all([

@@ -2,10 +2,75 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { SesionClienteContext } from './SesionClienteContext.jsx';
 
 export const CarritoContext = createContext(null);
+const CARRITO_STORAGE_KEY = 'terra_cart_v1';
+const CARRITO_TTL_MS = 2 * 60 * 60 * 1000;
+
+function leerCarritoGuardado() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const guardado = JSON.parse(localStorage.getItem(CARRITO_STORAGE_KEY) || 'null');
+    const edad = Date.now() - Number(guardado?.actualizadoEn);
+    if (
+      guardado?.version !== 1 ||
+      !Number.isFinite(edad) ||
+      edad < 0 ||
+      edad > CARRITO_TTL_MS ||
+      !Array.isArray(guardado.items)
+    ) {
+      localStorage.removeItem(CARRITO_STORAGE_KEY);
+      return [];
+    }
+
+    return guardado.items.reduce((validos, item) => {
+      const id = String(item?.id || '').trim();
+      const nombre = String(item?.nombre || '').trim();
+      const precio = Number(item?.precio);
+      const stock = Math.floor(Number(item?.stock));
+      const cantidad = Math.floor(Number(item?.cantidad));
+      if (!id || !nombre || !Number.isFinite(precio) || !Number.isSafeInteger(stock) || stock < 1 || !Number.isSafeInteger(cantidad) || cantidad < 1) return validos;
+
+      const color = item?.color && typeof item.color === 'object'
+        ? { nombre: String(item.color.nombre || ''), valor: String(item.color.valor || '') }
+        : null;
+      const lineaId = `${id}::${color?.valor || color?.nombre || 'sin-color'}`;
+      validos.push({
+        id,
+        nombre,
+        precio,
+        precioPublico: Number.isFinite(Number(item?.precioPublico)) ? Number(item.precioPublico) : precio,
+        precioMayorista: Number.isFinite(Number(item?.precioMayorista)) ? Number(item.precioMayorista) : null,
+        stock,
+        categoria: String(item?.categoria || 'Sin categoría'),
+        imagen_url: item?.imagen_url || null,
+        color,
+        lineaId,
+        cantidad: Math.min(cantidad, stock),
+      });
+      return validos;
+    }, []);
+  } catch {
+    localStorage.removeItem(CARRITO_STORAGE_KEY);
+    return [];
+  }
+}
 
 export function CarritoProvider({ children }) {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(leerCarritoGuardado);
   const { esMayorista } = useContext(SesionClienteContext);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (!items.length) {
+        localStorage.removeItem(CARRITO_STORAGE_KEY);
+        return;
+      }
+      // Solo se conserva un borrador temporal de productos, nunca datos del cliente.
+      localStorage.setItem(CARRITO_STORAGE_KEY, JSON.stringify({ version: 1, actualizadoEn: Date.now(), items }));
+    } catch {
+      // El carrito sigue funcionando en memoria si el navegador bloquea el almacenamiento.
+    }
+  }, [items]);
 
   useEffect(() => {
     setItems((anterior) => anterior.map((item) => ({ ...item, precio: esMayorista && Number.isFinite(Number(item.precioMayorista)) ? Number(item.precioMayorista) : Number(item.precioPublico ?? item.precio) })));
