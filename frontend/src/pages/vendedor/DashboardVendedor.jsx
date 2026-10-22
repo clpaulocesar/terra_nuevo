@@ -21,6 +21,21 @@ function moneda(valor) {
   }).format(Number(valor || 0));
 }
 
+function formatoFechaHora(fecha) {
+  if (!fecha) return '—';
+  const valor = new Date(fecha);
+  if (Number.isNaN(valor.getTime())) return '—';
+  return new Intl.DateTimeFormat('es-BO', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'America/La_Paz',
+  }).format(valor);
+}
+
 function contarUnidades(items) {
   if (!items) return 0;
   if (Array.isArray(items)) {
@@ -161,7 +176,11 @@ export default function DashboardVendedor() {
           <div className="vendedor-orders-list">
             {ultimosPedidos.map((pedido) => (
               <div className="vendedor-order-row" key={pedido.id || pedido.codigo}>
-                <div><strong>{pedido.codigo || `Pedido #${pedido.id}`}</strong><span>{pedido.cliente || pedido.nombre_cliente || 'Cliente sin nombre'}</span></div>
+                <div>
+                  <strong>{pedido.numero ? `Pedido #${pedido.numero}` : ''} {pedido.codigo ? `· #${pedido.codigo}` : (pedido.id ? `· #${pedido.id}` : '')}</strong>
+                  <span>{pedido.cliente || pedido.nombre_cliente || 'Cliente sin nombre'}</span>
+                  <small className="vendedor-order-row__time">{formatoFechaHora(pedido.fecha || pedido.created_at)}</small>
+                </div>
                 <span className="vendedor-order-row__status">{pedido.estado || 'Pendiente'}</span>
                 <strong>{moneda(pedido.total || pedido.total_final)}</strong>
               </div>

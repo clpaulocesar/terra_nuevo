@@ -22,8 +22,8 @@ export default function ReportePedidosVendedor({ pedidos }) {
 
   const descargar = () => {
     const contenido = [
-      ['Código', 'Fecha', 'Cliente', 'Teléfono', 'NIT', 'Estado', 'Total'],
-      ...filas.map((pedido) => [pedido.codigo, new Date(pedido.fecha).toLocaleString('es-BO'), pedido.cliente, pedido.cliente_telefono || '', pedido.cliente_nit || '', pedido.estado, Number(pedido.total || 0).toFixed(2)]),
+      ['N.º Pedido', 'Código Ticket', 'Fecha y Hora', 'Cliente', 'Teléfono', 'NIT', 'Estado', 'Total'],
+      ...filas.map((pedido) => [pedido.numero ? `#${pedido.numero}` : '', pedido.codigo, new Date(pedido.fecha).toLocaleString('es-BO'), pedido.cliente, pedido.cliente_telefono || '', pedido.cliente_nit || '', pedido.estado, Number(pedido.total || 0).toFixed(2)]),
     ].map((fila) => fila.map(csv).join(';')).join('\n');
     const archivo = new Blob([`\uFEFF${contenido}`], { type: 'text/csv;charset=utf-8;' });
     const enlace = document.createElement('a');

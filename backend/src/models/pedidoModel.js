@@ -76,21 +76,27 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
     for (const d of detalles) {
       await conexion.query(`INSERT INTO order_items (order_id,product_variant_id,product_name,sku,quantity,unit_price_minor,discount_minor,total_minor,currency) VALUES ($1,$2,$3,$4,$5,$6,0,$7,'BOB')`, [nuevo.rows[0].id, d.variantId, d.nombre, d.sku, d.cantidad, Math.round(d.precioUnitario*100), Math.round(d.subtotal*100)]);
     }
+    const totalPedidos = await conexion.query('SELECT count(*)::integer AS total FROM orders');
+    const numero = totalPedidos.rows[0]?.total || 1;
     await conexion.query('COMMIT');
-    return { ...nuevo.rows[0], total: aMonto(nuevo.rows[0].total_minor), items: detalles };
+    return { ...nuevo.rows[0], numero, total: aMonto(nuevo.rows[0].total_minor), items: detalles };
   } catch (error) { await conexion.query('ROLLBACK'); throw error; } finally { conexion.release(); }
 }
 
 export async function obtenerPedidoBD(id) {
   await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega()]);
   const { rows } = await pool.query(
-    `SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor,o.status AS estado,o.created_at AS fecha,
-            o.payment_receipt_url AS comprobante_url,o.payment_method AS metodo_pago,
-            o.fulfillment_type AS tipo_entrega,
-            o.delivery_address AS direccion_entrega,o.delivery_reference AS referencia_entrega,
-            o.delivery_lat AS latitud_entrega,o.delivery_lng AS longitud_entrega,
+    `WITH pedidos_base AS (
+       SELECT o.*, ROW_NUMBER() OVER (ORDER BY o.created_at ASC) AS numero_pedido
+       FROM orders o
+     )
+     SELECT p.id,p.numero_pedido::integer AS numero,p.ticket_number AS codigo,p.customer_id AS cliente_id,p.total_minor,p.status AS estado,p.created_at AS fecha,
+            p.payment_receipt_url AS comprobante_url,p.payment_method AS metodo_pago,
+            p.fulfillment_type AS tipo_entrega,
+            p.delivery_address AS direccion_entrega,p.delivery_reference AS referencia_entrega,
+            p.delivery_lat AS latitud_entrega,p.delivery_lng AS longitud_entrega,
             c.name AS cliente_nombre,c.phone AS cliente_telefono,c.nit AS cliente_nit
-     FROM orders o LEFT JOIN customers c ON c.id=o.customer_id WHERE o.id=$1`,
+     FROM pedidos_base p LEFT JOIN customers c ON c.id=p.customer_id WHERE p.id=$1`,
     [id]
   );
   if (!rows[0]) return null;
@@ -116,31 +122,71 @@ export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 }
     valores.push(`%${termino}%`);
     const difuso=`$${valores.length}`;
     const digitos=termino.replace(/[^0-9]/g,'');
-    let busqueda=`o.ticket_number ILIKE ${difuso} OR COALESCE(c.name,'') ILIKE ${difuso} OR COALESCE(c.contact_name,'') ILIKE ${difuso} OR COALESCE(c.nit,'') ILIKE ${difuso} OR COALESCE(c.phone,'') ILIKE ${difuso} OR COALESCE(c.email,'') ILIKE ${difuso}`;
+    let busqueda=`p.ticket_number ILIKE ${difuso} OR COALESCE(c.name,'') ILIKE ${difuso} OR COALESCE(c.contact_name,'') ILIKE ${difuso} OR COALESCE(c.nit,'') ILIKE ${difuso} OR COALESCE(c.phone,'') ILIKE ${difuso} OR COALESCE(c.email,'') ILIKE ${difuso}`;
     if(digitos.length>=4){
       valores.push(`%${digitos}%`);
       busqueda+=` OR regexp_replace(COALESCE(c.phone,''),'[^0-9]','','g') LIKE $${valores.length}`;
     }
+    const numeroLimpio = termino.replace(/^#/, '').trim();
+    if (/^\d+$/.test(numeroLimpio)) {
+      busqueda += ` OR p.numero_pedido = ${parseInt(numeroLimpio, 10)}`;
+    }
     condiciones.push(`(${busqueda})`);
   }
-  if(estado){valores.push(estado);condiciones.push(`o.status=$${valores.length}`);}
+  if(estado){valores.push(estado);condiciones.push(`p.status=$${valores.length}`);}
   valores.push(limite); const where=condiciones.length?`WHERE ${condiciones.join(' AND ')}`:'';
-  const { rows } = await pool.query(`SELECT o.id,o.ticket_number AS codigo,o.customer_id AS cliente_id,o.total_minor/100.0 AS total,o.status AS estado,o.created_at AS fecha,o.payment_receipt_url AS comprobante_url,o.payment_method AS metodo_pago,o.fulfillment_type AS tipo_entrega,o.delivery_address AS direccion_entrega,o.delivery_reference AS referencia_entrega,COALESCE(c.name,'Compra como invitado') AS cliente,COALESCE(c.contact_name,'') AS cliente_titular,COALESCE(c.phone,'') AS cliente_telefono,COALESCE(c.nit,'') AS cliente_nit,COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items FROM orders o LEFT JOIN customers c ON c.id=o.customer_id LEFT JOIN order_items i ON i.order_id=o.id ${where} GROUP BY o.id,c.id,c.name ORDER BY o.created_at DESC LIMIT $${valores.length}`, valores);
+  const { rows } = await pool.query(`
+    WITH pedidos_base AS (
+      SELECT o.*, ROW_NUMBER() OVER (ORDER BY o.created_at ASC) AS numero_pedido
+      FROM orders o
+    )
+    SELECT p.id,
+           p.numero_pedido::integer AS numero,
+           p.ticket_number AS codigo,
+           p.customer_id AS cliente_id,
+           p.total_minor/100.0 AS total,
+           p.status AS estado,
+           p.created_at AS fecha,
+           p.payment_receipt_url AS comprobante_url,
+           p.payment_method AS metodo_pago,
+           p.fulfillment_type AS tipo_entrega,
+           p.delivery_address AS direccion_entrega,
+           p.delivery_reference AS referencia_entrega,
+           COALESCE(c.name,'Compra como invitado') AS cliente,
+           COALESCE(c.contact_name,'') AS cliente_titular,
+           COALESCE(c.phone,'') AS cliente_telefono,
+           COALESCE(c.nit,'') AS cliente_nit,
+           COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items
+    FROM pedidos_base p
+    LEFT JOIN customers c ON c.id=p.customer_id
+    LEFT JOIN order_items i ON i.order_id=p.id
+    ${where}
+    GROUP BY p.id, p.numero_pedido, p.ticket_number, p.customer_id, p.total_minor, p.status, p.created_at,
+             p.payment_receipt_url, p.payment_method, p.fulfillment_type, p.delivery_address, p.delivery_reference,
+             c.id, c.name, c.contact_name, c.phone, c.nit
+    ORDER BY p.created_at DESC
+    LIMIT $${valores.length}
+  `, valores);
   return rows;
 }
 
 export async function listarPedidosPorClienteBD(clienteId, limite = 50) {
   await asegurarColumnasEntrega();
   const { rows } = await pool.query(
-    `SELECT o.id,o.ticket_number AS codigo,o.total_minor/100.0 AS total,o.status AS estado,o.created_at AS fecha,
-            o.fulfillment_type AS tipo_entrega,o.delivery_address AS direccion_entrega,
-            o.delivery_reference AS referencia_entrega,
+    `WITH pedidos_base AS (
+       SELECT o.*, ROW_NUMBER() OVER (ORDER BY o.created_at ASC) AS numero_pedido
+       FROM orders o
+     )
+     SELECT p.id,p.numero_pedido::integer AS numero,p.ticket_number AS codigo,p.total_minor/100.0 AS total,p.status AS estado,p.created_at AS fecha,
+            p.fulfillment_type AS tipo_entrega,p.delivery_address AS direccion_entrega,
+            p.delivery_reference AS referencia_entrega,
             COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items
-     FROM orders o
-     LEFT JOIN order_items i ON i.order_id=o.id
-     WHERE o.customer_id=$1
-     GROUP BY o.id
-     ORDER BY o.created_at DESC
+     FROM pedidos_base p
+     LEFT JOIN order_items i ON i.order_id=p.id
+     WHERE p.customer_id=$1
+     GROUP BY p.id, p.numero_pedido, p.ticket_number, p.total_minor, p.status, p.created_at,
+              p.fulfillment_type, p.delivery_address, p.delivery_reference
+     ORDER BY p.created_at DESC
      LIMIT $2`,
     [clienteId, limite]
   );
