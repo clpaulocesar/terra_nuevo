@@ -48,3 +48,311 @@
   color: #fff !important;
   border-color: #a6192e !important;
 }
+
+/* Edición y adición de productos en pedidos */
+.orders-items-section {
+  margin: 1.1rem 0;
+  border-top: 1px solid #f0eded;
+  padding-top: 1rem;
+}
+.orders-items-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .6rem;
+}
+.orders-items-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #1b1c1c;
+}
+.orders-edit-toggle-btn {
+  align-items: center;
+  background: #fff5f6;
+  border: 1px solid #f3d4d8;
+  border-radius: .55rem;
+  color: #ad1934;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: .78rem;
+  font-weight: 800;
+  gap: .35rem;
+  padding: .4rem .75rem;
+  transition: all .15s ease;
+}
+.orders-edit-toggle-btn:hover {
+  background: #ad1934;
+  color: #fff;
+}
+.orders-items-summary {
+  color: #404944;
+  font-size: .85rem;
+  line-height: 1.5;
+  background: #fdfcfb;
+  border: 1px solid #f0eded;
+  border-radius: .6rem;
+  padding: .75rem 1rem;
+  margin: .4rem 0 0;
+}
+.orders-edit-success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: .55rem;
+  font-size: .82rem;
+  font-weight: 700;
+  padding: .5rem .8rem;
+  margin: 0 0 .8rem;
+}
+.orders-items-editor {
+  background: #faf7f7;
+  border: 1px solid #ebdada;
+  border-radius: .85rem;
+  padding: 1rem;
+  margin-top: .5rem;
+}
+.orders-items-loading {
+  color: #707974;
+  font-size: .85rem;
+  text-align: center;
+  margin: 1rem 0;
+}
+.orders-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+.orders-item-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: .75rem;
+  background: #fff;
+  border: 1px solid #eee1e3;
+  border-radius: .65rem;
+  padding: .6rem .85rem;
+}
+.orders-item-info b {
+  display: block;
+  font-size: .85rem;
+  color: #1f2937;
+}
+.orders-item-info small {
+  color: #6b7280;
+  font-size: .75rem;
+}
+.orders-item-qty {
+  display: inline-flex;
+  align-items: center;
+  background: #f3eeee;
+  border-radius: .5rem;
+  padding: 2px;
+}
+.orders-item-qty button {
+  background: transparent;
+  border: 0;
+  color: #374151;
+  cursor: pointer;
+  padding: .35rem .45rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: .35rem;
+}
+.orders-item-qty button:hover:not(:disabled) {
+  background: #e5dddf;
+  color: #ad1934;
+}
+.orders-item-qty button:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+.orders-item-qty input {
+  width: 38px;
+  text-align: center;
+  border: 0;
+  background: transparent;
+  font-weight: 800;
+  font-size: .85rem;
+  color: #1f2937;
+  padding: 0;
+  min-height: auto;
+}
+.orders-item-subtotal {
+  font-weight: 800;
+  font-size: .85rem;
+  color: #ad1934;
+  min-width: 75px;
+  text-align: right;
+}
+.orders-item-remove {
+  background: transparent;
+  border: 0;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: .35rem;
+  border-radius: .4rem;
+  display: flex;
+  align-items: center;
+}
+.orders-item-remove:hover:not(:disabled) {
+  color: #dc2626;
+  background: #fee2e2;
+}
+.orders-item-remove:disabled {
+  opacity: .25;
+  cursor: not-allowed;
+}
+.orders-add-product-box {
+  margin-top: 1rem;
+  border-top: 1px dashed #e5d5d8;
+  padding-top: .85rem;
+  position: relative;
+}
+.orders-add-product-box label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #555;
+  margin-bottom: .4rem;
+}
+.orders-search-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  background: #fff;
+  border: 1px solid #dcd3d5;
+  border-radius: .6rem;
+  padding: 0 .75rem;
+}
+.orders-search-input-wrap svg {
+  color: #888;
+}
+.orders-search-input-wrap input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  font-size: .82rem;
+  min-height: 2.3rem;
+  background: transparent;
+}
+.orders-clear-search {
+  background: transparent;
+  border: 0;
+  color: #999;
+  cursor: pointer;
+  padding: 2px;
+}
+.orders-catalog-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e2d2d5;
+  border-radius: .65rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 30;
+  margin-top: 4px;
+}
+.orders-catalog-empty {
+  padding: .75rem;
+  font-size: .78rem;
+  color: #777;
+  text-align: center;
+}
+.orders-catalog-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .6rem .85rem;
+  border-bottom: 1px solid #f3ecee;
+  cursor: pointer;
+  transition: background .12s;
+}
+.orders-catalog-item:last-child {
+  border-bottom: 0;
+}
+.orders-catalog-item:hover {
+  background: #fff3f5;
+}
+.orders-catalog-item-info b {
+  display: block;
+  font-size: .82rem;
+  color: #1f2937;
+}
+.orders-catalog-item-info small {
+  color: #6b7280;
+  font-size: .72rem;
+}
+.orders-catalog-item-price {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.orders-catalog-item-price b {
+  font-size: .85rem;
+  color: #ad1934;
+}
+.orders-add-badge {
+  font-size: .7rem;
+  color: #2563eb;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.orders-editor-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .8rem;
+  margin-top: 1.1rem;
+  padding-top: .85rem;
+  border-top: 1px solid #ebdada;
+}
+.orders-editor-summary span {
+  font-size: .8rem;
+  color: #666;
+  display: block;
+}
+.orders-editor-summary b {
+  font-size: 1.15rem;
+  color: #ad1934;
+}
+.orders-editor-actions {
+  display: flex;
+  gap: .5rem;
+}
+.orders-cancel-edit-btn {
+  background: #eeeaea !important;
+  color: #3e4742 !important;
+  border: 0;
+  border-radius: .55rem;
+  font-weight: 800;
+  font-size: .78rem;
+  padding: .5rem .85rem;
+  cursor: pointer;
+}
+.orders-save-items-btn {
+  background: #ad1934 !important;
+  color: #fff !important;
+  border: 0;
+  border-radius: .55rem;
+  font-weight: 800;
+  font-size: .78rem;
+  padding: .5rem .95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+.orders-save-items-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+

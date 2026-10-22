@@ -100,7 +100,19 @@ export async function obtenerPedidoBD(id) {
     [id]
   );
   if (!rows[0]) return null;
-  const detalles = await pool.query(`SELECT product_variant_id AS "productoId",product_name AS nombre,quantity AS cantidad,unit_price_minor/100.0 AS "precioUnitario",total_minor/100.0 AS subtotal FROM order_items WHERE order_id=$1 ORDER BY created_at`, [id]);
+  const detalles = await pool.query(
+    `SELECT COALESCE(p.id::text, i.product_variant_id::text) AS "productoId",
+            i.product_name AS nombre,
+            COALESCE(i.sku, p.codigo_terra, p.internal_code, '') AS sku,
+            i.quantity AS cantidad,
+            i.unit_price_minor/100.0 AS "precioUnitario",
+            i.total_minor/100.0 AS subtotal
+     FROM order_items i
+     LEFT JOIN products p ON (p.codigo_terra = i.sku OR p.internal_code = i.sku OR p.name = i.product_name)
+     WHERE i.order_id=$1
+     ORDER BY i.created_at`,
+    [id]
+  );
   const pedido = rows[0];
   return {
     ...pedido,
@@ -209,3 +221,89 @@ export async function actualizarEstadoPedidoBD(id, estado) {
   const { rows } = await pool.query(`UPDATE orders SET status=$1, updated_at=NOW() WHERE id=$2 RETURNING id`, [estado, id]);
   return rows[0] ? obtenerPedidoBD(id) : null;
 }
+
+export async function actualizarItemsPedidoBD(pedidoId, items) {
+  if (!Array.isArray(items) || !items.length) {
+    throw new Error('El pedido debe tener al menos un producto.');
+  }
+  const conexion = await pool.connect();
+  try {
+    await conexion.query('BEGIN');
+    const pedidoActual = await conexion.query(
+      `SELECT id, status, customer_id, fulfillment_type FROM orders WHERE id=$1 FOR UPDATE`,
+      [pedidoId]
+    );
+    if (!pedidoActual.rowCount) throw new Error('Pedido no encontrado.');
+    const pActual = pedidoActual.rows[0];
+    if (['completed', 'cancelled', 'entregado'].includes(pActual.status)) {
+      throw new Error('No se pueden modificar productos de un pedido ya cobrado o cancelado.');
+    }
+
+    let precioMayorista = false;
+    if (pActual.customer_id) {
+      const cliente = await conexion.query(
+        `SELECT u.role FROM customers c LEFT JOIN users u ON u.auth_user_id=c.auth_user_id WHERE c.id=$1`,
+        [pActual.customer_id]
+      );
+      precioMayorista = cliente.rows[0]?.role === 'mayorista';
+    }
+
+    let totalMinor = 0;
+    const nuevosDetalles = [];
+
+    for (const item of items) {
+      const cantidad = Number(item.cantidad);
+      if (!Number.isSafeInteger(cantidad) || cantidad < 1 || cantidad > 100) {
+        throw new Error('Cantidad inválida.');
+      }
+      const prodRes = await conexion.query(
+        `SELECT p.id AS product_id, p.name, p.stock_quantity,
+                COALESCE(p.codigo_terra, p.internal_code, p.slug, p.id::text) AS sku,
+                ROUND(COALESCE(
+                  CASE WHEN $2 THEN (SELECT w.unit_price FROM wholesale_price_tiers w WHERE w.product_id=p.id AND w.minimum_quantity <= $3 ORDER BY w.minimum_quantity DESC LIMIT 1) END,
+                  CASE WHEN $2 THEN NULLIF(BTRIM(p.precio_mayorista::text), '')::numeric END,
+                  p.public_price, 0) * 100)::bigint AS price_minor
+         FROM products p
+         WHERE (p.id::text=$1 OR p.codigo_terra=$4 OR p.internal_code=$4 OR p.name=$5)
+           AND COALESCE(p.activo, p.is_active, TRUE) = TRUE
+         LIMIT 1`,
+        [item.productoId ? String(item.productoId) : '00000000-0000-0000-0000-000000000000', precioMayorista, cantidad, item.sku || null, item.nombre || null]
+      );
+      if (!prodRes.rowCount) throw new Error(`Producto «${item.nombre || item.productoId}» no encontrado.`);
+      const prod = prodRes.rows[0];
+      const subtotalMinor = Number(prod.price_minor) * cantidad;
+      totalMinor += subtotalMinor;
+      nuevosDetalles.push({
+        nombre: prod.name,
+        sku: prod.sku,
+        cantidad,
+        unitPriceMinor: Number(prod.price_minor),
+        subtotalMinor,
+      });
+    }
+
+    // Reemplazar order_items
+    await conexion.query(`DELETE FROM order_items WHERE order_id=$1`, [pedidoId]);
+    for (const d of nuevosDetalles) {
+      await conexion.query(
+        `INSERT INTO order_items (order_id, product_variant_id, product_name, sku, quantity, unit_price_minor, discount_minor, total_minor, currency)
+         VALUES ($1, NULL, $2, $3, $4, $5, 0, $6, 'BOB')`,
+        [pedidoId, d.nombre, d.sku, d.cantidad, d.unitPriceMinor, d.subtotalMinor]
+      );
+    }
+
+    await conexion.query(
+      `UPDATE orders SET subtotal_minor=$1, total_minor=$1, updated_at=NOW() WHERE id=$2`,
+      [totalMinor, pedidoId]
+    );
+
+    await conexion.query('COMMIT');
+    return obtenerPedidoBD(pedidoId);
+  } catch (error) {
+    await conexion.query('ROLLBACK');
+    throw error;
+  } finally {
+    conexion.release();
+  }
+}
+

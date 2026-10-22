@@ -5,6 +5,7 @@ import {
   obtenerPedidoBD,
   listarPedidosBD,
   actualizarEstadoPedidoBD,
+  actualizarItemsPedidoBD,
 } from '../models/pedidoModel.js';
 import { pool } from '../config/database.js';
 import { obtenerMayoristaDesdeToken } from '../services/sesionMayorista.js';
@@ -195,6 +196,23 @@ export async function obtenerPedido(req, res, next) {
       success: true,
       data: pedido,
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function actualizarItemsPedido(req, res, next) {
+  try {
+    const id = String(req.params.id || '').trim();
+    const items = req.body?.items;
+    if (!id) {
+      return res.status(400).json({ success: false, mensaje: 'ID de pedido inválido' });
+    }
+    if (!Array.isArray(items) || !items.length) {
+      return res.status(400).json({ success: false, mensaje: 'Debes enviar al menos un producto para el pedido' });
+    }
+    const pedido = await actualizarItemsPedidoBD(id, items);
+    return res.json({ success: true, mensaje: 'Pedido actualizado correctamente', data: pedido });
   } catch (error) {
     next(error);
   }

@@ -26,3 +26,14 @@ export async function listarPedidos({ buscar = '', estado = '', limite = 100 } =
 }
 export async function actualizarEstadoPedido(id, estado) { exigirConexionReal(); return apiRequest(`/pedidos/${id}/estado`, { method: 'PATCH', body: { estado } }); }
 export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = null }) { exigirConexionReal(); return apiRequest(`/pedidos/${id}/pago`, { method: 'PATCH', body: { metodoPago, comprobanteUrl } }); }
+export async function actualizarItemsPedido(id, items) {
+  exigirConexionReal();
+  const token = getAdminToken();
+  if (!token) throw new Error('Inicia sesión nuevamente para modificar el pedido.');
+  return apiRequest(`/pedidos/${id}/items`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}` },
+    body: { items: items.map(item => ({ productoId: String(item.productoId), cantidad: Number(item.cantidad) })) },
+  });
+}
+
