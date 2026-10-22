@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { SesionClienteContext } from './SesionClienteContext.jsx';
 
 export const CarritoContext = createContext(null);
@@ -58,7 +58,8 @@ export function CarritoProvider({ children }) {
   const [items, setItems] = useState(leerCarritoGuardado);
   const { esMayorista } = useContext(SesionClienteContext);
 
-  useEffect(() => {
+  // Se guarda antes de pintar para que una recarga inmediata no pierda una adición reciente.
+  useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
     try {
       if (!items.length) {

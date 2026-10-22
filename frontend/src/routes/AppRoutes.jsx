@@ -14,7 +14,6 @@ import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { validarDatosCliente } from '../utils/validaciones.js';
 import { crearCliente } from '../services/clienteService.js';
 import { crearPedido } from '../services/pedidoService.js';
-import { leerCarritoQr } from '../services/qrCartService.js';
 import { MODO_DEMO, WHATSAPP_COMPROBANTES } from '../services/api.js';
 import Bienvenida from '../pages/Bienvenida.jsx';
 import Categorias from '../pages/Categorias.jsx';
@@ -69,17 +68,9 @@ function Layout() {
   const { loginMayoristaAbierto: cuentaAbierta, abrirLoginMayorista, cerrarLoginMayorista } = useNavegacion();
   const [menuCuentaAbierto, setMenuCuentaAbierto] = useState(false);
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
-  const [unidadesQr, setUnidadesQr] = useState(() => (leerCarritoQr() || []).reduce((t, i) => t + Number(i.cantidad || 0), 0));
   const navigate = useNavigate();
   const location = useLocation();
   const pulsacionesLogo = useRef([]);
-
-  useEffect(() => {
-    const actualizar = () => setUnidadesQr((leerCarritoQr() || []).reduce((t, i) => t + Number(i.cantidad || 0), 0));
-    actualizar();
-    window.addEventListener('storage', actualizar);
-    return () => window.removeEventListener('storage', actualizar);
-  }, [location.pathname]);
 
   useEffect(() => {
     setMenuMovilAbierto(false);
@@ -217,10 +208,10 @@ function Layout() {
         type="button"
         className="catalog-qr-fab"
         onClick={() => navigate(`/catalogo?abrirQr=1&t=${Date.now()}`)}
-        aria-label={unidadesQr ? `Comprar por QR, ${unidadesQr} unidades agregadas` : 'Comprar por QR, abrir cámara'}
+        aria-label={cantidadTotal ? `Escanear QR, carrito con ${cantidadTotal} unidades` : 'Comprar por QR, abrir cámara'}
       >
         <QrCode size={21} />
-        {unidadesQr > 0 && <b>{unidadesQr}</b>}
+        {cantidadTotal > 0 && <b>{cantidadTotal}</b>}
       </button>
     </div>
   );
