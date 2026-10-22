@@ -1,4 +1,4 @@
-import { forwardRef, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import './TecladoTactil.css';
 
 const FILAS = [
@@ -25,13 +25,74 @@ const TecladoTactil = forwardRef(function TecladoTactil({
   const [portapapelesAbierto, setPortapapelesAbierto] = useState(false);
   const [portapapeles, setPortapapeles] = useState([]);
   const [teclaPresionada, setTeclaPresionada] = useState(null);
+  const retrasoBorradoRef = useRef(null);
+  const intervaloBorradoRef = useRef(null);
+  const retrasoVistaPreviaRef = useRef(null);
+
+  const detenerBorradoContinuo = () => {
+    clearTimeout(retrasoBorradoRef.current);
+    clearInterval(intervaloBorradoRef.current);
+    retrasoBorradoRef.current = null;
+    intervaloBorradoRef.current = null;
+  };
+
+  const iniciarBorradoContinuo = () => {
+    detenerBorradoContinuo();
+    onBorrar?.();
+    retrasoBorradoRef.current = setTimeout(() => {
+      intervaloBorradoRef.current = setInterval(() => onBorrar?.(), 85);
+    }, 350);
+  };
+
+  useEffect(() => () => {
+    clearTimeout(retrasoBorradoRef.current);
+    clearInterval(intervaloBorradoRef.current);
+    clearTimeout(retrasoVistaPreviaRef.current);
+  }, []);
+
+  const mostrarVistaPrevia = (tecla) => {
+    clearTimeout(retrasoVistaPreviaRef.current);
+    setTeclaPresionada(tecla);
+  };
+
+  const ocultarVistaPrevia = () => {
+    clearTimeout(retrasoVistaPreviaRef.current);
+    retrasoVistaPreviaRef.current = setTimeout(() => setTeclaPresionada(null), 160);
+  };
 
   const eventosVistaPrevia = (tecla) => ({
-    onPointerDown: () => setTeclaPresionada(tecla),
-    onPointerUp: () => setTeclaPresionada(null),
-    onPointerCancel: () => setTeclaPresionada(null),
-    onPointerLeave: () => setTeclaPresionada(null),
-    onBlur: () => setTeclaPresionada(null),
+    onPointerDown: () => mostrarVistaPrevia(tecla),
+    onPointerUp: ocultarVistaPrevia,
+    onPointerCancel: ocultarVistaPrevia,
+    onPointerLeave: ocultarVistaPrevia,
+    onBlur: ocultarVistaPrevia,
+  });
+
+  const eventosBorrado = () => ({
+    onPointerDown: () => {
+      mostrarVistaPrevia('borrar');
+      iniciarBorradoContinuo();
+    },
+    onPointerUp: () => {
+      ocultarVistaPrevia();
+      detenerBorradoContinuo();
+    },
+    onPointerCancel: () => {
+      ocultarVistaPrevia();
+      detenerBorradoContinuo();
+    },
+    onPointerLeave: () => {
+      ocultarVistaPrevia();
+      detenerBorradoContinuo();
+    },
+    onBlur: () => {
+      ocultarVistaPrevia();
+      detenerBorradoContinuo();
+    },
+    onClick: (event) => {
+      // Los clics generados por teclado no emiten pointerdown.
+      if (event.detail === 0) onBorrar?.();
+    },
   });
 
   const vistaPrevia = (tecla, etiqueta) => teclaPresionada === tecla && (
@@ -126,7 +187,7 @@ const TecladoTactil = forwardRef(function TecladoTactil({
                 {vistaPrevia('mayusculas', '↑')}
               </button>
               {FILAS[2].map((letra) => <button key={letra} type="button" onClick={() => insertarLetra(letra)} className="tt-key" {...eventosVistaPrevia(`letra-${letra}`)}>{mayusculas ? letra.toUpperCase() : letra}{vistaPrevia(`letra-${letra}`, mayusculas ? letra.toUpperCase() : letra)}</button>)}
-              <button type="button" onClick={onBorrar} className="tt-key tt-key--backspace" aria-label="Borrar último carácter" {...eventosVistaPrevia('borrar')}>
+              <button type="button" className="tt-key tt-key--backspace" aria-label="Borrar último carácter" {...eventosBorrado()}>
                 <span className="material-symbols-outlined">backspace</span>
                 {vistaPrevia('borrar', '⌫')}
               </button>
@@ -136,7 +197,7 @@ const TecladoTactil = forwardRef(function TecladoTactil({
 
         <div className={`tt-board__row tt-board__row--bottom ${esNumerico ? 'is-numeric' : ''}`}>
           {!esNumerico && <button type="button" onClick={() => setMostrarNumeros((actual) => !actual)} className="tt-key tt-key--mode" {...eventosVistaPrevia('modo')}>{mostrarNumeros ? 'ABC' : '?123'}{vistaPrevia('modo', mostrarNumeros ? 'ABC' : '?123')}</button>}
-          {mostrarNumeros && <button type="button" onClick={onBorrar} className="tt-key tt-key--backspace" aria-label="Borrar último carácter" {...eventosVistaPrevia('borrar')}><span className="material-symbols-outlined">backspace</span>{vistaPrevia('borrar', '⌫')}</button>}
+          {mostrarNumeros && <button type="button" className="tt-key tt-key--backspace" aria-label="Borrar último carácter" {...eventosBorrado()}><span className="material-symbols-outlined">backspace</span>{vistaPrevia('borrar', '⌫')}</button>}
           {!mostrarNumeros && <button type="button" onClick={() => onCaracter?.(' ')} className="tt-key tt-key--space" {...eventosVistaPrevia('espacio')}>Español{vistaPrevia('espacio', 'Espacio')}</button>}
           <button type="button" onClick={onCerrar} className="tt-key tt-key--done" aria-label="Listo" {...eventosVistaPrevia('listo')}>
             <span className="material-symbols-outlined">arrow_forward</span>
