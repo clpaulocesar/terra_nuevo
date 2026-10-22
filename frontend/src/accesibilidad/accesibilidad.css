@@ -7,6 +7,12 @@
 
 /* ---------- Botón flotante ♿ y panel ---------- */
 .a11y-flotante { position: fixed; left: 16px; bottom: 16px; z-index: 1300; }
+/* El teclado es un diálogo de pantalla completa: no debe quedar ningún FAB sobre sus teclas. */
+html:has(.tt-board) .a11y-flotante { pointer-events: none; visibility: hidden; }
+@media (max-width: 640px) {
+  /* Se alinea con los controles flotantes, por encima de la navegación inferior. */
+  .a11y-flotante { bottom: var(--floating-cart-bottom, 5.2rem); }
+}
 .a11y-boton {
   position: relative;
   display: inline-flex; align-items: center; justify-content: center;

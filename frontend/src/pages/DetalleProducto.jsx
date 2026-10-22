@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAccesibilidad } from "../context/AccesibilidadContext.jsx";
 import {
+  ArrowLeft,
   Check,
   ChevronDown,
   ChevronRight,
@@ -26,6 +27,7 @@ import { useCarrito } from "../hooks/useCarrito.js";
 import { formatoMoneda } from "../utils/formatoMoneda.js";
 import { recortarFondoDeUrl } from "../utils/quitarFondo.js";
 import "./DetalleProducto.css";
+import "./DetalleProductoBack.css";
 
 const COLORES_BASE = [
   { nombre: "Gris marengo", valor: "#54595f" },
@@ -307,6 +309,9 @@ export default function DetalleProducto() {
 
   return (
     <main className="product-detail">
+      <Link className="product-detail__back" to="/catalogo">
+        <ArrowLeft size={18} /> Volver al catálogo
+      </Link>
       <nav className="product-detail__crumb">
         <Link to="/">Inicio</Link>
         <ChevronRight size={14} />
