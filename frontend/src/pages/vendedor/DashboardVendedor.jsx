@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ClipboardList, RefreshCw, ShoppingBag, Users, WalletCards } from 'lucide-react';
+import { Boxes, ClipboardList, PackageCheck, Printer, RefreshCw, ShoppingBag, Users, WalletCards } from 'lucide-react';
 import { listarPedidos } from '../../services/pedidoService.js';
 import { listarClientes } from '../../services/clienteService.js';
+import { imprimirTicketPedido } from '../../utils/imprimirTicket.js';
 import './DashboardVendedor.css';
 
 const ESTADOS_EN_GESTION = ['pendiente', 'confirmado', 'en_proceso', 'en preparación', 'preparando', 'enviado'];
@@ -19,6 +20,36 @@ function moneda(valor) {
     currency: 'BOB',
     minimumFractionDigits: 2,
   }).format(Number(valor || 0));
+}
+
+function formatoFechaHora(fecha) {
+  if (!fecha) return '—';
+  const valor = new Date(fecha);
+  if (Number.isNaN(valor.getTime())) return '—';
+  return new Intl.DateTimeFormat('es-BO', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'America/La_Paz',
+  }).format(valor);
+}
+
+function contarUnidades(items) {
+  if (!items) return 0;
+  if (Array.isArray(items)) {
+    return items.reduce((acc, it) => acc + Number(it.cantidad || it.quantity || 1), 0);
+  }
+  if (typeof items === 'string') {
+    const matches = [...items.matchAll(/(\d+)x\s+/gi)];
+    if (matches.length > 0) {
+      return matches.reduce((acc, m) => acc + Number(m[1] || 0), 0);
+    }
+    return items.trim() ? 1 : 0;
+  }
+  return 0;
 }
 
 export default function DashboardVendedor() {
@@ -49,16 +80,40 @@ export default function DashboardVendedor() {
   }, [cargarResumen]);
 
   const resumen = useMemo(() => {
-    const pedidosHoy = pedidos.filter((pedido) => esDelDia(pedido.fecha || pedido.created_at));
-    const ventasHoy = pedidosHoy
-      .filter((pedido) => String(pedido.estado || '').toLowerCase() !== 'cancelado')
-      .reduce((total, pedido) => total + Number(pedido.total || pedido.total_final || 0), 0);
+    const pedidosValidos = pedidos.filter(
+      (pedido) => !['cancelado', 'cancelled'].includes(String(pedido.estado || '').toLowerCase()),
+    );
+    const pedidosHoy = pedidosValidos.filter((pedido) => esDelDia(pedido.fecha || pedido.created_at));
+
+    const ventasHoy = pedidosHoy.reduce(
+      (total, pedido) => total + Number(pedido.total || pedido.total_final || 0),
+      0,
+    );
+
+    const productosVendidosHoy = pedidosHoy.reduce(
+      (total, pedido) => total + contarUnidades(pedido.items),
+      0,
+    );
+
+    const totalProductosVendidos = pedidosValidos.reduce(
+      (total, pedido) => total + contarUnidades(pedido.items),
+      0,
+    );
+
     const enGestion = pedidos.filter((pedido) =>
       ESTADOS_EN_GESTION.includes(String(pedido.estado || '').toLowerCase()),
     ).length;
+
     const clientesConContacto = clientes.filter((cliente) => cliente.telefono || cliente.email).length;
 
-    return { pedidosHoy: pedidosHoy.length, ventasHoy, enGestion, clientesConContacto };
+    return {
+      pedidosHoy: pedidosHoy.length,
+      ventasHoy,
+      productosVendidosHoy,
+      totalProductosVendidos,
+      enGestion,
+      clientesConContacto,
+    };
   }, [clientes, pedidos]);
 
   const ultimosPedidos = useMemo(
@@ -90,6 +145,14 @@ export default function DashboardVendedor() {
           <div><p>Ventas registradas hoy</p><strong>{cargando ? '—' : moneda(resumen.ventasHoy)}</strong></div>
         </article>
         <article className="vendedor-metric">
+          <span className="vendedor-metric__icon"><PackageCheck size={22} /></span>
+          <div><p>Productos vendidos hoy</p><strong>{cargando ? '—' : `${resumen.productosVendidosHoy} un.`}</strong></div>
+        </article>
+        <article className="vendedor-metric">
+          <span className="vendedor-metric__icon"><Boxes size={22} /></span>
+          <div><p>Total productos vendidos</p><strong>{cargando ? '—' : `${resumen.totalProductosVendidos} un.`}</strong></div>
+        </article>
+        <article className="vendedor-metric">
           <span className="vendedor-metric__icon"><ShoppingBag size={22} /></span>
           <div><p>Pedidos de hoy</p><strong>{cargando ? '—' : resumen.pedidosHoy}</strong></div>
         </article>
@@ -99,7 +162,7 @@ export default function DashboardVendedor() {
         </article>
         <article className="vendedor-metric">
           <span className="vendedor-metric__icon"><Users size={22} /></span>
-          <div><p>Clientes con contacto</p><strong>{cargando ? '—' : resumen.clientesConContacto}</strong></div>
+          <div><p>Clientes registrados</p><strong>{cargando ? '—' : resumen.clientesConContacto}</strong></div>
         </article>
       </div>
 
@@ -114,9 +177,21 @@ export default function DashboardVendedor() {
           <div className="vendedor-orders-list">
             {ultimosPedidos.map((pedido) => (
               <div className="vendedor-order-row" key={pedido.id || pedido.codigo}>
-                <div><strong>{pedido.codigo || `Pedido #${pedido.id}`}</strong><span>{pedido.cliente || pedido.nombre_cliente || 'Cliente sin nombre'}</span></div>
+                <div>
+                  <strong>{pedido.numero ? `Pedido #${pedido.numero}` : ''} {pedido.codigo ? `· #${pedido.codigo}` : (pedido.id ? `· #${pedido.id}` : '')}</strong>
+                  <span>{pedido.cliente || pedido.nombre_cliente || 'Cliente sin nombre'}</span>
+                  <small className="vendedor-order-row__time">{formatoFechaHora(pedido.fecha || pedido.created_at)}</small>
+                </div>
                 <span className="vendedor-order-row__status">{pedido.estado || 'Pendiente'}</span>
                 <strong>{moneda(pedido.total || pedido.total_final)}</strong>
+                <button
+                  type="button"
+                  className="vendedor-order-row__ticket"
+                  onClick={() => imprimirTicketPedido(pedido)}
+                  title="Imprimir ticket térmico de este pedido"
+                >
+                  <Printer size={14} /> Ticket
+                </button>
               </div>
             ))}
           </div>

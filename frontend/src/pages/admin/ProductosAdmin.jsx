@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, EyeOff, ImagePlus, Link2, PackagePlus, Palette, Play, Plus, QrCode, Search, SlidersHorizontal, Star, Store, Tag, Trash2, Truck, X } from 'lucide-react';
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, EyeOff, ImagePlus, Link2, PackagePlus, Palette, Play, Plus, Printer, QrCode, Search, SlidersHorizontal, Star, Store, Tag, Trash2, Truck, X } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { listarProductosPaginado, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto, cambiarVisibilidadProducto } from '../../services/productoService.js';
 import { mediaDeVideo } from '../../utils/videoEmbed.js';
 import { subirImagenProducto } from '../../services/storageService.js';
+import { imprimirTicketProducto } from '../../utils/imprimirTicketProducto.js';
 import { avisoEliminado, avisoError, avisoExito, confirmarEliminacion } from '../../utils/alertas.js';
 import './Admin.css';
 import './ProductosAdmin.css';
@@ -1060,6 +1061,9 @@ export default function ProductosAdmin() {
                       <button title="Generar QR de la ficha" onClick={() => { setQrProducto(p); setQrCopiado(false); }}>
                         <QrCode size={17} />
                       </button>
+                      <button title="Imprimir ticket / etiqueta de producto" onClick={() => imprimirTicketProducto(p)}>
+                        <Printer size={17} />
+                      </button>
                       <button className="product-action-delete" title="Eliminar producto" onClick={() => borrarProducto(p)}>
                         <Trash2 size={17} />
                       </button>
@@ -1563,7 +1567,8 @@ export default function ProductosAdmin() {
             </div>
             <footer style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
               <button type="button" onClick={copiarUrlQr}>{qrCopiado ? '¡Copiado!' : 'Copiar enlace'}</button>
-              <button type="button" onClick={imprimirQr}>Imprimir</button>
+              <button type="button" onClick={imprimirQr}>Imprimir QR</button>
+              <button type="button" onClick={() => imprimirTicketProducto(qrProducto)}>Imprimir ticket de góndola</button>
               <button className="primary" type="button" onClick={descargarQr}>
                 <Download size={17} /> Descargar PNG
               </button>

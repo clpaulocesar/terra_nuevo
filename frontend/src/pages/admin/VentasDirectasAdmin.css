@@ -482,6 +482,7 @@
   font-weight: 900;
 }
 
+
 .direct-add {
   background: #a6192e;
   color: #fff;
@@ -946,26 +947,46 @@
   padding: .55rem .65rem;
 }
 
-.direct-ticket {
-  align-items: center;
-  background: #fff;
+.direct-success-card {
+  background: #e8f5ee;
   border: 1px solid #bfe3cd;
-  border-radius: .55rem;
+  border-radius: .65rem;
+  margin: 0 0 .75rem;
+  padding: .65rem .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+
+.direct-success-card .direct-success {
+  background: transparent;
+  border: none;
   color: #146440;
+  font-weight: 700;
+  margin: 0;
+  padding: 0;
+}
+
+.direct-print-btn {
+  align-items: center;
+  background: #146440;
+  border: none;
+  border-radius: .5rem;
+  color: #fff;
   cursor: pointer;
   display: inline-flex;
   font-size: .78rem;
   font-weight: 800;
-  gap: .4rem;
+  gap: .45rem;
   justify-content: center;
-  margin: 0 0 .6rem;
-  min-height: 2.4rem;
-  padding: .5rem .75rem;
+  padding: .55rem .85rem;
+  transition: background-color .15s, transform .1s;
   width: 100%;
 }
 
-.direct-ticket:hover {
-  background: #f1faf5;
+.direct-print-btn:hover {
+  background: #0f4f32;
+  transform: translateY(-1px);
 }
 
 /* ---------- modal escáner ---------- */

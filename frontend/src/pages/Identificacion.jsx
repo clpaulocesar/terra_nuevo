@@ -13,6 +13,15 @@ const campos = [
   ['nit', 'NIT', null, 'Ej: 5123456'],
 ];
 
+const CAMPOS_NUMERICOS = new Set(['telefono', 'nit']);
+
+function normalizarValorCampo(campo, valor) {
+  if (!CAMPOS_NUMERICOS.has(campo)) return valor;
+  let digitos = String(valor || '').replace(/\D/g, '');
+  if (campo === 'telefono' && digitos.startsWith('591') && digitos.length > 8) digitos = digitos.slice(3);
+  return digitos.slice(0, campo === 'telefono' ? 8 : 20);
+}
+
 export default function Identificacion() {
   const { cliente, setCliente, limpiarCliente } = useContext(ClienteContext);
   const { items } = useCarrito();
@@ -41,7 +50,8 @@ export default function Identificacion() {
       if (!tecladoAbierto || !esTactil) return;
       if (tecladoRef.current && !tecladoRef.current.contains(event.target)) {
         if (!event.target.closest('input')) {
-          cerrarTeclado();
+          setTecladoAbierto(false);
+          setCampoActivo(null);
         }
       }
     };
@@ -53,7 +63,10 @@ export default function Identificacion() {
 
   const agregarCaracter = (caracter) => {
     if (!campoActivo) return;
-    setDatos((anterior) => ({ ...anterior, [campoActivo]: anterior[campoActivo] + caracter }));
+    setDatos((anterior) => ({
+      ...anterior,
+      [campoActivo]: normalizarValorCampo(campoActivo, anterior[campoActivo] + caracter),
+    }));
   };
 
 
@@ -98,7 +111,7 @@ export default function Identificacion() {
   };
 
   return (
-    <section className="ident-page" style={{ paddingBottom: tecladoAbierto && esTactil ? 320 : 0 }}>
+    <section className="ident-page" style={{ paddingBottom: tecladoAbierto && esTactil ? 'clamp(20rem, 40vh, 26rem)' : 0 }}>
       <header>
         <Link to="/carrito"><ArrowLeft size={19} /> Volver al carrito</Link>
       </header>
@@ -120,13 +133,16 @@ export default function Identificacion() {
                     <input
                       value={datos[id]}
                       placeholder={placeholder}
+                      type={id === 'telefono' ? 'tel' : 'text'}
                       inputMode={esTactil ? 'none' : id === 'telefono' || id === 'nit' ? 'numeric' : 'text'}
+                      pattern={CAMPOS_NUMERICOS.has(id) ? '[0-9]*' : undefined}
+                      maxLength={id === 'telefono' ? 8 : id === 'nit' ? 20 : 120}
                       autoComplete={id === 'nombre' ? 'name' : id === 'telefono' ? 'tel' : 'off'}
                       readOnly={esTactil}
                       onFocus={() => { setActivo(id); abrirTeclado(id); }}
                       onChange={(event) => setDatos((anterior) => ({
                         ...anterior,
-                        [id]: id === 'nit' ? event.target.value.replace(/\D/g, '').slice(0, 20) : event.target.value,
+                        [id]: normalizarValorCampo(id, event.target.value),
                       }))}
                     />
                   </div>
@@ -146,11 +162,15 @@ export default function Identificacion() {
       </div>
         {esTactil && tecladoAbierto && (
           <TecladoTactil
+            key={CAMPOS_NUMERICOS.has(campoActivo) ? 'numerico' : 'texto'}
             ref={tecladoRef}
             onCaracter={agregarCaracter}
             onBorrar={borrarCaracter}
             onLimpiar={limpiarCampo}
             onCerrar={cerrarTeclado}
+            onPegar={agregarCaracter}
+            valorActual={campoActivo ? datos[campoActivo] : ''}
+            modo={CAMPOS_NUMERICOS.has(campoActivo) ? 'numerico' : 'texto'}
           />
         )}
     </section>

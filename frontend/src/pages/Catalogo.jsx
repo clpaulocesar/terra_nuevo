@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef, useContext } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Camera, Check, ExternalLink, Minus, Plus, ScanLine, ShoppingCart, Trash2, X } from 'lucide-react';
+import { ArrowRight, Camera, CameraOff, Check, ExternalLink, Minus, Plus, ScanLine, ShoppingCart, Trash2, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { obtenerProducto } from '../services/productoService.js';
 import { agregarProductoCarritoQr, leerCarritoQr, actualizarCantidadCarritoQr } from '../services/qrCartService.js';
@@ -335,6 +335,10 @@ export default function Catalogo() {
     setBuscar((prev) => prev.slice(0, -1));
     setPagina(1);
   };
+  const pegarCaracteres = (texto) => {
+    setBuscar((prev) => prev + texto);
+    setPagina(1);
+  };
   const abrirTecladoTactil = () => {
     if (esTactil) {
       setTecladoAbierto(true);
@@ -403,13 +407,22 @@ export default function Catalogo() {
     navigate('/carrito?confirmarQr=1');
   };
 
+  // Al cerrar el diálogo se reinicia la pausa para la próxima apertura.
   useEffect(() => {
-    if (!escanerAbierto || !videoEscanerRef.current) return undefined;
+    if (escanerAbierto) return;
+    escaneoPausadoRef.current = false;
+    setEscaneoPausado(false);
+    setUltimoProductoQrId('');
+  }, [escanerAbierto]);
+
+  // La cámara sólo está encendida mientras el diálogo está abierto y no hay
+  // pausa: al leer un código el efecto se limpia (apaga la cámara) y al tocar
+  // "Escanear otro" vuelve a ejecutarse (la enciende de nuevo).
+  useEffect(() => {
+    if (!escanerAbierto || escaneoPausado || !videoEscanerRef.current) return undefined;
     let cancelado = false;
     let controlesCamara;
     escanerProcesandoRef.current = false;
-    escaneoPausadoRef.current = false;
-    setEscaneoPausado(false);
     setEstadoEscaner('Solicitando acceso a la cámara…');
     setErrorEscaner(false);
     const mostrarErrorCamara = (error) => {
@@ -469,8 +482,9 @@ export default function Catalogo() {
             }
           },
         );
-        if (cancelado) controles.stop();
-        else controlesCamara = controles;
+        if (cancelado) { controles.stop(); return; }
+        controlesCamara = controles;
+        setEstadoEscaner((actual) => (actual === 'Solicitando acceso a la cámara…' ? 'Apuntá la cámara al código QR del producto.' : actual));
       } catch (error) {
         mostrarErrorCamara(error);
       }
@@ -479,8 +493,13 @@ export default function Catalogo() {
     return () => {
       cancelado = true;
       controlesCamara?.stop();
+      // Por si el lector no liberó el stream: se cortan las pistas a mano.
+      const video = videoEscanerRef.current;
+      const stream = video?.srcObject;
+      if (stream && typeof stream.getTracks === 'function') stream.getTracks().forEach((pista) => pista.stop());
+      if (video) video.srcObject = null;
     };
-  }, [escanerAbierto]);
+  }, [escanerAbierto, escaneoPausado]);
 
   useEffect(() => {
     if (!escanerAbierto) return undefined;
@@ -583,6 +602,8 @@ export default function Catalogo() {
             onBorrar={borrarCaracter}
             onLimpiar={() => cambiarBusqueda('')}
             onCerrar={() => setTecladoAbierto(false)}
+            onPegar={pegarCaracteres}
+            valorActual={buscar}
           />
         )}
 
@@ -1012,7 +1033,8 @@ export default function Catalogo() {
               {escaneoPausado && (
                 <div className="catalog-qr-camera-pause" aria-hidden="true">
                   <Check size={28} />
-                  <span>Código leído · lectura en pausa</span>
+                  <span>Código leído</span>
+                  <small><CameraOff size={14} /> Cámara apagada · tocá "Escanear otro" para seguir</small>
                 </div>
               )}
             </div>
