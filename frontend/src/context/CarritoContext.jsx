@@ -3,43 +3,69 @@ import { SesionClienteContext } from './SesionClienteContext.jsx';
 
 export const CarritoContext = createContext(null);
 
+const escalasValidas = (escalas) => (Array.isArray(escalas) ? escalas : [])
+  .map((escala) => ({ minCantidad: Number(escala?.minCantidad), precio: Number(escala?.precio) }))
+  .filter((escala) => Number.isSafeInteger(escala.minCantidad) && escala.minCantidad > 0 && Number.isFinite(escala.precio))
+  .sort((a, b) => a.minCantidad - b.minCantidad);
+
+const precioParaCantidad = (producto, cantidad, esMayorista) => {
+  const precioPublico = Number(producto?.precioPublico ?? producto?.precio);
+  if (!esMayorista) return precioPublico;
+
+  const tramo = escalasValidas(producto?.escalasMayorista)
+    .filter((escala) => escala.minCantidad <= cantidad)
+    .at(-1);
+  const precioMayorista = Number(producto?.precioMayorista);
+  return Number.isFinite(tramo?.precio)
+    ? tramo.precio
+    : (Number.isFinite(precioMayorista) ? precioMayorista : precioPublico);
+};
+
 export function CarritoProvider({ children }) {
   const [items, setItems] = useState([]);
   const { esMayorista } = useContext(SesionClienteContext);
 
   useEffect(() => {
-    setItems((anterior) => anterior.map((item) => ({ ...item, precio: esMayorista && Number.isFinite(Number(item.precioMayorista)) ? Number(item.precioMayorista) : Number(item.precioPublico ?? item.precio) })));
+    setItems((anterior) => anterior.map((item) => ({
+      ...item,
+      precio: precioParaCantidad(item, item.cantidad, esMayorista),
+    })));
   }, [esMayorista]);
 
   const agregarProducto = useCallback((producto, cantidad = 1, opcion = {}) => {
     const id = String(producto?.id || '').trim();
-    const precio = esMayorista && Number.isFinite(Number(producto?.precioMayorista)) ? Number(producto.precioMayorista) : Number(producto?.precio);
+    const precioPublico = Number(producto?.precio);
     const stock = Number(producto?.stock);
     const unidades = Number(cantidad);
 
-    if (!id || !Number.isFinite(precio) ||
+    if (!id || !Number.isFinite(precioPublico) ||
         !Number.isSafeInteger(unidades) || unidades < 1 ||
         !Number.isSafeInteger(stock) || stock < 1) return false;
 
     const color = opcion?.color ? { nombre: opcion.color.nombre, valor: opcion.color.valor } : null;
     const lineaId = `${id}::${color?.valor || color?.nombre || 'sin-color'}`;
-    const existente = items.find((item) => item.lineaId === lineaId);
-    const actual = existente?.cantidad ?? 0;
-    const nuevaCantidad = Math.min(Math.floor(stock), actual + unidades);
-    if (nuevaCantidad === actual) return false;
 
     setItems((anterior) => {
-      const encontrado = anterior.some((item) => item.lineaId === lineaId);
-      return encontrado
-        ? anterior.map((item) => item.lineaId === lineaId ? { ...item, cantidad: nuevaCantidad } : item)
-        : [...anterior, {
-            id, nombre: producto.nombre, precio, precioPublico: Number(producto.precio), precioMayorista: producto.precioMayorista ?? null, stock: Math.floor(stock),
-            categoria: producto.categoria, imagen_url: producto.imagen_url,
-            color, lineaId, cantidad: nuevaCantidad,
-          }];
+      const existente = anterior.find((item) => item.lineaId === lineaId);
+      const nuevaCantidad = Math.min(Math.floor(stock), (existente?.cantidad ?? 0) + unidades);
+      if (existente?.cantidad === nuevaCantidad) return anterior;
+
+      if (existente) {
+        return anterior.map((item) => item.lineaId === lineaId
+          ? { ...item, cantidad: nuevaCantidad, precio: precioParaCantidad(item, nuevaCantidad, esMayorista) }
+          : item);
+      }
+
+      const nuevoItem = {
+        id, nombre: producto.nombre, precioPublico, precioMayorista: producto.precioMayorista ?? null,
+        escalasMayorista: escalasValidas(producto.escalasMayorista), stock: Math.floor(stock),
+        categoria: producto.categoria, imagen_url: producto.imagen_url,
+        color, lineaId, cantidad: nuevaCantidad,
+      };
+      return [...anterior, { ...nuevoItem, precio: precioParaCantidad(nuevoItem, nuevaCantidad, esMayorista) }];
     });
     return true;
-  }, [items, esMayorista]);
+  }, [esMayorista]);
 
   const quitarProducto = useCallback((lineaId) => {
     setItems((anterior) => anterior.filter((item) => item.lineaId !== String(lineaId)));
@@ -50,10 +76,13 @@ export function CarritoProvider({ children }) {
     if (!Number.isSafeInteger(n)) return;
     setItems((anterior) => anterior
       .map((item) => item.lineaId === String(lineaId)
-        ? { ...item, cantidad: Math.min(Math.max(0, n), item.stock) }
+        ? (() => {
+            const nuevaCantidad = Math.min(Math.max(0, n), item.stock);
+            return { ...item, cantidad: nuevaCantidad, precio: precioParaCantidad(item, nuevaCantidad, esMayorista) };
+          })()
         : item)
       .filter((item) => item.cantidad > 0));
-  }, []);
+  }, [esMayorista]);
 
   const vaciarCarrito = useCallback(() => setItems([]), []);
 
