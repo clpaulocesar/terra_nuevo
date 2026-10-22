@@ -253,6 +253,16 @@
 /* ==========================================================================
    3. BARRA DE FILTROS RÁPIDOS
    ========================================================================== */
+.orders-load-error {
+  margin: 0 0 1rem;
+  padding: .85rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: .75rem;
+  background: #fff1f2;
+  color: #b4233d;
+  font-size: .9rem;
+}
+
 .orders-filter-container {
   background: #ffffff;
   border-radius: 1rem;

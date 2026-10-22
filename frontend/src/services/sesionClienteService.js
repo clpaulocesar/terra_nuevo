@@ -25,3 +25,10 @@ export async function listarMisPedidosMayorista(token) {
   if (!token) throw new Error('Inicia sesión como mayorista.');
   return apiRequest('/clientes/mis-pedidos', { headers: { Authorization: `Bearer ${token}` } });
 }
+
+export async function obtenerMiPedidoMayorista(token, pedidoId) {
+  if (!token) throw new Error('Inicia sesión como mayorista.');
+  return apiRequest(`/clientes/mis-pedidos/${encodeURIComponent(pedidoId)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}

@@ -213,20 +213,21 @@ export async function obtenerAnaliticaHorariaBD({ desde, hasta, horaInicio = nul
 }
 
 export async function listarPedidosPorClienteBD(clienteId, limite = 50) {
-  await asegurarColumnasEntrega();
+  await Promise.all([asegurarColumnasEntrega(), asegurarColumnasPago()]);
   const { rows } = await pool.query(
     `WITH pedidos_base AS (
        SELECT o.*, ROW_NUMBER() OVER (ORDER BY o.created_at ASC) AS numero_pedido
        FROM orders o
      )
      SELECT p.id,p.numero_pedido::integer AS numero,p.ticket_number AS codigo,p.total_minor/100.0 AS total,p.status AS estado,p.created_at AS fecha,
+            p.payment_method AS metodo_pago,
             p.fulfillment_type AS tipo_entrega,p.delivery_address AS direccion_entrega,
             p.delivery_reference AS referencia_entrega,
             COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items
      FROM pedidos_base p
      LEFT JOIN order_items i ON i.order_id=p.id
      WHERE p.customer_id=$1
-     GROUP BY p.id, p.numero_pedido, p.ticket_number, p.total_minor, p.status, p.created_at,
+     GROUP BY p.id, p.numero_pedido, p.ticket_number, p.total_minor, p.status, p.created_at, p.payment_method,
               p.fulfillment_type, p.delivery_address, p.delivery_reference
      ORDER BY p.created_at DESC
      LIMIT $2`,
