@@ -26,6 +26,7 @@ import PedidoGeneradoPage from '../pages/PedidoGenerado.jsx';
 import Catalogo from '../pages/Catalogo.jsx';
 import PedidosMayorista from '../pages/PedidosMayorista.jsx';
 import PanelMayorista from '../pages/PanelMayorista.jsx';
+import InicioMayorista from '../pages/InicioMayorista.jsx';
 import AdminLayout from '../components/admin/AdminLayout.jsx';
 import DashboardAdmin from '../pages/admin/DashboardAdmin.jsx';
 import ProductosAdmin from '../pages/admin/ProductosAdmin.jsx';
@@ -152,7 +153,7 @@ function Layout() {
                 <Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><BookOpen size={16} /> Catálogo mayorista con precios B2B</Link>
                 <Link to="/mi-cuenta/pedidos" onClick={() => setMenuCuentaAbierto(false)}><ReceiptText size={16} /> Mis pedidos</Link>
                 <button type="button" className="terra-account-link-disabled" title="Disponible próximamente"><FileText size={16} /> Mis cotizaciones y licitaciones</button>
-                <Link to="/mi-cuenta" onClick={() => setMenuCuentaAbierto(false)}><ContactRound size={16} /> Mi perfil y datos de facturación</Link>
+                <Link to="/mi-cuenta/perfil" onClick={() => setMenuCuentaAbierto(false)}><ContactRound size={16} /> Mi perfil y datos de facturación</Link>
                 <a className="terra-account-support" href={enlaceAsesor} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Soporte por WhatsApp<i>Asesor en línea</i></a>
               </nav>
               <div className="terra-account-footer"><button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></div>
@@ -330,7 +331,7 @@ export default function AppRoutes() {
           <Route path="confirmacion" element={<ConfirmacionPage />} />
           <Route path="pedido" element={<PedidoGeneradoPage />} />
           <Route path="pedido/:id" element={<PedidoGeneradoPage />} />
-          <Route path="mi-cuenta" element={<PanelMayorista />} />
+          <Route path="mi-cuenta" element={<InicioMayorista />} />
           <Route path="mi-cuenta/perfil" element={<PanelMayorista />} />
           <Route path="mi-cuenta/pedidos" element={<PedidosMayorista />} />
           <Route path="*" element={<NoEncontrado />} />
