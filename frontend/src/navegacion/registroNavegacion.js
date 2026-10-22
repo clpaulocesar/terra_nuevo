@@ -22,8 +22,10 @@ export const DESTINOS = {
   loginAdmin:      { ruta: '/admin/login',           nombre: 'Acceso de administrador',      acceso: 'publico',   alias: ['soy administrador', 'administrador', 'backoffice', 'panel de administracion', 'login administrador', 'soy admin', 'ingresar como administrador'] },
   loginVendedor:   { ruta: '/vendedor/login',        nombre: 'Acceso de vendedor',           acceso: 'publico',   alias: ['soy vendedor', 'vendedor', 'login vendedor', 'ingresar como vendedor', 'portal comercial'] },
 
-  adminDashboard:  { ruta: '/admin',                 nombre: 'Dashboard',                    acceso: ['admin', 'vendedor', 'despacho'], alias: ['dashboard', 'resumen', 'tablero', 'panel principal'] },
-  adminPedidos:    { ruta: '/admin/pedidos',         nombre: 'Pedidos',                      acceso: ['admin', 'vendedor', 'despacho'], alias: ['pedidos', 'ordenes'] },
+  adminDashboard:  { ruta: '/admin',                 nombre: 'Dashboard',                    acceso: ['admin', 'vendedor'], alias: ['dashboard', 'resumen', 'tablero', 'panel principal'] },
+  adminDespacho:   { ruta: '/admin/despacho',        nombre: 'Despacho a domicilio',          acceso: ['admin', 'despacho'], alias: ['despacho', 'envios', 'entregas', 'reparto', 'envios a domicilio', 'logistica', 'salir a entregar'] },
+  adminRepartidores: { ruta: '/admin/repartidores',  nombre: 'Repartidores',                  acceso: ['admin'], alias: ['repartidores', 'choferes', 'vehiculos', 'placas', 'asignar envios', 'asignar repartidor'] },
+  adminPedidos:    { ruta: '/admin/pedidos',         nombre: 'Pedidos',                      acceso: ['admin', 'vendedor'], alias: ['pedidos', 'ordenes'] },
   adminVentas:     { ruta: '/admin/ventas-directas', nombre: 'Ventas directas',              acceso: ['admin', 'vendedor'],             alias: ['ventas directas', 'venta en mostrador', 'cobrar', 'ventas'] },
   adminProductos:  { ruta: '/admin/productos',       nombre: 'Productos',                    acceso: ['admin'],                         alias: ['productos', 'inventario de productos', 'catalogo'] },
   adminCategorias: { ruta: '/admin/categorias',      nombre: 'Categorías',                   acceso: ['admin'],                         alias: ['categorias'] },

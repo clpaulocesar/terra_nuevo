@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { pool } from '../config/database.js';
 import { asegurarEscalasMayoristasBD } from './productoModel.js';
+import { asegurarTablaPersonal } from './personalModel.js';
 
 const aMonto = (minor) => Number(minor || 0) / 100;
 let paymentColumnsReady;
@@ -18,6 +19,13 @@ function asegurarColumnasEntrega() {
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_reference TEXT'),
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_lat DOUBLE PRECISION'),
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_lng DOUBLE PRECISION'),
+    // Seguimiento propio del reparto: no se mezcla con el estado de pago (status).
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_status TEXT'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_started_at TIMESTAMPTZ'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ'),
+    // Repartidor asignado desde el panel (staff_accounts con rol despacho).
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_driver_id UUID'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_assigned_at TIMESTAMPTZ'),
   ]);
   return deliveryColumnsReady;
 }
@@ -122,8 +130,8 @@ export async function obtenerPedidoBD(id) {
   };
 }
 
-export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 } = {}) {
-  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega()]);
+export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', limite = 100 } = {}) {
+  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega(), asegurarTablaPersonal()]);
   const valores=[]; const condiciones=[];
   const termino=String(buscar||'').trim();
   if(termino){
@@ -146,6 +154,9 @@ export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 }
     condiciones.push(`(${busqueda})`);
   }
   if(estado){valores.push(estado);condiciones.push(`p.status=$${valores.length}`);}
+  // Despacho solo trabaja con pedidos que se envían a domicilio.
+  if(entrega==='domicilio') condiciones.push(`p.fulfillment_type='home_delivery'`);
+  if(entrega==='retiro') condiciones.push(`p.fulfillment_type='store_pickup'`);
   valores.push(limite); const where=condiciones.length?`WHERE ${condiciones.join(' AND ')}`:'';
   const { rows } = await pool.query(`
     WITH pedidos_base AS (
@@ -164,6 +175,16 @@ export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 }
            p.fulfillment_type AS tipo_entrega,
            p.delivery_address AS direccion_entrega,
            p.delivery_reference AS referencia_entrega,
+           p.delivery_lat AS latitud_entrega,
+           p.delivery_lng AS longitud_entrega,
+           p.delivery_status AS estado_entrega,
+           p.delivery_started_at AS entrega_iniciada,
+           p.delivered_at AS entrega_confirmada,
+           p.delivery_driver_id AS repartidor_id,
+           p.delivery_assigned_at AS repartidor_asignado,
+           d.name AS repartidor_nombre,
+           d.vehicle AS repartidor_vehiculo,
+           d.plate AS repartidor_placa,
            COALESCE(c.name,'Compra como invitado') AS cliente,
            COALESCE(c.contact_name,'') AS cliente_titular,
            COALESCE(c.phone,'') AS cliente_telefono,
@@ -172,10 +193,15 @@ export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 }
     FROM pedidos_base p
     LEFT JOIN customers c ON c.id=p.customer_id
     LEFT JOIN order_items i ON i.order_id=p.id
+    LEFT JOIN staff_accounts d ON d.id=p.delivery_driver_id
     ${where}
     GROUP BY p.id, p.numero_pedido, p.ticket_number, p.customer_id, p.total_minor, p.status, p.created_at,
              p.payment_receipt_url, p.payment_method, p.fulfillment_type, p.delivery_address, p.delivery_reference,
-             c.id, c.name, c.contact_name, c.phone, c.nit
+             p.delivery_lat, p.delivery_lng,
+             p.delivery_status, p.delivery_started_at, p.delivered_at,
+             p.delivery_driver_id, p.delivery_assigned_at,
+             c.id, c.name, c.contact_name, c.phone, c.nit,
+             d.name, d.vehicle, d.plate
     ORDER BY p.created_at DESC
     LIMIT $${valores.length}
   `, valores);
@@ -249,6 +275,42 @@ export async function registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl }) 
 
 export async function actualizarEstadoPedidoBD(id, estado) {
   const { rows } = await pool.query(`UPDATE orders SET status=$1, updated_at=NOW() WHERE id=$2 RETURNING id`, [estado, id]);
+  return rows[0] ? obtenerPedidoBD(id) : null;
+}
+
+// Etapa del reparto a domicilio, independiente del estado de pago del pedido.
+export async function actualizarEntregaPedidoBD(id, etapa) {
+  await asegurarColumnasEntrega();
+  const etapaFinal = ['en_camino', 'entregado'].includes(etapa) ? etapa : 'pendiente';
+  const { rows } = await pool.query(
+    `UPDATE orders
+        SET delivery_status=CASE WHEN $1='pendiente' THEN NULL ELSE $1 END,
+            delivery_started_at=CASE
+              WHEN $1='pendiente' THEN NULL
+              WHEN $1='en_camino' THEN COALESCE(delivery_started_at, NOW())
+              ELSE delivery_started_at
+            END,
+            delivered_at=CASE WHEN $1='entregado' THEN NOW() ELSE NULL END,
+            updated_at=NOW()
+      WHERE id=$2
+      RETURNING id`,
+    [etapaFinal, id]
+  );
+  return rows[0] ? obtenerPedidoBD(id) : null;
+}
+
+// Asigna (o quita) el repartidor de un pedido a domicilio.
+export async function asignarRepartidorBD(id, repartidorId) {
+  await asegurarColumnasEntrega();
+  const { rows } = await pool.query(
+    `UPDATE orders
+        SET delivery_driver_id=$1,
+            delivery_assigned_at=CASE WHEN $1::uuid IS NULL THEN NULL ELSE NOW() END,
+            updated_at=NOW()
+      WHERE id=$2
+      RETURNING id`,
+    [repartidorId, id]
+  );
   return rows[0] ? obtenerPedidoBD(id) : null;
 }
 

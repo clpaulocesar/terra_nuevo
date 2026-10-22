@@ -6,8 +6,11 @@ import {
   listarPedidosBD,
   obtenerAnaliticaHorariaBD,
   actualizarEstadoPedidoBD,
+  actualizarEntregaPedidoBD,
+  asignarRepartidorBD,
   actualizarItemsPedidoBD,
 } from '../models/pedidoModel.js';
+import { obtenerPersonalBD } from '../models/personalModel.js';
 import { pool } from '../config/database.js';
 import { obtenerMayoristaDesdeToken } from '../services/sesionMayorista.js';
 
@@ -39,6 +42,69 @@ export async function actualizarEstadoPedido(req, res, next) {
   } catch (error) { next(error); }
 }
 
+// Etapa del reparto a domicilio (en camino / entregado). Es independiente del
+// pago: el pedido puede estar cobrado y seguir pendiente de entrega.
+export async function actualizarEntregaPedido(req, res, next) {
+  try {
+    const id = String(req.params.id || '').trim();
+    const etapa = String(req.body?.etapa || '').trim();
+    if (!id || !['en_camino', 'entregado', 'pendiente'].includes(etapa)) {
+      return res.status(400).json({ success: false, mensaje: 'Etapa de entrega inválida' });
+    }
+    const actual = await obtenerPedidoBD(id);
+    if (!actual) return res.status(404).json({ success: false, mensaje: 'Pedido no encontrado' });
+    if (actual.tipo_entrega !== 'home_delivery') {
+      return res.status(403).json({ success: false, mensaje: 'Este pedido se retira en tienda, no se envía a domicilio.' });
+    }
+    if (['cancelled', 'cancelado'].includes(String(actual.estado || '').toLowerCase())) {
+      return res.status(409).json({ success: false, mensaje: 'El pedido está cancelado.' });
+    }
+    const pedido = await actualizarEntregaPedidoBD(id, etapa);
+    return res.json({ success: true, data: pedido });
+  } catch (error) { next(error); }
+}
+
+// Asigna un repartidor (rol despacho) al envío de un cliente mayorista.
+export async function asignarRepartidorPedido(req, res, next) {
+  try {
+    const id = String(req.params.id || '').trim();
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ success: false, mensaje: 'Pedido inválido' });
+
+    const crudo = req.body?.repartidorId;
+    const repartidorId = crudo === null || crudo === undefined || crudo === '' ? null : String(crudo).trim();
+    if (repartidorId && !/^[0-9a-f-]{36}$/i.test(repartidorId)) {
+      return res.status(400).json({ success: false, mensaje: 'Repartidor inválido' });
+    }
+
+    const actual = await obtenerPedidoBD(id);
+    if (!actual) return res.status(404).json({ success: false, mensaje: 'Pedido no encontrado' });
+    if (actual.tipo_entrega !== 'home_delivery') {
+      return res.status(403).json({ success: false, mensaje: 'Este pedido se retira en tienda, no se envía a domicilio.' });
+    }
+    if (['cancelled', 'cancelado'].includes(String(actual.estado || '').toLowerCase())) {
+      return res.status(409).json({ success: false, mensaje: 'El pedido está cancelado.' });
+    }
+
+    if (repartidorId) {
+      const repartidor = await obtenerPersonalBD(repartidorId);
+      if (!repartidor || repartidor.rol !== 'despacho') {
+        return res.status(400).json({ success: false, mensaje: 'Selecciona un repartidor válido.' });
+      }
+      if (!repartidor.activo) {
+        return res.status(409).json({ success: false, mensaje: 'Ese repartidor está inactivo.' });
+      }
+    }
+
+    const pedido = await asignarRepartidorBD(id, repartidorId);
+    if (!pedido) return res.status(404).json({ success: false, mensaje: 'Pedido no encontrado' });
+    return res.json({
+      success: true,
+      data: pedido,
+      mensaje: repartidorId ? 'Envío asignado al repartidor.' : 'El envío quedó sin repartidor.',
+    });
+  } catch (error) { next(error); }
+}
+
 export async function listarPedidos(req, res, next) {
   try {
     const limite = Number(req.query.limite ?? 100);
@@ -46,7 +112,11 @@ export async function listarPedidos(req, res, next) {
     const estado = String(req.query.estado ?? '').trim();
     const permitidos = ['', 'pending', 'confirmed', 'preparing', 'ready_for_pickup', 'out_for_delivery', 'completed', 'cancelled'];
     if (!permitidos.includes(estado)) return res.status(400).json({ success: false, mensaje: 'Estado inválido' });
-    const pedidos = await listarPedidosBD({ buscar: String(req.query.buscar ?? '').trim(), estado, limite });
+    const entregaSolicitada = String(req.query.entrega ?? '').trim();
+    if (!['', 'domicilio', 'retiro'].includes(entregaSolicitada)) return res.status(400).json({ success: false, mensaje: 'Tipo de entrega inválido' });
+    // Despacho solo ve lo que tiene que repartir a domicilio.
+    const entrega = req.admin?.rol === 'despacho' ? 'domicilio' : entregaSolicitada;
+    const pedidos = await listarPedidosBD({ buscar: String(req.query.buscar ?? '').trim(), estado, entrega, limite });
     return res.json({ success: true, data: pedidos });
   } catch (error) { next(error); }
 }

@@ -35,6 +35,8 @@ const DashboardAdmin = lazy(() => import('../pages/admin/DashboardAdmin.jsx'));
 const ProductosAdmin = lazy(() => import('../pages/admin/ProductosAdmin.jsx'));
 const VentasDirectasAdmin = lazy(() => import('../pages/admin/VentasDirectasAdmin.jsx'));
 const PedidosAdmin = lazy(() => import('../pages/admin/PedidosAdmin.jsx'));
+const DespachoAdmin = lazy(() => import('../pages/admin/DespachoAdmin.jsx'));
+const RepartidoresAdmin = lazy(() => import('../pages/admin/RepartidoresAdmin.jsx'));
 const ClientesAdmin = lazy(() => import('../pages/admin/ClientesAdmin.jsx'));
 const PersonalAdmin = lazy(() => import('../pages/admin/PersonalAdmin.jsx'));
 const CategoriasAdmin = lazy(() => import('../pages/admin/CategoriasAdmin.jsx'));
@@ -318,12 +320,14 @@ export default function AppRoutes() {
         <Route path="admin/login" element={<LoginAdmin />} />
         <Route path="vendedor/login" element={<LoginVendedor />} />
         <Route path="admin" element={<RutaAdmin><AdminLayout /></RutaAdmin>}>
-          <Route index element={<DashboardAdmin />} />
+          <Route index element={<RutaAdmin roles={['admin', 'vendedor']}><DashboardAdmin /></RutaAdmin>} />
+          <Route path="despacho" element={<RutaAdmin roles={['admin', 'despacho']}><DespachoAdmin /></RutaAdmin>} />
+          <Route path="repartidores" element={<RutaAdmin roles={['admin']}><RepartidoresAdmin /></RutaAdmin>} />
           <Route path="productos" element={<RutaAdmin roles={['admin']}><ProductosAdmin /></RutaAdmin>} />
           <Route path="ventas-directas" element={<RutaAdmin roles={['admin', 'vendedor']}><VentasDirectasAdmin /></RutaAdmin>} />
           <Route path="categorias" element={<RutaAdmin roles={['admin']}><CategoriasAdmin /></RutaAdmin>} />
           <Route path="almacen" element={<RutaAdmin roles={['admin']}><AlmacenAdmin /></RutaAdmin>} />
-          <Route path="pedidos" element={<RutaAdmin roles={['admin', 'vendedor', 'despacho']}><PedidosAdmin /></RutaAdmin>} />
+          <Route path="pedidos" element={<RutaAdmin roles={['admin', 'vendedor']}><PedidosAdmin /></RutaAdmin>} />
           <Route path="clientes" element={<RutaAdmin roles={['admin', 'vendedor']}><ClientesAdmin /></RutaAdmin>} />
           <Route path="personal" element={<RutaAdmin roles={['admin']}><PersonalAdmin /></RutaAdmin>} />
           <Route path="reportes" element={<RutaAdmin roles={['admin']}><ReportesAdmin /></RutaAdmin>} />

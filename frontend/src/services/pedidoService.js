@@ -14,12 +14,12 @@ export async function crearVentaDirecta({ clienteId = null, items, metodoPago, t
   return apiRequest('/pedidos/venta-directa', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: { clienteId, items, metodoPago, tipoMayoristaManual } });
 }
 export async function obtenerPedido(id) { exigirConexionReal(); return apiRequest(`/pedidos/${id}`); }
-export async function listarPedidos({ buscar = '', estado = '', limite = 100 } = {}) {
+export async function listarPedidos({ buscar = '', estado = '', entrega = '', limite = 100 } = {}) {
   exigirConexionReal();
   // El listado incluye el teléfono/NIT del cliente para ubicar el pedido en caja,
   // por eso el backend exige sesión de backoffice (admin, vendedor o despacho).
   const token = getAdminToken();
-  return apiRequest(`/pedidos?buscar=${encodeURIComponent(buscar)}&estado=${encodeURIComponent(estado)}&limite=${limite}`, {
+  return apiRequest(`/pedidos?buscar=${encodeURIComponent(buscar)}&estado=${encodeURIComponent(estado)}&entrega=${encodeURIComponent(entrega)}&limite=${limite}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 }
@@ -33,7 +33,37 @@ export async function obtenerAnaliticaHoraria({ desde, hasta, horaInicio, horaFi
   const token = getAdminToken();
   return apiRequest(`/pedidos/analitica-horaria?${parametros}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
 }
-export async function actualizarEstadoPedido(id, estado) { exigirConexionReal(); return apiRequest(`/pedidos/${id}/estado`, { method: 'PATCH', body: { estado } }); }
+export async function actualizarEstadoPedido(id, estado) {
+  exigirConexionReal();
+  const token = getAdminToken();
+  if (!token) throw new Error('Inicia sesión nuevamente para actualizar el pedido.');
+  return apiRequest(`/pedidos/${id}/estado`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+    body: { estado },
+  });
+}
+export async function actualizarEntregaPedido(id, etapa) {
+  exigirConexionReal();
+  const token = getAdminToken();
+  if (!token) throw new Error('Inicia sesión nuevamente para actualizar el envío.');
+  return apiRequest(`/pedidos/${id}/entrega`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+    body: { etapa },
+  });
+}
+// Asigna (o quita con repartidorId = null) el repartidor de un envío.
+export async function asignarRepartidorPedido(id, repartidorId = null) {
+  exigirConexionReal();
+  const token = getAdminToken();
+  if (!token) throw new Error('Inicia sesión nuevamente para asignar el envío.');
+  return apiRequest(`/pedidos/${id}/repartidor`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+    body: { repartidorId },
+  });
+}
 export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = null }) { exigirConexionReal(); return apiRequest(`/pedidos/${id}/pago`, { method: 'PATCH', body: { metodoPago, comprobanteUrl } }); }
 export async function actualizarItemsPedido(id, items) {
   exigirConexionReal();
