@@ -69,19 +69,23 @@ const TecladoTactil = forwardRef(function TecladoTactil({
   });
 
   const eventosBorrado = () => ({
-    onPointerDown: () => {
+    onPointerDown: (event) => {
+      event.preventDefault();
+      event.currentTarget.setPointerCapture?.(event.pointerId);
       mostrarVistaPrevia('borrar');
       iniciarBorradoContinuo();
     },
-    onPointerUp: () => {
+    onPointerUp: (event) => {
+      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
       ocultarVistaPrevia();
       detenerBorradoContinuo();
     },
-    onPointerCancel: () => {
-      ocultarVistaPrevia();
-      detenerBorradoContinuo();
-    },
-    onPointerLeave: () => {
+    onPointerCancel: (event) => {
+      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
       ocultarVistaPrevia();
       detenerBorradoContinuo();
     },
@@ -89,6 +93,7 @@ const TecladoTactil = forwardRef(function TecladoTactil({
       ocultarVistaPrevia();
       detenerBorradoContinuo();
     },
+    onContextMenu: (event) => event.preventDefault(),
     onClick: (event) => {
       // Los clics generados por teclado no emiten pointerdown.
       if (event.detail === 0) onBorrar?.();
