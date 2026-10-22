@@ -28,6 +28,14 @@ export default function ClientesAdmin() {
     listarClientes({ limite: 100 }).then(setClientes).catch((err) => setError(err.message));
   }, []);
 
+  // Escape cierra el formulario de usuario mayorista (accesibilidad de teclado).
+  useEffect(() => {
+    if (!mostrarFormulario) return undefined;
+    const alEscape = (event) => { if (event.key === 'Escape' && !guardando) setMostrarFormulario(false); };
+    document.addEventListener('keydown', alEscape);
+    return () => document.removeEventListener('keydown', alEscape);
+  }, [mostrarFormulario, guardando]);
+
   const lista = useMemo(() => clientes.filter((cliente) => {
     const coincideBusqueda = `${cliente.nombre} ${cliente.telefono || ''} ${cliente.nit || ''} ${cliente.direccion || ''}`.toLowerCase().includes(buscar.toLowerCase());
     const esMayorista = cliente.rol === 'mayorista';
@@ -91,7 +99,7 @@ export default function ClientesAdmin() {
         <article><Eye /><small>Con compras</small><b>{clientes.filter((cliente) => cliente.compras > 0).length}</b><span>Historial registrado</span></article>
         <article><MessageCircle /><small>Contacto inmediato</small><b>{clientes.filter((cliente) => cliente.telefono).length}</b><span>Con teléfono</span></article>
       </section>
-      <section className="clients-filters"><label><Search size={20} /><input value={buscar} onChange={(event) => setBuscar(event.target.value)} placeholder="Buscar por nombre, NIT o celular..." /></label><select value={tipo} onChange={(event) => setTipo(event.target.value)} aria-label="Filtrar por tipo de cliente"><option value="todos">Todos los tipos</option><option value="mayorista">Solo mayoristas</option><option value="minorista">Solo minoristas</option></select><button onClick={() => { setBuscar(''); setTipo('todos'); }}><X size={17} />Limpiar</button></section>
+      <section className="clients-filters"><label><Search size={20} /><input value={buscar} onChange={(event) => setBuscar(event.target.value)} placeholder="Buscar por nombre, NIT o celular..." aria-label="Buscar por nombre, NIT o celular" /></label><select value={tipo} onChange={(event) => setTipo(event.target.value)} aria-label="Filtrar por tipo de cliente"><option value="todos">Todos los tipos</option><option value="mayorista">Solo mayoristas</option><option value="minorista">Solo minoristas</option></select><button onClick={() => { setBuscar(''); setTipo('todos'); }}><X size={17} />Limpiar</button></section>
       {error && <p className="error-box">{error}</p>}
       <section className="clients-layout">
         <section className="clients-table">

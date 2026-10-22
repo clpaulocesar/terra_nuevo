@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Download, FileText, X } from 'lucide-react';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import './ReportePedidosVendedor.css';
@@ -19,6 +19,14 @@ export default function ReportePedidosVendedor({ pedidos }) {
     return true;
   }), [filtro, pedidos]);
   const total = filas.reduce((suma, pedido) => suma + Number(pedido.total || 0), 0);
+
+  // Escape cierra el modal del reporte (accesibilidad de teclado).
+  useEffect(() => {
+    if (!abierto) return undefined;
+    const alEscape = (evento) => { if (evento.key === 'Escape') setAbierto(false); };
+    document.addEventListener('keydown', alEscape);
+    return () => document.removeEventListener('keydown', alEscape);
+  }, [abierto]);
 
   const descargar = () => {
     const contenido = [

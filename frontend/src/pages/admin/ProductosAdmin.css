@@ -73,3 +73,7 @@
 .product-form-check input[type="checkbox"] { accent-color: #a6192e; height: 1.15rem; width: 1.15rem; margin: 0; flex: none; }
 .product-form-check span { display: grid; font-weight: 800; }
 .product-form-check small { color: #707974; font-weight: 500; }
+
+/* Sección "Instrucciones de armado y uso" del formulario de producto */
+.product-create-modal .product-form-grid.product-instructions { border-top: 1px solid #eee8e7; margin: 0; padding-top: 22px; }
+.product-instructions textarea { font-family: inherit; line-height: 1.5; white-space: pre-wrap; }

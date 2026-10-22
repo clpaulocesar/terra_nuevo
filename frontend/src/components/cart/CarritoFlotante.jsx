@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react';
 import { useCarrito } from '../../hooks/useCarrito.js';
@@ -9,11 +9,19 @@ export default function CarritoFlotante() {
   const [abierto, setAbierto] = useState(false);
   const { items, cantidadTotal, subtotal, actualizarCantidad, quitarProducto, vaciarCarrito } = useCarrito();
 
+  // Escape cierra el panel del carrito (accesibilidad de teclado).
+  useEffect(() => {
+    if (!abierto) return undefined;
+    const alEscape = (e) => { if (e.key === 'Escape') setAbierto(false); };
+    document.addEventListener('keydown', alEscape);
+    return () => document.removeEventListener('keydown', alEscape);
+  }, [abierto]);
+
   return (
     <div className={`cart-widget ${abierto ? 'abierto' : ''}`}>
       {abierto && <button type="button" className="cart-overlay" onClick={() => setAbierto(false)} aria-label="Cerrar carrito" />}
 
-      <aside className="cart-drawer" aria-hidden={!abierto} aria-label="Carrito de compra">
+      <aside className="cart-drawer" aria-hidden={!abierto} aria-label="Carrito de compra" role="dialog" aria-modal="true">
         <header className="cart-drawer-header">
           <div>
             <strong>Tu carrito</strong>

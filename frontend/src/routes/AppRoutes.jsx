@@ -47,6 +47,10 @@ import WebAccountModal from '../components/WebAccountModal.jsx';
 import BotonTema from '../components/ui/BotonTema.jsx';
 import BotonesVoz from '../components/accesibilidad/BotonesVoz.jsx';
 import LectorVoz from '../components/accesibilidad/LectorVoz.jsx';
+import { NavegacionProvider, useNavegacion } from '../navegacion/NavegacionContext.jsx';
+import SaltarContenido from '../accesibilidad/SaltarContenido.jsx';
+import BotonAccesibilidad from '../accesibilidad/BotonAccesibilidad.jsx';
+import VigilanteInactividad from '../accesibilidad/VigilanteInactividad.jsx';
 import './Layout.css';
 import './NavigationFix.css';
 import './ClienteTheme.css';
@@ -60,7 +64,8 @@ import '../theme-dark-admin.css';
 function Layout() {
   const { cantidadTotal } = useCarrito();
   const { sesion, esMayorista, cerrarSesion } = useContext(SesionClienteContext);
-  const [cuentaAbierta, setCuentaAbierta] = useState(false);
+  // El modal de login mayorista lo controla NavegacionContext (voz, chat y ?login=1 lo abren).
+  const { loginMayoristaAbierto: cuentaAbierta, abrirLoginMayorista, cerrarLoginMayorista } = useNavegacion();
   const [menuCuentaAbierto, setMenuCuentaAbierto] = useState(false);
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
   const [unidadesQr, setUnidadesQr] = useState(() => (leerCarritoQr() || []).reduce((t, i) => t + Number(i.cantidad || 0), 0));
@@ -98,8 +103,10 @@ function Layout() {
 
   return (
     <div className="app-shell">
-      <a className="terra-skip-link" href="#contenido">Saltar al contenido</a>
+      <SaltarContenido />
       <LectorVoz />
+      <BotonAccesibilidad />
+      <VigilanteInactividad />
       <header className="site-header terra-header">
         <div className="terra-header-left">
           <Link to="/" className="brand terra-logo" title="TERRA Autoservicio" onClick={abrirAdminConLogo}>
@@ -129,7 +136,7 @@ function Layout() {
           <BotonesVoz />
           <BotonTema />
           <div className="terra-account">
-            <button type="button" className={`terra-login-button${esMayorista ? ' terra-login-button--mayorista' : ''}`} aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => { setMenuMovilAbierto(false); return esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : setCuentaAbierta(true); }}>{esMayorista ? <i className="terra-account-avatar">{inicialesCuenta}</i> : <UserRound size={19} />}<span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span>{esMayorista && <ChevronDown size={15} className={menuCuentaAbierto ? 'is-open' : ''} />}</button>
+            <button type="button" className={`terra-login-button${esMayorista ? ' terra-login-button--mayorista' : ''}`} aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => { setMenuMovilAbierto(false); return esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : abrirLoginMayorista(); }}>{esMayorista ? <i className="terra-account-avatar">{inicialesCuenta}</i> : <UserRound size={19} />}<span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span>{esMayorista && <ChevronDown size={15} className={menuCuentaAbierto ? 'is-open' : ''} />}</button>
             {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu">
               <div className="terra-account-summary">
                 <i className="terra-account-avatar terra-account-avatar--large">{inicialesCuenta}</i>
@@ -163,7 +170,7 @@ function Layout() {
         </div>
         </div>
       </header>
-      {cuentaAbierta && <WebAccountModal onClose={() => setCuentaAbierta(false)} />}
+      {cuentaAbierta && <WebAccountModal onClose={() => cerrarLoginMayorista()} />}
 
       {MODO_DEMO && (
         <div className="demo-banner">
@@ -292,6 +299,7 @@ function NoEncontrado() {
 export default function AppRoutes() {
   return (
     <BrowserRouter>
+      <NavegacionProvider>
       <Routes>
         <Route path="admin/login" element={<LoginAdmin />} />
         <Route path="vendedor/login" element={<LoginVendedor />} />
@@ -328,6 +336,7 @@ export default function AppRoutes() {
           <Route path="*" element={<NoEncontrado />} />
         </Route>
       </Routes>
+      </NavegacionProvider>
     </BrowserRouter>
   );
 }

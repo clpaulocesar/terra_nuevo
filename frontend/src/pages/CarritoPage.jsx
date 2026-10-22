@@ -7,6 +7,7 @@ import {
   PackageOpen,
   Plus,
   ShoppingBag,
+  ShoppingCart,
   Trash2,
 } from "lucide-react";
 import { useCarrito } from "../hooks/useCarrito.js";
