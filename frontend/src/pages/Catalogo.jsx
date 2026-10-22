@@ -335,6 +335,10 @@ export default function Catalogo() {
     setBuscar((prev) => prev.slice(0, -1));
     setPagina(1);
   };
+  const pegarCaracteres = (texto) => {
+    setBuscar((prev) => prev + texto);
+    setPagina(1);
+  };
   const abrirTecladoTactil = () => {
     if (esTactil) {
       setTecladoAbierto(true);
@@ -598,6 +602,8 @@ export default function Catalogo() {
             onBorrar={borrarCaracter}
             onLimpiar={() => cambiarBusqueda('')}
             onCerrar={() => setTecladoAbierto(false)}
+            onPegar={pegarCaracteres}
+            valorActual={buscar}
           />
         )}
 
