@@ -34,6 +34,23 @@ export async function obtenerAnaliticaHoraria({ desde, hasta, horaInicio, horaFi
   const token = getAdminToken();
   return apiRequest(`/pedidos/analitica-horaria?${parametros}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
 }
+// Totales de un rango de fechas (YYYY-MM-DD, zona La Paz) para los KPI del dashboard.
+export async function obtenerResumenPedidos({ desde, hasta } = {}) {
+  exigirConexionReal();
+  const parametros = new URLSearchParams();
+  if (desde) parametros.set('desde', desde);
+  if (hasta) parametros.set('hasta', hasta);
+  const token = getAdminToken();
+  return apiRequest(`/pedidos/resumen?${parametros}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+}
+// Comparativa de períodos: periodo = dia | semana | mes | personalizado (con desde/hasta y desde2/hasta2).
+export async function obtenerComparativaPeriodos({ periodo = 'dia', desde, hasta, desde2, hasta2 } = {}) {
+  exigirConexionReal();
+  const parametros = new URLSearchParams({ periodo });
+  if (periodo === 'personalizado') { parametros.set('desde', desde); parametros.set('hasta', hasta); parametros.set('desde2', desde2); parametros.set('hasta2', hasta2); }
+  const token = getAdminToken();
+  return apiRequest(`/pedidos/comparativa?${parametros}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+}
 export async function actualizarEstadoPedido(id, estado) { exigirConexionReal(); return apiRequest(`/pedidos/${id}/estado`, { method: 'PATCH', body: { estado } }); }
 export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = null }) { exigirConexionReal(); return apiRequest(`/pedidos/${id}/pago`, { method: 'PATCH', body: { metodoPago, comprobanteUrl } }); }
 export async function actualizarItemsPedido(id, items) {

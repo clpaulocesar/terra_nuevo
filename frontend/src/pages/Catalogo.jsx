@@ -119,8 +119,12 @@ export default function Catalogo() {
   });
 
   // Cualquier cambio de filtro vuelve a la primera página.
+  // Elegir una categoría arranca de cero: se borra lo escrito en el buscador para que
+  // no quede un término viejo filtrando la categoría nueva.
   const cambiarCategoria = (valor) => {
     setCategoriaSeleccionada(valor);
+    setBuscar('');
+    setBuscarAplicado('');
     setPagina(1);
     setMenuCategoriasAbierto(false);
     anunciar(valor ? `Categoría ${valor} seleccionada.` : 'Mostrando todos los productos.');
@@ -153,7 +157,12 @@ export default function Catalogo() {
     const buscarUrl = (searchParams.get('buscar') || '').trim();
     let cambio = false;
     if (ofertasUrl !== soloOfertas) { setSoloOfertas(ofertasUrl); cambio = true; }
-    if (searchParams.has('categoria') && categoriaUrl !== categoriaSeleccionada) { setCategoriaSeleccionada(categoriaUrl); cambio = true; }
+    if (searchParams.has('categoria') && categoriaUrl !== categoriaSeleccionada) {
+      setCategoriaSeleccionada(categoriaUrl);
+      // Misma regla que el chip: una categoría nueva (voz, chat, enlace) limpia la búsqueda anterior.
+      if (!searchParams.has('buscar')) { setBuscar(''); setBuscarAplicado(''); }
+      cambio = true;
+    }
     if (searchParams.has('buscar') && buscarUrl !== buscarAplicado) { setBuscar(buscarUrl); setBuscarAplicado(buscarUrl); cambio = true; }
     if (cambio) setPagina(1);
     // Sólo debe correr cuando cambia la navegación, no cuando el usuario toca los chips.
