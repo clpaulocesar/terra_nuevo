@@ -3,12 +3,12 @@ import {
   ChevronLeft,
   ChevronRight,
   CreditCard,
-  Download,
   Flame,
   Home,
   Minus,
   Package,
   Plus,
+  Printer,
   QrCode,
   ScanBarcode,
   Search,
@@ -23,9 +23,10 @@ import {
 import { listarCategorias, listarProductosPaginado, obtenerProducto } from '../../services/productoService.js';
 import { listarClientes } from '../../services/clienteService.js';
 import { crearVentaDirecta } from '../../services/pedidoService.js';
-import { descargarTicket } from '../../utils/descargarTicket.js';
+import { getAdminUser } from '../../services/adminService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import { imagenDeProducto, usarImagenFallback } from '../../utils/imagenProducto.js';
+import { imprimirTicketVenta } from '../../utils/imprimirTicketVenta.js';
 import './VentasDirectasAdmin.css';
 
 const TODAS = 'Todas';
@@ -234,19 +235,45 @@ export default function VentasDirectasAdmin() {
     setGuardando(true);
     setError('');
     setExito('');
-    setUltimaVenta(null);
     try {
+      // Capturar copia de los datos antes de limpiar el carrito para imprimir el ticket
+      const itemsSnapshot = carrito.map((item) => ({
+        id: item.id,
+        nombre: item.nombre,
+        sku: item.sku,
+        medida: item.medida,
+        cantidad: item.cantidad,
+        precioUnitario: precio(item),
+        subtotal: precio(item) * item.cantidad,
+      }));
+      const clienteSnapshot = cliente
+        ? { ...cliente }
+        : (!clienteId && tipoNuevo === 'mayorista' ? { nombre: 'Cliente Mayorista (Mostrador)' } : null);
+      const vendedor = getAdminUser();
+
       const venta = await crearVentaDirecta({
         clienteId: clienteId || null,
         metodoPago,
         tipoMayoristaManual: !clienteId && tipoNuevo === 'mayorista',
         items: carrito.map((item) => ({ productoId: item.id, cantidad: item.cantidad })),
       });
+
+      const datosTicket = {
+        venta,
+        cliente: clienteSnapshot,
+        items: itemsSnapshot,
+        metodoPago,
+        vendedor,
+      };
+
+      setUltimaVenta(datosTicket);
       setExito(`Venta ${venta.codigo} registrada por ${formatoMoneda(venta.total)}.`);
-      setUltimaVenta(venta);
       setCarrito([]);
       setClienteId('');
       setTipoNuevo('minorista');
+
+      // Imprimir ticket de venta automáticamente al confirmar
+      imprimirTicketVenta(datosTicket);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -679,15 +706,20 @@ export default function VentasDirectasAdmin() {
           </div>
 
           {error && <p className="error-box">{error}</p>}
-          {exito && <p className="direct-success">{exito}</p>}
-          {ultimaVenta && (
-            <button
-              type="button"
-              className="direct-ticket"
-              onClick={() => descargarTicket(ultimaVenta, ultimaVenta.cliente || {}, ultimaVenta.items || [])}
-            >
-              <Download size={16} /> Descargar ticket de la venta
-            </button>
+          {exito && (
+            <div className="direct-success-card">
+              <p className="direct-success">{exito}</p>
+              {ultimaVenta && (
+                <button
+                  type="button"
+                  className="direct-print-btn"
+                  onClick={() => imprimirTicketVenta(ultimaVenta)}
+                  title="Imprimir copia del ticket de venta"
+                >
+                  <Printer size={15} /> Imprimir / Reimprimir ticket
+                </button>
+              )}
+            </div>
           )}
 
           <button type="button" className="direct-save" disabled={guardando || !carrito.length} onClick={guardar}>

@@ -34,6 +34,7 @@ import PedidosAdmin from '../pages/admin/PedidosAdmin.jsx';
 import ClientesAdmin from '../pages/admin/ClientesAdmin.jsx';
 import PersonalAdmin from '../pages/admin/PersonalAdmin.jsx';
 import CategoriasAdmin from '../pages/admin/CategoriasAdmin.jsx';
+import AlmacenAdmin from '../pages/admin/AlmacenAdmin.jsx';
 import ReportesAdmin from '../pages/admin/ReportesAdmin.jsx';
 import LoginAdmin from '../pages/admin/LoginAdmin.jsx';
 import RutaAdmin from '../components/admin/RutaAdmin.jsx';
@@ -299,6 +300,7 @@ export default function AppRoutes() {
           <Route path="productos" element={<RutaAdmin roles={['admin']}><ProductosAdmin /></RutaAdmin>} />
           <Route path="ventas-directas" element={<RutaAdmin roles={['admin', 'vendedor']}><VentasDirectasAdmin /></RutaAdmin>} />
           <Route path="categorias" element={<RutaAdmin roles={['admin']}><CategoriasAdmin /></RutaAdmin>} />
+          <Route path="almacen" element={<RutaAdmin roles={['admin']}><AlmacenAdmin /></RutaAdmin>} />
           <Route path="pedidos" element={<RutaAdmin roles={['admin', 'vendedor', 'despacho']}><PedidosAdmin /></RutaAdmin>} />
           <Route path="clientes" element={<RutaAdmin roles={['admin', 'vendedor']}><ClientesAdmin /></RutaAdmin>} />
           <Route path="personal" element={<RutaAdmin roles={['admin']}><PersonalAdmin /></RutaAdmin>} />
