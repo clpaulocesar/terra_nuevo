@@ -27,7 +27,6 @@ import { getAdminUser } from '../../services/adminService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import { imagenDeProducto, usarImagenFallback } from '../../utils/imagenProducto.js';
 import { imprimirTicketVenta } from '../../utils/imprimirTicketVenta.js';
-import { imprimirTicketProducto } from '../../utils/imprimirTicketProducto.js';
 import './VentasDirectasAdmin.css';
 
 const TODAS = 'Todas';
@@ -536,19 +535,9 @@ export default function VentasDirectasAdmin() {
                   </span>
                   <div className="direct-card__foot">
                     <strong className="direct-card__price">{formatoMoneda(precio(producto))}</strong>
-                    <div className="direct-card__actions">
-                      <button
-                        type="button"
-                        className="direct-card__ticket"
-                        onClick={() => imprimirTicketProducto(producto)}
-                        title={`Imprimir ticket/etiqueta de ${producto.nombre}`}
-                      >
-                        <Printer size={13} /> Ticket
-                      </button>
-                      <button type="button" className="direct-add" onClick={() => agregar(producto)} disabled={Number(producto.stock || 0) < 1}>
-                        <Plus size={14} /> Agregar
-                      </button>
-                    </div>
+                    <button type="button" className="direct-add" onClick={() => agregar(producto)} disabled={Number(producto.stock || 0) < 1}>
+                      <Plus size={14} /> Agregar
+                    </button>
                   </div>
                 </article>
               ))}
@@ -694,15 +683,6 @@ export default function VentasDirectasAdmin() {
                     <b>{item.cantidad}</b>
                     <button type="button" onClick={() => cambiarCantidad(item.id, 1, item)} aria-label="Sumar"><Plus size={13} /></button>
                   </span>
-                  <button
-                    type="button"
-                    className="direct-cart-item__ticket"
-                    onClick={() => imprimirTicketProducto(item, { copias: item.cantidad })}
-                    title={`Imprimir etiqueta de ${item.nombre} (${item.cantidad} etiqueta${item.cantidad > 1 ? 's' : ''})`}
-                    aria-label={`Imprimir etiqueta de ${item.nombre}`}
-                  >
-                    <Printer size={15} />
-                  </button>
                   <button type="button" className="direct-cart-item__remove" onClick={() => quitarProducto(item.id)} aria-label={`Quitar ${item.nombre}`}>
                     <Trash2 size={15} />
                   </button>

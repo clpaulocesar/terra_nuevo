@@ -482,50 +482,6 @@
   font-weight: 900;
 }
 
-.direct-card__actions {
-  align-items: center;
-  display: flex;
-  gap: .35rem;
-}
-
-.direct-card__ticket {
-  align-items: center;
-  background: #fbf5f5;
-  border: 1px solid #ebd3d6;
-  border-radius: 8px;
-  color: #a6192e;
-  cursor: pointer;
-  display: inline-flex;
-  font-size: .74rem;
-  font-weight: 700;
-  gap: .25rem;
-  padding: .42rem .55rem;
-  transition: all .15s ease;
-}
-
-.direct-card__ticket:hover {
-  background: #fff0f2;
-  border-color: #a6192e;
-}
-
-.direct-cart-item__ticket {
-  align-items: center;
-  background: #fdf5f6;
-  border: 1px solid #f2d4d8;
-  border-radius: 6px;
-  color: #a6192e;
-  cursor: pointer;
-  display: inline-flex;
-  justify-content: center;
-  padding: .35rem;
-  transition: all .15s ease;
-}
-
-.direct-cart-item__ticket:hover {
-  background: #a6192e;
-  color: #fff;
-  border-color: #a6192e;
-}
 
 .direct-add {
   background: #a6192e;
