@@ -420,13 +420,15 @@ export default function PedidosAdmin() {
       {!cargando && !error && vista.length === 0 && <p>{buscar.trim() ? `No hay pedidos que coincidan con «${buscar.trim()}».` : 'No hay pedidos registrados todavía.'}</p>}
       {vista.map((pedido) => <article key={pedido.id}><div><b>{pedido.numero ? `Pedido #${pedido.numero}` : ''} {pedido.codigo ? `· #${pedido.codigo}` : ''}</b><small>{formatoFechaHora(pedido.fecha)}</small></div><div><b>{pedido.cliente}</b><small>{pedido.cliente_telefono ? `Tel. ${pedido.cliente_telefono}` : pedido.comprobante_url ? 'Comprobante adjunto' : 'Sin teléfono registrado'}{pedido.cliente_nit ? ` · NIT ${pedido.cliente_nit}` : ''}</small></div><p>{pedido.items || 'Sin artículos'}</p><strong>{formatoMoneda(pedido.total)}</strong><i className={pedido.estado}>{etiquetas[pedido.estado] || pedido.estado}</i>
         <div className="order-actions">
-          <button type="button" className="order-ticket" onClick={() => imprimirTicket(pedido)} disabled={imprimiendoId === pedido.id} title="Imprimir ticket térmico de este pedido">{imprimiendoId === pedido.id ? 'Generando…' : <><Printer size={16} /> Ticket</>}</button>
+          <button type="button" className="order-icon-btn" onClick={() => imprimirTicket(pedido)} disabled={imprimiendoId === pedido.id} title="Imprimir ticket térmico" aria-label={`Imprimir ticket del pedido ${pedido.numero || pedido.codigo || ''}`}>
+            {imprimiendoId === pedido.id ? <RefreshCw size={15} className="is-spinning" /> : <Printer size={15} />}
+          </button>
           {POR_COBRAR.includes(pedido.estado) && (
-            <button type="button" className="order-edit-action" onClick={() => abrirPedidoParaEdicion(pedido)} title="Editar o agregar productos a este pedido">
-              <Edit3 size={15} /> Editar
+            <button type="button" className="order-icon-btn" onClick={() => abrirPedidoParaEdicion(pedido)} title="Editar o agregar productos" aria-label="Editar o agregar productos al pedido">
+              <Edit3 size={15} />
             </button>
           )}
-          <button type="button" className="order-primary-action" onClick={() => abrirPedido(pedido)} title={POR_COBRAR.includes(pedido.estado) ? 'Registrar el pago del pedido' : 'Consultar el detalle del pedido'}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={18} /> Cobrar</> : 'Ver detalle'}</button>
+          <button type="button" className="order-primary" onClick={() => abrirPedido(pedido)} title={POR_COBRAR.includes(pedido.estado) ? 'Registrar el pago del pedido' : 'Consultar el detalle del pedido'}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={16} /> Cobrar</> : 'Ver detalle'}</button>
         </div>
       </article>)}
     </section>

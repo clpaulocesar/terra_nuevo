@@ -215,6 +215,10 @@ html[data-theme="dark"] .terra-modal-overlay,
 html[data-theme="dark"] .catalog-qr-overlay { background: rgba(0, 0, 0, 0.7); }
 html[data-theme="dark"] .catalog-qr-summary { background: var(--td-surface-2); }
 html[data-theme="dark"] .catalog-qr-summary button:disabled { background: #4a3f3b; }
+html[data-theme="dark"] .catalog-qr-upload { background: var(--td-surface-2); border-color: var(--td-line); }
+html[data-theme="dark"] .catalog-qr-upload button { background: var(--td-surface-3); border-color: var(--td-line); color: #ffb3bd; }
+html[data-theme="dark"] .catalog-qr-upload button:hover { background: var(--td-accent-soft); border-color: var(--td-accent); }
+html[data-theme="dark"] .catalog-qr-upload small { color: var(--td-muted); }
 html[data-theme="dark"] .catalog-qr-scanned { background: var(--td-surface); border-color: var(--td-accent); box-shadow: 0 0 0 3px rgba(224, 48, 74, 0.15); }
 html[data-theme="dark"] .catalog-qr-scanned__info b { color: var(--td-text); }
 html[data-theme="dark"] .catalog-qr-scanned__qty { background: var(--td-surface-2); border-color: var(--td-line); }
@@ -330,6 +334,7 @@ html[data-theme="dark"] .detalle-status { background: var(--td-surface); border-
 html[data-theme="dark"] .detalle-status a { color: #ffb3bd; }
 
 /* ---------- Carrito (página) ---------- */
+html[data-theme="dark"] .cart-page { color: var(--td-text); }
 html[data-theme="dark"] .cart-heading p,
 html[data-theme="dark"] .cart-empty p { color: var(--td-muted); }
 html[data-theme="dark"] .cart-heading span,
@@ -360,6 +365,27 @@ html[data-theme="dark"] .cart-delete { color: #ff8a95; }
 html[data-theme="dark"] .cart-item-color { color: var(--td-muted); }
 html[data-theme="dark"] .cart-item-color i { border: 1px solid var(--td-line); }
 html[data-theme="dark"] .cart-quantity button:disabled { opacity: .4; }
+
+/* Selector de entrega (cliente mayorista) */
+html[data-theme="dark"] .cart-delivery { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .cart-delivery__head p,
+html[data-theme="dark"] .cart-delivery__text small { color: var(--td-muted); }
+html[data-theme="dark"] .cart-delivery__tag { background: var(--td-accent-soft); color: #ffb3bd; }
+html[data-theme="dark"] .cart-delivery__option { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
+html[data-theme="dark"] .cart-delivery__option:hover:not(:disabled) { border-color: #7c3b47; }
+html[data-theme="dark"] .cart-delivery__option.is-selected { background: var(--td-accent-soft); border-color: #ff8a95; box-shadow: 0 0 0 3px #ff8a9522; }
+html[data-theme="dark"] .cart-delivery__icon { background: var(--td-surface); border-color: var(--td-line); color: #ffb3bd; }
+html[data-theme="dark"] .cart-delivery__option.is-selected .cart-delivery__icon { background: #a6192e; border-color: #a6192e; color: #fff; }
+html[data-theme="dark"] .cart-delivery__mark { background: var(--td-surface); border-color: var(--td-line); }
+html[data-theme="dark"] .cart-delivery__option.is-selected .cart-delivery__mark { background: #a6192e; border-color: #a6192e; }
+html[data-theme="dark"] .cart-delivery__address { background: var(--td-ok-bg); border-color: #24503a; }
+html[data-theme="dark"] .cart-delivery__address > svg,
+html[data-theme="dark"] .cart-delivery__address b { color: var(--td-ok); }
+html[data-theme="dark"] .cart-delivery__address strong { color: var(--td-text); }
+html[data-theme="dark"] .cart-delivery__address small { color: var(--td-muted); }
+html[data-theme="dark"] .cart-delivery__address a,
+html[data-theme="dark"] .cart-delivery__hint a { color: #ffb3bd; }
+html[data-theme="dark"] .cart-delivery__hint { color: #ffdb9b; }
 
 /* ---------- Carrito flotante y asistente ---------- */
 html[data-theme="dark"] .cart-drawer,
@@ -460,6 +486,9 @@ html[data-theme="dark"] .confirm-delivery b { color: var(--td-text); }
 html[data-theme="dark"] .confirm-delivery span,
 html[data-theme="dark"] .confirm-delivery small { color: var(--td-muted); }
 html[data-theme="dark"] .confirm-delivery a { color: #ffb3bd; }
+html[data-theme="dark"] .confirm-delivery.is-pickup { background: #3a2b10; border-color: #5a4218; }
+html[data-theme="dark"] .confirm-delivery.is-pickup svg,
+html[data-theme="dark"] .confirm-delivery.is-pickup b { color: #ffdb9b; }
 
 /* ---------- Pedido generado ---------- */
 html[data-theme="dark"] .pedido-page { color: var(--td-text); }

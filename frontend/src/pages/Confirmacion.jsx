@@ -11,7 +11,7 @@ import { descargarTicket } from '../utils/descargarTicket.js';
 import './Confirmacion.css';
 
 export default function Confirmacion() {
-  const { items, subtotal, vaciarCarrito } = useCarrito();
+  const { items, subtotal, vaciarCarrito, entregaDomicilio } = useCarrito();
   const { cliente, limpiarCliente } = useContext(ClienteContext);
   const { sesion, esMayorista } = useContext(SesionClienteContext);
   const [procesando, setProcesando] = useState(false);
@@ -50,6 +50,7 @@ export default function Confirmacion() {
       const pedido = await crearPedido({
         clienteId: id,
         token: esMayorista ? sesion?.token : null,
+        entregaDomicilio: esMayorista && entregaDomicilio,
         items: items.map((item) => ({ productoId: item.id, cantidad: item.cantidad, color: item.color?.nombre || null })),
       });
 
@@ -72,20 +73,30 @@ export default function Confirmacion() {
   return (
     <section className="confirm-page">
       <Link className="confirm-back" to={esMayorista ? '/mi-cuenta' : '/identificacion'}><ArrowLeft size={19} /> {esMayorista ? 'Volver a mi perfil' : 'Volver a identificación'}</Link>
-      <header><span>Paso 3 de 3 · Confirmación</span><h1>Revisá y confirmá tu pedido</h1><p>Generaremos un ticket para pagar en caja. No se cobra nada desde este kiosco.</p></header>
-      <div className="confirm-notice"><ReceiptText size={30} /><div><b>Pago en mostrador presencial</b><p>Presentá el código del pedido al cajero para efectuar el pago y coordinar la entrega.</p></div></div>
+      <header>
+        <span>Paso 3 de 3 · Confirmación</span>
+        <h1>Revisá y confirmá tu pedido</h1>
+        <p>{esMayorista && entregaDomicilio ? 'Generamos el pedido para pagar en caja y coordinamos el envío a tu dirección.' : 'Generaremos un ticket para pagar en caja. No se cobra nada desde este kiosco.'}</p>
+      </header>
+      <div className="confirm-notice"><ReceiptText size={30} /><div><b>Pago en mostrador presencial</b><p>{esMayorista && entregaDomicilio ? 'Presentá el código del pedido al cajero para efectuar el pago y coordinar el envío a domicilio.' : 'Presentá el código del pedido al cajero para efectuar el pago y coordinar la entrega.'}</p></div></div>
       <div className="confirm-layout">
         <div className="confirm-card">
           <h2>Datos del pedido</h2>
           <div className="confirm-client"><ShieldCheck size={23} /><div><b>{esMayorista ? (sesion?.nombre || 'Cliente mayorista') : (cliente.nombre || 'Compra como invitado')}</b><span>{esMayorista ? (sesion?.telefono || 'Sin teléfono registrado') : (cliente.telefono || 'Sin teléfono registrado')} {(esMayorista ? sesion?.nit : cliente.nit) && `· NIT ${esMayorista ? sesion.nit : cliente.nit}`}</span></div></div>
           {esMayorista && (
-            <div className="confirm-delivery">
+            <div className={`confirm-delivery${entregaDomicilio ? '' : ' is-pickup'}`}>
               <Truck size={21} />
               <div>
-                <b>{sesion?.direccion ? 'Envío a domicilio' : 'Retiro en tienda'}</b>
-                <span>{sesion?.direccion || 'Todavía no registraste una dirección de envío.'}</span>
-                {sesion?.referencia && <small>Referencia: {sesion.referencia}</small>}
-                <Link to="/mi-cuenta">{sesion?.direccion ? 'Cambiar dirección' : 'Registrar dirección de envío'}</Link>
+                <b>{entregaDomicilio ? 'Envío a domicilio' : 'Retiro en tienda'}</b>
+                {entregaDomicilio ? (
+                  <>
+                    <span>{sesion?.direccion || 'Sin dirección registrada'}</span>
+                    {sesion?.referencia && <small>Referencia: {sesion.referencia}</small>}
+                  </>
+                ) : (
+                  <span>Pagás y retirás tu pedido en el mostrador de la tienda.</span>
+                )}
+                <Link to="/carrito">{entregaDomicilio ? 'Cambiar dirección o modalidad' : 'Cambiar a envío a domicilio'}</Link>
               </div>
             </div>
           )}

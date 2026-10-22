@@ -191,7 +191,11 @@ export async function crearPedido(req, res, next) {
       })
     );
 
-    const entrega = mayorista?.direccion
+    const entregaDomicilio = req.body?.entregaDomicilio === true;
+    if (entregaDomicilio && (!mayorista || !mayorista.direccion)) {
+      return res.status(400).json({ success: false, mensaje: 'Registrá una dirección de entrega antes de solicitar el envío a domicilio.' });
+    }
+    const entrega = entregaDomicilio && mayorista?.direccion
       ? {
           direccion: mayorista.direccion,
           referencia: mayorista.referencia || null,

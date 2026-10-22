@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect, useRef, useContext } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Camera, CameraOff, Check, ExternalLink, Minus, Plus, ScanLine, ShoppingCart, Trash2, X } from 'lucide-react';
+import { ArrowRight, Camera, CameraOff, Check, ExternalLink, ImageUp, Minus, Plus, ScanLine, ShoppingCart, Trash2, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { obtenerProducto } from '../services/productoService.js';
-import { agregarProductoCarritoQr, leerCarritoQr, actualizarCantidadCarritoQr } from '../services/qrCartService.js';
+import { agregarProductoCarritoQr, leerCarritoQr, actualizarCantidadCarritoQr, limpiarCarritoQr } from '../services/qrCartService.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { obtenerIconoCategoria } from '../data/categorias.js';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
@@ -81,7 +81,7 @@ export default function Catalogo() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { items, cantidadTotal, subtotal, agregarProducto, quitarProducto } = useCarrito();
+  const { items, cantidadTotal, subtotal, agregarProducto, importarProductosQr, actualizarCantidad, quitarProducto } = useCarrito();
   const { esMayorista } = useContext(SesionClienteContext);
 
   const abrirCamaraAlEntrar = searchParams.get('abrirQr') === '1';
@@ -315,9 +315,11 @@ export default function Catalogo() {
   // varias veces mientras sigue delante de la cámara. La cantidad se ajusta a
   // mano y "Escanear otro" reanuda la lectura.
   const [escaneoPausado, setEscaneoPausado] = useState(false);
+  const [leyendoImagenQr, setLeyendoImagenQr] = useState(false);
   const escaneoPausadoRef = useRef(false);
 
   const videoEscanerRef = useRef(null);
+  const imagenQrInputRef = useRef(null);
   const escanerProcesandoRef = useRef(false);
 
   useEffect(() => {
@@ -467,10 +469,95 @@ export default function Catalogo() {
     setEstadoEscaner('Apuntá la cámara al siguiente código QR.');
   };
 
+  const procesarContenidoQr = async (contenido) => {
+    if (escanerProcesandoRef.current || escaneoPausadoRef.current) return;
+    escanerProcesandoRef.current = true;
+    const idProducto = obtenerIdDelQr(contenido);
+    if (!idProducto) {
+      setEstadoEscaner('El código no contiene un QR válido de producto TERRA.');
+      setErrorEscaner(true);
+      window.setTimeout(() => { escanerProcesandoRef.current = false; }, 1200);
+      return;
+    }
+
+    setEstadoEscaner('Buscando producto…');
+    setErrorEscaner(false);
+    try {
+      const producto = await obtenerProducto(idProducto);
+      setUltimoProductoQrId(String(producto.id));
+      let resultadoAgregar = agregarProductoCarritoQr(producto);
+      if (resultadoAgregar.agregado && !agregarProducto(producto)) {
+        const itemQr = resultadoAgregar.items.find((item) => item.id === String(producto.id) && !item.color);
+        const itemsCorregidos = actualizarCantidadCarritoQr(producto.id, Number(itemQr?.cantidad || 1) - 1);
+        resultadoAgregar = { agregado: false, motivo: 'stock-maximo', items: itemsCorregidos };
+      }
+      setCarritoQr(resultadoAgregar.items);
+      escaneoPausadoRef.current = true;
+      setEscaneoPausado(true);
+      if (!resultadoAgregar.agregado) {
+        setEstadoEscaner(resultadoAgregar.motivo === 'stock-maximo'
+          ? `Ya agregaste todas las unidades disponibles de ${producto.nombre}.`
+          : `${producto.nombre} no está disponible para la compra.`);
+        setErrorEscaner(true);
+      } else {
+        setEstadoEscaner(`${producto.nombre} agregado. Ajustá la cantidad, escaneá otro producto o confirmá la compra.`);
+      }
+    } catch (err) {
+      setEstadoEscaner(err.message || 'No se pudo cargar el producto del QR.');
+      setErrorEscaner(true);
+    } finally {
+      window.setTimeout(() => { escanerProcesandoRef.current = false; }, 1200);
+    }
+  };
+
+  const leerImagenQr = async (event) => {
+    const archivo = event.target.files?.[0];
+    event.target.value = '';
+    if (!archivo) return;
+    if (!archivo.type.startsWith('image/')) {
+      setEstadoEscaner('Elegí una imagen que contenga el código QR.');
+      setErrorEscaner(true);
+      return;
+    }
+
+    escaneoPausadoRef.current = false;
+    escanerProcesandoRef.current = false;
+    setEscaneoPausado(false);
+    setLeyendoImagenQr(true);
+    setErrorEscaner(false);
+    setEstadoEscaner('Leyendo el código QR de la imagen…');
+    const urlImagen = URL.createObjectURL(archivo);
+    try {
+      const imagen = new Image();
+      imagen.src = urlImagen;
+      const { BrowserQRCodeReader } = await import('@zxing/browser');
+      const resultado = await new BrowserQRCodeReader().decodeFromImageElement(imagen);
+      await procesarContenidoQr(resultado.getText());
+    } catch {
+      setEstadoEscaner('No encontramos un QR legible en esa imagen. Probá con una foto más nítida.');
+      setErrorEscaner(true);
+    } finally {
+      URL.revokeObjectURL(urlImagen);
+      setLeyendoImagenQr(false);
+    }
+  };
+
   const cambiarCantidadQr = (id, cantidad) => {
-    const items = actualizarCantidadCarritoQr(id, cantidad);
-    setCarritoQr(items);
-    if (!items.some((item) => item.id === id && !item.color)) {
+    const anterior = carritoQr.find((item) => item.id === id && !item.color);
+    const siguientes = actualizarCantidadCarritoQr(id, cantidad);
+    setCarritoQr(siguientes);
+    const siguiente = siguientes.find((item) => item.id === id && !item.color);
+    const diferencia = Number(siguiente?.cantidad || 0) - Number(anterior?.cantidad || 0);
+    const lineaId = `${id}::sin-color`;
+    const itemCarrito = items.find((item) => item.lineaId === lineaId);
+
+    if (diferencia && itemCarrito) {
+      actualizarCantidad(lineaId, itemCarrito.cantidad + diferencia);
+    } else if (diferencia > 0 && siguiente) {
+      importarProductosQr([{ ...siguiente, cantidad: diferencia }]);
+    }
+
+    if (!siguiente) {
       setUltimoProductoQrId('');
       reanudarEscaneo();
     }
@@ -478,8 +565,10 @@ export default function Catalogo() {
 
   const confirmarCompraQr = () => {
     if (!unidadesQr) return;
+    limpiarCarritoQr();
+    setCarritoQr([]);
     setEscanerAbierto(false);
-    navigate('/carrito?confirmarQr=1');
+    navigate('/carrito');
   };
 
   // Al cerrar el diálogo se reinicia la pausa para la próxima apertura.
@@ -494,7 +583,7 @@ export default function Catalogo() {
   // pausa: al leer un código el efecto se limpia (apaga la cámara) y al tocar
   // "Escanear otro" vuelve a ejecutarse (la enciende de nuevo).
   useEffect(() => {
-    if (!escanerAbierto || escaneoPausado || !videoEscanerRef.current) return undefined;
+    if (!escanerAbierto || escaneoPausado || leyendoImagenQr || !videoEscanerRef.current) return undefined;
     let cancelado = false;
     let controlesCamara;
     escanerProcesandoRef.current = false;
@@ -520,41 +609,7 @@ export default function Catalogo() {
           videoEscanerRef.current,
           async (resultado) => {
             if (cancelado || !resultado || escanerProcesandoRef.current || escaneoPausadoRef.current) return;
-            escanerProcesandoRef.current = true;
-            const idProducto = obtenerIdDelQr(resultado.getText());
-            if (!idProducto) {
-              setEstadoEscaner('El código no contiene un QR válido de producto TERRA.');
-              setErrorEscaner(true);
-              window.setTimeout(() => { escanerProcesandoRef.current = false; }, 1200);
-              return;
-            }
-            setEstadoEscaner('Buscando producto…');
-            setErrorEscaner(false);
-            try {
-              const producto = await obtenerProducto(idProducto);
-              if (cancelado) return;
-              setUltimoProductoQrId(String(producto.id));
-              const resultadoAgregar = agregarProductoCarritoQr(producto);
-              setCarritoQr(resultadoAgregar.items);
-              // Pausa hasta que el usuario toque "Escanear otro".
-              escaneoPausadoRef.current = true;
-              setEscaneoPausado(true);
-              if (!resultadoAgregar.agregado) {
-                setEstadoEscaner(resultadoAgregar.motivo === 'stock-maximo'
-                  ? `Ya agregaste todas las unidades disponibles de ${producto.nombre}.`
-                  : `${producto.nombre} no está disponible para la compra.`);
-                setErrorEscaner(true);
-              } else {
-                setEstadoEscaner(`${producto.nombre} agregado. Ajustá la cantidad, escaneá otro producto o confirmá la compra.`);
-              }
-            } catch (err) {
-              if (!cancelado) {
-                setEstadoEscaner(err.message || 'No se pudo cargar el producto del QR.');
-                setErrorEscaner(true);
-              }
-            } finally {
-              window.setTimeout(() => { escanerProcesandoRef.current = false; }, 1200);
-            }
+            await procesarContenidoQr(resultado.getText());
           },
         );
         if (cancelado) { controles.stop(); return; }
@@ -574,7 +629,9 @@ export default function Catalogo() {
       if (stream && typeof stream.getTracks === 'function') stream.getTracks().forEach((pista) => pista.stop());
       if (video) video.srcObject = null;
     };
-  }, [escanerAbierto, escaneoPausado]);
+    // No se incluye procesarContenidoQr: cambia con el carrito y reiniciaría la cámara en cada lectura.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [escanerAbierto, escaneoPausado, leyendoImagenQr]);
 
   useEffect(() => {
     if (!escanerAbierto) return undefined;
@@ -1121,10 +1178,16 @@ export default function Catalogo() {
               </button>
             </header>
             <h2 id="catalog-qr-title">Escaneá un producto</h2>
-            <p>Apuntá la cámara al código QR de un producto. Podés escanear varios antes de confirmar.</p>
-            <div className={`catalog-qr-camera${escaneoPausado ? ' is-paused' : ''}`}>
+            <p>Usá la cámara o cargá una foto del QR. Podés sumar varios productos antes de confirmar.</p>
+            <div className={`catalog-qr-camera${escaneoPausado ? ' is-paused' : ''}${leyendoImagenQr ? ' is-uploading' : ''}`}>
               <video ref={videoEscanerRef} autoPlay muted playsInline aria-label="Vista de cámara para escanear códigos QR" />
               <span className="catalog-qr-camera-frame" aria-hidden="true" />
+              {leyendoImagenQr && (
+                <div className="catalog-qr-camera-uploading" aria-hidden="true">
+                  <ImageUp size={28} />
+                  <span>Analizando imagen…</span>
+                </div>
+              )}
               {escaneoPausado && (
                 <div className="catalog-qr-camera-pause" aria-hidden="true">
                   <Check size={28} />
@@ -1132,6 +1195,13 @@ export default function Catalogo() {
                   <small><CameraOff size={14} /> Cámara apagada · tocá "Escanear otro" para seguir</small>
                 </div>
               )}
+            </div>
+            <div className="catalog-qr-upload">
+              <input ref={imagenQrInputRef} type="file" accept="image/*" aria-label="Seleccionar imagen con código QR" onChange={leerImagenQr} />
+              <button type="button" onClick={() => imagenQrInputRef.current?.click()} disabled={leyendoImagenQr}>
+                <ImageUp size={18} /> {leyendoImagenQr ? 'Leyendo imagen…' : 'Subir imagen QR'}
+              </button>
+              <small>Elegí una foto o captura donde el código se vea completo.</small>
             </div>
             <p className={`catalog-qr-status${errorEscaner ? ' is-error' : ''}`} role="status" aria-live="polite">
               {estadoEscaner || 'La cámara se activará para leer el código.'}

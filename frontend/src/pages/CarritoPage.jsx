@@ -1,18 +1,22 @@
-import { useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
+  Check,
+  Info,
+  MapPin,
   Minus,
   PackageOpen,
   Plus,
   ShoppingBag,
   ShoppingCart,
+  Truck,
   Trash2,
 } from "lucide-react";
 import { useCarrito } from "../hooks/useCarrito.js";
+import { SesionClienteContext } from "../context/SesionClienteContext.jsx";
 import { formatoMoneda } from "../utils/formatoMoneda.js";
-import { emojiCategoria } from "../data/categorias.js";
 import { leerCarritoQr, limpiarCarritoQr } from "../services/qrCartService.js";
 import "./CarritoPage.css";
 
@@ -25,7 +29,12 @@ export default function CarritoPage() {
     quitarProducto,
     vaciarCarrito,
     importarProductosQr,
+    entregaDomicilio,
+    setEntregaDomicilio,
   } = useCarrito();
+  const { sesion, esMayorista } = useContext(SesionClienteContext);
+  const tieneDireccionEntrega = Boolean(sesion?.direccion?.trim());
+  const destinoContinuar = esMayorista ? "/confirmacion" : "/identificacion";
 
   // Compra por QR: el catálogo y la ficha QR (detalle-qr.html) llegan a
   // /carrito?confirmarQr=1 con el borrador en localStorage. Se importa al
@@ -52,6 +61,12 @@ export default function CarritoPage() {
       navigate("/carrito?errorQr=almacenamiento", { replace: true });
     }
   }, [confirmarQr, importarProductosQr, navigate]);
+
+  // Si el mayorista elige envío y luego borra su dirección del perfil, el
+  // carrito no debe quedar apuntando a una entrega sin dirección.
+  useEffect(() => {
+    if (!tieneDireccionEntrega) setEntregaDomicilio(false);
+  }, [tieneDireccionEntrega, setEntregaDomicilio]);
 
   if (confirmarQr) {
     return (
@@ -109,14 +124,73 @@ export default function CarritoPage() {
           </p>
         </div>
       </header>
-      <div className="cart-notice">
+      {esMayorista && (
+        <section className="cart-delivery" aria-labelledby="entrega-titulo">
+          <header className="cart-delivery__head">
+            <div>
+              <h2 id="entrega-titulo">¿Cómo querés recibir tu pedido?</h2>
+              <p>El envío a domicilio es opcional. Si preferís, retirá en tienda sin costo.</p>
+            </div>
+            <span className="cart-delivery__tag">{entregaDomicilio ? 'Envío a domicilio' : 'Retiro en tienda'}</span>
+          </header>
+          <div className="cart-delivery__options" role="radiogroup" aria-labelledby="entrega-titulo">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={!entregaDomicilio}
+              className={`cart-delivery__option${!entregaDomicilio ? ' is-selected' : ''}`}
+              onClick={() => setEntregaDomicilio(false)}
+            >
+              <span className="cart-delivery__icon"><PackageOpen size={21} /></span>
+              <span className="cart-delivery__text">
+                <b>Retiro en tienda</b>
+                <small>Pagás y retirás en el mostrador.</small>
+              </span>
+              <span className="cart-delivery__mark" aria-hidden="true">{!entregaDomicilio && <Check size={14} />}</span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={entregaDomicilio}
+              className={`cart-delivery__option${entregaDomicilio ? ' is-selected' : ''}`}
+              disabled={!tieneDireccionEntrega}
+              onClick={() => setEntregaDomicilio(true)}
+            >
+              <span className="cart-delivery__icon"><Truck size={21} /></span>
+              <span className="cart-delivery__text">
+                <b>Envío a domicilio</b>
+                <small>{tieneDireccionEntrega ? 'A la dirección de tu perfil mayorista.' : 'Necesitás registrar una dirección.'}</small>
+              </span>
+              <span className="cart-delivery__mark" aria-hidden="true">{entregaDomicilio && <Check size={14} />}</span>
+            </button>
+          </div>
+          {entregaDomicilio && tieneDireccionEntrega && (
+            <div className="cart-delivery__address">
+              <MapPin size={20} />
+              <div>
+                <b>Se envía a</b>
+                <strong>{sesion.direccion}</strong>
+                {sesion.referencia && <small>Referencia: {sesion.referencia}</small>}
+              </div>
+              <Link to="/mi-cuenta">Cambiar dirección</Link>
+            </div>
+          )}
+          {!tieneDireccionEntrega && (
+            <p className="cart-delivery__hint">
+              <Info size={16} />
+              <span>Para recibir a domicilio registrá una dirección. <Link to="/mi-cuenta">Registrar dirección</Link></span>
+            </p>
+          )}
+        </section>
+      )}
+      {!esMayorista && <div className="cart-notice">
         <ShoppingBag size={24} />
         <div>
           <b>Pago en mostrador presencial</b>
           <p>Tu pedido se generará para pagar en caja. No se realizará ningún
             cobro en este kiosco.</p>
         </div>
-      </div>
+      </div>}
       <div className="cart-layout">
         <div className="cart-list-card">
           <div className="cart-list-title">
@@ -176,8 +250,8 @@ export default function CarritoPage() {
             <span>QR Simple</span>
             <span>Tarjetas</span>
           </div>
-          <Link className="cart-confirm" to="/identificacion">
-            <PackageOpen size={23} /> Continuar y generar pedido
+          <Link className="cart-confirm" to={destinoContinuar}>
+            <PackageOpen size={23} /> {esMayorista ? 'Continuar a confirmación' : 'Continuar y generar pedido'}
           </Link>
           <Link className="cart-back" to="/catalogo">
             Seguir comprando
