@@ -10,6 +10,7 @@ import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { LIMITE_CATALOGO, useCatalogoPaginado } from '../context/CatalogoContext.jsx';
 import { imagenDeProducto, usarImagenFallback } from '../utils/imagenProducto.js';
 import { useAccesibilidad } from '../context/AccesibilidadContext.jsx';
+import { elegirProducto } from '../navegacion/interpretarIntencion.js';
 import TecladoTactil from '../components/ui/TecladoTactil.jsx';
 import ImagenPerezosa from '../components/ui/ImagenPerezosa.jsx';
 import './Catalogo.css';
@@ -225,6 +226,34 @@ export default function Catalogo() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cargando, errorProductos, productos]);
 
+  // "agregar <producto>" por voz: busca en la página actual por nombre (o por
+  // posición: "el segundo"); sin nombre, usa la última tarjeta leída en voz alta.
+  const agregarPorVoz = ({ termino = '', ordinal = null } = {}) => {
+    const lista = productosFiltrados;
+    if (!lista.length) { anunciar('No hay productos en pantalla para agregar.'); return; }
+    let elegido = null;
+    if (ordinal) elegido = lista[ordinal - 1] || null;
+    else if (termino) {
+      // Tolera cómo lo escribe el reconocedor: "kit lari", "kit larry", "quit lari"...
+      elegido = elegirProducto(lista, termino, (p) => p.nombre, (p) => p.categoria || '');
+    } else if (ultimaTarjetaLeidaRef.current) {
+      elegido = lista.find((p) => p.id === ultimaTarjetaLeidaRef.current.id) || null;
+    } else if (lista.length === 1) {
+      elegido = lista[0];
+    }
+    if (!elegido) {
+      anunciar(termino
+        ? `No encontré ${termino} en esta página. Decí "buscar ${termino}" o el nombre completo.`
+        : 'Decime qué producto agregar, por ejemplo "agregar confort lya", o tocá primero una tarjeta.');
+      return;
+    }
+    const disponible = Number(elegido.stock) >= 1;
+    if (!disponible) { anunciar(`${elegido.nombre} está agotado.`); return; }
+    handleAgregar(elegido, 1);
+  };
+  const agregarPorVozRef = useRef(agregarPorVoz);
+  agregarPorVozRef.current = agregarPorVoz;
+
   // Comandos de voz que afectan al catálogo (ver components/accesibilidad/LectorVoz.jsx).
   const irAPaginaRef = useRef(irAPagina);
   irAPaginaRef.current = irAPagina;
@@ -235,6 +264,7 @@ export default function Catalogo() {
       else if (accion === 'anterior') irAPaginaRef.current(pagina - 1);
       else if (accion === 'buscar') cambiarBusqueda(String(valor || ''));
       else if (accion === 'limpiar') { setBuscar(''); setCategoriaSeleccionada(''); setPagina(1); }
+      else if (accion === 'agregar') agregarPorVozRef.current(valor && typeof valor === 'object' ? valor : { termino: String(valor || '') });
     };
     window.addEventListener('terra:voz', alComando);
     return () => window.removeEventListener('terra:voz', alComando);

@@ -13,6 +13,7 @@ const MAX_ITEMS = 10;
 // Comandos que no dependen de la pantalla.
 const COMANDOS_FIJOS = [
   { nombre: 'Buscar un producto', ejemplo: 'buscar colchón' },
+  { nombre: 'Agregar al carrito', ejemplo: 'agregar confort lya' },
   { nombre: 'Leer la página', ejemplo: 'leer página' },
   { nombre: 'Silencio', ejemplo: 'silencio' },
 ];

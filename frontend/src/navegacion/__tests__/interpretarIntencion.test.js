@@ -1,7 +1,7 @@
 // Ejecutar desde frontend/:  node --test src/navegacion/__tests__/
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { interpretarIntencion, normalizar } from '../interpretarIntencion.js';
+import { claveFonetica, coincideProducto, elegirProducto, interpretarAgregar, interpretarIntencion, normalizar } from '../interpretarIntencion.js';
 import { consumirDestinoPendiente, destinosDisponibles, nombreDePagina, puedeAcceder } from '../registroNavegacion.js';
 
 const publico = { ruta: '/catalogo', esMayorista: false, tokenAdmin: false, rolAdmin: null };
@@ -125,4 +125,47 @@ test('destino pendiente tras login respeta rol y zona', () => {
   assert.equal(consumirDestinoPendiente('admin', 'admin'), '/admin/almacen');
   almacen.set('terra_nav_pendiente', 'adminAlmacen');
   assert.equal(consumirDestinoPendiente('admin', 'vendedor'), null);
+});
+
+test('agregar al carrito por voz: nombre, posición o sin nombre', () => {
+  assert.deepEqual(interpretarAgregar('agregar al carrito confort lya'), { termino: 'confort lya', ordinal: null });
+  assert.deepEqual(interpretarAgregar('Añadir la almohada PARE al carrito'), { termino: 'almohada pare', ordinal: null });
+  assert.deepEqual(interpretarAgregar('agregá el segundo producto'), { termino: '', ordinal: 2 });
+  assert.deepEqual(interpretarAgregar('poner en el carrito la tercera'), { termino: '', ordinal: 3 });
+  assert.deepEqual(interpretarAgregar('agregar'), { termino: '', ordinal: null });
+  assert.deepEqual(interpretarAgregar('Agregar al carrito.'), { termino: '', ordinal: null });
+  assert.equal(interpretarAgregar('ver ofertas'), null);
+  assert.equal(interpretarAgregar('carrito'), null);
+});
+
+test('coincidencia fonética: lo que dicta el reconocedor encuentra el producto', () => {
+  assert.equal(claveFonetica('KIT LARY'), claveFonetica('kit lari'));
+  assert.ok(coincideProducto('KIT LARY', 'kit lari'));
+  assert.ok(coincideProducto('KIT LARY', 'kit larry'));
+  assert.ok(coincideProducto('KIT LARY', 'quit lary'));
+  assert.ok(coincideProducto('KIT LARY', 'lary'));
+  assert.ok(coincideProducto('CONFORT LYA', 'confort lia'));
+  assert.ok(coincideProducto('CONFORT COLOR EDREDONADA', 'confort color edredonada'));
+  assert.ok(coincideProducto('ALPINO 3.5 PLAZAS', 'alpino'));
+  assert.ok(!coincideProducto('KIT LARY', 'sofa cama'));
+  assert.ok(!coincideProducto('PARE FIBRA COLOR', 'confort lia'));
+  const lista = [{ nombre: 'CONFORT LYA' }, { nombre: 'CONFORT COLOR EDREDONADA' }, { nombre: 'KIT LARY' }, { nombre: 'PARE FIBRA COLOR' }];
+  assert.equal(elegirProducto(lista, 'kit lari').nombre, 'KIT LARY');
+  assert.equal(elegirProducto(lista, 'confort lia').nombre, 'CONFORT LYA');
+  assert.equal(elegirProducto(lista, 'pare fibra').nombre, 'PARE FIBRA COLOR');
+  assert.equal(elegirProducto(lista, 'colchon brillante'), null);
+});
+
+test('nombres de marca dichos en español (españolizados) encuentran el producto', () => {
+  const pares = [
+    ['BUGATTI', 'bugati'], ['BUGATTI', 'bugaty'], ['NIKY', 'niki'], ['NIKY', 'nicky'], ['BETTY', 'beti'],
+    ['HONOR', 'onor'], ['CHESTER', 'chester'], ['BRILLANTE 1.5 PLZ', 'briyante'], ['SOMIER DIAMANTE 2 PLZ', 'sommier diamante'],
+    ['WERT', 'vert'], ['CUCA FRESCA + TEKA', 'cuca fresca'], ['CONFORT LYA', 'confort lia'], ['TERRA TERAPEUTICA', 'terra terapeutica'],
+  ];
+  for (const [nombre, dicho] of pares) assert.ok(coincideProducto(nombre, dicho), `${dicho} debería encontrar ${nombre}`);
+  assert.ok(!coincideProducto('BUGATTI', 'betty'));
+  const catalogo = ['BUGATTI', 'BETTY', 'NIKY', 'SAHARA', 'HONOR', 'LILA', 'KIT LARY', 'CRISTAL', 'WERT', 'CHESTER'].map((nombre) => ({ nombre }));
+  assert.equal(elegirProducto(catalogo, 'bugati').nombre, 'BUGATTI');
+  assert.equal(elegirProducto(catalogo, 'beti').nombre, 'BETTY');
+  assert.equal(elegirProducto(catalogo, 'niki').nombre, 'NIKY');
 });

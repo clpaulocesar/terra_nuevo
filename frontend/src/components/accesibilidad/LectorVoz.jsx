@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAccesibilidad } from '../../context/AccesibilidadContext.jsx';
 import { useTema } from '../../context/TemaContext.jsx';
 import { useNavegacion } from '../../navegacion/NavegacionContext.jsx';
-import { interpretarIntencion, normalizar } from '../../navegacion/interpretarIntencion.js';
+import { interpretarAgregar, interpretarIntencion, normalizar } from '../../navegacion/interpretarIntencion.js';
 import { destinosDisponibles, nombreDePagina } from '../../navegacion/registroNavegacion.js';
 import { apiRequest } from '../../services/api.js';
 import { elementoInteractivoDesde, nombreAccesible, rolLegible } from '../../utils/nombreAccesible.js';
@@ -20,7 +20,7 @@ export { nombreDePagina };
 // puntuación automática del dictado ("Escanear." -> "escanear").
 const sinAcentos = (texto) => normalizar(texto);
 
-const COMANDOS_FIJOS = 'buscar y el nombre del producto, siguiente, anterior, leer página, modo noche, modo día, volver, silencio o ayuda';
+const COMANDOS_FIJOS = 'buscar y el nombre del producto, agregar y el nombre del producto, siguiente, anterior, leer página, modo noche, modo día, volver, silencio o ayuda';
 export const AYUDA_COMANDOS = `Podés decir: inicio, catálogo, categorías, carrito, ${COMANDOS_FIJOS}.`;
 const AYUDA_POR_LECTURA = 6;
 
@@ -159,7 +159,14 @@ export default function LectorVoz() {
       if (tiene('siguiente', 'proxima', 'avanzar')) { emitir('siguiente'); return; }
       if (tiene('anterior', 'retroceder', 'pagina previa')) { emitir('anterior'); return; }
       if (tiene('volver', 'atras', 'regresar')) { navigate(-1); return anunciar('Volviendo.', { forzar: true }); }
-      if (/^(agregar|añadir|agrega|añade)\b/.test(frase)) { emitir('agregar', frase); return; }
+      const pedidoAgregar = interpretarAgregar(frase);
+      if (pedidoAgregar) {
+        const enCatalogo = location.pathname === '/catalogo';
+        const enDetalle = location.pathname.startsWith('/productos/');
+        if (!enCatalogo && !enDetalle) return anunciar('Para agregar al carrito, primero abrí el catálogo o un producto. Decí "catálogo".', { forzar: true });
+        emitir('agregar', pedidoAgregar);
+        return;
+      }
 
       // Navegación por intención (voz y chat comparten el registro).
       const ctx = contextoActual();
