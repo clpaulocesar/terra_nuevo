@@ -28,3 +28,23 @@
   .orders-modal .orders-receipt-preview{align-items:flex-start;flex-direction:column}
   .orders-modal .orders-receipt-preview img{height:120px;width:100%}
 }
+
+.orders-modal-ticket-btn {
+  align-items: center;
+  background: #fdf2f4 !important;
+  border: 1px solid #ebd3d6 !important;
+  border-radius: .6rem;
+  color: #a6192e !important;
+  cursor: pointer;
+  display: inline-flex !important;
+  font-size: .82rem;
+  font-weight: 800;
+  gap: .4rem;
+  padding: .55rem .95rem;
+  transition: all .15s ease;
+}
+.orders-modal-ticket-btn:hover {
+  background: #a6192e !important;
+  color: #fff !important;
+  border-color: #a6192e !important;
+}
