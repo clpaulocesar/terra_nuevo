@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Boxes, ClipboardList, PackageCheck, RefreshCw, ShoppingBag, Users, WalletCards } from 'lucide-react';
+import { Boxes, ClipboardList, PackageCheck, Printer, RefreshCw, ShoppingBag, Users, WalletCards } from 'lucide-react';
 import { listarPedidos } from '../../services/pedidoService.js';
 import { listarClientes } from '../../services/clienteService.js';
+import { imprimirTicketPedido } from '../../utils/imprimirTicket.js';
 import './DashboardVendedor.css';
 
 const ESTADOS_EN_GESTION = ['pendiente', 'confirmado', 'en_proceso', 'en preparación', 'preparando', 'enviado'];
@@ -183,6 +184,14 @@ export default function DashboardVendedor() {
                 </div>
                 <span className="vendedor-order-row__status">{pedido.estado || 'Pendiente'}</span>
                 <strong>{moneda(pedido.total || pedido.total_final)}</strong>
+                <button
+                  type="button"
+                  className="vendedor-order-row__ticket"
+                  onClick={() => imprimirTicketPedido(pedido)}
+                  title="Imprimir ticket térmico de este pedido"
+                >
+                  <Printer size={14} /> Ticket
+                </button>
               </div>
             ))}
           </div>
