@@ -2,7 +2,7 @@
 /**
  * TERRA Autoservicio - Suite de Pruebas de Carga y Concurrencia
  * Simula usuarios concurrentes accediendo a los endpoints críticos de la API.
- * 
+ *
  * Uso:
  *   node scripts/test_carga.js
  *   node scripts/test_carga.js --url=http://localhost:3001 --usuarios=500 --peticiones=2000
