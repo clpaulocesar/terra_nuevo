@@ -182,6 +182,35 @@ export async function listarPedidosBD({ buscar = '', estado = '', limite = 100 }
   return rows;
 }
 
+export async function obtenerAnaliticaHorariaBD({ desde, hasta, horaInicio = null, horaFin = null } = {}) {
+  const valores = [desde, hasta];
+  const filtroHora = [];
+  if (horaInicio !== null) { valores.push(horaInicio); filtroHora.push(`EXTRACT(HOUR FROM (o.created_at AT TIME ZONE 'America/La_Paz')) >= $${valores.length}`); }
+  if (horaFin !== null) { valores.push(horaFin); filtroHora.push(`EXTRACT(HOUR FROM (o.created_at AT TIME ZONE 'America/La_Paz')) <= $${valores.length}`); }
+  const horario = filtroHora.length ? ` AND ${filtroHora.join(' AND ')}` : '';
+  const base = `o.status IN ('completed','paid','pagado','shipped','delivered')
+    AND (o.created_at AT TIME ZONE 'America/La_Paz')::date BETWEEN $1::date AND $2::date`;
+  const porHora = await pool.query(
+    `SELECT EXTRACT(HOUR FROM (o.created_at AT TIME ZONE 'America/La_Paz'))::int AS hora,
+            COUNT(DISTINCT o.id)::int AS pedidos, COALESCE(SUM(o.total_minor),0)/100.0 AS ventas,
+            COALESCE(SUM(oi.quantity),0)::int AS unidades
+     FROM orders o LEFT JOIN order_items oi ON oi.order_id=o.id
+     WHERE ${base} GROUP BY hora ORDER BY hora`, valores.slice(0, 2),
+  );
+  const productos = await pool.query(
+    `SELECT oi.product_name AS nombre, COALESCE(SUM(oi.quantity),0)::int AS unidades,
+            COALESCE(SUM(oi.total_minor),0)/100.0 AS ventas
+     FROM orders o JOIN order_items oi ON oi.order_id=o.id
+     WHERE ${base}${horario}
+     GROUP BY oi.product_name ORDER BY unidades DESC, ventas DESC, oi.product_name ASC LIMIT 8`, valores,
+  );
+  const horas = Array.from({ length: 24 }, (_, hora) => {
+    const fila = porHora.rows.find((item) => Number(item.hora) === hora);
+    return { hora, pedidos: Number(fila?.pedidos || 0), ventas: Number(fila?.ventas || 0), unidades: Number(fila?.unidades || 0) };
+  });
+  return { horas, productos: productos.rows.map((fila) => ({ nombre: fila.nombre, unidades: Number(fila.unidades), ventas: Number(fila.ventas) })) };
+}
+
 export async function listarPedidosPorClienteBD(clienteId, limite = 50) {
   await asegurarColumnasEntrega();
   const { rows } = await pool.query(
