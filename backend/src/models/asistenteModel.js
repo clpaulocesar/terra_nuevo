@@ -22,7 +22,9 @@ export async function buscarProductosChatBD(termino = '', { soloOfertas = false 
          p.size AS medida,
          p.color,
          COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku,
-         COALESCE(p.public_price, 0) AS precio_venta,
+         CASE WHEN COALESCE(p.en_oferta, FALSE) AND COALESCE(p.precio_oferta, 0) > 0 THEN p.precio_oferta ELSE COALESCE(p.public_price, 0) END AS precio_venta,
+         COALESCE(p.public_price, 0) AS precio_lista,
+         p.precio_oferta,
          p.description AS descripcion,
          p.imagen_url,
          TRIM(CONCAT_WS(' ', p.name, p.marca, p.product_group, c.name, p.color, p.size,
@@ -40,10 +42,10 @@ export async function buscarProductosChatBD(termino = '', { soloOfertas = false 
          AND translate(lower(busqueda), 'áéíóúüñ', 'aeiouun')
              ILIKE '%' || translate(lower($1), 'áéíóúüñ', 'aeiouun') || '%'
      )
-     SELECT id, nombre, stock, en_oferta, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
+     SELECT id, nombre, stock, en_oferta, categoria, marca, medida, color, sku, precio_venta, precio_lista, precio_oferta, descripcion, imagen_url, palabras_clave
      FROM filtrados
      UNION ALL
-     SELECT id, nombre, stock, en_oferta, categoria, marca, medida, color, sku, precio_venta, descripcion, imagen_url, palabras_clave
+     SELECT id, nombre, stock, en_oferta, categoria, marca, medida, color, sku, precio_venta, precio_lista, precio_oferta, descripcion, imagen_url, palabras_clave
      FROM base
      WHERE NOT EXISTS (SELECT 1 FROM filtrados)
      ORDER BY en_oferta DESC, precio_venta

@@ -933,7 +933,7 @@ export default function ReportesAdmin() {
               )}
               {tab === 'inventario' && (
                 <>
-                  <thead><tr><th>Producto</th><th>Categoría</th><th>Stock showroom</th><th>Precio</th><th>Estado</th></tr></thead>
+                  <thead><tr><th>Producto</th><th>Categoría</th><th>Stock en sala</th><th>Precio</th><th>Estado</th></tr></thead>
                   <tbody>
                     {inventarioTabla.slice(0, 12).map((producto) => (
                       <tr key={producto.id}>

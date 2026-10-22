@@ -810,7 +810,7 @@ export default function Catalogo() {
 {producto.en_oferta && (
                             <span className="terra-badge terra-badge--oferta">
                               <span className="material-symbols-outlined terra-badge__icon">local_fire_department</span>
-                              Oferta
+                              Oferta{producto.descuento ? ` ${producto.descuento}` : ''}
                             </span>
                           )}
                           {ventasMaximas > 0 && Number(producto.ventas || 0) === ventasMaximas && (
@@ -819,7 +819,7 @@ export default function Catalogo() {
                               Más vendido
                             </span>
                           )}
-                          {producto.descuento && (
+                          {producto.descuento && !producto.en_oferta && (
                             <span className="terra-badge terra-badge--promo">
                               <span className="material-symbols-outlined terra-badge__icon">local_fire_department</span>
                               {producto.descuento}
