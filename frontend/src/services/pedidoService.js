@@ -13,7 +13,6 @@ export async function crearVentaDirecta({ clienteId = null, items, metodoPago, t
   if (!token) throw new Error('Inicia sesión nuevamente como administrador.');
   return apiRequest('/pedidos/venta-directa', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: { clienteId, items, metodoPago, tipoMayoristaManual } });
 }
-
 export async function obtenerPedido(id) { exigirConexionReal(); return apiRequest(`/pedidos/${id}`); }
 export async function listarPedidos({ buscar = '', estado = '', limite = 100 } = {}) {
   exigirConexionReal();
