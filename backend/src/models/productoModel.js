@@ -258,14 +258,17 @@ export async function cambiarVisibilidadProductoBD(id, activo) {
 }
 
 
-export async function actualizarStockBD(id, { showroom }) {
+export async function actualizarStockBD(id, { showroom, agregar } = {}) {
   const idStr = String(id || '').trim();
+  // { agregar: n } suma al stock actual en la misma sentencia (ingreso de almacén);
+  // { showroom: n } fija el valor, como hace el ajuste manual del admin.
+  const incremental = agregar !== undefined && agregar !== null;
   const { rows } = await pool.query(
-    `UPDATE products 
-     SET stock_quantity=$1, updated_at=NOW() 
-     WHERE id::text = $2 OR slug = $2 OR COALESCE(codigo_terra, internal_code) = $2 
+    `UPDATE products
+     SET stock_quantity = ${incremental ? 'COALESCE(stock_quantity, 0) + $1' : '$1'}, updated_at=NOW()
+     WHERE id::text = $2 OR slug = $2 OR COALESCE(codigo_terra, internal_code) = $2
      RETURNING id`,
-    [Number(showroom ?? 0), idStr]
+    [Number(incremental ? agregar : (showroom ?? 0)), idStr]
   );
   return rows[0] ? obtenerProductoBD(rows[0].id) : null;
 }

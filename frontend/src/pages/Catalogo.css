@@ -2093,7 +2093,10 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 .terra-cat--ofertas.terra-cat--active .terra-cat__icon { color: #ffd08a; }
 
 /* --- Escáner QR: lectura en pausa y cantidad del producto leído --- */
-.catalog-qr-camera.is-paused video { filter: brightness(0.45) saturate(0.6); }
+.catalog-qr-camera.is-paused { background: #1f1a19; }
+.catalog-qr-camera.is-paused video,
+.catalog-qr-camera.is-paused .catalog-qr-camera-frame { visibility: hidden; }
+.catalog-qr-camera-pause small { display: inline-flex; align-items: center; gap: 0.3rem; font-weight: 600; font-size: 0.72rem; opacity: 0.85; }
 .catalog-qr-camera-pause {
   position: absolute;
   inset: 0;
