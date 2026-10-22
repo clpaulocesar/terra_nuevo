@@ -95,6 +95,8 @@ export async function obtenerProducto(id) { exigirConexionReal(); return normali
 export async function crearProducto(datos) { exigirConexionReal(); return normalizarProducto(await apiRequest('/productos', { method: 'POST', body: datos })); }
 export async function actualizarProducto(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}`, { method: 'PUT', body: datos })); }
 export async function actualizarStock(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}/stock`, { method: 'PATCH', body: datos })); }
+// Suma unidades al stock actual (ingreso de almacén); el backend hace la suma para no pisar lecturas viejas.
+export async function agregarStock(id, cantidad) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}/stock`, { method: 'PATCH', body: { agregar: Number(cantidad) } })); }
 export async function cambiarVisibilidadProducto(id, activo) {
   exigirConexionReal();
   try {
