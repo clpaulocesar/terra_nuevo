@@ -1,0 +1,496 @@
+/* ==========================================================================
+   DESPACHO — envíos a domicilio de clientes mayoristas
+   Pantalla del rol "despacho": solo pedidos con fulfillment home_delivery.
+   ========================================================================== */
+
+.dispatch {
+  --dp-surface: #ffffff;
+  --dp-surface-2: #f6f3f2;
+  --dp-text: #1b1c1c;
+  --dp-muted: #707974;
+  --dp-line: #eadfd9;
+  --dp-accent: #a6192e;
+  --dp-accent-soft: #fdeeee;
+  --dp-btn: #a6192e;
+  --dp-btn-text: #ffffff;
+  --dp-ok: #1e7e46;
+  --dp-ok-soft: #e8f5ec;
+  --dp-warn: #8a5a00;
+  --dp-warn-soft: #fff3d6;
+  --dp-radius: 0.9rem;
+  --dp-shadow: 0 3px 14px rgba(27, 28, 28, 0.08);
+  color: var(--dp-text);
+  display: grid;
+  font-family: Manrope, Arial, sans-serif;
+  gap: 1rem;
+}
+
+/* ==== Encabezado ==== */
+.dispatch-hero {
+  align-items: center;
+  background: var(--dp-surface);
+  border-radius: var(--dp-radius);
+  box-shadow: var(--dp-shadow);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1.2rem 1.4rem;
+}
+.dispatch-hero span {
+  color: var(--dp-warn);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dispatch-hero h1 {
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  margin: 0.3rem 0 0.2rem;
+}
+.dispatch-hero p {
+  color: var(--dp-muted);
+  font-size: 0.85rem;
+  margin: 0;
+  max-width: 46ch;
+}
+.dispatch-hero__tools {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.dispatch-search {
+  align-items: center;
+  background: var(--dp-surface-2);
+  border-radius: 0.7rem;
+  color: var(--dp-muted);
+  display: flex;
+  flex: 1 1 16rem;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  padding: 0 0.8rem;
+}
+.dispatch-search input {
+  background: transparent;
+  border: 0;
+  color: var(--dp-text);
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.9rem;
+  min-height: 2.75rem;
+  min-width: 0;
+  outline: 0;
+}
+.dispatch-refresh {
+  align-items: center;
+  background: var(--dp-surface-2);
+  border: 1px solid var(--dp-line);
+  border-radius: 0.7rem;
+  color: var(--dp-text);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 0.4rem;
+  justify-content: center;
+  padding: 0.95rem 0.9rem;
+}
+.dispatch-refresh:hover {
+  border-color: var(--dp-accent);
+  color: var(--dp-accent);
+}
+.dispatch-refresh:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* ==== Indicadores ==== */
+.dispatch-kpis {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+/* Se usa ".dispatch ..." extra para ganarle al fondo genérico de
+   theme-dark.css (".admin-content section > article"). */
+.dispatch .dispatch-kpis > .dispatch-kpi {
+  background: var(--dp-surface);
+  border-radius: var(--dp-radius);
+  box-shadow: var(--dp-shadow);
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.95rem 1.1rem;
+}
+.dispatch-kpis span {
+  align-items: center;
+  color: var(--dp-muted);
+  display: flex;
+  font-size: 0.72rem;
+  font-weight: 800;
+  gap: 0.35rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.dispatch-kpis b {
+  color: var(--dp-accent);
+  font-size: 1.5rem;
+}
+
+/* ==== Etapas ==== */
+.dispatch-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.dispatch-tabs button {
+  align-items: center;
+  background: var(--dp-surface);
+  border: 1px solid var(--dp-line);
+  border-radius: 999px;
+  color: var(--dp-text);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  gap: 0.4rem;
+  padding: 0.95rem 1rem;
+}
+.dispatch-tabs button:hover {
+  border-color: var(--dp-accent);
+}
+.dispatch-tabs button.is-active {
+  background: var(--dp-btn);
+  border-color: var(--dp-btn);
+  color: var(--dp-btn-text);
+}
+.dispatch-tabs i {
+  background: var(--dp-surface-2);
+  border-radius: 999px;
+  color: var(--dp-muted);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 800;
+  min-width: 1.5rem;
+  padding: 0.1rem 0.4rem;
+  text-align: center;
+}
+.dispatch-tabs button.is-active i {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--dp-btn-text);
+}
+
+/* ==== Avisos ==== */
+.dispatch-toast {
+  align-items: center;
+  background: var(--dp-ok-soft);
+  border: 1px solid color-mix(in srgb, var(--dp-ok) 35%, transparent);
+  border-radius: 0.7rem;
+  color: var(--dp-ok);
+  display: flex;
+  font-size: 0.85rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+}
+.dispatch-toast.is-error {
+  background: var(--dp-accent-soft);
+  border-color: color-mix(in srgb, var(--dp-accent) 35%, transparent);
+  color: var(--dp-accent);
+}
+.dispatch-state {
+  color: var(--dp-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+.dispatch-empty {
+  align-items: center;
+  background: var(--dp-surface);
+  border: 1px dashed var(--dp-line);
+  border-radius: var(--dp-radius);
+  color: var(--dp-muted);
+  display: grid;
+  gap: 0.4rem;
+  justify-items: center;
+  padding: 2.2rem 1rem;
+  text-align: center;
+}
+.dispatch-empty b {
+  color: var(--dp-text);
+  font-size: 1rem;
+}
+.dispatch-empty p {
+  font-size: 0.85rem;
+  margin: 0;
+}
+.dispatch-empty button {
+  background: var(--dp-btn);
+  border: 0;
+  border-radius: 0.65rem;
+  color: var(--dp-btn-text);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 800;
+  margin-top: 0.5rem;
+  padding: 0.95rem 1.1rem;
+}
+
+/* ==== Tarjetas de envío ==== */
+.dispatch-list {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fill, minmax(23rem, 1fr));
+}
+.dispatch .dispatch-list > .dispatch-card {
+  background: var(--dp-surface);
+  border: 1px solid var(--dp-line);
+  border-left: 0.28rem solid var(--dp-warn);
+  border-radius: var(--dp-radius);
+  box-shadow: var(--dp-shadow);
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+}
+.dispatch .dispatch-list > .dispatch-card.is-en_camino {
+  border-left-color: var(--dp-accent);
+}
+.dispatch .dispatch-list > .dispatch-card.is-entregado {
+  border-left-color: var(--dp-ok);
+}
+.dispatch-card header {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: space-between;
+}
+.dispatch-card__code {
+  color: var(--dp-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.dispatch-card h2 {
+  font-size: 1.05rem;
+  margin: 0.15rem 0;
+}
+.dispatch-card header small {
+  color: var(--dp-muted);
+  display: block;
+  font-size: 0.78rem;
+}
+.dispatch-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.dispatch-badge {
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.3rem 0.6rem;
+  white-space: nowrap;
+}
+.dispatch-badge.is-pendiente {
+  background: var(--dp-warn-soft);
+  color: var(--dp-warn);
+}
+.dispatch-badge.is-en_camino {
+  background: var(--dp-accent-soft);
+  color: var(--dp-accent);
+}
+.dispatch-badge.is-entregado,
+.dispatch-badge.is-ok {
+  background: var(--dp-ok-soft);
+  color: var(--dp-ok);
+}
+.dispatch-badge.is-warn {
+  background: var(--dp-warn-soft);
+  color: var(--dp-warn);
+}
+
+/* ==== Dirección ==== */
+.dispatch-address {
+  align-items: flex-start;
+  background: var(--dp-surface-2);
+  border-radius: 0.75rem;
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.75rem 0.85rem;
+}
+.dispatch-address > svg {
+  color: var(--dp-accent);
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+}
+.dispatch-address div {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.dispatch-address b {
+  color: var(--dp-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dispatch-address p {
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.dispatch-address small {
+  color: var(--dp-muted);
+  font-size: 0.78rem;
+}
+
+/* ==== Datos del pedido ==== */
+.dispatch-data {
+  display: grid;
+  gap: 0.35rem;
+}
+.dispatch-data p {
+  color: var(--dp-text);
+  font-size: 0.82rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.dispatch-data p b {
+  color: var(--dp-muted);
+  font-weight: 800;
+}
+.dispatch-data > div {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: space-between;
+}
+.dispatch-data span {
+  font-size: 0.85rem;
+}
+.dispatch-data span b {
+  font-size: 1rem;
+}
+.dispatch-data small {
+  color: var(--dp-muted);
+  font-size: 0.75rem;
+}
+
+.dispatch-tabs__mine {
+  margin-left: auto;
+}
+.dispatch-driver {
+  align-items: center;
+  color: var(--dp-muted);
+  display: flex;
+  font-size: 0.78rem;
+  gap: 0.35rem;
+  margin: 0;
+}
+.dispatch-driver.is-assigned {
+  color: var(--dp-text);
+}
+.dispatch-driver b {
+  color: var(--dp-accent);
+}
+.dispatch-driver svg {
+  flex: 0 0 auto;
+}
+
+/* ==== Acciones ==== */
+.dispatch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.dispatch-btn {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  gap: 0.35rem;
+  justify-content: center;
+  padding: 0.95rem 0.85rem;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.dispatch-btn.is-primary {
+  background: var(--dp-btn);
+  color: var(--dp-btn-text);
+}
+.dispatch-btn.is-primary:hover {
+  background: color-mix(in srgb, var(--dp-btn) 85%, #000000);
+}
+.dispatch-btn.is-soft {
+  background: var(--dp-surface-2);
+  border-color: var(--dp-line);
+  color: var(--dp-text);
+}
+.dispatch-btn.is-soft:hover {
+  border-color: var(--dp-accent);
+  color: var(--dp-accent);
+}
+.dispatch-btn.is-ghost {
+  background: transparent;
+  border-color: var(--dp-line);
+  color: var(--dp-text);
+}
+.dispatch-btn.is-ghost:hover {
+  border-color: var(--dp-accent);
+  color: var(--dp-accent);
+}
+.dispatch-btn:disabled {
+  cursor: progress;
+  opacity: 0.65;
+}
+.dispatch-btn:focus-visible,
+.dispatch-tabs button:focus-visible,
+.dispatch-refresh:focus-visible,
+.dispatch-search input:focus-visible {
+  outline: 3px solid var(--dp-accent);
+  outline-offset: 2px;
+}
+
+.is-spinning {
+  animation: dispatch-spin 1s linear infinite;
+}
+@keyframes dispatch-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dispatch-btn,
+  .dispatch-refresh,
+  .dispatch-tabs button {
+    transition: none;
+  }
+  .is-spinning {
+    animation: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .dispatch-hero {
+    padding: 1rem;
+  }
+  .dispatch-hero h1 {
+    font-size: 1.25rem;
+  }
+  .dispatch-list {
+    grid-template-columns: 1fr;
+  }
+  .dispatch-btn {
+    flex: 1 1 8rem;
+  }
+}
