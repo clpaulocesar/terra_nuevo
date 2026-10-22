@@ -7,11 +7,11 @@ import {
   PackageOpen,
   Plus,
   ShoppingBag,
+  ShoppingCart,
   Trash2,
 } from "lucide-react";
 import { useCarrito } from "../hooks/useCarrito.js";
 import { formatoMoneda } from "../utils/formatoMoneda.js";
-import { emojiCategoria } from "../data/categorias.js";
 import { leerCarritoQr, limpiarCarritoQr } from "../services/qrCartService.js";
 import "./CarritoPage.css";
 
