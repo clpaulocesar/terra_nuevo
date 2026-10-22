@@ -1,0 +1,197 @@
+/* =====================================================================
+   MODO ACCESIBLE — TERRA Autoservicio
+   Todo lo que cambia el aspecto va bajo html.modo-accesible (o bajo las
+   clases que también enciende el sistema operativo: a11y-sin-animacion y
+   a11y-contraste). Con el modo apagado la app se ve igual que siempre.
+   ===================================================================== */
+
+/* ---------- Botón flotante ♿ y panel ---------- */
+.a11y-flotante { position: fixed; left: 16px; bottom: 16px; z-index: 1300; }
+.a11y-boton {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 3px solid #fff; background: #1b1c1c; color: #fff; cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+.a11y-boton:hover { transform: scale(1.05); }
+.a11y-boton:focus-visible { outline: 4px solid #ffd400; outline-offset: 3px; }
+.a11y-boton.is-on { background: #005fcc; }
+.a11y-boton__punto { position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; border-radius: 50%; background: #22c55e; border: 2px solid #fff; }
+
+.a11y-panel {
+  position: absolute; left: 0; bottom: 68px;
+  width: 340px; max-width: calc(100vw - 32px); max-height: calc(100vh - 100px); overflow: auto;
+  background: #fff; color: #1b1c1c;
+  border: 2px solid #1b1c1c; border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  padding: 1rem;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 1rem; line-height: 1.4;
+}
+.a11y-panel__cabecera { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.a11y-panel__cabecera h2 { margin: 0; font-size: 1.25rem; }
+.a11y-panel__cerrar { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 2px solid #1b1c1c; border-radius: 10px; background: #fff; color: #1b1c1c; cursor: pointer; }
+.a11y-maestro {
+  display: flex; align-items: center; gap: 0.75rem; width: 100%; text-align: left;
+  padding: 0.85rem; border: 3px solid #1b1c1c; border-radius: 12px; background: #fff; color: #1b1c1c; cursor: pointer; font: inherit;
+}
+.a11y-maestro.is-on { background: #005fcc; border-color: #005fcc; color: #fff; }
+.a11y-maestro__caja { font-size: 1.8rem; line-height: 1; }
+.a11y-maestro__texto { display: grid; gap: 0.15rem; }
+.a11y-maestro__texto b { font-size: 1.05rem; }
+.a11y-maestro__texto small { font-size: 0.82rem; opacity: 0.9; }
+.a11y-tamano { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin: 0.9rem 0 0.5rem; }
+.a11y-tamano__etiqueta { font-weight: 800; }
+.a11y-tamano__botones { display: inline-flex; gap: 0.4rem; }
+.a11y-tamano__btn { min-width: 48px; min-height: 48px; border: 2px solid #1b1c1c; border-radius: 10px; background: #fff; color: #1b1c1c; font-weight: 900; cursor: pointer; }
+.a11y-tamano__btn:nth-child(2) { font-size: 1.1rem; }
+.a11y-tamano__btn:nth-child(3) { font-size: 1.25rem; }
+.a11y-tamano__btn.is-on { background: #005fcc; border-color: #005fcc; color: #fff; }
+.a11y-opciones { list-style: none; margin: 0.5rem 0 0; padding: 0; display: grid; gap: 0.35rem; }
+.a11y-opcion {
+  display: flex; align-items: center; gap: 0.75rem; width: 100%; text-align: left;
+  padding: 0.55rem 0.6rem; border: 2px solid transparent; border-radius: 10px; background: #f6f3f2; color: #1b1c1c; cursor: pointer; font: inherit;
+}
+.a11y-opcion:hover { border-color: #1b1c1c; }
+.a11y-opcion__interruptor { flex: none; width: 44px; height: 26px; border-radius: 999px; background: #8a8a8a; position: relative; transition: background 0.2s ease; }
+.a11y-opcion__interruptor i { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform 0.2s ease; }
+.a11y-opcion.is-on .a11y-opcion__interruptor { background: #005fcc; }
+.a11y-opcion.is-on .a11y-opcion__interruptor i { transform: translateX(18px); }
+.a11y-opcion__texto { display: grid; gap: 0.1rem; }
+.a11y-opcion__texto b { font-size: 0.95rem; }
+.a11y-opcion__texto small { font-size: 0.78rem; color: #404944; }
+.a11y-panel__pie { display: flex; gap: 0.5rem; justify-content: space-between; margin-top: 0.9rem; }
+.a11y-panel__restablecer, .a11y-panel__listo { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 48px; padding: 0 1rem; border-radius: 10px; font: inherit; font-weight: 800; cursor: pointer; }
+.a11y-panel__restablecer { border: 2px solid #1b1c1c; background: #fff; color: #1b1c1c; }
+.a11y-panel__listo { border: 2px solid #005fcc; background: #005fcc; color: #fff; flex: 1; justify-content: center; }
+.a11y-panel__atajo { margin: 0.6rem 0 0; font-size: 0.78rem; color: #404944; text-align: center; }
+.a11y-panel kbd { border: 1px solid #8a8a8a; border-radius: 4px; padding: 0 0.3rem; font-family: inherit; }
+.a11y-panel :is(button, a):focus-visible { outline: 4px solid #ffd400; outline-offset: 2px; box-shadow: 0 0 0 7px #000; }
+
+/* Modo noche del panel */
+html[data-theme="dark"] .a11y-panel { background: #1e1917; color: #f4ede8; border-color: #f4ede8; }
+html[data-theme="dark"] .a11y-panel__cerrar, html[data-theme="dark"] .a11y-tamano__btn, html[data-theme="dark"] .a11y-panel__restablecer { background: #282120; color: #f4ede8; border-color: #f4ede8; }
+html[data-theme="dark"] .a11y-maestro { background: #282120; color: #f4ede8; border-color: #f4ede8; }
+html[data-theme="dark"] .a11y-maestro.is-on { background: #005fcc; border-color: #005fcc; }
+html[data-theme="dark"] .a11y-opcion { background: #282120; color: #f4ede8; }
+html[data-theme="dark"] .a11y-opcion__texto small, html[data-theme="dark"] .a11y-panel__atajo { color: #b5a79f; }
+
+/* Aviso de inactividad del kiosco */
+.a11y-aviso-inactividad {
+  position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%);
+  z-index: 1400; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center;
+  max-width: calc(100vw - 32px); padding: 1rem 1.25rem;
+  background: #1b1c1c; color: #fff; border: 3px solid #ffd400; border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); font-size: 1.05rem; font-weight: 700;
+}
+.a11y-aviso-inactividad p { margin: 0; }
+.a11y-aviso-inactividad button { min-height: 48px; padding: 0 1.2rem; border-radius: 10px; border: 0; background: #ffd400; color: #000; font: inherit; font-weight: 900; cursor: pointer; }
+
+/* ---------- Nivel B: opciones ---------- */
+
+/* Foco reforzado */
+html.modo-accesible.a11y-foco :focus-visible,
+html.modo-accesible.a11y-foco .terra-card:focus-visible {
+  outline: 4px solid #ffd400 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 7px #000 !important;
+}
+
+/* Botones grandes: objetivos táctiles de 48 px */
+html.modo-accesible.a11y-botones :is(button, a[href], [role="button"], input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), select) {
+  min-height: 48px;
+}
+html.modo-accesible.a11y-botones :is(button, [role="button"]) { min-width: 48px; }
+html.modo-accesible.a11y-botones input[type="checkbox"],
+html.modo-accesible.a11y-botones input[type="radio"] { width: 28px; height: 28px; }
+html.modo-accesible.a11y-botones .terra-cat, html.modo-accesible.a11y-botones .terra-dropdown-item { min-height: 52px; }
+
+/* Enlaces subrayados */
+html.modo-accesible.a11y-enlaces a { text-decoration: underline !important; text-underline-offset: 0.15em; }
+
+/* Sin animaciones (también con prefers-reduced-motion) */
+html.a11y-sin-animacion *,
+html.a11y-sin-animacion *::before,
+html.a11y-sin-animacion *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+html.a11y-sin-animacion .terra-card:hover .terra-card__img { transform: none !important; }
+
+/* Fuente legible */
+html.modo-accesible.a11y-fuente body,
+html.modo-accesible.a11y-fuente button,
+html.modo-accesible.a11y-fuente input,
+html.modo-accesible.a11y-fuente select,
+html.modo-accesible.a11y-fuente textarea,
+html.modo-accesible.a11y-fuente .product-detail,
+html.modo-accesible.a11y-fuente .cart-page,
+html.modo-accesible.a11y-fuente .confirm-page,
+html.modo-accesible.a11y-fuente .pedido-page {
+  font-family: "Atkinson Hyperlegible", system-ui, sans-serif !important;
+  line-height: 1.6 !important;
+  letter-spacing: 0.02em;
+  word-spacing: 0.08em;
+}
+
+/* Texto grande: con 150 % nada debe cortarse ni generar scroll horizontal */
+html.modo-accesible body { overflow-x: hidden; }
+html.modo-accesible .terra-card__title, html.modo-accesible .terra-card h3,
+html.modo-accesible .cart-item-info h3, html.modo-accesible .product-buy h1 { overflow-wrap: anywhere; }
+html.modo-accesible .terra-card__badges .terra-badge { white-space: normal; }
+html.modo-accesible .terra-grid__inner, html.modo-accesible .product-related > div { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)) !important; }
+
+/* Alto contraste (también con prefers-contrast: more). Hecho con variables más
+   reglas genéricas: fondo negro, texto blanco, acento amarillo, bordes blancos.
+   Las fotos de producto se ven con sus colores reales (no se usa filter: invert). */
+html.a11y-contraste {
+  --vino: #ffd400; --vino-osc: #ffe766; --vino-claro: #1a1a1a; --vino-suave: #1a1a1a;
+  --crema: #000; --tinta: #fff; --muted: #e6e6e6; --linea: #fff; --ok: #7cff9b; --ok-bg: #003314; --alerta: #ff8c8c;
+  --td-bg: #000; --td-surface: #000; --td-surface-2: #111; --td-surface-3: #1f1f1f; --td-line: #fff; --td-line-soft: #bbb;
+  --td-text: #fff; --td-muted: #e6e6e6; --td-accent: #ffd400; --td-accent-soft: #332b00; --td-ok: #7cff9b; --td-ok-bg: #003314;
+  --terra-border: #fff; --terra-surface: #000; --terra-bg-soft: #111; --terra-text-dark: #fff; --terra-text-muted: #e6e6e6; --terra-wine: #ffd400; --terra-wine-light: #332b00;
+  color-scheme: dark;
+  background: #000;
+}
+html.a11y-contraste body,
+html.a11y-contraste :is(main, section, article, aside, header, footer, nav, form, ul, ol, li, table, thead, tbody, tr, th, td, dl, dt, dd, figure, p, h1, h2, h3, h4, h5, h6, label, span, small, strong, b, em, i, div):not(.a11y-boton):not(.a11y-boton__punto):not(.a11y-opcion__interruptor):not(.a11y-opcion__interruptor i) {
+  background-color: #000 !important;
+  background-image: none !important;
+  color: #fff !important;
+  border-color: #fff !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+html.a11y-contraste :is(img, video, canvas, svg) { background: transparent !important; }
+html.a11y-contraste :is(button, [role="button"], a.btn, .btn, .terra-btn-agregar, .cart-confirm, .cart-back, .confirm-summary > a, .product-buy__add, .product-buy__now, .categories-add, .warehouse-admin button) {
+  background: #000 !important; background-image: none !important;
+  color: #ffd400 !important; border: 2px solid #ffd400 !important; box-shadow: none !important;
+}
+html.a11y-contraste :is(button, [role="button"]):hover { background: #ffd400 !important; color: #000 !important; }
+html.a11y-contraste :is(button, [role="button"]):hover * { color: #000 !important; background: transparent !important; }
+html.a11y-contraste :is(button, [role="button"]) * { background: transparent !important; color: inherit !important; }
+html.a11y-contraste a { color: #ffd400 !important; text-decoration: underline; }
+html.a11y-contraste a * { color: inherit !important; }
+html.a11y-contraste :is(input, select, textarea) { background: #000 !important; color: #fff !important; border: 2px solid #fff !important; caret-color: #ffd400; }
+html.a11y-contraste ::placeholder { color: #cfcfcf !important; }
+html.a11y-contraste :is(.terra-badge, .product-badge, [class*="badge"], [class*="status"], [class*="pill"], .terra-card__stock, .category-stock, .warehouse-stock) {
+  background: #000 !important; color: #ffd400 !important; border: 2px solid #ffd400 !important; text-shadow: none !important;
+}
+html.a11y-contraste .terra-card__oferta-tag, html.a11y-contraste .terra-card__precio-actual, html.a11y-contraste .price { color: #ffd400 !important; }
+html.a11y-contraste :is(.terra-card, .product-card, .cart-item, .confirm-card, .confirm-summary, .pedido-ticket, .pedido-steps, .product-detail__card, .categoria-card, .warehouse-card, .categories-table, .admin-content .card) { border: 2px solid #fff !important; }
+html.a11y-contraste :is(.terra-cat--active, .terra-dropdown-item--active, .categories-filters nav button.active, .terra-card--oferta) { outline: 3px solid #ffd400 !important; outline-offset: -3px; }
+html.a11y-contraste ::selection { background: #ffd400; color: #000; }
+html.a11y-contraste .a11y-panel { background: #000 !important; color: #fff !important; border-color: #fff !important; }
+html.a11y-contraste .a11y-maestro.is-on, html.a11y-contraste .a11y-tamano__btn.is-on, html.a11y-contraste .a11y-panel__listo { background: #ffd400 !important; color: #000 !important; border-color: #ffd400 !important; }
+html.a11y-contraste .a11y-maestro.is-on *, html.a11y-contraste .a11y-panel__listo * { color: #000 !important; }
+html.a11y-contraste .a11y-opcion.is-on .a11y-opcion__interruptor { background: #ffd400 !important; }
+html.a11y-contraste .a11y-opcion__interruptor { background: #666 !important; }
+html.a11y-contraste .a11y-opcion__interruptor i { background: #fff !important; }
+html.a11y-contraste .terra-voz__panel { background: #000 !important; color: #fff !important; border-color: #fff !important; }
+html.a11y-contraste .terra-card__media, html.a11y-contraste .product-gallery__main { background: #fff !important; }
+
+/* Lectura en voz alta: indicador de la tarjeta recién leída (primer toque lee, segundo abre) */
+html.modo-accesible.a11y-leer .terra-card.is-leida { outline: 4px solid #ffd400; outline-offset: 3px; }

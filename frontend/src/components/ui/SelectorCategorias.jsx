@@ -121,7 +121,7 @@ export default function SelectorCategorias({ categorias, valor, onSeleccionar, e
                 onClick={() => { onSeleccionar(categoria.nombre); setAbierto(false); setBusqueda(''); }}
               >
                 <span className="cat-select__icon">
-                  <span className="material-symbols-outlined">{categoria.icon || 'category'}</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">{categoria.icon || 'category'}</span>
                 </span>
                 <span className="cat-select__name">{categoria.nombre}</span>
                 <span className="cat-select__count">({categoria.total})</span>

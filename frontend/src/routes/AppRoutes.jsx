@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { lazy, Suspense, useRef, useState, useEffect } from 'react';
 import {
   BrowserRouter, Routes, Route, Navigate, Link,
   NavLink, Outlet, useNavigate, useLocation, useSearchParams,
@@ -24,28 +24,36 @@ import IdentificacionPage from '../pages/Identificacion.jsx';
 import ConfirmacionPage from '../pages/Confirmacion.jsx';
 import PedidoGeneradoPage from '../pages/PedidoGenerado.jsx';
 import Catalogo from '../pages/Catalogo.jsx';
-import PedidosMayorista from '../pages/PedidosMayorista.jsx';
-import PanelMayorista from '../pages/PanelMayorista.jsx';
-import AdminLayout from '../components/admin/AdminLayout.jsx';
-import DashboardAdmin from '../pages/admin/DashboardAdmin.jsx';
-import ProductosAdmin from '../pages/admin/ProductosAdmin.jsx';
-import VentasDirectasAdmin from '../pages/admin/VentasDirectasAdmin.jsx';
-import PedidosAdmin from '../pages/admin/PedidosAdmin.jsx';
-import ClientesAdmin from '../pages/admin/ClientesAdmin.jsx';
-import PersonalAdmin from '../pages/admin/PersonalAdmin.jsx';
-import CategoriasAdmin from '../pages/admin/CategoriasAdmin.jsx';
-import ReportesAdmin from '../pages/admin/ReportesAdmin.jsx';
-import LoginAdmin from '../pages/admin/LoginAdmin.jsx';
 import RutaAdmin from '../components/admin/RutaAdmin.jsx';
-import VendedorLayout from '../components/vendedor/VendedorLayout.jsx';
-import DashboardVendedor from '../pages/vendedor/DashboardVendedor.jsx';
-import LoginVendedor from '../pages/vendedor/LoginVendedor.jsx';
+// Backoffice y cuenta mayorista: se descargan sólo cuando se entra a esas rutas, así el
+// kiosco no carga su JS ni su CSS (Vite genera un chunk por cada import()).
+const PedidosMayorista = lazy(() => import('../pages/PedidosMayorista.jsx'));
+const PanelMayorista = lazy(() => import('../pages/PanelMayorista.jsx'));
+const InicioMayorista = lazy(() => import('../pages/InicioMayorista.jsx'));
+const AdminLayout = lazy(() => import('../components/admin/AdminLayout.jsx'));
+const DashboardAdmin = lazy(() => import('../pages/admin/DashboardAdmin.jsx'));
+const ProductosAdmin = lazy(() => import('../pages/admin/ProductosAdmin.jsx'));
+const VentasDirectasAdmin = lazy(() => import('../pages/admin/VentasDirectasAdmin.jsx'));
+const PedidosAdmin = lazy(() => import('../pages/admin/PedidosAdmin.jsx'));
+const ClientesAdmin = lazy(() => import('../pages/admin/ClientesAdmin.jsx'));
+const PersonalAdmin = lazy(() => import('../pages/admin/PersonalAdmin.jsx'));
+const CategoriasAdmin = lazy(() => import('../pages/admin/CategoriasAdmin.jsx'));
+const AlmacenAdmin = lazy(() => import('../pages/admin/AlmacenAdmin.jsx'));
+const ReportesAdmin = lazy(() => import('../pages/admin/ReportesAdmin.jsx'));
+const LoginAdmin = lazy(() => import('../pages/admin/LoginAdmin.jsx'));
+const VendedorLayout = lazy(() => import('../components/vendedor/VendedorLayout.jsx'));
+const DashboardVendedor = lazy(() => import('../pages/vendedor/DashboardVendedor.jsx'));
+const LoginVendedor = lazy(() => import('../pages/vendedor/LoginVendedor.jsx'));
 import ChatAsistente from '../components/chat/ChatAsistente.jsx';
 import CarritoFlotante from '../components/cart/CarritoFlotante.jsx';
 import WebAccountModal from '../components/WebAccountModal.jsx';
 import BotonTema from '../components/ui/BotonTema.jsx';
 import BotonesVoz from '../components/accesibilidad/BotonesVoz.jsx';
 import LectorVoz from '../components/accesibilidad/LectorVoz.jsx';
+import { NavegacionProvider, useNavegacion } from '../navegacion/NavegacionContext.jsx';
+import SaltarContenido from '../accesibilidad/SaltarContenido.jsx';
+import BotonAccesibilidad from '../accesibilidad/BotonAccesibilidad.jsx';
+import VigilanteInactividad from '../accesibilidad/VigilanteInactividad.jsx';
 import './Layout.css';
 import './NavigationFix.css';
 import './ClienteTheme.css';
@@ -53,13 +61,14 @@ import '../Responsive.css';
 import './HeaderOptionsHidden.css';
 import './FloatingActions.css';
 // Modo noche: va al final para que sus reglas pisen las de todas las páginas.
+// (theme-dark-admin.css lo importan los layouts y logins del backoffice, que son lazy.)
 import '../theme-dark.css';
-import '../theme-dark-admin.css';
 
 function Layout() {
   const { cantidadTotal } = useCarrito();
   const { sesion, esMayorista, cerrarSesion } = useContext(SesionClienteContext);
-  const [cuentaAbierta, setCuentaAbierta] = useState(false);
+  // El modal de login mayorista lo controla NavegacionContext (voz, chat y ?login=1 lo abren).
+  const { loginMayoristaAbierto: cuentaAbierta, abrirLoginMayorista, cerrarLoginMayorista } = useNavegacion();
   const [menuCuentaAbierto, setMenuCuentaAbierto] = useState(false);
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
   const [unidadesQr, setUnidadesQr] = useState(() => (leerCarritoQr() || []).reduce((t, i) => t + Number(i.cantidad || 0), 0));
@@ -97,8 +106,10 @@ function Layout() {
 
   return (
     <div className="app-shell">
-      <a className="terra-skip-link" href="#contenido">Saltar al contenido</a>
+      <SaltarContenido />
       <LectorVoz />
+      <BotonAccesibilidad />
+      <VigilanteInactividad />
       <header className="site-header terra-header">
         <div className="terra-header-left">
           <Link to="/" className="brand terra-logo" title="TERRA Autoservicio" onClick={abrirAdminConLogo}>
@@ -128,7 +139,7 @@ function Layout() {
           <BotonesVoz />
           <BotonTema />
           <div className="terra-account">
-            <button type="button" className={`terra-login-button${esMayorista ? ' terra-login-button--mayorista' : ''}`} aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => { setMenuMovilAbierto(false); return esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : setCuentaAbierta(true); }}>{esMayorista ? <i className="terra-account-avatar">{inicialesCuenta}</i> : <UserRound size={19} />}<span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span>{esMayorista && <ChevronDown size={15} className={menuCuentaAbierto ? 'is-open' : ''} />}</button>
+            <button type="button" className={`terra-login-button${esMayorista ? ' terra-login-button--mayorista' : ''}`} aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => { setMenuMovilAbierto(false); return esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : abrirLoginMayorista(); }}>{esMayorista ? <i className="terra-account-avatar">{inicialesCuenta}</i> : <UserRound size={19} />}<span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span>{esMayorista && <ChevronDown size={15} className={menuCuentaAbierto ? 'is-open' : ''} />}</button>
             {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu">
               <div className="terra-account-summary">
                 <i className="terra-account-avatar terra-account-avatar--large">{inicialesCuenta}</i>
@@ -144,7 +155,7 @@ function Layout() {
                 <Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><BookOpen size={16} /> Catálogo mayorista con precios B2B</Link>
                 <Link to="/mi-cuenta/pedidos" onClick={() => setMenuCuentaAbierto(false)}><ReceiptText size={16} /> Mis pedidos</Link>
                 <button type="button" className="terra-account-link-disabled" title="Disponible próximamente"><FileText size={16} /> Mis cotizaciones y licitaciones</button>
-                <Link to="/mi-cuenta" onClick={() => setMenuCuentaAbierto(false)}><ContactRound size={16} /> Mi perfil y datos de facturación</Link>
+                <Link to="/mi-cuenta/perfil" onClick={() => setMenuCuentaAbierto(false)}><ContactRound size={16} /> Mi perfil y datos de facturación</Link>
                 <a className="terra-account-support" href={enlaceAsesor} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Soporte por WhatsApp<i>Asesor en línea</i></a>
               </nav>
               <div className="terra-account-footer"><button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></div>
@@ -162,7 +173,7 @@ function Layout() {
         </div>
         </div>
       </header>
-      {cuentaAbierta && <WebAccountModal onClose={() => setCuentaAbierta(false)} />}
+      {cuentaAbierta && <WebAccountModal onClose={() => cerrarLoginMayorista()} />}
 
       {MODO_DEMO && (
         <div className="demo-banner">
@@ -284,6 +295,16 @@ function PedidoGenerado() {
   );
 }
 
+// Mientras baja el chunk de una ruta lazy.
+function CargandoRuta() {
+  return (
+    <div className="terra-empty terra-empty--loading" role="status" aria-live="polite">
+      <div className="terra-loader" aria-hidden="true" />
+      <p className="terra-empty__text">Cargando…</p>
+    </div>
+  );
+}
+
 function NoEncontrado() {
   return <div className="empty-state"><h1>Página no encontrada</h1><Link className="btn btn-primary" to="/">Volver al inicio</Link></div>;
 }
@@ -291,6 +312,8 @@ function NoEncontrado() {
 export default function AppRoutes() {
   return (
     <BrowserRouter>
+      <NavegacionProvider>
+      <Suspense fallback={<CargandoRuta />}>
       <Routes>
         <Route path="admin/login" element={<LoginAdmin />} />
         <Route path="vendedor/login" element={<LoginVendedor />} />
@@ -299,12 +322,13 @@ export default function AppRoutes() {
           <Route path="productos" element={<RutaAdmin roles={['admin']}><ProductosAdmin /></RutaAdmin>} />
           <Route path="ventas-directas" element={<RutaAdmin roles={['admin', 'vendedor']}><VentasDirectasAdmin /></RutaAdmin>} />
           <Route path="categorias" element={<RutaAdmin roles={['admin']}><CategoriasAdmin /></RutaAdmin>} />
+          <Route path="almacen" element={<RutaAdmin roles={['admin']}><AlmacenAdmin /></RutaAdmin>} />
           <Route path="pedidos" element={<RutaAdmin roles={['admin', 'vendedor', 'despacho']}><PedidosAdmin /></RutaAdmin>} />
           <Route path="clientes" element={<RutaAdmin roles={['admin', 'vendedor']}><ClientesAdmin /></RutaAdmin>} />
           <Route path="personal" element={<RutaAdmin roles={['admin']}><PersonalAdmin /></RutaAdmin>} />
           <Route path="reportes" element={<RutaAdmin roles={['admin']}><ReportesAdmin /></RutaAdmin>} />
         </Route>
-        <Route path="vendedor" element={<RutaAdmin roles={['vendedor']}><VendedorLayout /></RutaAdmin>}>
+        <Route path="vendedor" element={<RutaAdmin roles={['vendedor', 'admin']}><VendedorLayout /></RutaAdmin>}>
           <Route index element={<DashboardVendedor />} />
           <Route path="ventas" element={<VentasDirectasAdmin />} />
           <Route path="pedidos" element={<PedidosAdmin />} />
@@ -320,12 +344,14 @@ export default function AppRoutes() {
           <Route path="confirmacion" element={<ConfirmacionPage />} />
           <Route path="pedido" element={<PedidoGeneradoPage />} />
           <Route path="pedido/:id" element={<PedidoGeneradoPage />} />
-          <Route path="mi-cuenta" element={<PanelMayorista />} />
+          <Route path="mi-cuenta" element={<InicioMayorista />} />
           <Route path="mi-cuenta/perfil" element={<PanelMayorista />} />
           <Route path="mi-cuenta/pedidos" element={<PedidosMayorista />} />
           <Route path="*" element={<NoEncontrado />} />
         </Route>
       </Routes>
+      </Suspense>
+      </NavegacionProvider>
     </BrowserRouter>
   );
 }

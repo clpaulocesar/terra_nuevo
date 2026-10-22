@@ -7,6 +7,7 @@ import {
   obtenerSesionCliente,
   actualizarPerfilMayorista,
   listarMisPedidosMayorista,
+  obtenerMiPedidoMayorista,
   eliminarCliente,
   obtenerCliente,
   listarClientes,
@@ -21,6 +22,7 @@ router.get('/sesion', obtenerSesionCliente);
 router.put('/perfil', actualizarPerfilMayorista);
 router.patch('/perfil', actualizarPerfilMayorista);
 router.get('/mis-pedidos', listarMisPedidosMayorista);
+router.get('/mis-pedidos/:id', obtenerMiPedidoMayorista);
 router.get('/', listarClientes);
 router.get('/:id', obtenerCliente);
 router.delete('/:id', eliminarCliente);

@@ -46,7 +46,7 @@ const TecladoTactil = forwardRef(function TecladoTactil({
                 className="tt-key tt-key--danger"
                 aria-label="Borrar"
               >
-                <span className="material-symbols-outlined">backspace</span>
+                <span className="material-symbols-outlined" aria-hidden="true">backspace</span>
               </button>
             )}
           </div>

@@ -72,6 +72,21 @@ export function agregarProductoCarritoQr(producto) {
   return { agregado: true, items };
 }
 
+// Ajusta la cantidad de una línea del borrador QR (1..stock). Con 0 la quita.
+export function actualizarCantidadCarritoQr(id, cantidad) {
+  const items = leerCarritoQr();
+  const indice = items.findIndex((item) => item.id === String(id) && !item.color);
+  if (indice === -1) return items;
+  const nueva = Math.floor(Number(cantidad));
+  if (!Number.isSafeInteger(nueva) || nueva < 1) {
+    items.splice(indice, 1);
+  } else {
+    items[indice].cantidad = Math.min(nueva, Number(items[indice].stock));
+  }
+  localStorage.setItem(QR_CART_KEY, JSON.stringify({ version: 1, actualizadoEn: Date.now(), items }));
+  return items;
+}
+
 export function limpiarCarritoQr() {
   localStorage.removeItem(QR_CART_KEY);
 }

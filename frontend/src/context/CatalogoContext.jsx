@@ -20,8 +20,8 @@ const estadoInicial = {
   categoriasCargadas: false,
 };
 
-export function claveFiltros({ buscar = '', categoria = '', orden = 'recomendados', limite = LIMITE_CATALOGO } = {}) {
-  return JSON.stringify({ b: buscar.trim().toLowerCase(), c: categoria.trim().toLowerCase(), o: orden, l: limite });
+export function claveFiltros({ buscar = '', categoria = '', orden = 'recomendados', limite = LIMITE_CATALOGO, soloOfertas = false } = {}) {
+  return JSON.stringify({ b: buscar.trim().toLowerCase(), c: categoria.trim().toLowerCase(), o: orden, l: limite, f: Boolean(soloOfertas) });
 }
 
 function reducer(estado, accion) {
@@ -92,6 +92,7 @@ export function CatalogoProvider({ children }) {
       buscar: filtros.buscar?.trim() || '',
       categoria: filtros.categoria?.trim() || '',
       orden: filtros.orden || 'recomendados',
+      ofertas: Boolean(filtros.soloOfertas),
       limite: filtros.limite || LIMITE_CATALOGO,
       pagina,
     })
@@ -133,12 +134,12 @@ export function CatalogoProvider({ children }) {
 }
 
 // Hook de consumo: devuelve la página pedida desde caché y la carga si falta.
-export function useCatalogoPaginado({ buscar = '', categoria = '', orden = 'recomendados', pagina = 1, limite = LIMITE_CATALOGO }) {
+export function useCatalogoPaginado({ buscar = '', categoria = '', orden = 'recomendados', pagina = 1, limite = LIMITE_CATALOGO, soloOfertas = false }) {
   const contexto = useContext(CatalogoContext);
   if (!contexto) throw new Error('useCatalogoPaginado debe usarse dentro de <CatalogoProvider>.');
   const { estado, cargarPagina, cargarCategorias } = contexto;
 
-  const filtros = useMemo(() => ({ buscar, categoria, orden, limite }), [buscar, categoria, orden, limite]);
+  const filtros = useMemo(() => ({ buscar, categoria, orden, limite, soloOfertas }), [buscar, categoria, orden, limite, soloOfertas]);
   const clave = claveFiltros(filtros);
   const consulta = estado.consultas[clave];
   const productos = consulta?.paginas?.[pagina];

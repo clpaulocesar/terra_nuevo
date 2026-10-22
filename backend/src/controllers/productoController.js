@@ -51,6 +51,7 @@ export async function listarProductos(req, res, next) {
     const limite = Number(req.query.limite ?? 100);
     const soloActivos = req.query.todos === 'true' ? false : true;
     const soloPromos = req.query.promos === 'true';
+    const soloOfertas = req.query.ofertas === 'true';
     const conStock = req.query.stock === 'true';
     const precioMin = req.query.precioMin != null && req.query.precioMin !== '' ? Number(req.query.precioMin) : null;
     const precioMax = req.query.precioMax != null && req.query.precioMax !== '' ? Number(req.query.precioMax) : null;
@@ -82,6 +83,7 @@ export async function listarProductos(req, res, next) {
       limite,
       soloActivos,
       soloPromos,
+      soloOfertas,
       conStock,
       precioMin,
       precioMax,
@@ -212,9 +214,23 @@ export async function actualizarProducto(req, res, next) {
 export async function actualizarStock(req, res, next) {
   try {
     const id = String(req.params.id || '').trim();
-    const { showroom } = req.body;
+    const { showroom, agregar } = req.body ?? {};
 
-    const actualizado = await actualizarStockBD(id, { showroom });
+    // Dos modos: { showroom: n } fija el stock; { agregar: n } suma n unidades
+    // al stock actual (ingreso de almacén) de forma atómica en la base de datos.
+    if (agregar !== undefined) {
+      const unidades = Number(agregar);
+      if (!Number.isSafeInteger(unidades) || unidades < 1 || unidades > 100000) {
+        return res.status(400).json({ success: false, mensaje: 'La cantidad a agregar debe ser un entero entre 1 y 100000.' });
+      }
+    } else {
+      const fijo = Number(showroom);
+      if (!Number.isFinite(fijo) || fijo < 0) {
+        return res.status(400).json({ success: false, mensaje: 'El stock debe ser un número mayor o igual a 0.' });
+      }
+    }
+
+    const actualizado = await actualizarStockBD(id, { showroom, agregar });
     if (!actualizado) {
       return res.status(404).json({
         success: false,

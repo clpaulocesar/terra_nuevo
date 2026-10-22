@@ -111,12 +111,12 @@ export default function Categorias() {
                   />
                 ) : (
                   <span className="categoria-card__placeholder">
-                    <span className="material-symbols-outlined">{categoria.icon || 'category'}</span>
+                    <span className="material-symbols-outlined" aria-hidden="true">{categoria.icon || 'category'}</span>
                   </span>
                 )}
                 <span className="categoria-card__rank">{indice + 1}</span>
                 <span className="categoria-card__icon">
-                  <span className="material-symbols-outlined">{categoria.icon || 'category'}</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">{categoria.icon || 'category'}</span>
                 </span>
               </div>
               <div className="categoria-card__body">

@@ -1,7 +1,14 @@
 import { apiRequest, MODO_DEMO } from './api.js';
 
 export function normalizarProducto(producto) {
+  // `precio` ya viene del backend como precio efectivo (oferta si aplica);
+  // `precio_lista` es el precio normal y sirve para tacharlo en la tarjeta.
   const precio = Number(producto.precio || 0);
+  const precioLista = producto.precio_lista === undefined || producto.precio_lista === null ? precio : Number(producto.precio_lista);
+  const precioOferta = producto.precio_oferta === null || producto.precio_oferta === undefined || producto.precio_oferta === '' ? null : Number(producto.precio_oferta);
+  const precioFabrica = producto.precio_fabrica === null || producto.precio_fabrica === undefined || producto.precio_fabrica === '' ? null : Number(producto.precio_fabrica);
+  const enOferta = producto.en_oferta === true;
+  const ofertaActiva = enOferta && Number.isFinite(precioOferta) && precioOferta > 0 && precioLista > precio;
   const precioMayorista = producto.precio_mayorista === null || producto.precio_mayorista === undefined || producto.precio_mayorista === '' ? null : Number(producto.precio_mayorista);
   const showroom = Number(producto.showroom ?? producto.stock ?? 0);
   const imagenes = Array.isArray(producto.imagenes) && producto.imagenes.length ? producto.imagenes : (producto.imagen_url ? [producto.imagen_url] : []);
@@ -13,10 +20,17 @@ export function normalizarProducto(producto) {
     ...producto,
     id: producto.id,
     sku: producto.sku || `TRR-${producto.id}`,
+    codigoTerra: producto.codigo_terra || null,
+    codigoInterno: producto.codigo_interno || null,
     precio,
     precioMayorista: Number.isFinite(precioMayorista) ? precioMayorista : null,
     escalasMayorista,
-    precioOriginal: producto.precio_original ? Number(producto.precio_original) : null,
+    precioLista,
+    precioOferta: Number.isFinite(precioOferta) ? precioOferta : null,
+    precioFabrica: Number.isFinite(precioFabrica) ? precioFabrica : null,
+    enOferta,
+    precioOriginal: ofertaActiva ? precioLista : (producto.precio_original ? Number(producto.precio_original) : null),
+    descuento: ofertaActiva ? `-${Math.round(((precioLista - precio) / precioLista) * 100)}%` : null,
     showroom,
     bodega: Number(producto.bodega ?? 0),
     stock: Number(producto.stock ?? showroom),
@@ -24,6 +38,7 @@ export function normalizarProducto(producto) {
     imagen_url: imagenes[0] || null,
     video_url: producto.video_url ? String(producto.video_url).trim() : null,
     visible: producto.activo !== false,
+    en_oferta: producto.en_oferta === true,
     activo: producto.activo !== false,
     detalle: producto.detalle || producto.medida || '',
     descripcion: producto.descripcion || '',
@@ -41,6 +56,7 @@ function construirQueryProductos({
   todos = false,
   orden = '',
   promos = false,
+  ofertas = false,
   stock = false,
   precioMin = null,
   precioMax = null,
@@ -53,6 +69,7 @@ function construirQueryProductos({
   if (orden) p.set('orden', orden);
   if (todos) p.set('todos', 'true');
   if (promos) p.set('promos', 'true');
+  if (ofertas) p.set('ofertas', 'true');
   if (stock) p.set('stock', 'true');
   if (precioMin !== null && precioMin !== '' && Number.isFinite(Number(precioMin))) p.set('precioMin', String(precioMin));
   if (precioMax !== null && precioMax !== '' && Number.isFinite(Number(precioMax))) p.set('precioMax', String(precioMax));
@@ -92,6 +109,8 @@ export async function obtenerProducto(id) { exigirConexionReal(); return normali
 export async function crearProducto(datos) { exigirConexionReal(); return normalizarProducto(await apiRequest('/productos', { method: 'POST', body: datos })); }
 export async function actualizarProducto(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}`, { method: 'PUT', body: datos })); }
 export async function actualizarStock(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}/stock`, { method: 'PATCH', body: datos })); }
+// Suma unidades al stock actual (ingreso de almacén); el backend hace la suma para no pisar lecturas viejas.
+export async function agregarStock(id, cantidad) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}/stock`, { method: 'PATCH', body: { agregar: Number(cantidad) } })); }
 export async function cambiarVisibilidadProducto(id, activo) {
   exigirConexionReal();
   try {

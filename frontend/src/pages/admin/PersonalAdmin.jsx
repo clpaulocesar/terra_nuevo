@@ -22,6 +22,14 @@ export default function PersonalAdmin() {
     listarPersonal().then(setPersonal).catch((e) => setError(e.message)).finally(() => setCargando(false));
   }, []);
 
+  // Escape cierra el modal de registro (accesibilidad de teclado).
+  useEffect(() => {
+    if (!modal) return undefined;
+    const alEscape = (evento) => { if (evento.key === 'Escape' && !guardando) setModal(false); };
+    document.addEventListener('keydown', alEscape);
+    return () => document.removeEventListener('keydown', alEscape);
+  }, [modal, guardando]);
+
   const conteos = useMemo(() => Object.fromEntries(Object.keys(ROLES).map((rol) => [rol, personal.filter((persona) => persona.rol === rol).length])), [personal]);
 
   const enviar = async (evento) => {

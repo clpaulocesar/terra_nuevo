@@ -19,15 +19,14 @@ import {
 } from 'lucide-react';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useCarrito } from '../hooks/useCarrito.js';
-import { listarMisPedidosMayorista } from '../services/sesionClienteService.js';
-import { obtenerPedido } from '../services/pedidoService.js';
+import { listarMisPedidosMayorista, obtenerMiPedidoMayorista } from '../services/sesionClienteService.js';
 import { WHATSAPP_COMPROBANTES } from '../services/api.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { descargarTicket } from '../utils/descargarTicket.js';
 import './PedidosMayorista.css';
 
 // Pedidos institucionales B2B de alta fidelidad según diseño
-const PEDIDOS_B2B = [
+const _PEDIDOS_B2B = [
   {
     id: 'TR-9821',
     codigo: '#TR-9821',
@@ -212,6 +211,7 @@ export default function PedidosMayorista() {
 
   const [pedidos, setPedidos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState('');
 
   // Filtros
   const [busqueda, setBusqueda] = useState('');
@@ -232,16 +232,15 @@ export default function PedidosMayorista() {
     listarMisPedidosMayorista(sesion?.token)
       .then((res) => {
         const lista = Array.isArray(res) ? res : [];
-        if (lista.length > 0) {
-          const adaptados = lista.map((p, idx) => {
+        const adaptados = lista.map((p, idx) => {
             const estadoKey = p.estado || 'pending';
             const estadoConfig = ESTADOS_ESTILOS[estadoKey] || { label: p.estado, pillClass: 'status-pill-clean--slate', activeStep: 1 };
             const fechaObj = new Date(p.fecha || Date.now());
             return {
               id: p.id || `p-${idx}`,
               codigo: p.codigo || `#TR-${String(p.id).slice(-4)}`,
-              factura: `Factura: #FC-${String(p.id).slice(-4)}`,
-              facturaCompleta: `#FC-00${String(p.id).slice(-4)}`,
+              factura: 'Factura pendiente de emisión',
+              facturaCompleta: 'Factura pendiente de emisión',
               fecha: p.fecha || new Date().toISOString(),
               fechaTexto: fechaObj.toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' }),
               horaTexto: fechaObj.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }),
@@ -256,8 +255,8 @@ export default function PedidosMayorista() {
               lugarEntrega: p.direccion_entrega || 'Retiro en tienda / coordinar en caja',
               direccion_entrega: p.direccion_entrega || '',
               referencia_entrega: p.referencia_entrega || '',
-              chofer: 'Chofer asignado en planta',
-              asesor: 'Carlos Mercado (+591 712-34567)',
+              chofer: 'Pendiente de asignación',
+              asesor: 'Consulta con un asesor TERRA',
               itemsDetalle: [
                 {
                   id: `linea-${idx}`,
@@ -266,21 +265,19 @@ export default function PedidosMayorista() {
                   cantidad: calcularUnidades(p.items),
                   precioUnitario: Math.round(Number(p.total || 0) / Math.max(1, calcularUnidades(p.items))),
                   subtotal: Number(p.total || 0),
-                  descuento: '-22% B2B',
+                  descuento: null,
                 },
               ],
             };
-          });
-          setPedidos(adaptados);
-          setPedidoActivoId(adaptados[0].id);
-        } else {
-          setPedidos(PEDIDOS_B2B);
-          setPedidoActivoId(PEDIDOS_B2B[0].id);
-        }
+        });
+        setPedidos(adaptados);
+        setPedidoActivoId(adaptados[0]?.id || null);
+        setErrorCarga('');
       })
-      .catch(() => {
-        setPedidos(PEDIDOS_B2B);
-        setPedidoActivoId(PEDIDOS_B2B[0].id);
+      .catch((error) => {
+        setPedidos([]);
+        setPedidoActivoId(null);
+        setErrorCarga(error.message || 'No se pudieron cargar tus pedidos.');
       })
       .finally(() => setCargando(false));
   }, [esMayorista, sesion?.token]);
@@ -288,15 +285,13 @@ export default function PedidosMayorista() {
   // Si se selecciona un pedido numérico real, intentar cargar items detallados
   useEffect(() => {
     if (!pedidoActivoId) return;
-    const seleccionado = pedidos.find((p) => p.id === pedidoActivoId);
-    if (!seleccionado || !Number.isInteger(Number(seleccionado.id))) return;
-
-    obtenerPedido(seleccionado.id)
+    let vigente = true;
+    obtenerMiPedidoMayorista(sesion?.token, pedidoActivoId)
       .then((det) => {
-        if (det?.items && Array.isArray(det.items) && det.items.length > 0) {
+        if (vigente && det?.items && Array.isArray(det.items) && det.items.length > 0) {
           setPedidos((prev) =>
             prev.map((p) => {
-              if (p.id !== seleccionado.id) return p;
+              if (p.id !== pedidoActivoId) return p;
               return {
                 ...p,
                 itemsDetalle: det.items.map((it, idx) => ({
@@ -306,7 +301,7 @@ export default function PedidosMayorista() {
                   cantidad: it.cantidad,
                   precioUnitario: it.precioUnitario || Math.round(it.subtotal / it.cantidad),
                   subtotal: it.subtotal,
-                  descuento: '-22% B2B',
+                  descuento: null,
                 })),
               };
             })
@@ -314,7 +309,8 @@ export default function PedidosMayorista() {
         }
       })
       .catch(() => {});
-  }, [pedidoActivoId, pedidos]);
+    return () => { vigente = false; };
+  }, [pedidoActivoId, sesion?.token]);
 
   // Filtrado reactivo
   const pedidosFiltrados = useMemo(() => {
@@ -351,6 +347,27 @@ export default function PedidosMayorista() {
   const pedidoActivo = useMemo(() => {
     return pedidos.find((p) => p.id === pedidoActivoId) || pedidosFiltrados[0] || pedidos[0] || null;
   }, [pedidos, pedidoActivoId, pedidosFiltrados]);
+
+  const indicadores = useMemo(() => {
+    const ahora = new Date();
+    const activos = pedidos.filter((pedido) => !['completed', 'cancelled'].includes(pedido.estado));
+    const entregadosMes = pedidos.filter((pedido) => {
+      const fecha = new Date(pedido.fecha);
+      return pedido.estado === 'completed'
+        && fecha.getMonth() === ahora.getMonth()
+        && fecha.getFullYear() === ahora.getFullYear();
+    });
+    const inversionAnual = pedidos
+      .filter((pedido) => new Date(pedido.fecha).getFullYear() === ahora.getFullYear() && pedido.estado !== 'cancelled')
+      .reduce((total, pedido) => total + Number(pedido.total || 0), 0);
+    return {
+      activos,
+      enCamino: activos.filter((pedido) => pedido.estado === 'out_for_delivery').length,
+      enPlanta: activos.filter((pedido) => pedido.estado !== 'out_for_delivery').length,
+      entregadosMes: entregadosMes.length,
+      inversionAnual,
+    };
+  }, [pedidos]);
 
   // Exportar Excel (CSV con UTF-8 BOM)
   const handleExportarExcel = () => {
@@ -461,8 +478,8 @@ export default function PedidosMayorista() {
           <div className="kpi-meta-wrap">
             <span className="kpi-title-tiny">Activos en curso</span>
             <div className="kpi-values-row">
-              <span className="kpi-number-bold">2 pedidos</span>
-              <span className="kpi-pill-badge kpi-pill-badge--blue">1 en camino • 1 en planta</span>
+              <span className="kpi-number-bold">{indicadores.activos.length} pedidos</span>
+              <span className="kpi-pill-badge kpi-pill-badge--blue">{indicadores.enCamino} en camino · {indicadores.enPlanta} en gestión</span>
             </div>
           </div>
         </div>
@@ -475,8 +492,8 @@ export default function PedidosMayorista() {
           <div className="kpi-meta-wrap">
             <span className="kpi-title-tiny">Entregados este mes</span>
             <div className="kpi-values-row">
-              <span className="kpi-number-bold" style={{ color: '#065f46' }}>18 pedidos</span>
-              <span className="kpi-pill-badge kpi-pill-badge--gray">100% conformidad</span>
+              <span className="kpi-number-bold" style={{ color: '#065f46' }}>{indicadores.entregadosMes} pedidos</span>
+              <span className="kpi-pill-badge kpi-pill-badge--gray">Datos de tu cuenta</span>
             </div>
           </div>
         </div>
@@ -487,16 +504,22 @@ export default function PedidosMayorista() {
             <Coins size={20} />
           </div>
           <div className="kpi-meta-wrap">
-            <span className="kpi-title-tiny">Inversión acumulada 2025</span>
+            <span className="kpi-title-tiny">Inversión acumulada {new Date().getFullYear()}</span>
             <div className="kpi-values-row">
-              <span className="kpi-number-bold">Bs 142.850</span>
+              <span className="kpi-number-bold">{formatoMoneda(indicadores.inversionAnual)}</span>
               <span className="kpi-pill-badge kpi-pill-badge--green" style={{ backgroundColor: '#ecfdf5', fontWeight: 700 }}>
-                Descuento B2B 22%
+                Total de pedidos
               </span>
             </div>
           </div>
         </div>
       </section>
+
+      {errorCarga && (
+        <div className="orders-load-error" role="alert">
+          {errorCarga}
+        </div>
+      )}
 
       {/* ====================================================================
           3. BARRA DE FILTROS RÁPIDOS
@@ -510,6 +533,7 @@ export default function PedidosMayorista() {
             className="orders-search-field"
             type="text"
             placeholder="Buscar por Nº de pedido (#TR-9821) o factura..."
+            aria-label="Buscar pedido por número o factura"
             value={busqueda}
             onChange={(e) => {
               setBusqueda(e.target.value);
@@ -538,7 +562,7 @@ export default function PedidosMayorista() {
                 setPaginaActual(1);
               }}
             >
-              En camino (1)
+              En camino ({indicadores.enCamino})
             </button>
             <button
               type="button"

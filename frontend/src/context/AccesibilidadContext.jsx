@@ -55,19 +55,34 @@ export function AccesibilidadProvider({ children }) {
     return () => window.speechSynthesis.removeEventListener?.('voiceschanged', cargar);
   }, []);
 
+  // Chrome descarta una frase si speak() llega en el mismo instante que cancel().
+  // Por eso la lectura se difiere unos milisegundos y, si en ese lapso llegan varias
+  // frases (p. ej. "Categoría X, botón" y enseguida "Categoría X seleccionada"),
+  // se lee sólo la última. Así tocar varios botones seguidos no se salta ninguno.
+  const pendienteHablarRef = useRef(null);
+  const ESPERA_HABLAR_MS = 90;
+
   const detener = useCallback(() => {
+    window.clearTimeout(pendienteHablarRef.current);
+    pendienteHablarRef.current = null;
     if (soportaVoz) window.speechSynthesis.cancel();
   }, []);
 
   const hablar = useCallback((texto, { interrumpir = true } = {}) => {
     if (!soportaVoz || !texto) return;
-    if (interrumpir) window.speechSynthesis.cancel();
-    const frase = new SpeechSynthesisUtterance(texto);
-    frase.lang = vozRef.current?.lang || 'es-ES';
-    if (vozRef.current) frase.voice = vozRef.current;
-    frase.rate = 1;
-    frase.pitch = 1;
-    window.speechSynthesis.speak(frase);
+    const decir = () => {
+      pendienteHablarRef.current = null;
+      const frase = new SpeechSynthesisUtterance(texto);
+      frase.lang = vozRef.current?.lang || 'es-ES';
+      if (vozRef.current) frase.voice = vozRef.current;
+      frase.rate = 1;
+      frase.pitch = 1;
+      window.speechSynthesis.speak(frase);
+    };
+    if (!interrumpir) { decir(); return; }
+    window.clearTimeout(pendienteHablarRef.current);
+    window.speechSynthesis.cancel();
+    pendienteHablarRef.current = window.setTimeout(decir, ESPERA_HABLAR_MS);
   }, []);
 
   // Anuncia para lectores de pantalla (siempre) y por voz (si el modo está activo).

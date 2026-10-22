@@ -313,6 +313,7 @@ export default function PanelMayorista() {
               type="button"
               className="b2b-avatar-cam-btn"
               title="Cambiar imagen corporativa"
+              aria-label="Cambiar imagen corporativa"
               onClick={() => fileInputRef.current?.click()}
             >
               <Camera size={16} />
@@ -321,6 +322,7 @@ export default function PanelMayorista() {
               ref={fileInputRef}
               type="file"
               accept="image/png, image/jpeg"
+              aria-label="Seleccionar imagen corporativa"
               style={{ display: 'none' }}
               onChange={handleFotoSeleccionada}
             />

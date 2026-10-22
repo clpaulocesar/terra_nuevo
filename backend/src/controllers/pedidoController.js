@@ -4,7 +4,9 @@ import {
   registrarPagoPedidoBD,
   obtenerPedidoBD,
   listarPedidosBD,
+  obtenerAnaliticaHorariaBD,
   actualizarEstadoPedidoBD,
+  actualizarItemsPedidoBD,
 } from '../models/pedidoModel.js';
 import { pool } from '../config/database.js';
 import { obtenerMayoristaDesdeToken } from '../services/sesionMayorista.js';
@@ -46,6 +48,21 @@ export async function listarPedidos(req, res, next) {
     if (!permitidos.includes(estado)) return res.status(400).json({ success: false, mensaje: 'Estado inválido' });
     const pedidos = await listarPedidosBD({ buscar: String(req.query.buscar ?? '').trim(), estado, limite });
     return res.json({ success: true, data: pedidos });
+  } catch (error) { next(error); }
+}
+
+export async function obtenerAnaliticaHoraria(req, res, next) {
+  try {
+    const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/La_Paz' }).format(new Date());
+    const desde = String(req.query.desde || hoy);
+    const hasta = String(req.query.hasta || desde);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(desde) || !/^\d{4}-\d{2}-\d{2}$/.test(hasta) || desde > hasta) return res.status(400).json({ success: false, mensaje: 'Rango de fechas inválido.' });
+    const convertirHora = (valor) => valor === undefined || valor === '' ? null : Number(valor);
+    const horaInicio = convertirHora(req.query.horaInicio);
+    const horaFin = convertirHora(req.query.horaFin);
+    if ((horaInicio !== null && (!Number.isInteger(horaInicio) || horaInicio < 0 || horaInicio > 23)) || (horaFin !== null && (!Number.isInteger(horaFin) || horaFin < 0 || horaFin > 23)) || (horaInicio !== null && horaFin !== null && horaInicio > horaFin)) return res.status(400).json({ success: false, mensaje: 'Franja horaria inválida.' });
+    const analitica = await obtenerAnaliticaHorariaBD({ desde, hasta, horaInicio, horaFin });
+    return res.json({ success: true, data: analitica });
   } catch (error) { next(error); }
 }
 
@@ -195,6 +212,23 @@ export async function obtenerPedido(req, res, next) {
       success: true,
       data: pedido,
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function actualizarItemsPedido(req, res, next) {
+  try {
+    const id = String(req.params.id || '').trim();
+    const items = req.body?.items;
+    if (!id) {
+      return res.status(400).json({ success: false, mensaje: 'ID de pedido inválido' });
+    }
+    if (!Array.isArray(items) || !items.length) {
+      return res.status(400).json({ success: false, mensaje: 'Debes enviar al menos un producto para el pedido' });
+    }
+    const pedido = await actualizarItemsPedidoBD(id, items);
+    return res.json({ success: true, mensaje: 'Pedido actualizado correctamente', data: pedido });
   } catch (error) {
     next(error);
   }

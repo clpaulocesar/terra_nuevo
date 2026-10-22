@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, EyeOff, ImagePlus, Link2, PackagePlus, Palette, Play, Plus, QrCode, Search, SlidersHorizontal, Star, Store, Tag, Trash2, Truck, X } from 'lucide-react';
+import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, EyeOff, ImagePlus, Link2, PackagePlus, Palette, Play, Plus, Printer, QrCode, Search, SlidersHorizontal, Star, Store, Tag, Trash2, Truck, X } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { listarProductosPaginado, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto, cambiarVisibilidadProducto } from '../../services/productoService.js';
 import { mediaDeVideo } from '../../utils/videoEmbed.js';
 import { subirImagenProducto } from '../../services/storageService.js';
+import { imprimirTicketProducto } from '../../utils/imprimirTicketProducto.js';
 import { avisoEliminado, avisoError, avisoExito, confirmarEliminacion } from '../../utils/alertas.js';
 import './Admin.css';
 import './ProductosAdmin.css';
@@ -321,6 +322,7 @@ function GaleriaProducto({ colores, setColores, imagenes, setImagenes, destino, 
         <input
           type="url"
           placeholder="O pega el enlace URL de una imagen (https://...)"
+          aria-label="Enlace URL de una imagen"
           value={enlace} disabled={!colores.length}
           onChange={(event) => setEnlace(event.target.value)}
         />
@@ -335,21 +337,21 @@ function GaleriaProducto({ colores, setColores, imagenes, setImagenes, destino, 
             <img src={src} alt={`Foto ${index + 1}`} />
             <div className="product-img-toolbar">
               {index !== 0 && (
-                <button type="button" className="btn-star" title="Hacer portada principal" onClick={() => establecerPortada(index)}>
+                <button type="button" className="btn-star" title="Hacer portada principal" aria-label={`Hacer portada principal la foto ${index + 1}`} onClick={() => establecerPortada(index)}>
                   <Star size={12} fill="#ffdb9b" />
                 </button>
               )}
               {index > 0 && (
-                <button type="button" title="Mover antes" onClick={() => moverImagen(index, index - 1)}>
+                <button type="button" title="Mover antes" aria-label={`Mover antes la foto ${index + 1}`} onClick={() => moverImagen(index, index - 1)}>
                   <ChevronLeft size={12} />
                 </button>
               )}
               {index < imagenes.length - 1 && (
-                <button type="button" title="Mover después" onClick={() => moverImagen(index, index + 1)}>
+                <button type="button" title="Mover después" aria-label={`Mover después la foto ${index + 1}`} onClick={() => moverImagen(index, index + 1)}>
                   <ChevronRight size={12} />
                 </button>
               )}
-              <button type="button" className="btn-delete" title="Eliminar foto" onClick={() => eliminarImagen(index)}>
+              <button type="button" className="btn-delete" title="Eliminar foto" aria-label={`Eliminar foto ${index + 1}`} onClick={() => eliminarImagen(index)}>
                 <Trash2 size={12} />
               </button>
             </div>
@@ -525,6 +527,8 @@ export default function ProductosAdmin() {
 
   const avisar = texto => {
     setMensaje(texto);
+    // Modo accesible "Más tiempo": el aviso queda hasta el siguiente.
+    if (document.documentElement.classList.contains('a11y-mas-tiempo')) return;
     setTimeout(() => setMensaje(''), 3000);
   };
 
@@ -642,10 +646,31 @@ export default function ProductosAdmin() {
 
   useEffect(() => { setPaginaTabla(1); }, [buscar, categoria, soloKiosco, porPagina]);
 
+  // Escape cierra el modal abierto (accesibilidad de teclado).
+  useEffect(() => {
+    if (!vistaProducto && !editarProducto && !nuevoProducto && !ajuste && !qrProducto) return undefined;
+    const alEscape = (e) => {
+      if (e.key !== 'Escape') return;
+      if (qrProducto) setQrProducto(null);
+      else if (ajuste) setAjuste(null);
+      else if (vistaProducto) setVistaProducto(null);
+      else if (editarProducto) setEditarProducto(null);
+      else if (nuevoProducto) setNuevoProducto(false);
+    };
+    document.addEventListener('keydown', alEscape);
+    return () => document.removeEventListener('keydown', alEscape);
+  }, [vistaProducto, editarProducto, nuevoProducto, ajuste, qrProducto]);
+
   const alternarOrden = (col) => {
     if (ordenCol === col) setOrdenDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     else { setOrdenCol(col); setOrdenDir('asc'); }
   };
+
+  // Enter / Espacio ordenan la columna desde el teclado.
+  const teclaOrden = (col) => (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alternarOrden(col); }
+  };
+  const ariaOrden = (col) => (ordenCol === col ? (ordenDir === 'asc' ? 'ascending' : 'descending') : 'none');
 
   const indicadorOrden = (col) => (ordenCol === col ? (ordenDir === 'asc' ? ' ▲' : ' ▼') : '');
 
@@ -758,9 +783,13 @@ export default function ProductosAdmin() {
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
+      codigoInterno: datos.get('codigo_interno') || null,
       categoria: datos.get('categoria'),
       precio: Number(datos.get('precio')),
       precioMayorista: datos.get('precio_mayorista') === '' ? null : Number(datos.get('precio_mayorista')),
+      precioFabrica: datos.get('precio_fabrica') === '' || datos.get('precio_fabrica') === null ? null : Number(datos.get('precio_fabrica')),
+      precioOferta: datos.get('precio_oferta') === '' || datos.get('precio_oferta') === null ? null : Number(datos.get('precio_oferta')),
+      enOferta: datos.get('en_oferta') === 'on',
       showroom: Number(datos.get('showroom')),
       activo: datos.get('visible') === 'on',
       medida: datos.get('medida') || null,
@@ -769,7 +798,16 @@ export default function ProductosAdmin() {
       imagenes: imagenesNuevo,
       video_url: String(datos.get('video_url') || '').trim() || null,
       colores: coloresNuevo.map((registro) => guardarColor(leerColor(registro))),
+      instrucciones: {
+        texto: String(datos.get('instrucciones') || '').trim(),
+        detalle: String(datos.get('instrucciones_detalle') || '').trim(),
+        video_url: String(datos.get('instrucciones_video') || '').trim(),
+        imagenes_url: String(datos.get('instrucciones_imagen') || '').trim(),
+      },
     };
+
+    if (payload.enOferta && !(payload.precioOferta > 0)) { await avisoError('Para activar "En oferta" indicá un precio de oferta mayor a 0.'); return; }
+    if (payload.enOferta && payload.precioOferta >= payload.precio) { await avisoError('El precio de oferta debe ser menor al precio de venta.'); return; }
 
     try {
       const creado = await crearProducto(payload);
@@ -803,9 +841,13 @@ export default function ProductosAdmin() {
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
+      codigoInterno: datos.get('codigo_interno') || null,
       categoria: datos.get('categoria'),
-      precio: precioNumerico > 0 ? precioNumerico : Number(String(editarProducto.precio).replace(/\./g, '').replace(/,/g, '.')),
+      precio: precioNumerico > 0 ? precioNumerico : (editarProducto.precioLista ?? Number(String(editarProducto.precio).replace(/\./g, '').replace(/,/g, '.'))),
       precioMayorista: datos.get('precio_mayorista') === '' ? null : Number(datos.get('precio_mayorista')),
+      precioFabrica: datos.get('precio_fabrica') === '' || datos.get('precio_fabrica') === null ? null : Number(datos.get('precio_fabrica')),
+      precioOferta: datos.get('precio_oferta') === '' || datos.get('precio_oferta') === null ? null : Number(datos.get('precio_oferta')),
+      enOferta: datos.get('en_oferta') === 'on',
       medida: datos.get('medida') || editarProducto.medida,
       descripcion: datos.get('descripcion') || editarProducto.descripcion,
       showroom: Number(datos.get('showroom')),
@@ -814,7 +856,16 @@ export default function ProductosAdmin() {
       imagenes: editImagenes,
       video_url: String(datos.get('video_url') || '').trim() || null,
       colores: coloresEdit.map((registro) => guardarColor(leerColor(registro))),
+      instrucciones: {
+        texto: String(datos.get('instrucciones') || '').trim(),
+        detalle: String(datos.get('instrucciones_detalle') || '').trim(),
+        video_url: String(datos.get('instrucciones_video') || '').trim(),
+        imagenes_url: String(datos.get('instrucciones_imagen') || '').trim(),
+      },
     };
+
+    if (payload.enOferta && !(payload.precioOferta > 0)) { await avisoError('Para activar "En oferta" indicá un precio de oferta mayor a 0.'); return; }
+    if (payload.enOferta && payload.precioOferta >= payload.precio) { await avisoError('El precio de oferta debe ser menor al precio de venta.'); return; }
 
     try {
       const actualizado = await actualizarProducto(editarProducto.id, payload);
@@ -946,6 +997,7 @@ export default function ProductosAdmin() {
             value={buscar}
             onChange={e => setBuscar(e.target.value)}
             placeholder="Buscar por SKU, modelo o acabado..."
+            aria-label="Buscar por SKU, modelo o acabado"
           />
         </label>
         <label className="products-switch">
@@ -991,12 +1043,12 @@ export default function ProductosAdmin() {
           <table>
             <thead>
               <tr>
-                <th style={{ cursor: 'pointer' }} onClick={() => alternarOrden('nombre')}>Producto{indicadorOrden('nombre')}</th>
-                <th style={{ cursor: 'pointer' }} onClick={() => alternarOrden('categoria')}>Categoría{indicadorOrden('categoria')}</th>
-                <th style={{ cursor: 'pointer' }} onClick={() => alternarOrden('precio')}>Precio{indicadorOrden('precio')}</th>
+                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('nombre')} onKeyDown={teclaOrden('nombre')} onClick={() => alternarOrden('nombre')}>Producto{indicadorOrden('nombre')}</th>
+                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('categoria')} onKeyDown={teclaOrden('categoria')} onClick={() => alternarOrden('categoria')}>Categoría{indicadorOrden('categoria')}</th>
+                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('precio')} onKeyDown={teclaOrden('precio')} onClick={() => alternarOrden('precio')}>Precio{indicadorOrden('precio')}</th>
                 <th>Precio mayorista</th>
-                <th style={{ cursor: 'pointer' }} onClick={() => alternarOrden('showroom')}>Showroom{indicadorOrden('showroom')}</th>
-                <th style={{ cursor: 'pointer' }} onClick={() => alternarOrden('visible')}>Kiosco{indicadorOrden('visible')}</th>
+                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('showroom')} onKeyDown={teclaOrden('showroom')} onClick={() => alternarOrden('showroom')}>Showroom{indicadorOrden('showroom')}</th>
+                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('visible')} onKeyDown={teclaOrden('visible')} onClick={() => alternarOrden('visible')}>Kiosco{indicadorOrden('visible')}</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -1044,23 +1096,27 @@ export default function ProductosAdmin() {
                       <button
                         className={`product-action-vis ${p.visible ? '' : 'is-hidden'}`}
                         title={p.visible ? 'Ocultar este producto (no mostrar a clientes)' : 'Mostrar este producto a clientes'}
+                        aria-label={p.visible ? `Ocultar ${p.nombre}` : `Mostrar ${p.nombre}`}
                         onClick={() => alternarVisibilidad(p)}
                       >
                         {p.visible ? <EyeOff size={17} /> : <Eye size={17} />}
                       </button>
-                      <button title="Vista previa / Ver fotos" onClick={() => abrirVista(p)}>
+                      <button title="Vista previa / Ver fotos" aria-label={`Vista previa de ${p.nombre}`} onClick={() => abrirVista(p)}>
                         <Eye size={17} />
                       </button>
-                      <button title="Ajustar stock" onClick={() => setAjuste({ ...p })}>
+                      <button title="Ajustar stock" aria-label={`Ajustar stock de ${p.nombre}`} onClick={() => setAjuste({ ...p })}>
                         <SlidersHorizontal size={17} />
                       </button>
-                      <button title="Editar producto y fotos" onClick={() => abrirEdicion(p)}>
+                      <button title="Editar producto y fotos" aria-label={`Editar ${p.nombre}`} onClick={() => abrirEdicion(p)}>
                         <Edit3 size={17} />
                       </button>
-                      <button title="Generar QR de la ficha" onClick={() => { setQrProducto(p); setQrCopiado(false); }}>
+                      <button title="Generar QR de la ficha" aria-label={`Generar QR de ${p.nombre}`} onClick={() => { setQrProducto(p); setQrCopiado(false); }}>
                         <QrCode size={17} />
                       </button>
-                      <button className="product-action-delete" title="Eliminar producto" onClick={() => borrarProducto(p)}>
+                      <button title="Imprimir ticket / etiqueta de producto" aria-label={`Imprimir ticket de ${p.nombre}`} onClick={() => imprimirTicketProducto(p)}>
+                        <Printer size={17} />
+                      </button>
+                      <button className="product-action-delete" title="Eliminar producto" aria-label={`Eliminar ${p.nombre}`} onClick={() => borrarProducto(p)}>
                         <Trash2 size={17} />
                       </button>
                     </div>
@@ -1088,16 +1144,16 @@ export default function ProductosAdmin() {
       {/* MODAL VISTA PREVIA (VER PRODUCTO CON FOTOS) */}
       {vistaProducto && (
         <div className="products-modal product-view-modal">
-          <section>
+          <section role="dialog" aria-modal="true" aria-labelledby="producto-vista-titulo">
             <header>
               <div>
                 <span><Eye size={20} /></span>
                 <div>
-                  <h2>Vista previa del producto</h2>
+                  <h2 id="producto-vista-titulo">Vista previa del producto</h2>
                   <p>{vistaProducto.sku} · {vistaProducto.categoria}</p>
                 </div>
               </div>
-              <button type="button" onClick={() => setVistaProducto(null)}><X /></button>
+              <button type="button" onClick={() => setVistaProducto(null)} aria-label="Cerrar"><X /></button>
             </header>
 
             <div className="product-view-body">
@@ -1252,19 +1308,19 @@ export default function ProductosAdmin() {
       {/* MODAL EDITAR PRODUCTO (INCLUYE GESTIÓN COMPLETA DE IMÁGENES) */}
       {editarProducto && (
         <div className="products-modal product-create-modal">
-          <form onSubmit={guardarEdicion}>
+          <form onSubmit={guardarEdicion} role="dialog" aria-modal="true" aria-labelledby="producto-editar-titulo">
             <header>
               <div>
                 <span><Edit3 size={20} /></span>
                 <div>
-                  <h2>Editar producto · {editarProducto.sku}</h2>
+                  <h2 id="producto-editar-titulo">Editar producto · {editarProducto.sku}</h2>
                   <p>Modifica la información comercial, stock y galería fotográfica para kioscos.</p>
                 </div>
               </div>
-              <button type="button" onClick={() => setEditarProducto(null)}><X /></button>
+              <button type="button" onClick={() => setEditarProducto(null)} aria-label="Cerrar"><X /></button>
             </header>
             <nav className="product-form-steps" aria-label="Secciones del formulario">
-              <span><b>1</b> Información comercial</span><span><b>2</b> Variantes y colores</span><span><b>3</b> Galería multimedia</span><span><b>4</b> Publicación</span>
+              <span><b>1</b> Información comercial</span><span><b>2</b> Variantes y colores</span><span><b>3</b> Galería multimedia</span><span><b>4</b> Instrucciones</span><span><b>5</b> Publicación</span>
             </nav>
 
             <div className="product-form-grid">
@@ -1280,12 +1336,21 @@ export default function ProductosAdmin() {
               </label>
 
               <label>
-                SKU / Código interno
+                Código Terra (SKU)
                 <input
                   name="sku"
                   required
-                  defaultValue={editarProducto.sku}
-                  placeholder="TRR-SOM-B160"
+                  defaultValue={editarProducto.codigoTerra || editarProducto.sku}
+                  placeholder="Ej. COLN00590"
+                />
+              </label>
+              <label>
+                Código interno
+                <input
+                  name="codigo_interno"
+                  required
+                  defaultValue={editarProducto.codigoInterno || editarProducto.sku}
+                  placeholder="Ej. 9376"
                 />
               </label>
 
@@ -1303,7 +1368,7 @@ export default function ProductosAdmin() {
                   required
                   min="0"
                   type="number"
-                  defaultValue={Number(String(editarProducto.precio).replace(/[^0-9]/g, '')) || 0}
+                  defaultValue={editarProducto.precioLista ?? (Number(String(editarProducto.precio).replace(/[^0-9]/g, '')) || 0)}
                   placeholder="0.00"
                 />
               </label>
@@ -1318,6 +1383,18 @@ export default function ProductosAdmin() {
                   placeholder="0.00"
                 />
               </label>
+              <label>
+                Precio de fábrica (Bs) <small>Opcional · costo, no se muestra al cliente</small>
+                <input name="precio_fabrica" min="0" step="0.01" type="number" defaultValue={editarProducto.precioFabrica ?? ''} placeholder="0.00" />
+              </label>
+              <label>
+                Precio de oferta (Bs) <small>Se cobra en lugar del precio de venta cuando "En oferta" está activo</small>
+                <input name="precio_oferta" min="0" step="0.01" type="number" defaultValue={editarProducto.precioOferta ?? ''} placeholder="0.00" />
+              </label>
+              <label className="product-form-check">
+                <input name="en_oferta" type="checkbox" defaultChecked={editarProducto.enOferta === true} />
+                <span>En oferta <small>Muestra el precio de oferta y la etiqueta en el catálogo</small></span>
+              </label>
 
               <label>
                 Medidas / Especificación
@@ -1329,7 +1406,7 @@ export default function ProductosAdmin() {
               </label>
 
               <label>
-                Stock showroom
+                Stock en sala
                 <input
                   name="showroom"
                   required
@@ -1370,6 +1447,26 @@ export default function ProductosAdmin() {
               avisar={avisar}
             />
 
+            <div className="product-form-grid product-instructions">
+              <div className="product-form-section-title"><div><span>Instrucciones de armado y uso</span><small>Las usa el asistente (chatbot) y la ficha del producto. Un paso por línea.</small></div><em>Opcional</em></div>
+              <label className="product-form-wide">
+                Pasos de armado / uso
+                <textarea name="instrucciones" rows="6" defaultValue={editarProducto.instrucciones || ''} placeholder={"1. Retira la malla con las manos.\n2. Revisa la bolsa del kit...\n3. ..."} />
+              </label>
+              <label className="product-form-wide">
+                Detalle completo <small>Información adicional para el asistente</small>
+                <textarea name="instrucciones_detalle" rows="3" defaultValue={editarProducto.instrucciones_detalle || ''} placeholder="Recomendaciones, cuidados, garantía..." />
+              </label>
+              <label>
+                Video de instrucciones (URL)
+                <input name="instrucciones_video" type="url" defaultValue={editarProducto.instrucciones_video || ''} placeholder="https://..." />
+              </label>
+              <label>
+                Imagen de instrucciones (URL)
+                <input name="instrucciones_imagen" type="url" defaultValue={editarProducto.instrucciones_imagenes || ''} placeholder="https://..." />
+              </label>
+            </div>
+
             <label className="product-kiosk-check">
               <input
                 name="visible"
@@ -1394,19 +1491,19 @@ export default function ProductosAdmin() {
       {/* MODAL REGISTRAR NUEVO PRODUCTO */}
       {nuevoProducto && (
         <div className="products-modal product-create-modal">
-          <form onSubmit={registrarProducto}>
+          <form onSubmit={registrarProducto} role="dialog" aria-modal="true" aria-labelledby="producto-nuevo-titulo">
             <header>
               <div>
                 <span><PackagePlus size={20} /></span>
                 <div>
-                  <h2>Registrar nuevo producto</h2>
+                  <h2 id="producto-nuevo-titulo">Registrar nuevo producto</h2>
                   <p>Completa la ficha comercial, inventario y galería para kioscos.</p>
                 </div>
               </div>
-              <button type="button" onClick={() => setNuevoProducto(false)}><X /></button>
+              <button type="button" onClick={() => setNuevoProducto(false)} aria-label="Cerrar"><X /></button>
             </header>
             <nav className="product-form-steps" aria-label="Secciones del formulario">
-              <span><b>1</b> Información comercial</span><span><b>2</b> Variantes y colores</span><span><b>3</b> Galería multimedia</span><span><b>4</b> Publicación</span>
+              <span><b>1</b> Información comercial</span><span><b>2</b> Variantes y colores</span><span><b>3</b> Galería multimedia</span><span><b>4</b> Instrucciones</span><span><b>5</b> Publicación</span>
             </nav>
 
             <div className="product-form-grid">
@@ -1416,8 +1513,12 @@ export default function ProductosAdmin() {
                 <input name="nombre" required placeholder="Ej. Colchón Terra Comfort King" />
               </label>
               <label>
-                SKU / código interno
-                <input name="sku" required placeholder="TRR-COL-K200" />
+                Código Terra (SKU)
+                <input name="sku" required placeholder="Ej. COLN00590" />
+              </label>
+              <label>
+                Código interno
+                <input name="codigo_interno" required placeholder="Ej. 9376" />
               </label>
               <label>
                 Categoría
@@ -1435,11 +1536,23 @@ export default function ProductosAdmin() {
                 <input name="precio_mayorista" min="0" type="number" placeholder="0.00" />
               </label>
               <label>
+                Precio de fábrica (Bs) <small>Opcional · costo, no se muestra al cliente</small>
+                <input name="precio_fabrica" min="0" step="0.01" type="number" placeholder="0.00" />
+              </label>
+              <label>
+                Precio de oferta (Bs) <small>Se cobra en lugar del precio de venta cuando "En oferta" está activo</small>
+                <input name="precio_oferta" min="0" step="0.01" type="number" placeholder="0.00" />
+              </label>
+              <label className="product-form-check">
+                <input name="en_oferta" type="checkbox" />
+                <span>En oferta <small>Muestra el precio de oferta y la etiqueta en el catálogo</small></span>
+              </label>
+              <label>
                 Medidas / Detalle
                 <input name="medida" placeholder="Ej. King · 200 × 200 cm" />
               </label>
               <label>
-                Stock showroom
+                Stock en sala
                 <input name="showroom" required min="0" type="number" defaultValue="0" />
               </label>
               <label className="product-form-wide">
@@ -1471,6 +1584,26 @@ export default function ProductosAdmin() {
               avisar={avisar}
             />
 
+            <div className="product-form-grid product-instructions">
+              <div className="product-form-section-title"><div><span>Instrucciones de armado y uso</span><small>Las usa el asistente (chatbot) y la ficha del producto. Un paso por línea.</small></div><em>Opcional</em></div>
+              <label className="product-form-wide">
+                Pasos de armado / uso
+                <textarea name="instrucciones" rows="6" placeholder={"1. Retira la malla con las manos.\n2. Revisa la bolsa del kit...\n3. ..."} />
+              </label>
+              <label className="product-form-wide">
+                Detalle completo <small>Información adicional para el asistente</small>
+                <textarea name="instrucciones_detalle" rows="3" placeholder="Recomendaciones, cuidados, garantía..." />
+              </label>
+              <label>
+                Video de instrucciones (URL)
+                <input name="instrucciones_video" type="url" placeholder="https://..." />
+              </label>
+              <label>
+                Imagen de instrucciones (URL)
+                <input name="instrucciones_imagen" type="url" placeholder="https://..." />
+              </label>
+            </div>
+
             <label className="product-kiosk-check">
               <input name="visible" type="checkbox" defaultChecked /> Publicar este producto en kioscos al guardarlo
             </label>
@@ -1492,16 +1625,16 @@ export default function ProductosAdmin() {
       {/* MODAL AJUSTE RÁPIDO */}
       {ajuste && (
         <div className="products-modal">
-          <section>
+          <section role="dialog" aria-modal="true" aria-labelledby="producto-ajuste-titulo">
             <header>
               <div>
                 <span><SlidersHorizontal size={20} /></span>
                 <div>
-                  <h2>Ajuste rápido de inventario</h2>
+                  <h2 id="producto-ajuste-titulo">Ajuste rápido de inventario</h2>
                   <p>{ajuste.nombre} · {ajuste.sku}</p>
                 </div>
               </div>
-              <button onClick={() => setAjuste(null)}><X /></button>
+              <button onClick={() => setAjuste(null)} aria-label="Cerrar"><X /></button>
             </header>
             <div className="adjust-row">
               <div>
@@ -1511,6 +1644,7 @@ export default function ProductosAdmin() {
               <input
                 min="0"
                 type="number"
+                aria-label="Stock en showroom"
                 value={ajuste.showroom}
                 onChange={e => setAjuste({ ...ajuste, showroom: Number(e.target.value) })}
               />
@@ -1534,16 +1668,16 @@ export default function ProductosAdmin() {
       {/* MODAL QR DE LA FICHA */}
       {qrProducto && (
         <div className="products-modal">
-          <section style={{ maxWidth: '460px', textAlign: 'center' }}>
+          <section style={{ maxWidth: '460px', textAlign: 'center' }} role="dialog" aria-modal="true" aria-labelledby="producto-qr-titulo">
             <header>
               <div>
                 <span><QrCode size={20} /></span>
                 <div style={{ textAlign: 'left' }}>
-                  <h2>QR del producto</h2>
+                  <h2 id="producto-qr-titulo">QR del producto</h2>
                   <p>{qrProducto.nombre} · {qrProducto.sku}</p>
                 </div>
               </div>
-              <button type="button" onClick={() => setQrProducto(null)}><X /></button>
+              <button type="button" onClick={() => setQrProducto(null)} aria-label="Cerrar"><X /></button>
             </header>
             <div style={{ padding: '1rem 1.2rem', display: 'grid', gap: '0.7rem', justifyItems: 'center' }}>
               <QRCode id="qr-admin-svg" value={urlQrDe(qrProducto)} size={240} />
@@ -1563,7 +1697,8 @@ export default function ProductosAdmin() {
             </div>
             <footer style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
               <button type="button" onClick={copiarUrlQr}>{qrCopiado ? '¡Copiado!' : 'Copiar enlace'}</button>
-              <button type="button" onClick={imprimirQr}>Imprimir</button>
+              <button type="button" onClick={imprimirQr}>Imprimir QR</button>
+              <button type="button" onClick={() => imprimirTicketProducto(qrProducto)}>Imprimir ticket de góndola</button>
               <button className="primary" type="button" onClick={descargarQr}>
                 <Download size={17} /> Descargar PNG
               </button>

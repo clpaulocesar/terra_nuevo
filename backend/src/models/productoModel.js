@@ -1,24 +1,40 @@
 import { pool } from '../config/database.js';
 
-const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, p.slug AS slug,
+// Precio que ve el cliente: si el producto está en oferta y tiene precio de
+// oferta, manda ese; si no, el precio de lista (public_price).
+const PRECIO_EFECTIVO = 'CASE WHEN COALESCE(p.en_oferta, FALSE) AND COALESCE(p.precio_oferta, 0) > 0 THEN p.precio_oferta ELSE COALESCE(p.public_price, 0) END';
+
+const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, p.codigo_terra AS codigo_terra, p.internal_code AS codigo_interno, p.slug AS slug,
   p.name AS nombre, p.description AS descripcion, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
-  COALESCE(p.public_price, 0) AS precio, p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
-  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, COALESCE(p.activo, p.is_active, TRUE) AS activo,
+  ${PRECIO_EFECTIVO} AS precio, COALESCE(p.public_price, 0) AS precio_lista, p.precio_oferta AS precio_oferta, p.precio_fabrica AS precio_fabrica,
+  p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
+  p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, pi.intrucciones AS instrucciones, pi.detalle_completo AS instrucciones_detalle, pi.videos_url AS instrucciones_video, COALESCE(p.activo, p.is_active, TRUE) AS activo, COALESCE(p.en_oferta, FALSE) AS en_oferta,
   COALESCE((SELECT json_agg(json_build_object('minCantidad', w.minimum_quantity, 'precio', w.unit_price) ORDER BY w.minimum_quantity)
     FROM wholesale_price_tiers w WHERE w.product_id=p.id), '[]'::json) AS escalas_mayorista`;
 
 let escalasReady;
 export function asegurarEscalasMayoristasBD() {
-  if (!escalasReady) escalasReady = pool.query(`
-    CREATE TABLE IF NOT EXISTS wholesale_price_tiers (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-      minimum_quantity INTEGER NOT NULL CHECK (minimum_quantity > 0),
-      unit_price NUMERIC(12,2) NOT NULL CHECK (unit_price >= 0),
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      UNIQUE(product_id, minimum_quantity)
-    )
-  `);
+  if (!escalasReady) {
+    escalasReady = (async () => {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS wholesale_price_tiers (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+          minimum_quantity INTEGER NOT NULL CHECK (minimum_quantity > 0),
+          unit_price NUMERIC(12,2) NOT NULL CHECK (unit_price >= 0),
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          UNIQUE(product_id, minimum_quantity)
+        )
+      `);
+      // Precios de fábrica/oferta y bandera de oferta (idempotente).
+      await pool.query(`
+        ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS precio_fabrica NUMERIC(12,2),
+          ADD COLUMN IF NOT EXISTS precio_oferta NUMERIC(12,2),
+          ADD COLUMN IF NOT EXISTS en_oferta BOOLEAN DEFAULT FALSE
+      `);
+    })().catch((error) => { escalasReady = null; throw error; });
+  }
   return escalasReady;
 }
 
@@ -48,35 +64,22 @@ const EXISTE_PROMOCION = `EXISTS (
     AND (pr.ends_at IS NULL OR pr.ends_at >= NOW())
 )`;
 
-// Productos permitidos (hardcoded por requerimiento)
-const PRODUCTOS_PERMITIDOS = [
-  'Somier Diamante 2 PLZ',
-  'Chester 2 PLZ',
-  'Brillante 1.5 PLZ',
-  'Betty',
-  'Sahara',
-  'Niky',
-  'Cristal',
-  'Honor',
-  'Diamante',
-  'Wert',
-  'Bugatti',
-  'Kit lary',
-  'Lila'
-];
-
 // Cada opción tiene su propio ORDER BY fijo: nunca se interpola texto del request.
 // Se aceptan alias en kebab-case y snake_case para no romper clientes existentes.
+// "recomendados" (y su alias "relevancia") pone primero los productos en oferta
+// (products.en_oferta), también cuando se filtra por categoría. "ofertas" además
+// limita el listado a esos productos (ver construirFiltros).
 const ORDENES = {
-  recomendados: 'COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
-  relevancia: 'COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
+  recomendados: 'COALESCE(p.en_oferta, FALSE) DESC, COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
+  relevancia: 'COALESCE(p.en_oferta, FALSE) DESC, COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
+  ofertas: 'COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
   'mas-vendidos': 'COALESCE(v.unidades, 0) DESC, p.created_at DESC, p.id DESC',
   mas_vendidos: 'COALESCE(v.unidades, 0) DESC, p.created_at DESC, p.id DESC',
   nuevos: 'p.created_at DESC, p.id DESC',
-  'precio-asc': 'COALESCE(p.public_price, 0) ASC, p.name ASC, p.id ASC',
-  precio_asc: 'COALESCE(p.public_price, 0) ASC, p.name ASC, p.id ASC',
-  'precio-desc': 'COALESCE(p.public_price, 0) DESC, p.name ASC, p.id ASC',
-  precio_desc: 'COALESCE(p.public_price, 0) DESC, p.name ASC, p.id ASC',
+  'precio-asc': `${PRECIO_EFECTIVO} ASC, p.name ASC, p.id ASC`,
+  precio_asc: `${PRECIO_EFECTIVO} ASC, p.name ASC, p.id ASC`,
+  'precio-desc': `${PRECIO_EFECTIVO} DESC, p.name ASC, p.id ASC`,
+  precio_desc: `${PRECIO_EFECTIVO} DESC, p.name ASC, p.id ASC`,
   nombre: 'p.name ASC, p.id ASC',
 };
 
@@ -89,21 +92,46 @@ const CTE_VENTAS = `WITH ventas AS (
   GROUP BY LOWER(product_name)
 )`;
 
-function construirFiltros({ buscar = '', categoria = '', soloActivos = false, soloPromos = false, conStock = false, precioMin = null, precioMax = null } = {}) {
+// Comparación sin acentos ni mayúsculas en SQL.
+const SIN_ACENTOS = (expr) => `translate(lower(${expr}), 'áéíóúüñ', 'aeiouun')`;
+
+// Raíz de un término de búsqueda: minúsculas, sin acentos y sin la terminación de
+// plural ("colchones" -> "colchon", "almohadas" -> "almohada", "sofás" -> "sofa").
+// Sólo se recorta cuando el término es largo, para no romper códigos cortos.
+export function raizDeBusqueda(termino) {
+  const base = String(termino || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const palabras = base.split(/\s+/).filter(Boolean).map((palabra) => {
+    if (palabra.length > 5 && palabra.endsWith('es')) return palabra.slice(0, -2);
+    if (palabra.length > 4 && palabra.endsWith('s')) return palabra.slice(0, -1);
+    return palabra;
+  });
+  return palabras.join(' ');
+}
+
+function construirFiltros({ buscar = '', categoria = '', soloActivos = false, soloPromos = false, soloOfertas = false, conStock = false, precioMin = null, precioMax = null } = {}) {
   const valores = [];
   const condiciones = [];
   if (soloActivos) condiciones.push('COALESCE(p.activo, p.is_active, TRUE) = TRUE');
-  if (buscar) { valores.push(`%${buscar}%`); condiciones.push(`(p.name ILIKE $${valores.length} OR COALESCE(p.codigo_terra, p.internal_code, '') ILIKE $${valores.length} OR COALESCE(p.description, '') ILIKE $${valores.length})`); }
+  if (buscar) {
+    // La búsqueda compara sin acentos y también contra la categoría del producto, con
+    // la raíz del término para tolerar singular/plural: "colchón", "colchon" y
+    // "colchones" encuentran todo lo que está en la categoría COLCHON.
+    const raiz = raizDeBusqueda(buscar);
+    valores.push(`%${raiz}%`);
+    const n = valores.length;
+    condiciones.push(`(${SIN_ACENTOS('p.name')} ILIKE $${n}
+      OR ${SIN_ACENTOS("COALESCE(p.codigo_terra, p.internal_code, '')")} ILIKE $${n}
+      OR ${SIN_ACENTOS("COALESCE(p.description, '')")} ILIKE $${n}
+      OR ${SIN_ACENTOS("COALESCE(c.name, '')")} ILIKE $${n}
+      OR ${SIN_ACENTOS("COALESCE(p.product_group, '')")} ILIKE $${n})`);
+  }
   const categoriaLimpia = String(categoria || '').trim();
   if (categoriaLimpia && !['todos', 'todas'].includes(categoriaLimpia.toLowerCase())) { valores.push(categoriaLimpia); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
   if (soloPromos) condiciones.push(EXISTE_PROMOCION);
+  if (soloOfertas) condiciones.push('COALESCE(p.en_oferta, FALSE) = TRUE');
   if (conStock) condiciones.push('COALESCE(p.stock_quantity, 0) > 0');
-  // Filtro hardcoded: solo estos productos
-  const placeholders = PRODUCTOS_PERMITIDOS.map((_, i) => `$${valores.length + 1 + i}`).join(', ');
-  PRODUCTOS_PERMITIDOS.forEach(n => valores.push(n));
-  condiciones.push(`p.name IN (${placeholders})`);
-  if (Number.isFinite(precioMin)) { valores.push(precioMin); condiciones.push(`COALESCE(p.public_price, 0) >= $${valores.length}`); }
-  if (Number.isFinite(precioMax)) { valores.push(precioMax); condiciones.push(`COALESCE(p.public_price, 0) <= $${valores.length}`); }
+  if (Number.isFinite(precioMin)) { valores.push(precioMin); condiciones.push(`${PRECIO_EFECTIVO} >= $${valores.length}`); }
+  if (Number.isFinite(precioMax)) { valores.push(precioMax); condiciones.push(`${PRECIO_EFECTIVO} <= $${valores.length}`); }
   return { valores, condiciones };
 }
 
@@ -116,13 +144,14 @@ export async function listarProductosBD({
   limite = 100,
   soloActivos = false,
   soloPromos = false,
+  soloOfertas = false,
   conStock = false,
   precioMin = null,
   precioMax = null,
   orden = 'recomendados',
 } = {}) {
   await asegurarEscalasMayoristasBD();
-  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, conStock, precioMin, precioMax });
+  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, soloOfertas: soloOfertas || orden === 'ofertas', conStock, precioMin, precioMax });
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
   const orderBy = ORDENES[orden] || ORDENES.recomendados;
   const valoresFiltro = [...valores];
@@ -161,13 +190,14 @@ export async function listarProductosPaginadoBD({
   limite = 18,
   soloActivos = false,
   soloPromos = false,
+  soloOfertas = false,
   conStock = false,
   precioMin = null,
   precioMax = null,
   orden = 'recomendados',
 } = {}) {
   await asegurarEscalasMayoristasBD();
-  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, conStock, precioMin, precioMax });
+  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, soloOfertas: soloOfertas || orden === 'ofertas', conStock, precioMin, precioMax });
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
   const orderBy = ORDENES[orden] || ORDENES.recomendados;
 
@@ -214,16 +244,62 @@ export async function obtenerProductoBD(id) {
   return rows[0] || null;
 }
 
+// Precio opcional: '' / null / undefined / no numérico -> NULL en la base.
+function precioOpcional(valor) {
+  if (valor === undefined || valor === null || valor === '') return null;
+  const numero = Number(valor);
+  return Number.isFinite(numero) && numero >= 0 ? numero : null;
+}
+
+// Guarda las instrucciones de armado/uso del producto en `product_instructions`
+// (una fila por producto). Si todos los campos vienen vacíos, borra la fila para
+// que el chatbot no devuelva instrucciones en blanco. `undefined` = no tocar.
+function textoONulo(valor) {
+  const texto = String(valor ?? '').trim();
+  return texto ? texto : null;
+}
+export async function guardarInstruccionesProductoBD(productoId, instrucciones) {
+  if (!instrucciones || typeof instrucciones !== 'object') return;
+  const fila = {
+    intrucciones: textoONulo(instrucciones.texto ?? instrucciones.instrucciones),
+    detalle_completo: textoONulo(instrucciones.detalle),
+    videos_url: textoONulo(instrucciones.video_url),
+    imagenes_url: textoONulo(instrucciones.imagenes_url),
+  };
+  const vacia = Object.values(fila).every((valor) => valor === null);
+  if (vacia) {
+    await pool.query('DELETE FROM product_instructions WHERE product_id = $1', [productoId]);
+    return;
+  }
+  const { rowCount } = await pool.query(
+    `UPDATE product_instructions
+     SET intrucciones = $2, detalle_completo = $3, videos_url = $4, imagenes_url = $5
+     WHERE product_id = $1`,
+    [productoId, fila.intrucciones, fila.detalle_completo, fila.videos_url, fila.imagenes_url]
+  );
+  if (!rowCount) {
+    await pool.query(
+      `INSERT INTO product_instructions (product_id, intrucciones, detalle_completo, videos_url, imagenes_url)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [productoId, fila.intrucciones, fila.detalle_completo, fila.videos_url, fila.imagenes_url]
+    );
+  }
+}
+
 export async function crearProductoBD(datos) {
   await asegurarEscalasMayoristasBD();
   const baseSlug = String(datos.nombre || 'producto').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  // Dos códigos distintos: `sku` -> codigo_terra (código Terra) y
+  // `codigoInterno` -> internal_code. Si no mandan el interno, repite el Terra.
   const codigo = String(datos.sku || `TRR-${Date.now()}`).trim();
+  const codigoInterno = String(datos.codigoInterno || codigo).trim();
   const { rows } = await pool.query(
-    `INSERT INTO products (name, slug, codigo_terra, description, public_price, precio_mayorista, stock_quantity, imagen_url, image_urls, video_url, colors, activo, is_active, internal_code, size, color, category_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12,$3,$13,$14,(SELECT id FROM categories WHERE LOWER(name)=LOWER($15) AND is_active=TRUE LIMIT 1)) RETURNING id`,
-    [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), datos.precioMayorista ?? null, Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.video_url || null, Array.isArray(datos.colores) ? datos.colores : [], datos.activo ?? true, datos.medida || null, datos.detalle || null, datos.categoria]
+    `INSERT INTO products (name, slug, codigo_terra, description, public_price, precio_mayorista, stock_quantity, imagen_url, image_urls, video_url, colors, activo, is_active, internal_code, size, color, category_id, precio_fabrica, precio_oferta, en_oferta)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12,$16,$13,$14,(SELECT id FROM categories WHERE LOWER(name)=LOWER($15) AND is_active=TRUE LIMIT 1),$17,$18,$19) RETURNING id`,
+    [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), datos.precioMayorista ?? null, Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.video_url || null, Array.isArray(datos.colores) ? datos.colores : [], datos.activo ?? true, datos.medida || null, datos.detalle || null, datos.categoria, codigoInterno, precioOpcional(datos.precioFabrica), precioOpcional(datos.precioOferta), Boolean(datos.enOferta)]
   );
   await reemplazarEscalasMayoristas(rows[0].id, datos.escalasMayorista || []);
+  await guardarInstruccionesProductoBD(rows[0].id, datos.instrucciones);
   return obtenerProductoBD(rows[0].id);
 }
 
@@ -232,7 +308,7 @@ export async function actualizarProductoBD(id, datos) {
   const idStr = String(id || '').trim();
   const { rows } = await pool.query(
     `UPDATE products 
-     SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), image_urls=COALESCE($6,image_urls), activo=COALESCE($7,activo), is_active=COALESCE($7,is_active), internal_code=COALESCE($8,internal_code), codigo_terra=COALESCE($8,codigo_terra), size=COALESCE($9,size), color=COALESCE($10,color), video_url=COALESCE($11,video_url), colors=COALESCE($12,colors), precio_mayorista=COALESCE($13,precio_mayorista), category_id=COALESCE((SELECT id FROM categories WHERE LOWER(name)=LOWER($14) AND is_active=TRUE LIMIT 1),category_id), updated_at=NOW()
+     SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), image_urls=COALESCE($6,image_urls), activo=COALESCE($7,activo), is_active=COALESCE($7,is_active), codigo_terra=COALESCE($8,codigo_terra), internal_code=COALESCE($16,internal_code), precio_fabrica=COALESCE($17,precio_fabrica), precio_oferta=COALESCE($18,precio_oferta), en_oferta=COALESCE($19,en_oferta), size=COALESCE($9,size), color=COALESCE($10,color), video_url=COALESCE($11,video_url), colors=COALESCE($12,colors), precio_mayorista=COALESCE($13,precio_mayorista), category_id=COALESCE((SELECT id FROM categories WHERE LOWER(name)=LOWER($14) AND is_active=TRUE LIMIT 1),category_id), updated_at=NOW()
      WHERE id::text = $15 OR slug = $15 OR COALESCE(codigo_terra, internal_code) = $15
      RETURNING id`,
     [
@@ -250,10 +326,15 @@ export async function actualizarProductoBD(id, datos) {
       Array.isArray(datos.colores) ? datos.colores : null,
       datos.precioMayorista !== undefined ? datos.precioMayorista : null,
       datos.categoria ?? null,
-      idStr
+      idStr,
+      datos.codigoInterno ?? null,
+      precioOpcional(datos.precioFabrica),
+      precioOpcional(datos.precioOferta),
+      datos.enOferta === undefined || datos.enOferta === null ? null : Boolean(datos.enOferta),
     ]
   );
   if (rows[0] && Array.isArray(datos.escalasMayorista)) await reemplazarEscalasMayoristas(rows[0].id, datos.escalasMayorista);
+  if (rows[0]) await guardarInstruccionesProductoBD(rows[0].id, datos.instrucciones);
   return rows[0] ? obtenerProductoBD(rows[0].id) : null;
 }
 
@@ -272,14 +353,17 @@ export async function cambiarVisibilidadProductoBD(id, activo) {
 }
 
 
-export async function actualizarStockBD(id, { showroom }) {
+export async function actualizarStockBD(id, { showroom, agregar } = {}) {
   const idStr = String(id || '').trim();
+  // { agregar: n } suma al stock actual en la misma sentencia (ingreso de almacén);
+  // { showroom: n } fija el valor, como hace el ajuste manual del admin.
+  const incremental = agregar !== undefined && agregar !== null;
   const { rows } = await pool.query(
-    `UPDATE products 
-     SET stock_quantity=$1, updated_at=NOW() 
-     WHERE id::text = $2 OR slug = $2 OR COALESCE(codigo_terra, internal_code) = $2 
+    `UPDATE products
+     SET stock_quantity = ${incremental ? 'COALESCE(stock_quantity, 0) + $1' : '$1'}, updated_at=NOW()
+     WHERE id::text = $2 OR slug = $2 OR COALESCE(codigo_terra, internal_code) = $2
      RETURNING id`,
-    [Number(showroom ?? 0), idStr]
+    [Number(incremental ? agregar : (showroom ?? 0)), idStr]
   );
   return rows[0] ? obtenerProductoBD(rows[0].id) : null;
 }
