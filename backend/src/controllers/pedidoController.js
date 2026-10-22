@@ -5,6 +5,7 @@ import {
   obtenerPedidoBD,
   listarPedidosBD,
   obtenerAnaliticaHorariaBD,
+  obtenerResumenPeriodoBD,
   actualizarEstadoPedidoBD,
   actualizarItemsPedidoBD,
 } from '../models/pedidoModel.js';
@@ -63,6 +64,61 @@ export async function obtenerAnaliticaHoraria(req, res, next) {
     if ((horaInicio !== null && (!Number.isInteger(horaInicio) || horaInicio < 0 || horaInicio > 23)) || (horaFin !== null && (!Number.isInteger(horaFin) || horaFin < 0 || horaFin > 23)) || (horaInicio !== null && horaFin !== null && horaInicio > horaFin)) return res.status(400).json({ success: false, mensaje: 'Franja horaria inválida.' });
     const analitica = await obtenerAnaliticaHorariaBD({ desde, hasta, horaInicio, horaFin });
     return res.json({ success: true, data: analitica });
+  } catch (error) { next(error); }
+}
+
+// ---- Comparativa de períodos (hoy vs ayer, semana vs anterior, mes vs anterior, rango libre) ----
+const FORMATO_FECHA = /^\d{4}-\d{2}-\d{2}$/;
+const fechaLaPaz = (fecha = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/La_Paz' }).format(fecha);
+const sumarDias = (iso, dias) => { const d = new Date(`${iso}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + dias); return d.toISOString().slice(0, 10); };
+const fechaValida = (iso) => FORMATO_FECHA.test(String(iso || '')) && !Number.isNaN(new Date(`${iso}T00:00:00Z`).getTime());
+
+// Los períodos "a la fecha" se comparan con la misma porción del período anterior:
+// semana = lunes..hoy vs lunes..mismo día de la semana pasada; mes = 1..hoy vs 1..mismo día del mes pasado.
+function rangosComparativa(periodo, hoy) {
+  if (periodo === 'dia') {
+    const ayer = sumarDias(hoy, -1);
+    return { actual: { desde: hoy, hasta: hoy }, anterior: { desde: ayer, hasta: ayer } };
+  }
+  if (periodo === 'semana') {
+    const diaSemana = new Date(`${hoy}T00:00:00Z`).getUTCDay(); // 0 = domingo
+    const lunes = sumarDias(hoy, -((diaSemana + 6) % 7));
+    return { actual: { desde: lunes, hasta: hoy }, anterior: { desde: sumarDias(lunes, -7), hasta: sumarDias(hoy, -7) } };
+  }
+  if (periodo === 'mes') {
+    const [anio, mes, dia] = hoy.split('-').map(Number);
+    const primeroActual = `${hoy.slice(0, 8)}01`;
+    const anioAnterior = mes === 1 ? anio - 1 : anio;
+    const mesAnterior = mes === 1 ? 12 : mes - 1;
+    const ultimoDiaAnterior = new Date(Date.UTC(anio, mes - 1, 0)).getUTCDate();
+    const prefijo = `${anioAnterior}-${String(mesAnterior).padStart(2, '0')}-`;
+    return { actual: { desde: primeroActual, hasta: hoy }, anterior: { desde: `${prefijo}01`, hasta: `${prefijo}${String(Math.min(dia, ultimoDiaAnterior)).padStart(2, '0')}` } };
+  }
+  return null;
+}
+
+// Totales de un rango de fechas para los indicadores del dashboard (hoy, ayer o rango libre).
+export async function obtenerResumenPeriodo(req, res, next) {
+  try {
+    const desde = String(req.query.desde || fechaLaPaz());
+    const hasta = String(req.query.hasta || desde);
+    if (!fechaValida(desde) || !fechaValida(hasta) || desde > hasta) return res.status(400).json({ success: false, mensaje: 'Rango de fechas inválido.' });
+    return res.json({ success: true, data: await obtenerResumenPeriodoBD({ desde, hasta }) });
+  } catch (error) { next(error); }
+}
+
+export async function obtenerComparativaPeriodos(req, res, next) {
+  try {
+    const periodo = String(req.query.periodo || 'dia');
+    let rangos = rangosComparativa(periodo, fechaLaPaz());
+    if (periodo === 'personalizado') {
+      const { desde, hasta, desde2, hasta2 } = req.query;
+      if (![desde, hasta, desde2, hasta2].every(fechaValida) || desde > hasta || desde2 > hasta2) return res.status(400).json({ success: false, mensaje: 'Rangos de fechas inválidos.' });
+      rangos = { actual: { desde, hasta }, anterior: { desde: desde2, hasta: hasta2 } };
+    }
+    if (!rangos) return res.status(400).json({ success: false, mensaje: 'Período inválido. Usa dia, semana, mes o personalizado.' });
+    const [actual, anterior] = await Promise.all([obtenerResumenPeriodoBD(rangos.actual), obtenerResumenPeriodoBD(rangos.anterior)]);
+    return res.json({ success: true, data: { periodo, actual, anterior } });
   } catch (error) { next(error); }
 }
 
