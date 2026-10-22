@@ -21,7 +21,8 @@ export default function LoginAdmin() {
     try {
       const usuario = await iniciarSesionAdmin(email, password);
       // Si llegó aquí por voz/chat pidiendo una sección, se lo lleva ahí (si su rol lo permite).
-      navigate(consumirDestinoPendiente(usuario?.rol, 'admin') || '/admin', { replace: true });
+      const inicio = usuario?.rol === 'despacho' ? '/admin/despacho' : '/admin';
+      navigate(consumirDestinoPendiente(usuario?.rol, 'admin') || inicio, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {

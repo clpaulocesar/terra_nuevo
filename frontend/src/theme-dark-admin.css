@@ -488,3 +488,41 @@ html[data-theme="dark"] .warehouse-stock.is-zero { background: #3a1a1c; color: #
 html[data-theme="dark"] .warehouse-add { background: var(--td-accent-soft); color: #ffb3bd; }
 html[data-theme="dark"] .warehouse-add:hover { background: var(--td-accent); color: #fff; }
 html[data-theme="dark"] .warehouse-camera-frame { border-color: rgba(255, 255, 255, 0.75); }
+
+/* ---------- Despacho a domicilio ----------
+   La pantalla define sus tokens en .dispatch; acá solo se redefinen. */
+html[data-theme="dark"] .dispatch {
+  --dp-surface: #241d1a;
+  --dp-surface-2: #2c2421;
+  --dp-text: #f4ede8;
+  --dp-muted: #b5a79f;
+  --dp-line: #3d3330;
+  --dp-accent: #ffb3bd;
+  --dp-accent-soft: #3a1a20;
+  --dp-btn: #b3233c;
+  --dp-btn-text: #ffffff;
+  --dp-ok: #58c986;
+  --dp-ok-soft: #16311f;
+  --dp-warn: #ffdb9b;
+  --dp-warn-soft: #3a2b10;
+  --dp-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Repartidores y asignación de envíos ---------- */
+html[data-theme="dark"] .drivers {
+  --rp-surface: #241d1a;
+  --rp-surface-2: #2c2421;
+  --rp-text: #f4ede8;
+  --rp-muted: #b5a79f;
+  --rp-line: #3d3330;
+  --rp-accent: #ffb3bd;
+  --rp-accent-soft: #3a1a20;
+  --rp-btn: #b3233c;
+  --rp-btn-text: #ffffff;
+  --rp-ok: #58c986;
+  --rp-ok-soft: #16311f;
+  --rp-warn: #ffdb9b;
+  --rp-warn-soft: #3a2b10;
+  --rp-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+html[data-theme="dark"] .drivers-modal { background: rgba(0, 0, 0, 0.65); }

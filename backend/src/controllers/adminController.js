@@ -74,6 +74,8 @@ export async function iniciarSesionAdmin(req, res, next) {
             email: personal.email,
             nombre: personal.nombre,
             rol: personal.rol,
+            vehiculo: personal.vehiculo || null,
+            placa: personal.placa || null,
           },
         },
       });

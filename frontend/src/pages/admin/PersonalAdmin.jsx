@@ -8,7 +8,7 @@ const ROLES = {
   vendedor: { etiqueta: 'Vendedor', descripcion: 'Atiende ventas y pedidos en sucursal.', icono: BriefcaseBusiness },
   despacho: { etiqueta: 'Despacho', descripcion: 'Prepara y entrega pedidos.', icono: Truck },
 };
-const vacio = { nombre: '', email: '', password: '', rol: 'vendedor' };
+const vacio = { nombre: '', email: '', password: '', rol: 'vendedor', vehiculo: '', placa: '' };
 
 export default function PersonalAdmin() {
   const [personal, setPersonal] = useState([]);
@@ -57,8 +57,8 @@ export default function PersonalAdmin() {
     </section>
     <section className="staff-card">
       <header><div><Users size={20} /><h2>Equipo registrado</h2></div><span>{personal.length} cuentas</span></header>
-      {cargando ? <p>Cargando personal…</p> : <div className="staff-table-wrap"><table><thead><tr><th>Colaborador</th><th>Rol</th><th>Correo</th><th>Estado</th><th>Registro</th></tr></thead><tbody>
-        {personal.length ? personal.map((persona) => <tr key={persona.id}><td><b>{persona.nombre}</b></td><td><span className={`staff-role staff-role--${persona.rol}`}>{ROLES[persona.rol]?.etiqueta || persona.rol}</span></td><td>{persona.email}</td><td><span className={persona.activo ? 'staff-active' : 'staff-inactive'}>{persona.activo ? 'Activo' : 'Inactivo'}</span></td><td>{new Date(persona.fecha_registro).toLocaleDateString('es-BO')}</td></tr>) : <tr><td colSpan="5">Aún no hay personal registrado.</td></tr>}
+      {cargando ? <p>Cargando personal…</p> : <div className="staff-table-wrap"><table><thead><tr><th>Colaborador</th><th>Rol</th><th>Correo</th><th>Vehículo / placa</th><th>Estado</th><th>Registro</th></tr></thead><tbody>
+        {personal.length ? personal.map((persona) => <tr key={persona.id}><td><b>{persona.nombre}</b></td><td><span className={`staff-role staff-role--${persona.rol}`}>{ROLES[persona.rol]?.etiqueta || persona.rol}</span></td><td>{persona.email}</td><td>{persona.rol === 'despacho' ? [persona.vehiculo, persona.placa].filter(Boolean).join(' · ') || 'Sin registrar' : '—'}</td><td><span className={persona.activo ? 'staff-active' : 'staff-inactive'}>{persona.activo ? 'Activo' : 'Inactivo'}</span></td><td>{new Date(persona.fecha_registro).toLocaleDateString('es-BO')}</td></tr>) : <tr><td colSpan="6">Aún no hay personal registrado.</td></tr>}
       </tbody></table></div>}
     </section>
     {modal && <div className="staff-modal" role="dialog" aria-modal="true" aria-labelledby="staff-title"><form onSubmit={enviar}>
@@ -67,6 +67,10 @@ export default function PersonalAdmin() {
         <label>Nombre completo<input name="nombre" value={formulario.nombre} onChange={(e) => setFormulario({ ...formulario, nombre: e.target.value })} required minLength="2" maxLength="120" /></label>
         <label>Correo electrónico<input name="email" type="email" value={formulario.email} onChange={(e) => setFormulario({ ...formulario, email: e.target.value })} required maxLength="150" /></label>
         <label>Rol<select value={formulario.rol} onChange={(e) => setFormulario({ ...formulario, rol: e.target.value })}>{Object.entries(ROLES).map(([rol, dato]) => <option value={rol} key={rol}>{dato.etiqueta}</option>)}</select><small>{ROLES[formulario.rol].descripcion}</small></label>
+        {formulario.rol === 'despacho' && <>
+          <label>Vehículo<input name="vehiculo" value={formulario.vehiculo} onChange={(e) => setFormulario({ ...formulario, vehiculo: e.target.value })} maxLength="60" placeholder="Moto, auto, furgoneta…" /><small>Se puede completar o editar después en Repartidores.</small></label>
+          <label>Número de placa<input name="placa" value={formulario.placa} onChange={(e) => setFormulario({ ...formulario, placa: e.target.value.toUpperCase() })} minLength="3" maxLength="12" placeholder="ABC123" /></label>
+        </>}
         <label>Contraseña temporal<input name="password" type="password" value={formulario.password} onChange={(e) => setFormulario({ ...formulario, password: e.target.value })} required minLength="8" maxLength="128" autoComplete="new-password" /><small>Comparte esta contraseña de forma segura.</small></label>
       </div>
       <footer><button type="button" className="staff-cancel" onClick={() => setModal(false)} disabled={guardando}>Cancelar</button><button className="staff-save" disabled={guardando}><BadgeCheck size={18} />{guardando ? 'Registrando…' : 'Crear cuenta'}</button></footer>

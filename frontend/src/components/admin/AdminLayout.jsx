@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, Package, ReceiptText, Store, LogOut, Tags, TrendingUp, Users, X, ShoppingCart, UserCog, Warehouse } from 'lucide-react';
+import { Car, LayoutDashboard, Package, ReceiptText, Store, LogOut, Tags, TrendingUp, Truck, Users, X, ShoppingCart, UserCog, Warehouse } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { cerrarSesionAdmin, getAdminUser } from '../../services/adminService.js';
 import AdminHeader from './AdminHeader.jsx';
@@ -14,8 +14,10 @@ import './AdminContentFix.css';
 import './AdminTheme.css';
 
 const enlaces = [
-  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true, roles: ['admin', 'vendedor', 'despacho'] },
-  { to: '/admin/pedidos', label: 'Pedidos', icon: ReceiptText, roles: ['admin', 'vendedor', 'despacho'] },
+  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true, roles: ['admin', 'vendedor'] },
+  { to: '/admin/despacho', label: 'Despacho', icon: Truck, roles: ['admin', 'despacho'] },
+  { to: '/admin/repartidores', label: 'Repartidores', icon: Car, roles: ['admin'] },
+  { to: '/admin/pedidos', label: 'Pedidos', icon: ReceiptText, roles: ['admin', 'vendedor'] },
   { to: '/admin/ventas-directas', label: 'Ventas directas', icon: ShoppingCart, roles: ['admin', 'vendedor'] },
   { to: '/admin/productos', label: 'Productos', icon: Package, roles: ['admin'] },
   { to: '/admin/categorias', label: 'Categorías', icon: Tags, roles: ['admin'] },

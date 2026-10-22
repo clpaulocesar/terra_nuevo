@@ -11,9 +11,11 @@ import {
   obtenerComparativaPeriodos,
   obtenerResumenPeriodo,
   actualizarEstadoPedido,
+  actualizarEntregaPedido,
   actualizarItemsPedido,
+  asignarRepartidorPedido,
 } from '../controllers/pedidoController.js';
-import { authAdmin } from '../middlewares/authAdmin.js';
+import { authAdmin, requiereRol } from '../middlewares/authAdmin.js';
 
 const router = Router();
 
@@ -24,7 +26,9 @@ router.get('/analitica-horaria', authAdmin, obtenerAnaliticaHoraria);
 router.get('/comparativa', authAdmin, obtenerComparativaPeriodos);
 router.get('/resumen', authAdmin, obtenerResumenPeriodo);
 router.put('/:id/items', authAdmin, actualizarItemsPedido);
-router.patch('/:id/estado', actualizarEstadoPedido);
+router.patch('/:id/estado', authAdmin, requiereRol('admin', 'vendedor'), actualizarEstadoPedido);
+router.patch('/:id/entrega', authAdmin, requiereRol('admin', 'vendedor', 'despacho'), actualizarEntregaPedido);
+router.patch('/:id/repartidor', authAdmin, requiereRol('admin', 'vendedor'), asignarRepartidorPedido);
 router.patch('/:id/pago', registrarPagoPedido);
 router.get('/:id', obtenerPedido);
 

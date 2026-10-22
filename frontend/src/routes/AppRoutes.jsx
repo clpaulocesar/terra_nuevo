@@ -41,6 +41,8 @@ import RutaAdmin from '../components/admin/RutaAdmin.jsx';
 import VendedorLayout from '../components/vendedor/VendedorLayout.jsx';
 import DashboardVendedor from '../pages/vendedor/DashboardVendedor.jsx';
 import LoginVendedor from '../pages/vendedor/LoginVendedor.jsx';
+import DespachoAdmin from '../pages/admin/DespachoAdmin.jsx';
+import RepartidoresAdmin from '../pages/admin/RepartidoresAdmin.jsx';
 import ChatAsistente from '../components/chat/ChatAsistente.jsx';
 import CarritoFlotante from '../components/cart/CarritoFlotante.jsx';
 import WebAccountModal from '../components/WebAccountModal.jsx';
@@ -296,12 +298,14 @@ export default function AppRoutes() {
         <Route path="admin/login" element={<LoginAdmin />} />
         <Route path="vendedor/login" element={<LoginVendedor />} />
         <Route path="admin" element={<RutaAdmin><AdminLayout /></RutaAdmin>}>
-          <Route index element={<DashboardAdmin />} />
+          <Route index element={<RutaAdmin roles={['admin', 'vendedor']}><DashboardAdmin /></RutaAdmin>} />
+          <Route path="despacho" element={<RutaAdmin roles={['admin', 'despacho']}><DespachoAdmin /></RutaAdmin>} />
+          <Route path="repartidores" element={<RutaAdmin roles={['admin']}><RepartidoresAdmin /></RutaAdmin>} />
           <Route path="productos" element={<RutaAdmin roles={['admin']}><ProductosAdmin /></RutaAdmin>} />
           <Route path="ventas-directas" element={<RutaAdmin roles={['admin', 'vendedor']}><VentasDirectasAdmin /></RutaAdmin>} />
           <Route path="categorias" element={<RutaAdmin roles={['admin']}><CategoriasAdmin /></RutaAdmin>} />
           <Route path="almacen" element={<RutaAdmin roles={['admin']}><AlmacenAdmin /></RutaAdmin>} />
-          <Route path="pedidos" element={<RutaAdmin roles={['admin', 'vendedor', 'despacho']}><PedidosAdmin /></RutaAdmin>} />
+          <Route path="pedidos" element={<RutaAdmin roles={['admin', 'vendedor']}><PedidosAdmin /></RutaAdmin>} />
           <Route path="clientes" element={<RutaAdmin roles={['admin', 'vendedor']}><ClientesAdmin /></RutaAdmin>} />
           <Route path="personal" element={<RutaAdmin roles={['admin']}><PersonalAdmin /></RutaAdmin>} />
           <Route path="reportes" element={<RutaAdmin roles={['admin']}><ReportesAdmin /></RutaAdmin>} />
