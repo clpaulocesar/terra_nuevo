@@ -15,6 +15,28 @@ function textoLimpio(valor) {
   return String(valor || '').replace(/\s+/g, ' ').trim();
 }
 
+// Partes que no deben leerse: iconos de Material Symbols (su texto es una ligadura
+// como "bed" o "search"), iconos SVG y todo lo marcado aria-hidden.
+const SIN_LECTURA = '.material-symbols-outlined, .material-symbols-rounded, .material-icons, svg, script, style, [aria-hidden="true"]';
+
+// Texto visible de un elemento sin los iconos ni lo oculto para accesibilidad.
+export function textoVisible(elemento) {
+  if (!elemento) return '';
+  if (elemento.nodeType === 3) return elemento.textContent || '';
+  if (elemento.nodeType !== 1) return '';
+  if (elemento.matches?.(SIN_LECTURA)) return '';
+  const partes = [];
+  for (const hijo of elemento.childNodes) {
+    if (hijo.nodeType === 3) partes.push(hijo.textContent || '');
+    else if (hijo.nodeType === 1) {
+      if (hijo.matches?.(SIN_LECTURA)) continue;
+      const img = hijo.matches?.('img') ? textoLimpio(hijo.getAttribute('alt')) : '';
+      partes.push(img || textoVisible(hijo));
+    }
+  }
+  return partes.join(' ');
+}
+
 export function nombreAccesible(elemento) {
   if (!elemento) return '';
   const aria = textoLimpio(elemento.getAttribute?.('aria-label'));
@@ -33,7 +55,7 @@ export function nombreAccesible(elemento) {
   }
   const img = elemento.matches?.('img') ? elemento : elemento.querySelector?.('img[alt]');
   const alt = textoLimpio(img?.getAttribute?.('alt'));
-  const visible = textoLimpio(elemento.innerText ?? elemento.textContent);
+  const visible = textoLimpio(textoVisible(elemento));
   if (visible) return visible;
   if (alt) return alt;
   return textoLimpio(elemento.getAttribute?.('title'));

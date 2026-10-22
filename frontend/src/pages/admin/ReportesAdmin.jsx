@@ -672,7 +672,7 @@ export default function ReportesAdmin() {
           </label>
           <div className="rep-filters__actions">
             <button type="button" className="rep-btn rep-btn--primary" onClick={aplicarFechas}><SlidersHorizontal size={16} /> Aplicar</button>
-            <button type="button" className="rep-btn rep-btn--icon" onClick={limpiarFiltros} title="Limpiar parámetros"><RotateCcw size={16} /></button>
+            <button type="button" className="rep-btn rep-btn--icon" onClick={limpiarFiltros} title="Limpiar parámetros" aria-label="Limpiar parámetros"><RotateCcw size={16} /></button>
           </div>
         </div>
       </section>
@@ -831,7 +831,7 @@ export default function ReportesAdmin() {
             ))}
           </div>
           <div className="rep-tools">
-            <label><Search size={16} /><input value={busqueda} onChange={(evento) => { setBusqueda(evento.target.value); setPagina(1); }} placeholder="Filtrar por ticket, cliente o producto…" /></label>
+            <label><Search size={16} /><input value={busqueda} onChange={(evento) => { setBusqueda(evento.target.value); setPagina(1); }} placeholder="Filtrar por ticket, cliente o producto…" aria-label="Filtrar por ticket, cliente o producto" /></label>
             <button type="button" className="rep-btn rep-btn--ghost rep-btn--sm" onClick={exportarCSV}><Download size={15} /> Exportar vista</button>
           </div>
         </header>
@@ -855,7 +855,7 @@ export default function ReportesAdmin() {
                         <td><span className={`rep-estado rep-estado--${TONO_ESTADO[etiqueta] || 'muted'}`}>{etiqueta}</span></td>
                         <td className="right">
                           {pedido.comprobante_url
-                            ? <a className="rep-action" href={pedido.comprobante_url} target="_blank" rel="noreferrer" title="Ver comprobante"><ExternalLink size={17} /></a>
+                            ? <a className="rep-action" href={pedido.comprobante_url} target="_blank" rel="noreferrer" title="Ver comprobante" aria-label="Ver comprobante"><ExternalLink size={17} /></a>
                             : <span className="rep-action is-off" title="Sin comprobante adjunto"><Eye size={17} /></span>}
                         </td>
                       </tr>

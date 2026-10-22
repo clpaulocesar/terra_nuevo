@@ -289,7 +289,7 @@ export default function AlmacenAdmin() {
 
         {!productoLeido && (
           <form className="warehouse-manual" onSubmit={buscarManual}>
-            <label><Search size={17} /><input value={codigoManual} onChange={(e) => setCodigoManual(e.target.value)} placeholder="Código Terra, SKU o id del producto" maxLength="100" /></label>
+            <label><Search size={17} /><input value={codigoManual} onChange={(e) => setCodigoManual(e.target.value)} placeholder="Código Terra, SKU o id del producto" aria-label="Código Terra, SKU o id del producto" maxLength="100" /></label>
             <button type="submit" className="ghost" disabled={buscandoProducto || !texto(codigoManual)}>{buscandoProducto ? 'Buscando…' : 'Buscar'}</button>
           </form>
         )}
@@ -332,7 +332,7 @@ export default function AlmacenAdmin() {
       <section className="warehouse-card warehouse-categories">
         <header>
           <div><h2><Layers size={18} /> Stock por categoría</h2><span>Tocá una categoría para ver sus productos y aumentar stock.</span></div>
-          <label className="warehouse-filter"><Search size={16} /><input value={filtro} onChange={(e) => setFiltro(e.target.value)} placeholder="Filtrar producto o SKU" /></label>
+          <label className="warehouse-filter"><Search size={16} /><input value={filtro} onChange={(e) => setFiltro(e.target.value)} placeholder="Filtrar producto o SKU" aria-label="Filtrar producto o SKU" /></label>
         </header>
 
         {cargando && <p className="warehouse-state">Cargando inventario…</p>}
@@ -363,8 +363,8 @@ export default function AlmacenAdmin() {
                           {editando
                             ? <div className="warehouse-adjust">
                                 <input type="number" min="1" max={CANTIDAD_MAXIMA} inputMode="numeric" autoFocus value={ajuste.cantidad} onChange={(e) => setAjuste({ id: p.id, cantidad: e.target.value })} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); guardarAjuste(p); } if (e.key === 'Escape') setAjuste(null); }} />
-                                <button type="button" className="primary" disabled={guardandoAjuste} onClick={() => guardarAjuste(p)} title="Confirmar"><Check size={15} /></button>
-                                <button type="button" className="ghost" onClick={() => setAjuste(null)} title="Cancelar"><X size={15} /></button>
+                                <button type="button" className="primary" disabled={guardandoAjuste} onClick={() => guardarAjuste(p)} title="Confirmar" aria-label="Confirmar"><Check size={15} /></button>
+                                <button type="button" className="ghost" onClick={() => setAjuste(null)} title="Cancelar" aria-label="Cancelar"><X size={15} /></button>
                               </div>
                             : <button type="button" className="warehouse-add" onClick={() => setAjuste({ id: p.id, cantidad: 1 })}><Plus size={15} /> Stock</button>}
                         </td>

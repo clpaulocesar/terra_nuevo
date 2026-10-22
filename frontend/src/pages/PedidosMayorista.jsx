@@ -533,6 +533,7 @@ export default function PedidosMayorista() {
             className="orders-search-field"
             type="text"
             placeholder="Buscar por Nº de pedido (#TR-9821) o factura..."
+            aria-label="Buscar pedido por número o factura"
             value={busqueda}
             onChange={(e) => {
               setBusqueda(e.target.value);

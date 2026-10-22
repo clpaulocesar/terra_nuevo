@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useAccesibilidad } from "../context/AccesibilidadContext.jsx";
 import {
   Check,
   ChevronDown,
@@ -104,6 +105,16 @@ export default function DetalleProducto() {
     }, 80);
   };
   const [agregado, setAgregado] = useState(false);
+
+  // Escape cierra el video ampliado (accesibilidad de teclado).
+  useEffect(() => {
+    if (!videoAmpliado) return undefined;
+    const alEscape = (e) => {
+      if (e.key === "Escape") setVideoAmpliado(false);
+    };
+    document.addEventListener("keydown", alEscape);
+    return () => document.removeEventListener("keydown", alEscape);
+  }, [videoAmpliado]);
 
   useEffect(() => {
     let activo = true;
@@ -244,6 +255,23 @@ export default function DetalleProducto() {
     setAgregado(true);
     setTimeout(() => setAgregado(false), 1800);
   };
+  // Comando de voz "agregar" / "agregar al carrito" sobre el producto abierto.
+  const { anunciar: anunciarVoz } = useAccesibilidad();
+  const agregarRef = useRef(agregar);
+  agregarRef.current = agregar;
+  useEffect(() => {
+    const alComando = (evento) => {
+      const { accion } = evento.detail || {};
+      if (accion !== "agregar") return;
+      if (!producto) return;
+      if (Number(producto.stock) <= 0) { anunciarVoz(`${producto.nombre} está agotado.`); return; }
+      agregarRef.current();
+      anunciarVoz(cantidad > 1 ? `${cantidad} unidades de ${producto.nombre} agregadas al carrito.` : `${producto.nombre} agregado al carrito.`);
+    };
+    window.addEventListener("terra:voz", alComando);
+    return () => window.removeEventListener("terra:voz", alComando);
+  }, [producto, cantidad, anunciarVoz]);
+
   const autoAgregadoRef = useRef(false);
   useEffect(() => {
     if (!autoAgregar || autoAgregadoRef.current) return;
@@ -347,6 +375,7 @@ export default function DetalleProducto() {
                         onClick={() => setCuadrosAbiertos((v) => !v)}
                         aria-expanded={cuadrosAbiertos}
                         title="Más colores"
+                        aria-label="Más colores"
                       >
                         +
                       </button>
@@ -435,7 +464,13 @@ export default function DetalleProducto() {
                 className="video-modal"
                 onClick={() => setVideoAmpliado(false)}
               >
-                <div className="video-box" onClick={(e) => e.stopPropagation()}>
+                <div
+                  className="video-box"
+                  onClick={(e) => e.stopPropagation()}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={`Video de ${producto.nombre}`}
+                >
                   <button
                     type="button"
                     className="video-close"

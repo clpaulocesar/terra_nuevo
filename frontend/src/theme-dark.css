@@ -875,5 +875,21 @@ html[data-theme="dark"] .terra-login img {
   box-sizing: content-box;
 }
 
+/* ---------- Panel de comandos del micrófono ---------- */
+html[data-theme="dark"] .terra-voz__ayuda { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-muted); }
+html[data-theme="dark"] .terra-voz__ayuda:hover,
+html[data-theme="dark"] .terra-voz__ayuda.is-on { background: var(--td-accent); border-color: var(--td-accent); color: #fff; }
+html[data-theme="dark"] .terra-voz__panel { background: var(--td-surface); color: var(--td-text); border-color: var(--td-line); box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55); }
+html[data-theme="dark"] .terra-voz__panel-flecha { background: var(--td-surface); border-color: var(--td-line); }
+html[data-theme="dark"] .terra-voz__panel-titulo,
+html[data-theme="dark"] .terra-voz__lista li em,
+html[data-theme="dark"] .terra-voz__panel-pie strong { color: #ffb3bd; }
+html[data-theme="dark"] .terra-voz__panel-titulo--escuchando { color: var(--td-ok); }
+html[data-theme="dark"] .terra-voz__panel-texto,
+html[data-theme="dark"] .terra-voz__lista li span { color: var(--td-text); }
+html[data-theme="dark"] .terra-voz__panel-texto em { color: #fff; }
+html[data-theme="dark"] .terra-voz__lista-fijo:first-of-type { border-top-color: var(--td-line); }
+html[data-theme="dark"] .terra-voz__panel-pie { color: var(--td-muted); }
+
 /* ---------- Scrollbars y selección ---------- */
 html[data-theme="dark"] ::selection { background: rgba(224, 48, 74, 0.45); color: #fff; }

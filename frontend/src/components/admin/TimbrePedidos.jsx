@@ -181,7 +181,7 @@ export default function TimbrePedidos() {
       {abierto && <div className="timbre__menu" role="dialog" aria-label="Pedidos por cobrar">
         <header className="timbre__head">
           <div><strong>Pedidos por cobrar</strong><small>{total ? `${total} en caja` : 'Sin pedidos pendientes'}</small></div>
-          <button type="button" className="timbre__refresh" onClick={consultar} disabled={cargando} title="Actualizar pedidos"><RefreshCw size={15} /></button>
+          <button type="button" className="timbre__refresh" onClick={consultar} disabled={cargando} title="Actualizar pedidos" aria-label="Actualizar pedidos"><RefreshCw size={15} /></button>
         </header>
         {!sonidoListo && <p className="timbre__hint">Toca la campana para habilitar el sonido del timbre.</p>}
         {cargando && <p className="timbre__empty">Consultando pedidos…</p>}

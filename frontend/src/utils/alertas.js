@@ -6,6 +6,16 @@ import '../styles/alertas.css';
  * Diseño: advertencia -> confirmar/cancelar -> resultado (éxito/cancelado).
  * Los estilos de los botones viven en `src/styles/alertas.css`.
  */
+// Modo accesible "Más tiempo": los avisos de éxito no se cierran solos.
+// Lo configura ModoAccesibleContext al cambiar el estado.
+let masTiempo = false;
+export function configurarAlertas({ masTiempo: valor } = {}) {
+  masTiempo = Boolean(valor);
+}
+const opcionesTemporizador = (ms) => (masTiempo
+  ? { showConfirmButton: true, confirmButtonText: 'Entendido' }
+  : { timer: ms, timerProgressBar: true, showConfirmButton: false });
+
 const swalEliminar = Swal.mixin({
   customClass: {
     container: 'terra-swal-container',
@@ -54,9 +64,7 @@ export function avisoEliminado(texto = 'El registro fue eliminado.') {
     title: '¡Eliminado!',
     text: texto,
     icon: 'success',
-    timer: 2200,
-    timerProgressBar: true,
-    showConfirmButton: false,
+    ...opcionesTemporizador(2200),
   });
 }
 
@@ -66,9 +74,7 @@ export function avisoExito({ titulo = '¡Listo!', texto = '' } = {}) {
     title: titulo,
     text: texto,
     icon: 'success',
-    timer: 2400,
-    timerProgressBar: true,
-    showConfirmButton: false,
+    ...opcionesTemporizador(2400),
   });
 }
 
