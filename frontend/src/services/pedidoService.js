@@ -24,5 +24,26 @@ export async function listarPedidos({ buscar = '', estado = '', limite = 100 } =
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 }
+export async function obtenerAnaliticaHoraria({ desde, hasta, horaInicio, horaFin } = {}) {
+  exigirConexionReal();
+  const parametros = new URLSearchParams();
+  if (desde) parametros.set('desde', desde);
+  if (hasta) parametros.set('hasta', hasta);
+  if (horaInicio !== undefined && horaInicio !== null) parametros.set('horaInicio', String(horaInicio));
+  if (horaFin !== undefined && horaFin !== null) parametros.set('horaFin', String(horaFin));
+  const token = getAdminToken();
+  return apiRequest(`/pedidos/analitica-horaria?${parametros}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+}
 export async function actualizarEstadoPedido(id, estado) { exigirConexionReal(); return apiRequest(`/pedidos/${id}/estado`, { method: 'PATCH', body: { estado } }); }
 export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = null }) { exigirConexionReal(); return apiRequest(`/pedidos/${id}/pago`, { method: 'PATCH', body: { metodoPago, comprobanteUrl } }); }
+export async function actualizarItemsPedido(id, items) {
+  exigirConexionReal();
+  const token = getAdminToken();
+  if (!token) throw new Error('Inicia sesión nuevamente para modificar el pedido.');
+  return apiRequest(`/pedidos/${id}/items`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}` },
+    body: { items: items.map(item => ({ productoId: String(item.productoId), cantidad: Number(item.cantidad) })) },
+  });
+}
+

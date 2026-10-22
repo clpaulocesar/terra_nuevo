@@ -14,7 +14,7 @@ export function imprimirTicketVenta({ venta, cliente, items = [], metodoPago = '
     timeZone: 'America/La_Paz',
   }).format(new Date(venta?.fecha || Date.now()));
 
-  const codigo = venta?.codigo || (venta?.id ? `#${venta.id}` : 'VENTA-DIRECTA');
+  const codigo = venta?.numero ? `Pedido #${venta.numero} · ${venta?.codigo || venta?.id}` : (venta?.codigo || (venta?.id ? `#${venta.id}` : 'VENTA-DIRECTA'));
   const nombreCliente = cliente?.nombre || 'Venta en mostrador (Cliente final)';
   const nitCliente = cliente?.nit || '';
   const telCliente = cliente?.telefono || '';
