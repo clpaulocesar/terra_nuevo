@@ -6,7 +6,18 @@
 .orders-refresh:disabled{cursor:progress;opacity:.65}
 .orders-refresh .is-spinning{animation:orders-spin 1s linear infinite}
 .orders-client-data{color:#404944!important;font-size:.82rem;font-weight:700;margin:.15rem 0 0!important}
+.orders-modal{overflow-y:auto;z-index:80}
+.orders-modal>section{max-height:calc(100dvh - 2rem);overflow-y:auto;overscroll-behavior:contain}
 .order-actions{display:flex;flex-wrap:wrap;gap:.4rem}.order-actions .order-ticket{background:#f4ecee;color:#a6192e}.order-actions button:disabled{cursor:progress;opacity:.65}
+.orders-list{overflow-x:auto}
+.orders-list>article{grid-template-columns:minmax(145px,1fr) minmax(145px,1.3fr) minmax(175px,1.7fr) minmax(100px,.8fr) minmax(120px,1fr) minmax(220px,1.15fr)}
+.orders-list>article>.order-actions{align-self:stretch;display:grid;gap:.45rem;grid-template-columns:repeat(2,minmax(0,1fr));min-width:0;width:100%}
+.orders-list>article>.order-actions>button{align-items:center;box-sizing:border-box;display:inline-flex;justify-content:center;margin:0;min-width:0;width:100%;white-space:nowrap}
+.orders-list>article>.order-actions>.order-primary-action{background:#a6192e;grid-column:1/-1;min-height:2.55rem}
+.orders-list>article>.order-actions>.order-primary-action:hover{background:#891426}
+.orders-list>article>.order-actions>button:focus-visible{outline:3px solid #e8a2af;outline-offset:2px}
+.orders-list>article>div:not(.order-actions){min-width:0}
+.orders-list>article>div:not(.order-actions) b,.orders-list>article>div:not(.order-actions) small{overflow-wrap:anywhere}
 .order-actions .order-edit-action {
   background: #fdf2f4;
   color: #ad1934;
@@ -48,6 +59,7 @@
 }
 @keyframes orders-spin{to{transform:rotate(360deg)}}
 @media(max-width:700px){.orders-list>header{align-items:flex-start;flex-direction:column;gap:.75rem}.orders-list-tools{width:100%}}
+@media(max-width:900px){.orders-list>article{min-width:895px}}
 
 .orders-modal .orders-receipt{background:#f6f3f2;border:1px dashed #dcd9d9;border-radius:.8rem;margin-top:1rem;padding:.85rem 1rem}
 .orders-modal .orders-receipt-head{align-items:center;display:flex;gap:.5rem;justify-content:space-between}
@@ -394,4 +406,3 @@
   opacity: .5;
   cursor: not-allowed;
 }
-
