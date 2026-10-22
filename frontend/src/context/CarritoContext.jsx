@@ -15,7 +15,10 @@ const precioParaCantidad = (producto, cantidad, esMayorista) => {
   const tramo = escalasValidas(producto?.escalasMayorista)
     .filter((escala) => escala.minCantidad <= cantidad)
     .at(-1);
-  const precioMayorista = Number(producto?.precioMayorista);
+  const valorMayorista = producto?.precioMayorista;
+  const precioMayorista = valorMayorista === null || valorMayorista === undefined || valorMayorista === ''
+    ? Number.NaN
+    : Number(valorMayorista);
   return Number.isFinite(tramo?.precio)
     ? tramo.precio
     : (Number.isFinite(precioMayorista) ? precioMayorista : precioPublico);
@@ -23,6 +26,7 @@ const precioParaCantidad = (producto, cantidad, esMayorista) => {
 
 export function CarritoProvider({ children }) {
   const [items, setItems] = useState([]);
+  const [entregaDomicilio, setEntregaDomicilio] = useState(false);
   const { esMayorista } = useContext(SesionClienteContext);
 
   useEffect(() => {
@@ -84,7 +88,10 @@ export function CarritoProvider({ children }) {
       .filter((item) => item.cantidad > 0));
   }, [esMayorista]);
 
-  const vaciarCarrito = useCallback(() => setItems([]), []);
+  const vaciarCarrito = useCallback(() => {
+    setItems([]);
+    setEntregaDomicilio(false);
+  }, []);
 
   const importarProductosQr = useCallback((productos) => {
     if (!Array.isArray(productos)) return;
@@ -137,8 +144,9 @@ export function CarritoProvider({ children }) {
     return {
       items, cantidadTotal, subtotal, total: subtotal,
       agregarProducto, importarProductosQr, quitarProducto, actualizarCantidad, vaciarCarrito,
+      entregaDomicilio, setEntregaDomicilio,
     };
-  }, [items, agregarProducto, importarProductosQr, quitarProducto, actualizarCantidad, vaciarCarrito]);
+  }, [items, agregarProducto, importarProductosQr, quitarProducto, actualizarCantidad, vaciarCarrito, entregaDomicilio]);
 
   return <CarritoContext.Provider value={valor}>{children}</CarritoContext.Provider>;
 }
