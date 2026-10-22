@@ -418,7 +418,7 @@ export default function PedidosAdmin() {
               <Edit3 size={15} /> Editar
             </button>
           )}
-          <button onClick={() => abrirPedido(pedido)}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={18} /> Cobrar</> : 'Ver detalle'}</button>
+          <button type="button" className="order-primary-action" onClick={() => abrirPedido(pedido)} title={POR_COBRAR.includes(pedido.estado) ? 'Registrar el pago del pedido' : 'Consultar el detalle del pedido'}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={18} /> Cobrar</> : 'Ver detalle'}</button>
         </div>
       </article>)}
     </section>
