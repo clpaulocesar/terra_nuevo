@@ -2,6 +2,7 @@ import { crearUsuarioSupabase, eliminarUsuarioSupabase } from '../services/supab
 import {
   actualizarPersonalBD,
   crearPersonalBD,
+  eliminarPersonalBD,
   listarPersonalBD,
   listarRepartidoresBD,
   obtenerPersonalBD,
@@ -79,5 +80,18 @@ export async function actualizarPersonal(req, res, next) {
     const activo = typeof req.body?.activo === 'boolean' ? req.body.activo : null;
     const personal = await actualizarPersonalBD(id, { nombre, vehiculo: reparto.vehiculo, placa: reparto.placa, activo });
     return res.json({ success: true, data: personal, mensaje: 'Datos actualizados.' });
+  } catch (error) { return next(error); }
+}
+
+export async function eliminarPersonal(req, res, next) {
+  try {
+    const id = texto(req.params.id);
+    if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ success: false, mensaje: 'Identificador inválido.' });
+    if (req.admin?.id === id) return res.status(409).json({ success: false, mensaje: 'No puedes eliminar tu propia cuenta mientras tienes la sesión iniciada.' });
+
+    const eliminado = await eliminarPersonalBD(id);
+    if (!eliminado) return res.status(404).json({ success: false, mensaje: 'Cuenta no encontrada.' });
+    await eliminarUsuarioSupabase(eliminado.authUserId);
+    return res.json({ success: true, data: { id }, mensaje: 'Cuenta eliminada y envíos liberados.' });
   } catch (error) { return next(error); }
 }

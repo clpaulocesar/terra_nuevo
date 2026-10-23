@@ -260,6 +260,9 @@
 .dispatch .dispatch-list > .dispatch-card.is-entregado {
   border-left-color: var(--dp-ok);
 }
+.dispatch .dispatch-list > .dispatch-card.is-route-open {
+  grid-column: 1 / -1;
+}
 .dispatch-card header {
   align-items: flex-start;
   display: flex;

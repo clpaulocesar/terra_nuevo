@@ -130,7 +130,8 @@ export async function listarPedidos(req, res, next) {
     if (!['', 'domicilio', 'retiro'].includes(entregaSolicitada)) return res.status(400).json({ success: false, mensaje: 'Tipo de entrega inválido' });
     // Despacho solo ve lo que tiene que repartir a domicilio.
     const entrega = req.admin?.rol === 'despacho' ? 'domicilio' : entregaSolicitada;
-    const pedidos = await listarPedidosBD({ buscar: String(req.query.buscar ?? '').trim(), estado, entrega, limite });
+    const repartidorId = req.admin?.rol === 'despacho' ? req.admin.id : null;
+    const pedidos = await listarPedidosBD({ buscar: String(req.query.buscar ?? '').trim(), estado, entrega, repartidorId, limite });
     return res.json({ success: true, data: pedidos });
   } catch (error) { next(error); }
 }

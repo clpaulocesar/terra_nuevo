@@ -134,7 +134,7 @@ export async function obtenerPedidoBD(id) {
   };
 }
 
-export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', limite = 100 } = {}) {
+export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', repartidorId = null, limite = 100 } = {}) {
   await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega(), asegurarTablaPersonal()]);
   const valores=[]; const condiciones=[];
   const termino=String(buscar||'').trim();
@@ -161,6 +161,7 @@ export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', 
   // Despacho solo trabaja con pedidos que se envían a domicilio.
   if(entrega==='domicilio') condiciones.push(`p.fulfillment_type='home_delivery'`);
   if(entrega==='retiro') condiciones.push(`p.fulfillment_type='store_pickup'`);
+  if(repartidorId){valores.push(repartidorId);condiciones.push(`p.delivery_driver_id=$${valores.length}`);}
   valores.push(limite); const where=condiciones.length?`WHERE ${condiciones.join(' AND ')}`:'';
   const { rows } = await pool.query(`
     WITH pedidos_base AS (
