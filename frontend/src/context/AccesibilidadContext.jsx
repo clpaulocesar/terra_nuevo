@@ -117,6 +117,16 @@ export function AccesibilidadProvider({ children }) {
     return () => { if (manejadorComandoRef.current === fn) manejadorComandoRef.current = null; };
   }, []);
 
+  // Ejecuta una frase como si se hubiera dicho por voz (botones del panel "Podés decir…").
+  const ejecutarComando = useCallback((frase) => {
+    const texto = String(frase || '').trim();
+    if (!texto) return false;
+    const manejador = manejadorComandoRef.current;
+    if (!manejador) return false;
+    manejador(texto, [texto]);
+    return true;
+  }, []);
+
   const detenerEscucha = useCallback(() => {
     try { reconocimientoRef.current?.stop(); } catch { /* ya detenido */ }
     reconocimientoRef.current = null;
@@ -177,7 +187,8 @@ export function AccesibilidadProvider({ children }) {
     escuchar,
     detenerEscucha,
     registrarManejadorComando,
-  }), [vozActiva, escuchando, anunciar, hablar, detener, cambiarVoz, alternarVoz, escuchar, detenerEscucha, registrarManejadorComando]);
+    ejecutarComando,
+  }), [vozActiva, escuchando, anunciar, hablar, detener, cambiarVoz, alternarVoz, escuchar, detenerEscucha, registrarManejadorComando, ejecutarComando]);
 
   return (
     <AccesibilidadContext.Provider value={valor}>
