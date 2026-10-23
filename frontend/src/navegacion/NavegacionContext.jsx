@@ -16,7 +16,7 @@ export function NavegacionProvider({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { anunciar } = useAccesibilidad();
-  const { esMayorista, cerrarSesion: cerrarSesionMayorista } = useContext(SesionClienteContext);
+  const { esMayorista, cerrarSesion: cerrarSesionMayorista, sesionVencida, limpiarVencida } = useContext(SesionClienteContext);
   // Puede ser null en tests o pantallas montadas sin ModoAccesibleProvider.
   const modoAccesible = useModoAccesibleOpcional();
 
@@ -37,6 +37,16 @@ export function NavegacionProvider({ children }) {
 
   const abrirLoginMayorista = useCallback(() => setLoginMayoristaAbierto(true), []);
   const cerrarLoginMayorista = useCallback(() => setLoginMayoristaAbierto(false), []);
+
+  // La sesión mayorista venció sola: se avisa y se vuelve a pedir el inicio de sesión.
+  useEffect(() => {
+    if (!sesionVencida) return;
+    limpiarVencida();
+    const zona = zonaDeRuta(location.pathname);
+    if (zona === 'admin' || zona === 'vendedor') return;
+    setLoginMayoristaAbierto(true);
+    anunciar('Tu sesión mayorista venció. Volvé a iniciar sesión.', { forzar: true });
+  }, [sesionVencida, limpiarVencida, location.pathname, anunciar]);
 
   // ?login=1 en cualquier ruta pública abre el modal y limpia el parámetro.
   useEffect(() => {

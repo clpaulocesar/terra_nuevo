@@ -13,6 +13,7 @@ export default function LoginAdmin() {
   const [visible, setVisible] = useState(false);
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [recordar, setRecordar] = useState(true);
   const navigate = useNavigate();
 
   async function enviar(event) {
@@ -20,7 +21,7 @@ export default function LoginAdmin() {
     setCargando(true);
     setError('');
     try {
-      const usuario = await iniciarSesionAdmin(email, password);
+      const usuario = await iniciarSesionAdmin(email, password, { recordar });
       // Si llegó aquí por voz/chat pidiendo una sección, se lo lleva ahí (si su rol lo permite).
       const inicio = usuario?.rol === 'despacho' ? '/admin/despacho' : '/admin';
       navigate(consumirDestinoPendiente(usuario?.rol, 'admin') || inicio, { replace: true });
@@ -109,7 +110,7 @@ export default function LoginAdmin() {
 
             <div className="terra-login-options">
               <label>
-                <input type="checkbox" defaultChecked />
+                <input type="checkbox" checked={recordar} onChange={(event) => setRecordar(event.target.checked)} />
                 Recordar sesión en esta terminal
               </label>
               <span><Lock size={14} /> POS seguro</span>

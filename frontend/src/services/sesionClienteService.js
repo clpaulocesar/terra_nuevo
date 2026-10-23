@@ -9,7 +9,9 @@ export async function iniciarSesionCliente(email, password) {
   const data = await respuesta.json().catch(() => ({}));
   if (!respuesta.ok || !data.access_token) throw new Error(data.error_description || 'Correo o contraseña incorrectos.');
   const perfil = await apiRequest('/clientes/sesion', { headers: { Authorization: `Bearer ${data.access_token}` } });
-  return { ...perfil, token: data.access_token };
+  // `expira` (ms) acompaña al token para que "Recordar mi sesión" respete su vencimiento.
+  const segundos = Number(data.expires_in) > 0 ? Number(data.expires_in) : 3600;
+  return { ...perfil, token: data.access_token, expira: Date.now() + segundos * 1000 };
 }
 
 export async function actualizarPerfilMayorista(token, datos) {
