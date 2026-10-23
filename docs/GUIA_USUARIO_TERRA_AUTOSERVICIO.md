@@ -4,7 +4,7 @@
 |---|---|
 | **Sistema** | TERRA Autoservicio (kiosco digital, portal mayorista y backoffice) |
 | **Versión del sistema** | 2.0 |
-| **Versión del documento** | 1.0 |
+| **Versión del documento** | 1.1 |
 | **Fecha** | 23 de octubre de 2026 |
 | **Organización** | TERRA Autoservicio · Grupo Terra SRL · Sucursal Equipetrol, Santa Cruz de la Sierra, Bolivia |
 | **Dirigido a** | Clientes en tienda, clientes mayoristas, administradores, vendedores y personal de despacho |
@@ -157,7 +157,7 @@ No necesitas iniciar sesión. Toca la pantalla del kiosco y empieza por **Comenz
 
 ![Modal de inicio de sesión mayorista](img/mayorista-login-paso2.png)
 
-⚠️ La casilla **Recordar mi sesión** no mantiene la sesión abierta: si recargas la página o cierras el navegador tendrás que volver a ingresar.
+💡 Marca **Recordar mi sesión** para seguir conectado aunque recargues la página o cierres el navegador. La sesión recordada vence sola al caducar tu acceso; entonces el sistema te avisa y vuelve a pedir el inicio de sesión. Si no la marcas, la sesión dura solo mientras la página está abierta.
 
 ⚠️ **Recuperación de contraseña**: la opción **¿Olvidaste tu contraseña?** aún no está disponible. Comunícate con tu asesor TERRA por el botón **WhatsApp** del mismo formulario o escribe a soporte@terra.bo.
 
@@ -172,7 +172,7 @@ No necesitas iniciar sesión. Toca la pantalla del kiosco y empieza por **Comenz
 
 ![Pantalla de acceso administrativo](img/admin-login-paso2.png)
 
-⚠️ La casilla **Recordar sesión en esta terminal** no tiene efecto. La sesión dura **8 horas** y se pierde al cerrar la pestaña o el navegador.
+💡 La sesión dura **8 horas**. Con **Recordar sesión en esta terminal** marcada, se mantiene aunque cierres la pestaña o el navegador; al cumplirse las 8 horas se cierra sola y vuelves a la pantalla de acceso. Sin marcarla, la sesión se pierde al cerrar la pestaña.
 
 ⚠️ **Recuperación de contraseña**: el enlace **¿La olvidaste?** solo muestra el aviso "Contacte a soporte@terra.bo para recuperar el acceso". Un administrador no puede cambiar tu contraseña desde el sistema: pide a soporte que lo haga.
 
@@ -382,7 +382,7 @@ Cualquier persona que usa la tablet del showroom (o la tienda desde su celular).
 4. Toca **Agregar al carrito**. El botón cambia a "Agregado al carrito".
 5. Resultado: el contador del carrito aumenta. **Volver al catálogo** te regresa a la lista.
 
-⚠️ El botón **Comprar ahora** te lleva directo al carrito pero **no agrega** el producto. Agrégalo primero.
+💡 **Comprar ahora** agrega la cantidad elegida al carrito y te lleva directo a él. Si el producto ya estaba en el carrito, se suma a la línea existente sin superar el stock.
 
 ### 9.5 Procedimiento: comprar escaneando códigos QR
 
@@ -470,7 +470,7 @@ Botones disponibles: **Descargar ticket**, **Enviar ticket a WhatsApp TERRA** (s
 | "No se pudo cargar el catálogo" / "No se pudo conectar al backend…" | Sin conexión con el servidor. | Toca **Reintentar**. Si persiste, avisa al personal. |
 | "No encontramos productos" | Filtros o búsqueda sin resultados. | Toca **Restablecer filtros**. |
 | El botón **Agregar al carrito** está gris | Producto agotado. | Consulta disponibilidad en caja. |
-| "Error interno del servidor" al confirmar | Stock insuficiente o producto ya no disponible. | Vuelve al carrito, reduce la cantidad y confirma de nuevo. Si persiste, avisa al personal. |
+| "Stock insuficiente para …. Disponible: N." al confirmar | Pediste más unidades de las que quedan. | Vuelve al carrito y ajusta la cantidad al disponible indicado. |
 | "MODO DEMOSTRACIÓN…" en la parte superior | La tablet está en modo exhibición. | Los pedidos no son reales. Avisa al personal. |
 | El carrito se vació | Se recargó la página. | Vuelve a agregar los productos. |
 
@@ -511,8 +511,6 @@ Con sesión iniciada, el botón con tus iniciales abre:
 
 ![Perfil mayorista con mapa](img/mayorista-perfil-paso3.png)
 
-⚠️ La foto o logo que subes se muestra solo en esa pantalla y no queda guardada.
-
 **Mensajes**
 
 | Mensaje | Qué hacer |
@@ -548,7 +546,7 @@ Con sesión iniciada, el botón con tus iniciales abre:
 1. Abre el menú de cuenta y toca **Mis pedidos**.
 2. Filtra con las pestañas **Todos**, **En camino (N)** o **Completados**, o busca por número de pedido o artículo. **Limpiar** quita los filtros.
 3. Toca **Ver detalle** en un pedido para ver sus ítems, el lugar de entrega y el **Seguimiento de Despacho** en cuatro pasos: "Confirmado" → "Pago OK" → "En camión" (o "En planta") → "Entregado".
-4. Acciones del detalle: **Repetir compra** (carga los mismos artículos al carrito), **Factura PDF** (descarga la imagen del ticket) y **Contactar asesor** por WhatsApp.
+4. Acciones del detalle: **Repetir compra** (carga los mismos artículos al carrito), **Descargar ticket** (descarga la imagen del ticket) y **Contactar asesor** por WhatsApp.
 5. **Exportar Excel** descarga un archivo con todos tus pedidos.
 
 ![Mis pedidos mayorista](img/mayorista-pedidos-paso3.png)
@@ -570,10 +568,11 @@ Con sesión iniciada, el botón con tus iniciales abre:
 
 | Problema | Causa | Solución |
 |---|---|---|
-| Perdí la sesión al recargar | La sesión no se guarda en el dispositivo. | Vuelve a iniciar sesión. |
+| Perdí la sesión al recargar | No marcaste **Recordar mi sesión** al ingresar. | Vuelve a iniciar sesión y marca la casilla si quieres conservarla. |
 | "Envío a domicilio" aparece deshabilitado | No tienes dirección registrada. | Completa tu perfil (10.3). |
 | "La sesión mayorista no es válida." | La sesión venció. | Cierra sesión y vuelve a entrar. |
-| "Error interno del servidor" al confirmar | Stock insuficiente o cantidad menor al mínimo de compra. | Ajusta cantidades y reintenta; consulta a tu asesor. |
+| "Stock insuficiente para …. Disponible: N." al confirmar | Pediste más unidades de las que quedan. | Ajusta la cantidad al disponible indicado. |
+| "La cantidad mínima mayorista para … es N." al confirmar | La cantidad no llega al mínimo del precio mayorista. | Sube la cantidad al mínimo indicado o consulta a tu asesor. |
 | Un producto aparece "Agotado" aunque elegiste cantidad | El stock no alcanza el mínimo mayorista. | Consulta disponibilidad con tu asesor. |
 
 ---
@@ -621,8 +620,6 @@ Responsable de la operación completa: cobra pedidos, administra catálogo, prec
 8. Toca **Imprimir ticket** para entregar el comprobante impreso.
 
 ![Ventana de cobro de pedido](img/admin-pedidos-cobrar-paso4.png)
-
-⚠️ El QR que muestra la opción **QR Simple** es una **imagen de prueba** para simular el pago; no es un QR bancario. Cobra con el QR oficial de la tienda y registra el método aquí.
 
 💡 En un pedido ya cobrado, el mismo botón se llama **Guardar comprobante** y sirve para adjuntar o cambiar la foto del pago y el método.
 
@@ -980,3 +977,4 @@ Al reportar un problema, indica: tu rol, la pantalla, el **código de pedido** s
 | Versión | Fecha | Autor | Cambios |
 |---|---|---|---|
 | 1.0 | 23/10/2026 | Equipo TERRA Autoservicio | Primera versión. Cubre kiosco, portal mayorista, backoffice (administrador), portal de ventas (vendedor) y despacho. |
+| 1.1 | 23/10/2026 | Equipo TERRA Autoservicio | "Recordar sesión" funciona en los accesos mayorista y administrativo (6.2, 6.3, 10.6). "Comprar ahora" agrega el producto al carrito (9.4). Mensajes claros de stock insuficiente y mínimo mayorista (9.9, 10.6). Se quitó el QR de prueba del cobro (11.4) y la carga de logo del perfil mayorista (10.3). El botón "Factura PDF" pasa a llamarse "Descargar ticket" (10.5). El acceso administrativo muestra "Sucursal Equipetrol". |
