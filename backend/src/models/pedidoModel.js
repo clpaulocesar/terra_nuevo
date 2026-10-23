@@ -30,6 +30,10 @@ function asegurarColumnasEntrega() {
   return deliveryColumnsReady;
 }
 
+// Errores de validación del pedido: llevan código HTTP para que el cliente vea el motivo
+// en vez de un "Error interno del servidor".
+const errorPedido = (statusCode, mensaje) => Object.assign(new Error(mensaje), { statusCode });
+
 export async function crearPedidoBD(clienteId, items, { precioMayorista = false, entrega = null } = {}) {
   await Promise.all([asegurarEscalasMayoristasBD(), asegurarColumnasEntrega()]);
   const conexion = await pool.connect();
@@ -56,8 +60,8 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
          WHERE p.id=$1 AND COALESCE(p.activo,p.is_active,TRUE)=TRUE LIMIT 1`, [item.productoId, precioMayorista, item.cantidad]);
       if (!producto.rowCount) throw new Error('Producto no encontrado o inactivo en Supabase');
       const p = producto.rows[0];
-      if (Number(p.stock_quantity || 0) < item.cantidad) throw new Error(`Stock insuficiente para ${p.name}`);
-      if (item.cantidad < Number(p.minimum_order_quantity || 1)) throw new Error(`La compra mínima de ${p.name} es de ${p.minimum_order_quantity} unidades.`);
+      if (Number(p.stock_quantity || 0) < item.cantidad) throw errorPedido(409, `Stock insuficiente para ${p.name}. Disponible: ${Math.floor(Number(p.stock_quantity || 0))}.`);
+      if (item.cantidad < Number(p.minimum_order_quantity || 1)) throw errorPedido(400, `La cantidad mínima mayorista para ${p.name} es ${p.minimum_order_quantity}.`);
       const subtotalMinor = Number(p.price_minor) * item.cantidad;
       totalMinor += subtotalMinor;
       detalles.push({ variantId: p.variant_id, nombre: p.name, sku: p.sku, cantidad: item.cantidad, precioUnitario: aMonto(p.price_minor), subtotal: aMonto(subtotalMinor) });
