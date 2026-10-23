@@ -17,7 +17,7 @@ const formatoLargo = new Intl.DateTimeFormat('es-BO', { weekday: 'long', day: 'n
 const formatoCorto = new Intl.DateTimeFormat('es-BO', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 const capitalizar = (texto) => texto.charAt(0).toUpperCase() + texto.slice(1);
 const fechaDesdeIso = (iso) => new Date(`${iso}T00:00:00Z`);
-const RESUMEN_VACIO = { pedidos: 0, ventas: 0, ticketPromedio: 0, unidades: 0, clientes: 0, pedidosTotales: 0, horaPico: null };
+const RESUMEN_VACIO = { pedidos: 0, ventas: 0, ticketPromedio: 0, unidades: 0, clientes: 0, pedidosTotales: 0, pedidosAnulados: 0, horaPico: null };
 const PRESETS_PERIODO = [{ clave: 'hoy', etiqueta: 'Hoy' }, { clave: 'ayer', etiqueta: 'Ayer' }, { clave: 'personalizado', etiqueta: 'Personalizado' }];
 
 export default function DashboardAdmin() {
@@ -60,6 +60,7 @@ export default function DashboardAdmin() {
     ['Ticket promedio', formatoMoneda(resumen.ticketPromedio), 'Solo pedidos cobrados', TrendingUp],
     ['Unidades vendidas', String(resumen.unidades), 'Artículos en pedidos cobrados', Package],
     ['Hora más vendida', resumen.horaPico ? `${String(resumen.horaPico.hora).padStart(2, '0')}:00` : '—', resumen.horaPico ? `${formatoMoneda(resumen.horaPico.ventas)} en ${plural(resumen.horaPico.pedidos, 'pedido', 'pedidos')} ${etiquetaPeriodo}` : `Sin ventas cobradas ${etiquetaPeriodo}`, Clock3],
+    ['Ventas anuladas', String(resumen.pedidosAnulados), 'Pedidos anulados por clientes', CircleAlert],
     ['Clientes con compra', String(resumen.clientes), `${clientes.length} en la base consolidada`, PackageCheck],
   ];
   const cambiarRango = (campo) => (evento) => setRangoLibre((valor) => ({ ...valor, [campo]: evento.target.value }));

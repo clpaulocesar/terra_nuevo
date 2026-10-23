@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Boxes, ClipboardList, Clock3, PackageCheck, Printer, RefreshCw, ShoppingBag, Users, WalletCards } from 'lucide-react';
-import { listarPedidos } from '../../services/pedidoService.js';
+import { Boxes, ClipboardList, Clock3, PackageCheck, Printer, RefreshCw, ShoppingBag, Users, WalletCards, XCircle } from 'lucide-react';
+import { listarPedidos, obtenerResumenPedidos } from '../../services/pedidoService.js';
 import { listarClientes } from '../../services/clienteService.js';
 import { imprimirTicketPedido } from '../../utils/imprimirTicket.js';
 import AnaliticaHoraria from '../../components/analytics/AnaliticaHoraria.jsx';
@@ -10,6 +10,7 @@ const ESTADOS_EN_GESTION = ['pendiente', 'confirmado', 'en_proceso', 'en prepara
 
 const ESTADOS_COBRADOS = new Set(['completed', 'paid', 'pagado', 'shipped', 'delivered']);
 const horaBolivia = (fecha) => new Intl.DateTimeFormat('es-BO', { hour: '2-digit', hourCycle: 'h23', timeZone: 'America/La_Paz' }).format(new Date(fecha));
+const fechaBolivia = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/La_Paz' }).format(new Date());
 
 function esDelDia(fecha) {
   if (!fecha) return false;
@@ -59,6 +60,7 @@ function contarUnidades(items) {
 export default function DashboardVendedor() {
   const [pedidos, setPedidos] = useState([]);
   const [clientes, setClientes] = useState([]);
+  const [resumenPeriodo, setResumenPeriodo] = useState({ pedidosAnulados: 0 });
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
@@ -66,12 +68,15 @@ export default function DashboardVendedor() {
     setCargando(true);
     setError('');
     try {
-      const [respuestaPedidos, respuestaClientes] = await Promise.all([
+      const hoy = fechaBolivia();
+      const [respuestaPedidos, respuestaClientes, respuestaResumen] = await Promise.all([
         listarPedidos({ limite: 100 }),
         listarClientes({ limite: 100 }),
+        obtenerResumenPedidos({ desde: hoy, hasta: hoy }),
       ]);
       setPedidos(Array.isArray(respuestaPedidos) ? respuestaPedidos : respuestaPedidos?.pedidos || []);
       setClientes(Array.isArray(respuestaClientes) ? respuestaClientes : respuestaClientes?.clientes || []);
+      setResumenPeriodo(respuestaResumen && typeof respuestaResumen === 'object' ? respuestaResumen : { pedidosAnulados: 0 });
     } catch {
       setError('No se pudo cargar el resumen operativo. Intenta actualizar nuevamente.');
     } finally {
@@ -88,6 +93,7 @@ export default function DashboardVendedor() {
       (pedido) => !['cancelado', 'cancelled'].includes(String(pedido.estado || '').toLowerCase()),
     );
     const pedidosHoy = pedidosValidos.filter((pedido) => esDelDia(pedido.fecha || pedido.created_at));
+    const anuladosHoy = Number(resumenPeriodo.pedidosAnulados || 0);
 
     const cobradosHoy = pedidosHoy.filter((pedido) => ESTADOS_COBRADOS.has(String(pedido.estado || '').toLowerCase()));
     const horas = cobradosHoy.reduce((conteo, pedido) => {
@@ -120,6 +126,7 @@ export default function DashboardVendedor() {
 
     return {
       pedidosHoy: pedidosHoy.length,
+      anuladosHoy,
       ventasHoy,
       productosVendidosHoy,
       totalProductosVendidos,
@@ -127,7 +134,7 @@ export default function DashboardVendedor() {
       clientesConContacto,
       horaMasVendida,
     };
-  }, [clientes, pedidos]);
+  }, [clientes, pedidos, resumenPeriodo]);
 
   const ultimosPedidos = useMemo(
     () => [...pedidos]
@@ -176,6 +183,10 @@ export default function DashboardVendedor() {
         <article className="vendedor-metric">
           <span className="vendedor-metric__icon"><ClipboardList size={22} /></span>
           <div><p>Pedidos en gestión</p><strong>{cargando ? '—' : resumen.enGestion}</strong></div>
+        </article>
+        <article className="vendedor-metric">
+          <span className="vendedor-metric__icon"><XCircle size={22} /></span>
+          <div><p>Ventas anuladas hoy</p><strong>{cargando ? '—' : resumen.anuladosHoy}</strong><small>Canceladas por clientes</small></div>
         </article>
         <article className="vendedor-metric">
           <span className="vendedor-metric__icon"><Users size={22} /></span>
