@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef, useContext } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useContext, useCallback } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Camera, CameraOff, Check, ExternalLink, ImageUp, Minus, Plus, ScanLine, ShoppingCart, Trash2, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
@@ -13,6 +13,10 @@ import { useAccesibilidad } from '../context/AccesibilidadContext.jsx';
 import { elegirProducto } from '../navegacion/interpretarIntencion.js';
 import TecladoTactil from '../components/ui/TecladoTactil.jsx';
 import ImagenPerezosa from '../components/ui/ImagenPerezosa.jsx';
+import { useTutorial } from '../context/TutorialContext.jsx';
+import { marcarTutorialVisto, tutorialYaVisto } from '../tutorial/almacenamiento.js';
+import TutorialInvitacion from '../tutorial/TutorialInvitacion.jsx';
+import { useTutorialGuiado } from '../tutorial/useTutorialGuiado.js';
 import './Catalogo.css';
 
 // Cuántas categorías se muestran como chips sueltos junto al selector "Todos".
@@ -87,6 +91,37 @@ export default function Catalogo() {
   const abrirCamaraAlEntrar = searchParams.get('abrirQr') === '1';
 
   const { anunciar } = useAccesibilidad();
+  const { solicitud: solicitudTutorial } = useTutorial();
+  const [invitacionTutorialAbierta, setInvitacionTutorialAbierta] = useState(false);
+  const solicitudTutorialAtendida = useRef(0);
+  const iniciarTutorial = useTutorialGuiado({ esMayorista });
+
+  const omitirInvitacionTutorial = useCallback(() => {
+    marcarTutorialVisto();
+    setInvitacionTutorialAbierta(false);
+  }, []);
+
+  const comenzarTutorial = () => {
+    marcarTutorialVisto();
+    setInvitacionTutorialAbierta(false);
+    window.setTimeout(() => iniciarTutorial(), 150);
+  };
+
+  useEffect(() => {
+    if (!solicitudTutorial || solicitudTutorial === solicitudTutorialAtendida.current) return;
+    solicitudTutorialAtendida.current = solicitudTutorial;
+    setInvitacionTutorialAbierta(false);
+    marcarTutorialVisto();
+    iniciarTutorial();
+  }, [solicitudTutorial, iniciarTutorial]);
+
+  useEffect(() => {
+    if (tutorialYaVisto()) return undefined;
+    const temporizador = window.setTimeout(() => {
+      if (!tutorialYaVisto()) setInvitacionTutorialAbierta(true);
+    }, 900);
+    return () => window.clearTimeout(temporizador);
+  }, []);
 
   // `?buscar=` permite llegar con una búsqueda ya hecha (por ejemplo desde un comando de voz).
   const [buscar, setBuscar] = useState(() => searchParams.get('buscar') || '');
@@ -616,7 +651,7 @@ export default function Catalogo() {
       <main className="terra-main">
         <section className="terra-search-bar">
           <div className="terra-search-bar__inner">
-            <div className="terra-search-wrapper">
+            <div className="terra-search-wrapper" data-tour="buscador">
               <span className="terra-search-icon material-symbols-outlined" aria-hidden="true">search</span>
               <input
                 ref={searchInputRef}
@@ -656,7 +691,7 @@ export default function Catalogo() {
                 </span>
               </div>
 
-              <div className="terra-dropdown">
+              <div className="terra-dropdown" data-tour="ordenar">
                 <button
                   className="terra-btn-dropdown"
                   id="sort-menu-btn"
@@ -721,7 +756,7 @@ export default function Catalogo() {
             ) : (
               <>
                 {/* Desplegable con todas las categorías; "Todos los productos" vive dentro. */}
-                <div className="terra-cat-dropdown" ref={menuCategoriasRef}>
+                <div className="terra-cat-dropdown" ref={menuCategoriasRef} data-tour="categorias">
                   <button
                     type="button"
                     className={`terra-cat terra-cat--selector ${activaFueraDelRiel ? 'terra-cat--active' : ''}`}
@@ -796,6 +831,7 @@ export default function Catalogo() {
                 <button
                   type="button"
                   className={`terra-cat terra-cat--ofertas ${soloOfertas ? 'terra-cat--active' : ''}`}
+                  data-tour="ofertas"
                   aria-pressed={soloOfertas}
                   onClick={alternarOfertas}
                 >
@@ -875,7 +911,7 @@ export default function Catalogo() {
             ) : (
               <div className={esMayorista ? 'terra-wholesale-catalog-layout' : ''}>
               <div className="terra-grid">
-                {productosFiltrados.map((producto) => {
+                {productosFiltrados.map((producto, indice) => {
                   const recienAgregado = Boolean(agregados[producto.id]);
                   const tonosColores = coloresDeProducto(producto);
                   const escalasMayorista = Array.isArray(producto.escalasMayorista) ? producto.escalasMayorista : [];
@@ -900,6 +936,7 @@ export default function Catalogo() {
                     <article
                       key={producto.id}
                       data-lectura={lecturaTarjeta}
+                      data-tour={indice === 0 ? 'producto' : undefined}
                       className={`terra-card ${!disponible ? 'terra-card--agotado' : ''} ${recienAgregado ? 'terra-card--agregado' : ''} ${producto.en_oferta ? 'terra-card--oferta' : ''}`}
                       tabIndex={0}
                       aria-label={`${producto.nombre}, ${formatoMoneda(esMayorista && Number.isFinite(Number(producto.precioMayorista)) ? producto.precioMayorista : producto.precio)}, ${disponible ? 'disponible' : 'agotado'}. Enter para ver el detalle.`}
@@ -1040,6 +1077,7 @@ export default function Catalogo() {
 
                         <button
                           className={`terra-btn-agregar ${!disponible ? 'terra-btn-agregar--disabled' : ''} ${recienAgregado ? 'terra-btn-agregar--added' : ''}`}
+                          data-tour={indice === 0 ? 'agregar' : undefined}
                           onClick={() => handleAgregar(producto, esMayorista ? cantidadMayorista : 1)}
                           type="button"
                           disabled={!disponible}
@@ -1220,6 +1258,12 @@ export default function Catalogo() {
           </section>
         </div>
       )}
+
+      <TutorialInvitacion
+        abierto={invitacionTutorialAbierta}
+        onComenzar={comenzarTutorial}
+        onOmitir={omitirInvitacionTutorial}
+      />
     </div>
   );
 }
