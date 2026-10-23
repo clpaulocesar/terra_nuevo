@@ -117,3 +117,87 @@ function contieneFrase(frase, alias) {
   const a = ` ${alias} `;
   return f.includes(a);
 }
+
+// "agregar al carrito confort lya", "añadir la segunda", "agregar" (sin nombre).
+// Devuelve null si la frase no es un pedido de agregar; si no, { termino, ordinal }:
+// termino = nombre del producto (puede ser ''), ordinal = posición 1..n si dijo
+// "el primero", "la segunda", "el tercer producto"...
+const ORDINALES = { primer: 1, primero: 1, primera: 1, segundo: 2, segunda: 2, tercer: 3, tercero: 3, tercera: 3, cuarto: 4, cuarta: 4, quinto: 5, quinta: 5, sexto: 6, sexta: 6 };
+const RE_AGREGAR = /^(?:agregar|agrega|agregame|agregalo|añadir|añade|añadime|anadir|anade|anadime|poner|pone|poneme|sumar|suma|meter|mete)\b\s*(.*)$/;
+
+export function interpretarAgregar(fraseOriginal) {
+  const frase = normalizar(fraseOriginal);
+  const m = frase.match(RE_AGREGAR);
+  if (!m) return null;
+  let resto = m[1]
+    .replace(/^(?:al|a|en|en el|en mi|a mi|al mi)\s+carrito\b/, '')
+    .replace(/\bal carrito\b|\ba mi carrito\b|\ben el carrito\b|\bcarrito\b/g, '')
+    .replace(/\b(?:el|la|los|las|un|una|este|esta|ese|esa)\s+producto\b/g, '')
+    .replace(/\bproducto\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const ordinalMatch = resto.match(/^(?:el|la)?\s*(primer|primero|primera|segundo|segunda|tercer|tercero|tercera|cuarto|cuarta|quinto|quinta|sexto|sexta)\b/);
+  const ordinal = ordinalMatch ? ORDINALES[ordinalMatch[1]] : null;
+  if (ordinal) resto = resto.replace(ordinalMatch[0], '').trim();
+  resto = resto.replace(ARTICULOS, '').trim();
+  return { termino: resto, ordinal };
+}
+
+// ---- Coincidencia tolerante entre lo dictado y el nombre de un producto ----
+// El reconocedor escribe "Kit Lary" como "kit lari", "kit larry" o "quit lari". Se
+// comparan versiones fonéticas (y/ll -> i, v -> b, z/ce/ci -> s, qu -> k, sin h ni
+// letras repetidas) y se admite un error de una letra por palabra.
+export function claveFonetica(texto) {
+  return normalizar(texto)
+    .replace(/[^a-z0-9ñ\s]/g, ' ')
+    .replace(/qu/g, 'k').replace(/c([ei])/g, 's$1').replace(/c/g, 'k')
+    .replace(/ll/g, 'i').replace(/y/g, 'i').replace(/v/g, 'b').replace(/z/g, 's')
+    .replace(/h/g, '').replace(/x/g, 'ks').replace(/w/g, 'u').replace(/g([ei])/g, 'j$1')
+    .replace(/(.)\1+/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function distancia(a, b) {
+  if (a === b) return 0;
+  const m = a.length; const n = b.length;
+  if (!m) return n; if (!n) return m;
+  let previa = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i += 1) {
+    const actual = [i];
+    for (let j = 1; j <= n; j += 1) {
+      actual[j] = Math.min(previa[j] + 1, actual[j - 1] + 1, previa[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    previa = actual;
+  }
+  return previa[n];
+}
+
+function palabraParecida(dicha, candidata) {
+  if (!dicha || !candidata) return false;
+  if (dicha === candidata || candidata.startsWith(dicha) && dicha.length >= 3) return true;
+  const tolerancia = dicha.length >= 7 ? 2 : dicha.length >= 4 ? 1 : 0;
+  return distancia(dicha, candidata) <= tolerancia;
+}
+
+// true si cada palabra dictada se parece a alguna palabra del nombre (o de la categoría).
+export function coincideProducto(nombre, termino, extra = '') {
+  const dichas = claveFonetica(termino).split(' ').filter(Boolean);
+  if (!dichas.length) return false;
+  const candidatas = claveFonetica(`${nombre} ${extra || ''}`).split(' ').filter(Boolean);
+  if (!candidatas.length) return false;
+  const nombreF = claveFonetica(nombre);
+  if (nombreF === dichas.join(' ') || nombreF.includes(dichas.join(' '))) return true;
+  return dichas.every((d) => candidatas.some((c) => palabraParecida(d, c)));
+}
+
+// Entre varios productos, el que mejor coincide (exacto > contiene > parecido).
+export function elegirProducto(lista, termino, obtenerNombre = (p) => p.nombre, obtenerExtra = () => '') {
+  const t = claveFonetica(termino);
+  if (!t) return null;
+  const exacto = lista.find((p) => claveFonetica(obtenerNombre(p)) === t);
+  if (exacto) return exacto;
+  const contiene = lista.find((p) => claveFonetica(obtenerNombre(p)).includes(t));
+  if (contiene) return contiene;
+  return lista.find((p) => coincideProducto(obtenerNombre(p), termino, obtenerExtra(p))) || null;
+}

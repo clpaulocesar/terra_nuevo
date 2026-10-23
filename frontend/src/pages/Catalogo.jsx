@@ -3,12 +3,14 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { ArrowRight, Camera, CameraOff, Check, ExternalLink, ImageUp, Minus, Plus, ScanLine, ShoppingCart, Trash2, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { obtenerProducto } from '../services/productoService.js';
+
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { obtenerIconoCategoria } from '../data/categorias.js';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { LIMITE_CATALOGO, useCatalogoPaginado } from '../context/CatalogoContext.jsx';
 import { imagenDeProducto, usarImagenFallback } from '../utils/imagenProducto.js';
 import { useAccesibilidad } from '../context/AccesibilidadContext.jsx';
+import { elegirProducto } from '../navegacion/interpretarIntencion.js';
 import TecladoTactil from '../components/ui/TecladoTactil.jsx';
 import ImagenPerezosa from '../components/ui/ImagenPerezosa.jsx';
 import './Catalogo.css';
@@ -117,8 +119,12 @@ export default function Catalogo() {
   });
 
   // Cualquier cambio de filtro vuelve a la primera página.
+  // Elegir una categoría arranca de cero: se borra lo escrito en el buscador para que
+  // no quede un término viejo filtrando la categoría nueva.
   const cambiarCategoria = (valor) => {
     setCategoriaSeleccionada(valor);
+    setBuscar('');
+    setBuscarAplicado('');
     setPagina(1);
     setMenuCategoriasAbierto(false);
     anunciar(valor ? `Categoría ${valor} seleccionada.` : 'Mostrando todos los productos.');
@@ -151,7 +157,12 @@ export default function Catalogo() {
     const buscarUrl = (searchParams.get('buscar') || '').trim();
     let cambio = false;
     if (ofertasUrl !== soloOfertas) { setSoloOfertas(ofertasUrl); cambio = true; }
-    if (searchParams.has('categoria') && categoriaUrl !== categoriaSeleccionada) { setCategoriaSeleccionada(categoriaUrl); cambio = true; }
+    if (searchParams.has('categoria') && categoriaUrl !== categoriaSeleccionada) {
+      setCategoriaSeleccionada(categoriaUrl);
+      // Misma regla que el chip: una categoría nueva (voz, chat, enlace) limpia la búsqueda anterior.
+      if (!searchParams.has('buscar')) { setBuscar(''); setBuscarAplicado(''); }
+      cambio = true;
+    }
     if (searchParams.has('buscar') && buscarUrl !== buscarAplicado) { setBuscar(buscarUrl); setBuscarAplicado(buscarUrl); cambio = true; }
     if (cambio) setPagina(1);
     // Sólo debe correr cuando cambia la navegación, no cuando el usuario toca los chips.
@@ -224,6 +235,34 @@ export default function Catalogo() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cargando, errorProductos, productos]);
 
+  // "agregar <producto>" por voz: busca en la página actual por nombre (o por
+  // posición: "el segundo"); sin nombre, usa la última tarjeta leída en voz alta.
+  const agregarPorVoz = ({ termino = '', ordinal = null } = {}) => {
+    const lista = productosFiltrados;
+    if (!lista.length) { anunciar('No hay productos en pantalla para agregar.'); return; }
+    let elegido = null;
+    if (ordinal) elegido = lista[ordinal - 1] || null;
+    else if (termino) {
+      // Tolera cómo lo escribe el reconocedor: "kit lari", "kit larry", "quit lari"...
+      elegido = elegirProducto(lista, termino, (p) => p.nombre, (p) => p.categoria || '');
+    } else if (ultimaTarjetaLeidaRef.current) {
+      elegido = lista.find((p) => p.id === ultimaTarjetaLeidaRef.current.id) || null;
+    } else if (lista.length === 1) {
+      elegido = lista[0];
+    }
+    if (!elegido) {
+      anunciar(termino
+        ? `No encontré ${termino} en esta página. Decí "buscar ${termino}" o el nombre completo.`
+        : 'Decime qué producto agregar, por ejemplo "agregar confort lya", o tocá primero una tarjeta.');
+      return;
+    }
+    const disponible = Number(elegido.stock) >= 1;
+    if (!disponible) { anunciar(`${elegido.nombre} está agotado.`); return; }
+    handleAgregar(elegido, 1);
+  };
+  const agregarPorVozRef = useRef(agregarPorVoz);
+  agregarPorVozRef.current = agregarPorVoz;
+
   // Comandos de voz que afectan al catálogo (ver components/accesibilidad/LectorVoz.jsx).
   const irAPaginaRef = useRef(irAPagina);
   irAPaginaRef.current = irAPagina;
@@ -234,6 +273,7 @@ export default function Catalogo() {
       else if (accion === 'anterior') irAPaginaRef.current(pagina - 1);
       else if (accion === 'buscar') cambiarBusqueda(String(valor || ''));
       else if (accion === 'limpiar') { setBuscar(''); setCategoriaSeleccionada(''); setPagina(1); }
+      else if (accion === 'agregar') agregarPorVozRef.current(valor && typeof valor === 'object' ? valor : { termino: String(valor || '') });
     };
     window.addEventListener('terra:voz', alComando);
     return () => window.removeEventListener('terra:voz', alComando);
@@ -258,8 +298,6 @@ export default function Catalogo() {
     mq.addEventListener('change', actualizar);
     return () => mq.removeEventListener('change', actualizar);
   }, []);
-
-  const [segundosSesion, setSegundosSesion] = useState(180);
 
   const searchInputRef = useRef(null);
   const ultimaTarjetaLeidaRef = useRef(null);
@@ -336,19 +374,6 @@ export default function Catalogo() {
       document.removeEventListener('keydown', cerrarEscape);
     };
   }, [menuCategoriasAbierto]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSegundosSesion((prev) => (prev > 0 ? prev - 1 : 180));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatoTiempo = useMemo(() => {
-    const minutos = Math.floor(segundosSesion / 60);
-    const segundos = segundosSesion % 60;
-    return `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')} min`;
-  }, [segundosSesion]);
 
   // Búsqueda, categoría y orden ya vienen aplicados desde el backend por página.
   const productosFiltrados = productosOrdenados;

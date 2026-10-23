@@ -90,12 +90,3 @@ export function avisoError(texto = 'No se pudo completar la acción.') {
 }
 
 /** Aviso informativo / advertencia sin eliminación. */
-export function avisoAviso({ titulo = 'Atención', texto = '' } = {}) {
-  return swalEliminar.fire({
-    title: titulo,
-    text: texto,
-    icon: 'warning',
-    confirmButtonText: 'Entendido',
-    showCancelButton: false,
-  });
-}

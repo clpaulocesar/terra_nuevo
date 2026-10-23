@@ -10,7 +10,8 @@ const RETRASO_HOVER_MS = 300;
 const TOQUE_LARGO_MS = 500;
 const MAX_ITEMS = 10;
 
-// Los comandos que requieren un producto abren el micrófono para dictarlo.
+// Comandos que no dependen de la pantalla. Los que llevan un parámetro (qué buscar,
+// qué agregar) al tocarlos abren el micrófono en vez de ejecutar el ejemplo literal.
 const COMANDOS_FIJOS = [
   { nombre: 'Buscar un producto', ejemplo: 'buscar colchón', dictar: true },
   { nombre: 'Agregar al carrito', ejemplo: 'agregar confort lya', dictar: true },
@@ -21,6 +22,7 @@ const COMANDOS_FIJOS = [
 // Botones de la cabecera: lectura por voz (altavoz) y comandos de voz (micrófono).
 // El micrófono muestra un panel con los comandos disponibles en la pantalla actual:
 // hover/foco en escritorio, toque largo o el botón "?" en pantallas táctiles.
+// Cada comando del panel es un botón: tocarlo lo ejecuta igual que si se dijera.
 export default function BotonesVoz({ className = '' }) {
   const { soportaVoz, soportaReconocimiento, vozActiva, escuchando, alternarVoz, escuchar, ejecutarComando } = useAccesibilidad();
   const { contextoActual } = useNavegacion();
@@ -85,11 +87,14 @@ export default function BotonesVoz({ className = '' }) {
     cerrar();
     escuchar();
   };
+  // Tocar un comando del panel: lo ejecuta como si se hubiera dicho; si necesita un
+  // parámetro (buscar, agregar) abre el micrófono para dictarlo.
   const alTocarComando = (comando) => {
     cerrar();
     if (comando.dictar) { escuchar(); return; }
     ejecutarComando(comando.ejemplo);
   };
+  // El micrófono pierde el foco al tocar un comando del panel: no cerrarlo en ese caso.
   const alPerderFoco = (evento) => {
     if (contenedorRef.current?.contains(evento.relatedTarget)) return;
     cerrarPorHover();
@@ -182,22 +187,22 @@ export default function BotonesVoz({ className = '' }) {
               ) : (
                 <>
                   <b className="terra-voz__panel-titulo">Podés decir…</b>
-                    <ul className="terra-voz__lista">
-                      {comandos.map((c) => (
-                        <li key={c.ejemplo}>
-                          <button type="button" className="terra-voz__comando" onClick={() => alTocarComando(c)}>
-                            <span>{c.nombre}</span><em>«{c.ejemplo}»</em>
-                          </button>
-                        </li>
-                      ))}
-                      {COMANDOS_FIJOS.map((c) => (
-                        <li key={c.ejemplo} className="terra-voz__lista-fijo">
-                          <button type="button" className="terra-voz__comando" onClick={() => alTocarComando(c)}>
-                            <span>{c.nombre}</span><em>«{c.ejemplo}»</em>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                  <ul className="terra-voz__lista">
+                    {comandos.map((c) => (
+                      <li key={c.ejemplo}>
+                        <button type="button" className="terra-voz__comando" onClick={() => alTocarComando(c)}>
+                          <span>{c.nombre}</span><em>«{c.ejemplo}»</em>
+                        </button>
+                      </li>
+                    ))}
+                    {COMANDOS_FIJOS.map((c) => (
+                      <li key={c.ejemplo} className="terra-voz__lista-fijo">
+                        <button type="button" className="terra-voz__comando" onClick={() => alTocarComando(c)}>
+                          <span>{c.nombre}</span><em>«{c.ejemplo}»</em>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                   <small className="terra-voz__panel-pie">Tocá un comando o decí <strong>ayuda</strong> para escuchar todos.</small>
                 </>
               )}

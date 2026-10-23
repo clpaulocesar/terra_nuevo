@@ -12,38 +12,16 @@
 .orders-refresh:disabled{cursor:progress;opacity:.65}
 .orders-refresh .is-spinning{animation:orders-spin 1s linear infinite}
 .orders-client-data{color:#404944!important;font-size:.82rem;font-weight:700;margin:.15rem 0 0!important}
-.orders-modal{overflow-y:auto;z-index:80}
-.orders-modal>section{max-height:calc(100dvh - 2rem);overflow-y:auto;overscroll-behavior:contain}
-.order-actions{display:flex;flex-wrap:wrap;gap:.4rem}.order-actions .order-ticket{background:#f4ecee;color:#a6192e}.order-actions button:disabled{cursor:progress;opacity:.65}
-.orders-list{overflow-x:auto}
-.orders-list>article{grid-template-columns:minmax(145px,1fr) minmax(145px,1.3fr) minmax(175px,1.7fr) minmax(100px,.8fr) minmax(120px,1fr) minmax(220px,1.15fr)}
-.orders-list>article>.order-actions{align-self:stretch;display:grid;gap:.45rem;grid-template-columns:repeat(2,minmax(0,1fr));min-width:0;width:100%}
-.orders-list>article>.order-actions>button{align-items:center;box-sizing:border-box;display:inline-flex;justify-content:center;margin:0;min-width:0;width:100%;white-space:nowrap}
-.orders-list>article>.order-actions>.order-primary-action{background:#a6192e;grid-column:1/-1;min-height:2.55rem}
-.orders-list>article>.order-actions>.order-primary-action:hover{background:#891426}
-.orders-list>article>.order-actions>button:focus-visible{outline:3px solid #e8a2af;outline-offset:2px}
-.orders-list>article>div:not(.order-actions){min-width:0}
-.orders-list>article>div:not(.order-actions) b,.orders-list>article>div:not(.order-actions) small{overflow-wrap:anywhere}
-.order-actions .order-edit-action {
-  background: #fdf2f4;
-  color: #ad1934;
-  border: 1px solid #f3d4d8;
-  display: inline-flex;
-  align-items: center;
-  gap: .3rem;
-  font-size: .75rem;
-  font-weight: 800;
-  border-radius: .55rem;
-  padding: 0 .75rem;
-  min-height: 2.2rem;
-  cursor: pointer;
-  transition: all .15s ease;
-}
-.order-actions .order-edit-action:hover {
-  background: #ad1934;
-  color: #fff;
-  border-color: #ad1934;
-}
+/* Acciones de la fila: secundarias compactas + acción principal.
+   Se prefija con .orders porque AdminContentFix.css fuerza
+   `.admin-shell .admin-content button{min-height:0;width:auto}`. */
+.orders .order-actions{align-items:center;display:flex;flex-wrap:nowrap;gap:.35rem;justify-content:flex-end}
+.orders .order-actions button{flex:0 0 auto;margin-top:0}
+.orders .order-actions button:disabled{cursor:progress;opacity:.65}
+.orders .order-actions .order-icon-btn{flex:0 0 2.5rem;min-width:2.5rem;min-height:2.5rem;align-items:center;background:#fbf3f4;border:1px solid #f1dadd;border-radius:.55rem;color:#a6192e;cursor:pointer;display:inline-flex;height:2.5rem;justify-content:center;padding:0;transition:background .15s,border-color .15s,color .15s;width:2.5rem}
+.orders .order-actions .order-icon-btn:hover{background:#a6192e;border-color:#a6192e;color:#fff}
+.orders .order-actions .order-primary{align-items:center;display:inline-flex;font-size:.75rem;gap:.35rem;justify-content:center;min-height:2.5rem;padding:0 .8rem;white-space:nowrap}
+.orders .order-actions .is-spinning{animation:orders-spin 1s linear infinite}
 .orders-modal-edit-btn {
   align-items: center;
   background: #fff5f6 !important;
@@ -411,4 +389,68 @@
 .orders-save-items-btn:disabled {
   opacity: .5;
   cursor: not-allowed;
+}
+/* --- Modal de pedido: tiene que cubrir el encabezado del backoffice (z-index 30)
+   y nunca desbordar la pantalla; el pie de acciones queda siempre a la vista. --- */
+.orders-modal { z-index: 100; }
+.orders-modal > section {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 3rem);
+  max-width: 680px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.orders-modal > section > * { flex: 0 0 auto; }
+.orders .orders-modal > section > footer {
+  background: #fff;
+  border-top: 1px solid #f0eded;
+  bottom: -1.5rem;
+  flex-wrap: wrap;
+  margin: 1.2rem -1.5rem -1.5rem;
+  padding: .9rem 1.5rem 1.5rem;
+  position: sticky;
+  z-index: 2;
+}
+.orders .orders-modal footer button { min-height: 2.5rem; }
+
+/* La columna de acciones toma su ancho real: los botones ya no se parten en dos líneas. */
+.orders-list article { grid-template-columns: 1.05fr 1.2fr 1.5fr .8fr 1fr minmax(176px, max-content); gap: .9rem; }
+
+@media (max-width: 700px) {
+  .orders-modal { padding: 0; }
+  .orders-modal > section {
+    border-radius: 0;
+    max-height: 100dvh;
+    max-width: 100%;
+    min-height: 100dvh;
+    padding: 1rem;
+  }
+  .orders-modal > section > footer {
+    bottom: -1rem;
+    margin: 1rem -1rem -1rem;
+    padding: .85rem 1rem 1rem;
+  }
+}
+
+/* Tablet / laptop chica: la tabla de 6 columnas no entra y parte el texto.
+   La fila pasa a tarjeta: datos + estado arriba, artículos, y acciones alineadas. */
+@media (max-width: 1200px) {
+  .orders-list > article {
+    grid-template-areas:
+      "pedido estado"
+      "cliente total"
+      "items items"
+      "acciones acciones";
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .35rem 1rem;
+    min-width: 0;
+  }
+  .orders-list > article > *:nth-child(1) { grid-area: pedido; }
+  .orders-list > article > *:nth-child(2) { grid-area: cliente; }
+  .orders-list > article > *:nth-child(3) { grid-area: items; margin: .15rem 0 0; }
+  .orders-list > article > *:nth-child(4) { grid-area: total; justify-self: end; }
+  .orders-list > article > *:nth-child(5) { grid-area: estado; justify-self: end; }
+  .orders-list > article > .order-actions { grid-area: acciones; margin-top: .45rem; }
 }

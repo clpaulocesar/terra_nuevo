@@ -2,6 +2,7 @@ import { useContext, useState, useEffect, useRef } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, ShieldCheck, UserRound } from 'lucide-react';
 import { ClienteContext } from '../context/ClienteContext.jsx';
+import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { validarDatosCliente } from '../utils/validaciones.js';
 import './Identificacion.css';
@@ -24,6 +25,7 @@ function normalizarValorCampo(campo, valor) {
 
 export default function Identificacion() {
   const { cliente, setCliente, limpiarCliente } = useContext(ClienteContext);
+  const { esMayorista } = useContext(SesionClienteContext);
   const { items } = useCarrito();
   const [datos, setDatos] = useState(cliente);
   const [errores, setErrores] = useState({});
@@ -59,6 +61,7 @@ export default function Identificacion() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [tecladoAbierto, esTactil]);
 
+  if (esMayorista) return <Navigate to="/confirmacion" replace />;
   if (!items.length) return <Navigate to="/carrito" replace />;
 
   const agregarCaracter = (caracter) => {

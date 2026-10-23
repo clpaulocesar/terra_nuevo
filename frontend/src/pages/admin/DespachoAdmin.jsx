@@ -12,13 +12,14 @@ import {
   Phone,
   RefreshCw,
   RotateCcw,
+  Route,
   Search,
   Truck,
-  UserRound,
 } from 'lucide-react';
 import { actualizarEntregaPedido, listarPedidos } from '../../services/pedidoService.js';
 import { getAdminUser } from '../../services/adminService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
+import MapaRutaDespacho from '../../components/admin/MapaRutaDespacho.jsx';
 import './DespachoAdmin.css';
 
 const TABS = [
@@ -90,9 +91,9 @@ export default function DespachoAdmin() {
   const [tab, setTab] = useState('pendiente');
   const [guardando, setGuardando] = useState('');
   const [aviso, setAviso] = useState(null);
-  const [soloMios, setSoloMios] = useState(false);
+  const [rutaAbiertaId, setRutaAbiertaId] = useState(null);
   const primeraCarga = useRef(true);
-  const puedeFiltrarMios = usuario?.rol === 'despacho' && Boolean(usuario?.id);
+  const esDespacho = usuario?.rol === 'despacho' && Boolean(usuario?.id);
 
   const cargar = useCallback(async ({ silencioso = false } = {}) => {
     // En el primer render el estado inicial ya es "cargando" y sin error:
@@ -164,7 +165,7 @@ export default function DespachoAdmin() {
   const visibles = useMemo(() => {
     const lista = pedidos.filter((pedido) => {
       if (tab !== 'todos' && etapaDe(pedido) !== tab) return false;
-      if (soloMios && pedido.repartidor_id !== usuario?.id) return false;
+      if (esDespacho && pedido.repartidor_id !== usuario?.id) return false;
       if (!termino) return true;
       return [
         pedido.numero ? `#${pedido.numero}` : '',
@@ -187,7 +188,7 @@ export default function DespachoAdmin() {
       }
       return new Date(a.fecha).getTime() - new Date(b.fecha).getTime();
     });
-  }, [pedidos, tab, termino, soloMios, usuario?.id]);
+  }, [pedidos, tab, termino, esDespacho, usuario?.id]);
 
   return (
     <section className="dispatch">
@@ -195,7 +196,7 @@ export default function DespachoAdmin() {
         <div>
           <span>Reparto a domicilio · {usuario?.nombre || 'Despacho'}</span>
           <h1>Envíos a clientes mayoristas</h1>
-          <p>Solo pedidos con entrega a domicilio registrada. Actualizá la etapa a medida que salís y entregás.</p>
+          <p>{esDespacho ? 'Solo ves los envíos que te fueron asignados. Actualizá la etapa a medida que salís y entregás.' : 'Solo pedidos con entrega a domicilio registrada. Actualizá la etapa a medida que salís y entregás.'}</p>
         </div>
         <div className="dispatch-hero__tools">
           <label className="dispatch-search">
@@ -248,16 +249,6 @@ export default function DespachoAdmin() {
             {id !== 'todos' && <i>{conteos[id]}</i>}
           </button>
         ))}
-        {puedeFiltrarMios && (
-          <button
-            type="button"
-            className={`dispatch-tabs__mine ${soloMios ? 'is-active' : ''}`}
-            onClick={() => setSoloMios((valor) => !valor)}
-            aria-pressed={soloMios}
-          >
-            <UserRound size={15} aria-hidden="true" /> Solo mis envíos
-          </button>
-        )}
       </nav>
 
       {aviso && (
@@ -290,11 +281,12 @@ export default function DespachoAdmin() {
           const ocupado = guardando === String(pedido.id);
           const telefono = pedido.cliente_telefono;
           const mapa = enlaceMapa(pedido);
+          const tieneCoordenadas = Number.isFinite(Number(pedido.latitud_entrega)) && Number.isFinite(Number(pedido.longitud_entrega));
           const cobrado = PAGADOS.includes(String(pedido.estado || '').toLowerCase());
           const whatsapp = telefonoWhatsApp(telefono);
           const mensaje = encodeURIComponent(`Hola ${pedido.cliente || ''}, te escribimos de TERRA por tu pedido ${pedido.codigo || ''}.`);
           return (
-            <article key={pedido.id} className={`dispatch-card is-${etapa}`}>
+            <article key={pedido.id} className={`dispatch-card is-${etapa} ${rutaAbiertaId === pedido.id ? 'is-route-open' : ''}`}>
               <header>
                 <div>
                   <span className="dispatch-card__code">
@@ -358,8 +350,13 @@ export default function DespachoAdmin() {
                 )}
                 {mapa && (
                   <a href={mapa} target="_blank" rel="noreferrer" className="dispatch-btn is-soft">
-                    <Navigation size={16} aria-hidden="true" /> Mapa
+                    <Navigation size={16} aria-hidden="true" /> Abrir Maps
                   </a>
+                )}
+                {tieneCoordenadas && (
+                  <button type="button" className="dispatch-btn is-soft" onClick={() => setRutaAbiertaId((actual) => actual === pedido.id ? null : pedido.id)} aria-expanded={rutaAbiertaId === pedido.id}>
+                    <Route size={16} aria-hidden="true" /> {rutaAbiertaId === pedido.id ? 'Ocultar ruta' : 'Ver ruta'}
+                  </button>
                 )}
                 {etapa === 'pendiente' && (
                   <>
@@ -382,6 +379,7 @@ export default function DespachoAdmin() {
                   </>
                 )}
               </footer>
+              {rutaAbiertaId === pedido.id && tieneCoordenadas && <MapaRutaDespacho latitud={pedido.latitud_entrega} longitud={pedido.longitud_entrega} cliente={pedido.cliente} direccion={pedido.direccion_entrega} />}
             </article>
           );
         })}

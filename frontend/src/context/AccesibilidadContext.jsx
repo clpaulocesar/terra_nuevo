@@ -55,9 +55,12 @@ export function AccesibilidadProvider({ children }) {
     return () => window.speechSynthesis.removeEventListener?.('voiceschanged', cargar);
   }, []);
 
-  // Chrome puede descartar una frase si speak() ocurre justo después de cancel().
-  // Agrupar los anuncios inmediatos deja que la última interacción se lea completa.
+  // Chrome descarta una frase si speak() llega en el mismo instante que cancel().
+  // Por eso la lectura se difiere unos milisegundos y, si en ese lapso llegan varias
+  // frases (p. ej. "Categoría X, botón" y enseguida "Categoría X seleccionada"),
+  // se lee sólo la última. Así tocar varios botones seguidos no se salta ninguno.
   const pendienteHablarRef = useRef(null);
+  const ESPERA_HABLAR_MS = 90;
 
   const detener = useCallback(() => {
     window.clearTimeout(pendienteHablarRef.current);
@@ -79,7 +82,7 @@ export function AccesibilidadProvider({ children }) {
     if (!interrumpir) { decir(); return; }
     window.clearTimeout(pendienteHablarRef.current);
     window.speechSynthesis.cancel();
-    pendienteHablarRef.current = window.setTimeout(decir, 90);
+    pendienteHablarRef.current = window.setTimeout(decir, ESPERA_HABLAR_MS);
   }, []);
 
   // Anuncia para lectores de pantalla (siempre) y por voz (si el modo está activo).
@@ -114,10 +117,12 @@ export function AccesibilidadProvider({ children }) {
     return () => { if (manejadorComandoRef.current === fn) manejadorComandoRef.current = null; };
   }, []);
 
+  // Ejecuta una frase como si se hubiera dicho por voz (botones del panel "Podés decir…").
   const ejecutarComando = useCallback((frase) => {
     const texto = String(frase || '').trim();
+    if (!texto) return false;
     const manejador = manejadorComandoRef.current;
-    if (!texto || !manejador) return false;
+    if (!manejador) return false;
     manejador(texto, [texto]);
     return true;
   }, []);

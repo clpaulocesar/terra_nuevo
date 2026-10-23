@@ -8,6 +8,7 @@ import LectorVoz from '../accesibilidad/LectorVoz.jsx';
 import SaltarContenido from '../../accesibilidad/SaltarContenido.jsx';
 import BotonAccesibilidad from '../../accesibilidad/BotonAccesibilidad.jsx';
 import './VendedorLayout.css';
+import '../../theme-dark-admin.css';
 
 const enlaces = [
   { to: '/vendedor', label: 'Dashboard', icon: LayoutDashboard, end: true },

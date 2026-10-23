@@ -4,7 +4,6 @@
    clases que también enciende el sistema operativo: a11y-sin-animacion y
    a11y-contraste). Con el modo apagado la app se ve igual que siempre.
    ===================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap');
 
 /* ---------- Botón flotante ♿ y panel ---------- */
 .a11y-flotante { position: fixed; left: 16px; bottom: 16px; z-index: 1300; }

@@ -71,7 +71,7 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
     </div>
 
     <div style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 24px; border-top: 1px dashed #e2e8f0; padding-top: 14px; line-height: 1.5;">
-      ${cobrado ? 'Conserva este comprobante como constancia de tu compra.' : 'Presenta este código en caja para pagar y retirar tus productos.'}<br />
+      ${cobrado ? 'Conserva este comprobante como constancia de tu compra.' : `Presenta este código en caja para pagar y ${direccionEntrega ? 'coordinar el envío a domicilio' : 'retirar tus productos'}.`}<br />
       ¡Gracias por tu compra en TERRA!
     </div>
   </div>`;

@@ -5,6 +5,7 @@ import { Badge, Eye, EyeOff, Headset, Lock, MapPin, ShieldCheck, Wifi } from 'lu
 import { iniciarSesionAdmin } from '../../services/adminService.js';
 import './Admin.css';
 import './LoginAdminTheme.css';
+import '../../theme-dark-admin.css';
 
 export default function LoginAdmin() {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ export default function LoginAdmin() {
   const [visible, setVisible] = useState(false);
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [recordar, setRecordar] = useState(true);
   const navigate = useNavigate();
 
   async function enviar(event) {
@@ -19,7 +21,7 @@ export default function LoginAdmin() {
     setCargando(true);
     setError('');
     try {
-      const usuario = await iniciarSesionAdmin(email, password);
+      const usuario = await iniciarSesionAdmin(email, password, { recordar });
       // Si llegó aquí por voz/chat pidiendo una sección, se lo lleva ahí (si su rol lo permite).
       const inicio = usuario?.rol === 'despacho' ? '/admin/despacho' : '/admin';
       navigate(consumirDestinoPendiente(usuario?.rol, 'admin') || inicio, { replace: true });
@@ -47,7 +49,7 @@ export default function LoginAdmin() {
           </div>
 
           <div className="terra-brand-meta">
-            <span><MapPin size={16} />Sucursal 1 Central</span>
+            <span><MapPin size={16} />Sucursal Equipetrol</span>
             <span><Wifi size={16} /> Red privada del showroom</span>
             <span><ShieldCheck size={16} /> Terminal EQ-01 · TERRA ERP v2.4.1</span>
           </div>
@@ -57,7 +59,7 @@ export default function LoginAdmin() {
           <header>
             <span className="terra-login-eyebrow">Panel de control</span>
             <h1>Acceso administrativo</h1>
-            <p>Sucursal 1 Central · Santa Cruz de la Sierra</p>
+            <p>Sucursal Equipetrol · Santa Cruz de la Sierra</p>
           </header>
 
           <form onSubmit={enviar}>
@@ -108,7 +110,7 @@ export default function LoginAdmin() {
 
             <div className="terra-login-options">
               <label>
-                <input type="checkbox" defaultChecked />
+                <input type="checkbox" checked={recordar} onChange={(event) => setRecordar(event.target.checked)} />
                 Recordar sesión en esta terminal
               </label>
               <span><Lock size={14} /> POS seguro</span>

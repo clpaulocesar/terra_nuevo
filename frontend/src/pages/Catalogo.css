@@ -7,9 +7,6 @@
    - Composición: tarjetas prominentes, espacio negativo, precio como elemento jerárquico #1
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
-
 :root {
   --vino: #a6192e;
   --vino-osc: #7e1122;
