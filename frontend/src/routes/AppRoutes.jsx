@@ -210,10 +210,9 @@ function Layout() {
         type="button"
         className="catalog-qr-fab"
         onClick={() => navigate(`/catalogo?abrirQr=1&t=${Date.now()}`)}
-        aria-label={cantidadTotal ? `Escanear QR, carrito con ${cantidadTotal} unidades` : 'Comprar por QR, abrir cámara'}
+        aria-label="Comprar por QR, abrir cámara"
       >
         <QrCode size={21} />
-        {cantidadTotal > 0 && <b>{cantidadTotal}</b>}
       </button>
     </div>
   );
