@@ -91,9 +91,8 @@ export default function Catalogo() {
   const abrirCamaraAlEntrar = searchParams.get('abrirQr') === '1';
 
   const { anunciar } = useAccesibilidad();
-  const { solicitud: solicitudTutorial } = useTutorial();
+  const { solicitud: solicitudTutorial, consumirSolicitudTutorial } = useTutorial();
   const [invitacionTutorialAbierta, setInvitacionTutorialAbierta] = useState(false);
-  const solicitudTutorialAtendida = useRef(0);
   const iniciarTutorial = useTutorialGuiado({ esMayorista });
 
   const omitirInvitacionTutorial = useCallback(() => {
@@ -108,12 +107,12 @@ export default function Catalogo() {
   };
 
   useEffect(() => {
-    if (!solicitudTutorial || solicitudTutorial === solicitudTutorialAtendida.current) return;
-    solicitudTutorialAtendida.current = solicitudTutorial;
+    if (!solicitudTutorial) return;
     setInvitacionTutorialAbierta(false);
     marcarTutorialVisto();
+    consumirSolicitudTutorial();
     iniciarTutorial();
-  }, [solicitudTutorial, iniciarTutorial]);
+  }, [solicitudTutorial, consumirSolicitudTutorial, iniciarTutorial]);
 
   useEffect(() => {
     if (tutorialYaVisto()) return undefined;
