@@ -1,386 +1,48 @@
 /* ============================================================
-   TERRA · Acceso administrativo
-   Panel de marca con textura de acolchado + formulario limpio
+   TERRA · Acceso administrativo (Nuevo diseño)
    ============================================================ */
 
-.terra-login {
-  --vino: #a6192e;
-  --vino-mid: #8e1527;
-  --vino-deep: #6c0f1d;
-  --blush: #fff1f2;
-  --paper: #fbf7f6;
-  --ink: #241314;
-  --muted: #6f6163;
-  --line: #ece0e0;
-
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: clamp(1rem, 3vw, 2.5rem);
-  background:
-    radial-gradient(circle at 85% -10%, rgba(166, 25, 46, 0.07), transparent 45%),
-    var(--paper);
-  color: var(--ink);
-  font-family: 'Manrope', Arial, sans-serif;
-  position: relative;
-  overflow: hidden;
+.admin-login-screen {
+  background-color: #faf8f9;
+  color: #2b2628;
 }
 
-.terra-login-bg { display: none; }
-
-.terra-login-content {
-  display: grid;
-  grid-template-columns: minmax(300px, 0.95fr) minmax(360px, 1.05fr);
-  align-items: stretch;
-  width: 100%;
-  max-width: 1040px;
-  margin: auto;
-  background: #fff;
-  border-radius: 22px;
-  overflow: hidden;
-  position: relative;
-  z-index: 1;
-  box-shadow:
-    0 40px 80px -40px rgba(36, 19, 20, 0.45),
-    0 2px 6px rgba(36, 19, 20, 0.05);
-  animation: terraLoginIn 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+.admin-login-screen input::placeholder {
+  color: #b0a8ab;
 }
 
-@keyframes terraLoginIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: none; }
+html[data-theme="dark"] .admin-login-screen {
+  background-color: #121011;
+  color: #f3f0f1;
 }
 
-/* ---------- Panel de marca ---------- */
-.terra-login-brand {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 2rem;
-  padding: clamp(1.75rem, 4vw, 3.25rem);
-  color: #fff;
-  background:
-    radial-gradient(circle at 15% -5%, rgba(255, 255, 255, 0.12), transparent 45%),
-    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.16) 1.6px, transparent 1.8px) 0 0 / 26px 26px,
-    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.22) 1.6px, transparent 1.8px) 13px 13px / 26px 26px,
-    linear-gradient(160deg, var(--vino-mid), var(--vino-deep));
+html[data-theme="dark"] .admin-login-screen .bg-surface-card {
+  background-color: #1c181a;
+  border-color: #2e2629;
 }
 
-.terra-brand-top {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
+html[data-theme="dark"] .admin-login-screen .text-stone-800 {
+  color: #f3f0f1;
 }
 
-.terra-brand-logo-tile {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border-radius: 12px;
-  padding: 0.5rem 0.7rem;
-  box-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.7);
+html[data-theme="dark"] .admin-login-screen .text-stone-600 {
+  color: #c9c0c3;
 }
 
-.terra-brand-logo-tile img {
-  display: block;
-  height: 2.5rem;
-  width: auto;
-  object-fit: contain;
+html[data-theme="dark"] .admin-login-screen .border-stone-100 {
+  border-color: #2e2629;
 }
 
-.terra-brand-tag {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.78);
+html[data-theme="dark"] .admin-login-screen .border-stone-200 {
+  border-color: #383033;
 }
 
-.terra-brand-copy h2 {
-  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
-  font-weight: 600;
-  font-size: clamp(1.7rem, 2.6vw, 2.3rem);
-  line-height: 1.12;
-  letter-spacing: -0.015em;
-  margin: 0 0 0.75rem;
-  max-width: 15ch;
+html[data-theme="dark"] .admin-login-screen input {
+  background-color: #262023;
+  color: #f3f0f1;
 }
 
-.terra-brand-copy p {
-  margin: 0;
-  font-size: 0.88rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.76);
-  max-width: 32ch;
-}
-
-.terra-brand-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  font-size: 0.78rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.terra-brand-meta span {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.terra-brand-meta svg { opacity: 0.85; flex: none; }
-
-/* ---------- Formulario ---------- */
-.terra-login-card {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: clamp(1.75rem, 3.5vw, 3rem);
-  background: #fff;
-  border-radius: 0;
-  box-shadow: none;
-  overflow: visible;
-}
-
-.terra-login-card header { text-align: left; margin-bottom: 1.5rem; }
-
-.terra-login-eyebrow {
-  display: inline-block;
-  font-size: 0.74rem;
-  font-weight: 800;
-  color: var(--vino);
-  margin-bottom: 0.5rem;
-}
-
-.terra-login .terra-login-card header > span.terra-login-eyebrow {
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--vino);
-}
-
-.terra-login-card header h1 {
-  font-size: clamp(1.5rem, 2.4vw, 1.75rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  margin: 0 0 0.4rem;
-  color: var(--ink);
-}
-
-.terra-login-card header p {
-  margin: 0;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.terra-login .terra-login-card form > label {
-  display: block;
-  margin-top: 1.1rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.terra-login .terra-login-card form > label > small {
-  float: right;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 600;
-}
-
-.terra-login .terra-login-card form > label > button {
-  float: right;
-  background: none;
-  border: 0;
-  padding: 0;
-  color: var(--vino);
-  font-size: 0.75rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.terra-login .terra-login-card form > label > button:hover { text-decoration: underline; }
-
-.terra-login .terra-login-card form > label > div {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  margin-top: 0.5rem;
-  padding: 0 1rem;
-  border-radius: 12px;
-  background: var(--paper);
-  border: 1.5px solid var(--line);
-  color: var(--muted);
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-}
-
-.terra-login .terra-login-card form > label > div:focus-within {
-  background: #fff;
-  border-color: var(--vino);
-  box-shadow: 0 0 0 4px rgba(166, 25, 46, 0.12);
-  color: var(--vino);
-}
-
-.terra-login .terra-login-card form > label > div > svg { flex: none; }
-
-.terra-login .terra-login-card input {
-  width: 100%;
-  min-height: 3.4rem;
-  background: transparent;
-  border: 0;
-  outline: 0;
-  font-size: 0.98rem;
-  color: var(--ink);
-}
-
-.terra-login .terra-eye {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-  margin-right: -4px;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
-  transition: color 0.2s, background 0.2s;
-}
-
-.terra-login .terra-eye:hover { color: var(--vino); background: var(--blush); }
-
-.terra-login-options {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: 1.25rem 0 1.25rem;
-  font-size: 0.8rem;
-  color: #4b3d3f;
-}
-
-.terra-login-options label { display: flex; align-items: center; gap: 0.5rem; }
-
-.terra-login .terra-login-options input {
-  width: auto;
-  min-height: auto;
-  accent-color: var(--vino);
-}
-
-.terra-login .terra-login-options span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.6rem;
-  border-radius: 999px;
-  background: var(--blush);
-  color: var(--vino);
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: none;
-  white-space: nowrap;
-}
-
-.terra-login .admin-error {
-  margin: 0 0 1rem;
-  padding: 0.7rem 0.85rem;
-  border-radius: 10px;
-  background: var(--blush);
-  border: 1px solid #f5cdd3;
-  color: #8e1527;
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.terra-login-submit {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  min-height: 3.5rem;
-  border: 0;
-  border-radius: 12px;
-  background: var(--vino);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 16px 28px -16px rgba(166, 25, 46, 0.85);
-  transition: background 0.18s, transform 0.12s, box-shadow 0.18s;
-}
-
-.terra-login-submit:hover:not(:disabled) {
-  background: var(--vino-mid);
-  box-shadow: 0 18px 32px -16px rgba(166, 25, 46, 0.9);
-}
-
-.terra-login-submit:active:not(:disabled) { transform: translateY(1px); }
-.terra-login-submit:disabled { opacity: 0.72; cursor: default; }
-
-.terra-login .terra-login-card footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin: 1.5rem 0 0;
-  padding: 1.25rem 0 0;
-  border-top: 1px solid var(--line);
-  background: none;
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-
-.terra-login .terra-login-card footer span {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.terra-login .terra-login-card footer b { color: var(--ink); font-weight: 800; }
-
-/* ---------- Foco accesible ---------- */
-.terra-login button:focus-visible {
-  outline: 2px solid var(--vino);
-  outline-offset: 2px;
-  border-radius: 10px;
-}
-
-/* ---------- Responsive ---------- */
-@media (max-width: 860px) {
-  .terra-login-content {
-    grid-template-columns: 1fr;
-    max-width: 480px;
-  }
-
-  .terra-login-brand {
-    gap: 1.25rem;
-    padding: 1.75rem 1.5rem;
-  }
-
-  .terra-brand-copy h2 { font-size: 1.5rem; max-width: none; }
-  .terra-brand-copy p { display: none; }
-
-  .terra-brand-meta {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-    padding-top: 1rem;
-  }
-}
-
-@media (max-width: 520px) {
-  .terra-login { padding: 0.75rem; }
-  .terra-login-content { border-radius: 18px; }
-  .terra-login-card { padding: 1.5rem 1.25rem; }
-  .terra-login-options { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
-  .terra-login .terra-login-card footer { flex-direction: column; align-items: flex-start; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .terra-login-content { animation: none; }
-  .terra-login-submit { transition: none; }
+html[data-theme="dark"] .admin-login-screen footer {
+  background-color: rgba(28, 24, 26, 0.7);
+  border-color: #2e2629;
 }

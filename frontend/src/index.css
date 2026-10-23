@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+@theme {
+  --color-terra-50: #fdf2f4;
+  --color-terra-100: #fce7eb;
+  --color-terra-200: #f9d2d9;
+  --color-terra-600: #b71d37;
+  --color-terra-700: #9c1b30;
+  --color-terra-800: #8e172a;
+  --color-terra-900: #751323;
+
+  --color-surface-light: #faf8f9;
+  --color-surface-card: #ffffff;
+  --color-surface-border: #ede6e8;
+  --color-surface-muted: #736d71;
+
+  --shadow-terra-card: 0 10px 30px -4px rgba(142, 23, 42, 0.05), 0 4px 16px -2px rgba(0, 0, 0, 0.03);
+}
+
 :root {
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #193127;
