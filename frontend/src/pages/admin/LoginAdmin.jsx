@@ -48,7 +48,7 @@ export default function LoginAdmin() {
           </div>
 
           <div className="terra-brand-meta">
-            <span><MapPin size={16} />Sucursal 1 Central</span>
+            <span><MapPin size={16} />Sucursal Equipetrol</span>
             <span><Wifi size={16} /> Red privada del showroom</span>
             <span><ShieldCheck size={16} /> Terminal EQ-01 · TERRA ERP v2.4.1</span>
           </div>
@@ -58,7 +58,7 @@ export default function LoginAdmin() {
           <header>
             <span className="terra-login-eyebrow">Panel de control</span>
             <h1>Acceso administrativo</h1>
-            <p>Sucursal 1 Central · Santa Cruz de la Sierra</p>
+            <p>Sucursal Equipetrol · Santa Cruz de la Sierra</p>
           </header>
 
           <form onSubmit={enviar}>
