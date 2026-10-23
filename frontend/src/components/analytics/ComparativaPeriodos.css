@@ -1,0 +1,43 @@
+/* Comparativa de períodos del dashboard (usa .dash-card como base).
+   Tokens definidos una sola vez en la raíz del componente: en modo noche y alto
+   contraste toman los --td-* del tema; en modo claro usan el valor por defecto. */
+.comparativa{--cmp-surface:var(--td-surface,#fff);--cmp-soft:var(--td-surface-2,#f8f4f5);--cmp-soft-2:var(--td-surface-3,#f0eded);--cmp-line:var(--td-line,#eee2e4);--cmp-line-soft:var(--td-line-soft,#f0eded);--cmp-text:var(--td-text,#252a28);--cmp-muted:var(--td-muted,#737b78);--cmp-accent:var(--td-accent,#a6192e);--cmp-accent-soft:var(--td-accent-soft,#fff5f6);--cmp-ok:var(--td-ok,#177647);--cmp-ok-bg:var(--td-ok-bg,#e8f7ee);--cmp-warn:var(--td-accent-soft,#fff3d9);--cmp-warn-text:var(--td-muted,#9a6513);color:var(--cmp-text);margin-top:1.15rem}
+.comparativa header{align-items:flex-start;display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between}
+.comparativa header>div:first-child{flex:1 1 280px}
+.comparativa header span{align-items:center;color:var(--cmp-accent);display:flex;font-size:.72rem;font-weight:900;gap:.3rem;letter-spacing:.06em;text-transform:uppercase}
+.comparativa h2{color:var(--cmp-text);font-size:1.1rem;margin:.35rem 0}
+.comparativa header p{color:var(--cmp-muted);font-size:.8rem;margin:0}
+.comparativa__filtros{display:flex;flex-wrap:wrap;gap:.35rem}
+.comparativa__filtros button{background:var(--cmp-soft-2);border:0;border-radius:999px;color:var(--cmp-muted);cursor:pointer;font-size:.74rem;font-weight:800;min-height:2.75rem;padding:.45rem .8rem}
+.comparativa__filtros button.active{background:var(--cmp-accent);color:#fff}
+.comparativa__personalizado{align-items:end;display:flex;flex-wrap:wrap;gap:.9rem;margin-top:1rem}
+.comparativa__personalizado fieldset{border:1px solid var(--cmp-line);border-radius:.8rem;display:flex;gap:.6rem;margin:0;padding:.55rem .75rem .7rem}
+.comparativa__personalizado legend{color:var(--cmp-accent);font-size:.7rem;font-weight:800;letter-spacing:.05em;padding:0 .3rem;text-transform:uppercase}
+.comparativa__personalizado label{color:var(--cmp-muted);display:grid;font-size:.72rem;font-weight:700;gap:.25rem}
+.comparativa__personalizado input{background:var(--cmp-surface);border:1px solid var(--cmp-line);border-radius:.55rem;color:var(--cmp-text);font:inherit;font-size:.85rem;min-height:2.75rem;padding:.45rem .55rem}
+.comparativa__personalizado button{background:var(--cmp-accent);border:0;border-radius:.65rem;color:#fff;cursor:pointer;font-weight:800;min-height:2.75rem;padding:.7rem 1.1rem}
+.comparativa__personalizado button:disabled{cursor:wait;opacity:.7}
+.comparativa__error{align-items:center;background:var(--cmp-accent-soft);border:1px solid var(--cmp-line);border-radius:.7rem;color:var(--cmp-accent);display:flex;font-size:.82rem;gap:.5rem;margin:1rem 0 0;padding:.7rem .9rem}
+.comparativa__rangos{background:var(--cmp-accent-soft);border:1px solid var(--cmp-line);border-radius:12px;display:grid;gap:.75rem;grid-template-columns:repeat(2,minmax(0,1fr));margin:1rem 0;padding:.75rem .9rem}
+.comparativa__rangos small{color:var(--cmp-muted);display:block;font-size:.7rem;letter-spacing:.04em;text-transform:uppercase}
+.comparativa__rangos b{color:var(--cmp-accent);font-size:.95rem}
+.comparativa__tabla-wrap{overflow:auto}
+.comparativa__tabla{border-collapse:collapse;min-width:520px;width:100%}
+.comparativa__tabla th,.comparativa__tabla td{padding:.75rem .6rem;text-align:left;vertical-align:middle}
+.comparativa__tabla thead th{background:var(--cmp-soft);color:var(--cmp-muted);font-size:.68rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.comparativa__tabla thead th:first-child{border-radius:.55rem 0 0 .55rem}
+.comparativa__tabla thead th:last-child{border-radius:0 .55rem .55rem 0}
+.comparativa__tabla tbody th{color:var(--cmp-text);font-size:.85rem;font-weight:700}
+.comparativa__tabla tbody th small{color:var(--cmp-muted);display:block;font-size:.68rem;font-weight:600}
+.comparativa__tabla tbody td{border-bottom:1px solid var(--cmp-line-soft);font-size:.88rem}
+.comparativa__tabla tbody tr:last-child td{border-bottom:0}
+.comparativa__actual{color:var(--cmp-accent);font-weight:800}
+.comparativa__anterior{color:var(--cmp-muted)}
+.comparativa__vacio{color:var(--cmp-muted);padding:1.5rem;text-align:center}
+.comparativa__delta{align-items:center;border-radius:999px;display:inline-flex;font-size:.74rem;font-weight:800;gap:.2rem;padding:.3rem .55rem;white-space:nowrap}
+.comparativa__delta--sube{background:var(--cmp-ok-bg);color:var(--cmp-ok)}
+.comparativa__delta--baja{background:var(--cmp-accent-soft);color:var(--cmp-accent)}
+.comparativa__delta--igual{background:var(--cmp-soft-2);color:var(--cmp-muted)}
+.comparativa__delta--nuevo{background:var(--cmp-warn);color:var(--cmp-warn-text)}
+.comparativa__nota{color:var(--cmp-muted);font-size:.82rem;margin:.9rem 0 0}
+@media(max-width:600px){.comparativa__rangos{grid-template-columns:1fr}.comparativa__personalizado fieldset{flex:1 1 100%}.comparativa__personalizado button{width:100%}}
