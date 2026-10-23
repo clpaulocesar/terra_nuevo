@@ -135,52 +135,6 @@ function construirFiltros({ buscar = '', categoria = '', soloActivos = false, so
   return { valores, condiciones };
 }
 
-// Devuelve una página de productos y el total de filas que cumplen el filtro.
-// Filtros y orden viven aquí para que la paginación del frontend sea exacta.
-export async function listarProductosBD({
-  buscar = '',
-  categoria = '',
-  pagina = 1,
-  limite = 100,
-  soloActivos = false,
-  soloPromos = false,
-  soloOfertas = false,
-  conStock = false,
-  precioMin = null,
-  precioMax = null,
-  orden = 'recomendados',
-} = {}) {
-  await asegurarEscalasMayoristasBD();
-  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, soloOfertas: soloOfertas || orden === 'ofertas', conStock, precioMin, precioMax });
-  const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
-  const orderBy = ORDENES[orden] || ORDENES.recomendados;
-  const valoresFiltro = [...valores];
-  valores.push(limite, (pagina - 1) * limite);
-  const { rows } = await pool.query(
-    `${CTE_VENTAS}
-     SELECT ${campos}, COUNT(*) OVER()::integer AS total_filas
-     FROM products p
-     LEFT JOIN categories c ON c.id=p.category_id
-     LEFT JOIN product_instructions pi ON pi.product_id=p.id
-     LEFT JOIN ventas v ON v.nombre = LOWER(p.name)
-     ${where}
-     ORDER BY ${orderBy}
-     LIMIT $${valores.length - 1} OFFSET $${valores.length}`,
-    valores
-  );
-  let total = rows[0]?.total_filas;
-  if (total === undefined) {
-    // Página vacía (más allá del final): el total se obtiene aparte.
-    const { rows: conteo } = await pool.query(
-      `SELECT COUNT(*)::integer AS total FROM products p LEFT JOIN categories c ON c.id=p.category_id ${where}`,
-      valoresFiltro
-    );
-    total = conteo[0]?.total ?? 0;
-  }
-  const productos = rows.map(({ total_filas: _omitido, ...resto }) => resto);
-  return { productos, total };
-}
-
 // Listado paginado del catálogo con filtros y ordenamiento reales en base de datos.
 // Devuelve { productos, total } para que el frontend pueda paginar sobre +2.500 referencias.
 export async function listarProductosPaginadoBD({

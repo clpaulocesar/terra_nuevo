@@ -134,30 +134,6 @@ export async function eliminarUsuarioSupabase(id) {
 
 // Verifica correo y contraseña contra Supabase Auth.
 // Devuelve { ok: true } o { ok: false, mensaje } con el motivo real del rechazo.
-export async function verificarCredencialesSupabase({ email, password }) {
-  if (!SUPABASE_URL) return { ok: false, mensaje: 'Supabase no está configurado en el backend.' };
-  const key = await obtenerClavePublica();
-  const respuesta = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-    method: 'POST',
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ email, password }),
-  });
-  if (respuesta.ok) return { ok: true };
-  const data = await respuesta.json().catch(() => ({}));
-  const detalle = String(data.msg || data.message || data.error_description || '');
-  if (/not confirmed/i.test(detalle)) {
-    return { ok: false, mensaje: 'La cuenta todavía no fue confirmada. Revisá el correo de invitación.' };
-  }
-  if (/Invalid login credentials/i.test(detalle)) {
-    return { ok: false, mensaje: 'Credenciales inválidas.' };
-  }
-  return { ok: false, mensaje: detalle || 'No se pudo validar la cuenta.' };
-}
-
 export async function autenticarUsuarioSupabase({ email, password }) {
   if (!SUPABASE_URL) return null;
   let keys = PUBLIC_KEYS;
