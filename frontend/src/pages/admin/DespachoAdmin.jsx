@@ -12,6 +12,7 @@ import {
   Phone,
   RefreshCw,
   RotateCcw,
+  Route,
   Search,
   Truck,
   UserRound,
@@ -19,6 +20,7 @@ import {
 import { actualizarEntregaPedido, listarPedidos } from '../../services/pedidoService.js';
 import { getAdminUser } from '../../services/adminService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
+import MapaRutaDespacho from '../../components/admin/MapaRutaDespacho.jsx';
 import './DespachoAdmin.css';
 
 const TABS = [
@@ -91,6 +93,7 @@ export default function DespachoAdmin() {
   const [guardando, setGuardando] = useState('');
   const [aviso, setAviso] = useState(null);
   const [soloMios, setSoloMios] = useState(false);
+  const [rutaAbiertaId, setRutaAbiertaId] = useState(null);
   const primeraCarga = useRef(true);
   const puedeFiltrarMios = usuario?.rol === 'despacho' && Boolean(usuario?.id);
 
@@ -290,6 +293,7 @@ export default function DespachoAdmin() {
           const ocupado = guardando === String(pedido.id);
           const telefono = pedido.cliente_telefono;
           const mapa = enlaceMapa(pedido);
+          const tieneCoordenadas = Number.isFinite(Number(pedido.latitud_entrega)) && Number.isFinite(Number(pedido.longitud_entrega));
           const cobrado = PAGADOS.includes(String(pedido.estado || '').toLowerCase());
           const whatsapp = telefonoWhatsApp(telefono);
           const mensaje = encodeURIComponent(`Hola ${pedido.cliente || ''}, te escribimos de TERRA por tu pedido ${pedido.codigo || ''}.`);
@@ -358,8 +362,13 @@ export default function DespachoAdmin() {
                 )}
                 {mapa && (
                   <a href={mapa} target="_blank" rel="noreferrer" className="dispatch-btn is-soft">
-                    <Navigation size={16} aria-hidden="true" /> Mapa
+                    <Navigation size={16} aria-hidden="true" /> Abrir Maps
                   </a>
+                )}
+                {tieneCoordenadas && (
+                  <button type="button" className="dispatch-btn is-soft" onClick={() => setRutaAbiertaId((actual) => actual === pedido.id ? null : pedido.id)} aria-expanded={rutaAbiertaId === pedido.id}>
+                    <Route size={16} aria-hidden="true" /> {rutaAbiertaId === pedido.id ? 'Ocultar ruta' : 'Ver ruta'}
+                  </button>
                 )}
                 {etapa === 'pendiente' && (
                   <>
@@ -382,6 +391,7 @@ export default function DespachoAdmin() {
                   </>
                 )}
               </footer>
+              {rutaAbiertaId === pedido.id && tieneCoordenadas && <MapaRutaDespacho latitud={pedido.latitud_entrega} longitud={pedido.longitud_entrega} cliente={pedido.cliente} direccion={pedido.direccion_entrega} />}
             </article>
           );
         })}
