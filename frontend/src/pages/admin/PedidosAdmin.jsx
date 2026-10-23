@@ -21,6 +21,7 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import QRCode from 'react-qr-code';
 import {
   actualizarItemsPedido,
+  actualizarEstadoPedido,
   listarPedidos,
   obtenerPedido,
   registrarPagoPedido,
@@ -69,6 +70,7 @@ export default function PedidosAdmin() {
   const [metodo, setMetodo] = useState('qr');
   const [archivoComprobante, setArchivoComprobante] = useState(null);
   const [subiendoPago, setSubiendoPago] = useState(false);
+  const [anulandoId, setAnulandoId] = useState(null);
   const [imprimiendoId, setImprimiendoId] = useState(null);
 
   // Estados para edición y adición de productos si el cliente cambia de opinión
@@ -118,6 +120,7 @@ export default function PedidosAdmin() {
     if (!esVendedor) {
       base.push(['shipped', 'En despacho']);
     }
+    base.push(['cancelled', 'Anulados']);
     return base;
   }, [esVendedor]);
 
@@ -125,6 +128,7 @@ export default function PedidosAdmin() {
     if (tab === 'todos') return true;
     if (tab === 'pending') return POR_COBRAR.includes(pedido.estado);
     if (tab === 'shipped') return EN_DESPACHO.includes(pedido.estado);
+    if (tab === 'cancelled') return ['cancelled', 'cancelado'].includes(String(pedido.estado || '').toLowerCase());
     return pedido.estado === tab;
   }), [pedidos, tab]);
   const pendientes = pedidos.filter((pedido) => POR_COBRAR.includes(pedido.estado)).length;
@@ -370,6 +374,27 @@ export default function PedidosAdmin() {
     finally { setSubiendoPago(false); }
   };
 
+  const anularPedido = async (pedido) => {
+    if (!pedido || !POR_COBRAR.includes(pedido.estado)) return;
+    const referencia = pedido.numero ? `el pedido #${pedido.numero}` : 'este pedido';
+    if (!window.confirm(`¿Anular ${referencia}? La venta quedará registrada como anulada y no se podrá cobrar.`)) return;
+
+    setAnulandoId(pedido.id);
+    setError('');
+    try {
+      const actualizado = await actualizarEstadoPedido(pedido.id, 'cancelled');
+      const cambios = { estado: actualizado?.estado || 'cancelled' };
+      setPedidos((lista) => lista.map((actual) => actual.id === pedido.id ? { ...actual, ...cambios } : actual));
+      setSeleccion(null);
+      setModoEdicion(false);
+      setArchivoComprobante(null);
+    } catch (err) {
+      setError(err.message || 'No se pudo anular el pedido.');
+    } finally {
+      setAnulandoId(null);
+    }
+  };
+
   const imprimirTicket = async (pedido) => {
     const ventana = window.open('', '_blank', 'width=430,height=760');
     if (!ventana) { setError('Permite las ventanas emergentes para imprimir el ticket.'); return; }
@@ -401,6 +426,7 @@ export default function PedidosAdmin() {
       .filter((pedido) => !['cancelado', 'cancelled'].includes(String(pedido.estado || '').toLowerCase()))
       .reduce((total, pedido) => total + contarUnidades(pedido.items), 0);
   }, [pedidos]);
+  const pedidosAnulados = pedidos.filter((pedido) => ['cancelado', 'cancelled'].includes(String(pedido.estado || '').toLowerCase())).length;
 
   const comprobanteActual = archivoComprobante ? URL.createObjectURL(archivoComprobante) : seleccion?.comprobante_url;
   const pendiente = seleccion && POR_COBRAR.includes(seleccion.estado);
@@ -411,6 +437,7 @@ export default function PedidosAdmin() {
       <article><b>{pendientes} pedidos</b><span>Por cobrar en caja</span></article>
       <article><b>{productosVendidos} unidades</b><span>Productos vendidos</span></article>
       <article><b>{pedidos.length} pedidos</b><span>Registrados en el sistema</span></article>
+      <article><b>{pedidosAnulados} pedidos</b><span>Ventas anuladas por clientes</span></article>
       {!esVendedor && <article><b>{pedidos.filter((pedido) => EN_DESPACHO.includes(pedido.estado)).length} pedidos</b><span>En despacho</span></article>}
     </section>
     <nav className="orders-tabs">{tabs.map(([id, etiqueta]) => <button className={tab === id ? 'active' : ''} onClick={() => setTab(id)} key={id}>{etiqueta}</button>)}</nav>
@@ -426,6 +453,11 @@ export default function PedidosAdmin() {
           {POR_COBRAR.includes(pedido.estado) && (
             <button type="button" className="order-icon-btn" onClick={() => abrirPedidoParaEdicion(pedido)} title="Editar o agregar productos" aria-label="Editar o agregar productos al pedido">
               <Edit3 size={15} />
+            </button>
+          )}
+          {POR_COBRAR.includes(pedido.estado) && (
+            <button type="button" className="order-icon-btn" onClick={() => anularPedido(pedido)} disabled={anulandoId === pedido.id} title="Anular venta por cancelación del cliente" aria-label="Anular venta por cancelación del cliente">
+              {anulandoId === pedido.id ? <RefreshCw size={15} className="is-spinning" /> : <X size={15} />}
             </button>
           )}
           <button type="button" className="order-primary" onClick={() => abrirPedido(pedido)} title={POR_COBRAR.includes(pedido.estado) ? 'Registrar el pago del pedido' : 'Consultar el detalle del pedido'}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={16} /> Cobrar</> : 'Ver detalle'}</button>
@@ -570,6 +602,6 @@ export default function PedidosAdmin() {
       </div>
       <div className="orders-methods"><button className={metodo === 'qr' ? 'active' : ''} onClick={() => setMetodo('qr')}><QrCode />QR Simple</button><button className={metodo === 'efectivo' ? 'active' : ''} onClick={() => setMetodo('efectivo')}><Package />Efectivo</button><button className={metodo === 'tarjeta' ? 'active' : ''} onClick={() => setMetodo('tarjeta')}><CreditCard />Tarjeta</button></div>{metodo === 'qr' && <div className="orders-qr"><b>Imagen de prueba</b><QRCode value={`TERRA-PRUEBA|${seleccion.codigo}|${Number(seleccion.total)}`} size={200} /><p>Escanea el código para simular el pago del cliente</p><small>#{seleccion.codigo} · {formatoMoneda(seleccion.total)}</small></div>}{metodo === 'efectivo' && <p className="orders-hint">Cobra el monto en efectivo en caja y luego confirma el pago.</p>}{metodo === 'tarjeta' && <p className="orders-hint">Pasa la tarjeta por el POS y luego confirma el pago.</p>}
       <section className="orders-receipt"><div className="orders-receipt-head"><div><b><ImagePlus size={17} /> Comprobante de pago</b><span>Opcional · JPG, PNG o WEBP · máximo 8 MB</span></div>{comprobanteActual && <a href={comprobanteActual} target="_blank" rel="noreferrer" aria-label="Ver comprobante en una pestaña nueva"><ExternalLink size={17} /></a>}</div><label className="orders-receipt-btn"><ImagePlus size={17} /> {archivoComprobante ? 'Cambiar imagen' : comprobanteActual ? 'Reemplazar imagen' : 'Cargar comprobante'}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setArchivoComprobante(event.target.files?.[0] || null)} /></label>{comprobanteActual ? <div className="orders-receipt-preview"><img src={comprobanteActual} alt="Comprobante de pago" /><div><p>{archivoComprobante ? archivoComprobante.name : 'Comprobante guardado en Supabase'}</p>{archivoComprobante && <button type="button" className="orders-receipt-remove" onClick={() => setArchivoComprobante(null)}><Trash2 size={14} /> Quitar cambio</button>}</div></div> : <span className="orders-receipt-empty">Aún no se adjuntó una imagen.</span>}</section>
-      {error && <p className="orders-alert is-error">{error}</p>}<footer><button onClick={() => setSeleccion(null)}>Cerrar</button><button type="button" className="orders-modal-ticket-btn" onClick={() => imprimirTicket(seleccion)} disabled={imprimiendoId === seleccion.id}>{imprimiendoId === seleccion.id ? 'Generando…' : <><Printer size={16} /> Imprimir ticket</>}</button>{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={iniciarEdicion}><Edit3 size={15} /> Editar / Agregar</button>)}<button onClick={registrarPago} disabled={subiendoPago}>{subiendoPago ? 'Guardando…' : pendiente ? <><CheckCircle2 /> Confirmar pago</> : <><CheckCircle2 /> Guardar comprobante</>}</button></footer></section></div>}
+      {error && <p className="orders-alert is-error">{error}</p>}<footer><button onClick={() => setSeleccion(null)}>Cerrar</button><button type="button" className="orders-modal-ticket-btn" onClick={() => imprimirTicket(seleccion)} disabled={imprimiendoId === seleccion.id}>{imprimiendoId === seleccion.id ? 'Generando…' : <><Printer size={16} /> Imprimir ticket</>}</button>{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={iniciarEdicion}><Edit3 size={15} /> Editar / Agregar</button>)}{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={() => anularPedido(seleccion)} disabled={anulandoId === seleccion.id}>{anulandoId === seleccion.id ? 'Anulando…' : <><X size={15} /> Anular venta</>}</button>)}<button onClick={registrarPago} disabled={subiendoPago || ['cancelled', 'cancelado'].includes(String(seleccion.estado || '').toLowerCase())}>{subiendoPago ? 'Guardando…' : pendiente ? <><CheckCircle2 /> Confirmar pago</> : <><CheckCircle2 /> Guardar comprobante</>}</button></footer></section></div>}
   </main>;
 }

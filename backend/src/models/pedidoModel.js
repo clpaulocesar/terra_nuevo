@@ -242,13 +242,14 @@ export async function obtenerAnaliticaHorariaBD({ desde, hasta, horaInicio = nul
 export async function obtenerResumenPeriodoBD({ desde, hasta }) {
   const { rows } = await pool.query(
     `WITH base AS (
-       SELECT o.id, o.total_minor, o.customer_id,
+       SELECT o.id, o.total_minor, o.customer_id, o.status,
               o.status IN ('completed','paid','pagado','shipped','delivered') AS cobrado
        FROM orders o
        WHERE (o.created_at AT TIME ZONE 'America/La_Paz')::date BETWEEN $1::date AND $2::date
      )
      SELECT COUNT(*)::int AS pedidos_totales,
             COUNT(*) FILTER (WHERE cobrado)::int AS pedidos,
+            COUNT(*) FILTER (WHERE status IN ('cancelled','cancelado'))::int AS pedidos_anulados,
             COALESCE(SUM(total_minor) FILTER (WHERE cobrado),0)/100.0 AS ventas,
             COUNT(DISTINCT customer_id) FILTER (WHERE cobrado AND customer_id IS NOT NULL)::int AS clientes,
             COALESCE((SELECT SUM(oi.quantity) FROM order_items oi JOIN base b ON b.id=oi.order_id WHERE b.cobrado),0)::int AS unidades
@@ -273,6 +274,7 @@ export async function obtenerResumenPeriodoBD({ desde, hasta }) {
     unidades: Number(fila.unidades || 0),
     clientes: Number(fila.clientes || 0),
     pedidosTotales: Number(fila.pedidos_totales || 0),
+    pedidosAnulados: Number(fila.pedidos_anulados || 0),
     horaPico: pico.rows[0] ? { hora: Number(pico.rows[0].hora), pedidos: Number(pico.rows[0].pedidos), ventas: Number(pico.rows[0].ventas) } : null,
   };
 }
