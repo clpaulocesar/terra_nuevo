@@ -923,7 +923,7 @@ export default function PedidosMayorista() {
                     onClick={() => handleDescargarTicket(pedidoActivo)}
                   >
                     <FileText size={14} />
-                    <span>Factura PDF</span>
+                    <span>Descargar ticket</span>
                   </button>
                 </div>
               </div>
