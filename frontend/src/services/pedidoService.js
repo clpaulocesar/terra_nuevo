@@ -50,7 +50,6 @@ export async function obtenerComparativaPeriodos({ periodo = 'dia', desde, hasta
   const token = getAdminToken();
   return apiRequest(`/pedidos/comparativa?${parametros}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
 }
-export async function actualizarEstadoPedido(id, estado) { exigirConexionReal(); return apiRequest(`/pedidos/${id}/estado`, { method: 'PATCH', body: { estado } }); }
 export async function actualizarEstadoPedido(id, estado) {
   exigirConexionReal();
   const token = getAdminToken();
