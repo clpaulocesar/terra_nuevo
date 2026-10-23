@@ -224,6 +224,7 @@ function GaleriaProducto({ colores, setColores, imagenes, setImagenes, destino, 
   const destinoTexto = nombreDeDestino(colores, destino);
   const fotosDestino = fotosDeDestino(colores, destino);
 
+
   const subirArchivos = async (event) => {
     const archivos = Array.from(event.target.files || []);
     if (!archivos.length) return;
@@ -364,101 +365,6 @@ function GaleriaProducto({ colores, setColores, imagenes, setImagenes, destino, 
   );
 }
 
-const productosIniciales = [
-  {
-    id: 1,
-    nombre: 'Sommier Nórdico Bouclé Queen',
-    sku: 'TRR-SOM-B160',
-    categoria: 'Sommiers',
-    precio: '3.950',
-    showroom: 3,
-    visible: true,
-    detalle: 'Queen · 160 × 200 cm',
-    tono: 'beige',
-    imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDyRZJ4OejQFLhRxKI2zISkoOdXuUerVE0SIgqtA9DnUPDCw66KWDLT2oqYOrUIdOEGMoua3Bj-KgyODv5S6U89Lj632Te2t1nPU7gWDmnYlU8nWKyHch_HOpfQ-5faM8DlGHEAbmpRq5Lnzibg2-cZ87RQhTTKIofk6oSYmY48qL_fMT1CKNnOyDo6zBKVzJkiPDvHeoc8SFgrJckJcb1_0WedV4nd7I17Z8Y36nN66RQyH9KMxv_x',
-    imagenes: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDyRZJ4OejQFLhRxKI2zISkoOdXuUerVE0SIgqtA9DnUPDCw66KWDLT2oqYOrUIdOEGMoua3Bj-KgyODv5S6U89Lj632Te2t1nPU7gWDmnYlU8nWKyHch_HOpfQ-5faM8DlGHEAbmpRq5Lnzibg2-cZ87RQhTTKIofk6oSYmY48qL_fMT1CKNnOyDo6zBKVzJkiPDvHeoc8SFgrJckJcb1_0WedV4nd7I17Z8Y36nN66RQyH9KMxv_x',
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCoNTxK5mRu6-SaJMVLBifzSeRTbbS3NA51Yi4yH8vZiDg9-SYLgzVt2J_Sqa2zY9ogMQlFaJrXUbLzABazmnhboXeHoUajfSZvIIfoxQ7WRHxF5oRc0T-yvbzgVgam7S2PUp5-J02rwnIUlhtjHUbcRsnmROpOHvbwETCJS0QxqRKdcgNEFF7cEKrBIbNkLBLpiyCEwzXvfxOClRAOXX_dflpW95tm4IXaLOR36aZR2v6js0r8Cvy_',
-    ],
-  },
-  {
-    id: 2,
-    nombre: 'Colchón Ortopédico Supreme King',
-    sku: 'TRR-COL-K200',
-    categoria: 'Colchones',
-    precio: '4.890',
-    showroom: 4,
-    visible: true,
-    detalle: 'King · 200 × 200 cm',
-    tono: 'green',
-    imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCoNTxK5mRu6-SaJMVLBifzSeRTbbS3NA51Yi4yH8vZiDg9-SYLgzVt2J_Sqa2zY9ogMQlFaJrXUbLzABazmnhboXeHoUajfSZvIIfoxQ7WRHxF5oRc0T-yvbzgVgam7S2PUp5-J02rwnIUlhtjHUbcRsnmROpOHvbwETCJS0QxqRKdcgNEFF7cEKrBIbNkLBLpiyCEwzXvfxOClRAOXX_dflpW95tm4IXaLOR36aZR2v6js0r8Cvy_',
-    imagenes: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuCoNTxK5mRu6-SaJMVLBifzSeRTbbS3NA51Yi4yH8vZiDg9-SYLgzVt2J_Sqa2zY9ogMQlFaJrXUbLzABazmnhboXeHoUajfSZvIIfoxQ7WRHxF5oRc0T-yvbzgVgam7S2PUp5-J02rwnIUlhtjHUbcRsnmROpOHvbwETCJS0QxqRKdcgNEFF7cEKrBIbNkLBLpiyCEwzXvfxOClRAOXX_dflpW95tm4IXaLOR36aZR2v6js0r8Cvy_',
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAA5rj2Ps0QijJsV3RmcBdEsz5td4d3QkcOvpDQLDsjyMmahvd61qSfR58oeyLER6LGD8M5QQOF9K2DMZj4dQEdzi0avUBsjWbOLot8w3w-JcyCXpztBL4MRJDWVwJH1s5z9Pr7bcKiqxs0YYhXgOJUKGjaluD9u5gsKUsbBi-oVTjwxXsht-FwplzS3EzsvUmJBtYgcBKu6tG2pYDmZze5-kP_lPhl1TiEb07pdsJyFAkOnRtWWb4U',
-    ],
-  },
-  {
-    id: 3,
-    nombre: 'Almohada Cervical Ergonómica Gel',
-    sku: 'TRR-ALM-G050',
-    categoria: 'Almohadas',
-    precio: '280',
-    showroom: 18,
-    visible: true,
-    detalle: 'Estándar · Gel Térmico',
-    tono: 'blue',
-    imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDRbyj3vDZl8Jfn1VHjv41mPs-75CSzXxDsM8sbcq1Bujy6gquGJ8aoqDC84yP010Jd_Ri6ht9_jH9fbKmerRsG0wC-WhP8RDUXQXW4SKbjtsST50x6hND1jkPU3o6AB1jhmtTCVpnJNLQzRCT-JANI4yFXC6kihnKArBswPWnwMGWgTXy0wtzcECoSpwWAoy8cEU6LLcXCSC_Pr8sfBS-Onfi23NGP5PbZYWCnq9eE3tEnKNW7JeBc',
-    imagenes: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDRbyj3vDZl8Jfn1VHjv41mPs-75CSzXxDsM8sbcq1Bujy6gquGJ8aoqDC84yP010Jd_Ri6ht9_jH9fbKmerRsG0wC-WhP8RDUXQXW4SKbjtsST50x6hND1jkPU3o6AB1jhmtTCVpnJNLQzRCT-JANI4yFXC6kihnKArBswPWnwMGWgTXy0wtzcECoSpwWAoy8cEU6LLcXCSC_Pr8sfBS-Onfi23NGP5PbZYWCnq9eE3tEnKNW7JeBc',
-    ],
-  },
-  {
-    id: 4,
-    nombre: 'Juego de Living Modular Roble & Lino',
-    sku: 'TRR-LVG-MOD8',
-    categoria: 'Living',
-    precio: '7.200',
-    showroom: 1,
-    visible: true,
-    detalle: 'Configuración Completa · Lino Beige',
-    tono: 'terra',
-    imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBIWgZeIyWl1iiSfqgMcewJ1yCXm5B4RdvQRDkrgaAXMO7LYlQoKyxSyq9s3dWaQwLzEcjxDIMF1lLFn8em4oFupQ8kcKO9nFJfmVcf-A7cdKfuDYeKkD2V59VkccSOxKq8b65TtvBMzneqtkOxZ28ILUaMbB8z0FqjsRAc1RVeMSEgYH-t-7jp9eGf4bSbJbwu1lKEb03tet2mN2aTVGGLlotlRat2d0ErZpgDWH_pRPVvEZ5SOa-E',
-    imagenes: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuBIWgZeIyWl1iiSfqgMcewJ1yCXm5B4RdvQRDkrgaAXMO7LYlQoKyxSyq9s3dWaQwLzEcjxDIMF1lLFn8em4oFupQ8kcKO9nFJfmVcf-A7cdKfuDYeKkD2V59VkccSOxKq8b65TtvBMzneqtkOxZ28ILUaMbB8z0FqjsRAc1RVeMSEgYH-t-7jp9eGf4bSbJbwu1lKEb03tet2mN2aTVGGLlotlRat2d0ErZpgDWH_pRPVvEZ5SOa-E',
-    ],
-  },
-  {
-    id: 5,
-    nombre: 'Set Ropa de Cama Algodón Egipcio King',
-    sku: 'TRR-LIN-K400',
-    categoria: 'Ropa de cama',
-    precio: '680',
-    showroom: 2,
-    visible: true,
-    detalle: 'King · 400 Hilos Satén Blanco',
-    tono: 'linen',
-    imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDjzT-XQKQxqXQGRV4cM4MTI9dNop0n4-te7LnsgHOXtF82W0q9rbF4RfRjSnDihWPDvidwAakZgic4juIM8sAB1M3rNflotOf5eaIyeu5seJDPyrDjtM6irgdoUJteV4DccyUdzZACPtd1l4S3m6hWV6EFTjdfuuDOgIUGTMmL0NS75QKU2zJTSivsMN3QS4kEbXwSCsCxg5wadzhRZCIiobuQ2XfLSo0kRieTMBQnbqToD_Ry3ypm',
-    imagenes: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuDjzT-XQKQxqXQGRV4cM4MTI9dNop0n4-te7LnsgHOXtF82W0q9rbF4RfRjSnDihWPDvidwAakZgic4juIM8sAB1M3rNflotOf5eaIyeu5seJDPyrDjtM6irgdoUJteV4DccyUdzZACPtd1l4S3m6hWV6EFTjdfuuDOgIUGTMmL0NS75QKU2zJTSivsMN3QS4kEbXwSCsCxg5wadzhRZCIiobuQ2XfLSo0kRieTMBQnbqToD_Ry3ypm',
-    ],
-  },
-  {
-    id: 6,
-    nombre: 'Colchón TERRA BioRest 2 Plazas',
-    sku: 'TRR-COL-B140',
-    categoria: 'Colchones',
-    precio: '2.450',
-    showroom: 9,
-    visible: true,
-    detalle: '2 Plazas · 140 × 190 cm',
-    tono: 'green',
-    imagen_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAA5rj2Ps0QijJsV3RmcBdEsz5td4d3QkcOvpDQLDsjyMmahvd61qSfR58oeyLER6LGD8M5QQOF9K2DMZj4dQEdzi0avUBsjWbOLot8w3w-JcyCXpztBL4MRJDWVwJH1s5z9Pr7bcKiqxs0YYhXgOJUKGjaluD9u5gsKUsbBi-oVTjwxXsht-FwplzS3EzsvUmJBtYgcBKu6tG2pYDmZze5-kP_lPhl1TiEb07pdsJyFAkOnRtWWb4U',
-    imagenes: [
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAA5rj2Ps0QijJsV3RmcBdEsz5td4d3QkcOvpDQLDsjyMmahvd61qSfR58oeyLER6LGD8M5QQOF9K2DMZj4dQEdzi0avUBsjWbOLot8w3w-JcyCXpztBL4MRJDWVwJH1s5z9Pr7bcKiqxs0YYhXgOJUKGjaluD9u5gsKUsbBi-oVTjwxXsht-FwplzS3EzsvUmJBtYgcBKu6tG2pYDmZze5-kP_lPhl1TiEb07pdsJyFAkOnRtWWb4U',
-    ],
-  },
-];
-
 export default function ProductosAdmin() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -516,14 +422,6 @@ export default function ProductosAdmin() {
     }
     return Array.from(set);
   }, [productos, categoriasApi]);
-
-  // Opciones para los <select> de categoría (crear/editar): solo datos reales
-  const opcionesCategoria = useMemo(() => {
-    const set = new Set(categoriasApi);
-    for (const p of productos) if (p.categoria) set.add(p.categoria);
-    if (editarProducto?.categoria) set.add(editarProducto.categoria);
-    return Array.from(set);
-  }, [categoriasApi, productos, editarProducto]);
 
   const avisar = texto => {
     setMensaje(texto);
@@ -618,7 +516,6 @@ export default function ProductosAdmin() {
     (categoria === 'Todos' || p.categoria === categoria) &&
     (!soloKiosco || p.visible)
   ), [productos, buscar, categoria, soloKiosco]);
-
   const visiblesOrdenados = useMemo(() => {
     const lista = [...visibles];
     const obtener = (p) => {
@@ -771,7 +668,7 @@ export default function ProductosAdmin() {
       setProductos(lista => lista.map(p => p.id === ajuste.id ? { ...p, showroom, stock: showroom } : p));
       setAjuste(null);
       avisar(`Stock de ${ajuste.sku} sincronizado en tiempo real con PostgreSQL y kioscos.`);
-    } catch (err) {
+    } catch {
       avisar('Error al actualizar inventario en el servidor.');
     }
   };

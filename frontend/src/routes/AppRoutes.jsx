@@ -1,19 +1,14 @@
 import { lazy, Suspense, useRef, useState, useEffect } from 'react';
 import {
   BrowserRouter, Routes, Route, Navigate, Link,
-  NavLink, Outlet, useNavigate, useLocation, useSearchParams,
+  NavLink, Outlet, useNavigate, useLocation,
 } from 'react-router-dom';
-import { ShoppingCart, Store, Search, Plus, Minus, Trash2, ArrowRight, CheckCircle2, PackageOpen, Home, Package, Tags, Headphones, RotateCcw, Timer, UserRound, LogOut, ChevronDown, BadgeCheck, BookOpen, ReceiptText, MessageCircle, FileText, Repeat2, ContactRound, QrCode, Menu, X } from 'lucide-react';
+import { ShoppingCart, ArrowRight, Home, Package, Tags, UserRound, LogOut, ChevronDown, BookOpen, ReceiptText, MessageCircle, FileText, ContactRound, QrCode, Menu, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
-import { useProductos } from '../hooks/useProductos.js';
 import { ClienteContext } from '../context/ClienteContext.jsx';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useContext } from 'react';
-import { categorias, emojiCategoria } from '../data/categorias.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
-import { validarDatosCliente } from '../utils/validaciones.js';
-import { crearCliente } from '../services/clienteService.js';
-import { crearPedido } from '../services/pedidoService.js';
 import { leerCarritoQr } from '../services/qrCartService.js';
 import { MODO_DEMO, WHATSAPP_COMPROBANTES } from '../services/api.js';
 import Bienvenida from '../pages/Bienvenida.jsx';
@@ -227,73 +222,6 @@ function Layout() {
         {unidadesQr > 0 && <b>{unidadesQr}</b>}
       </button>
     </div>
-  );
-}
-
-
-
-
-function Confirmacion() {
-  const { items, subtotal, vaciarCarrito } = useCarrito();
-  const { cliente, limpiarCliente } = useContext(ClienteContext);
-  const [procesando, setProcesando] = useState(false);
-  const [error, setError] = useState('');
-  const clienteRegistradoRef = useRef(null);
-  const enviandoRef = useRef(false);
-  const navigate = useNavigate();
-  if (items.length === 0) return <Navigate to="/carrito" replace />;
-
-  async function confirmarPedido() {
-    if (enviandoRef.current) return;
-    enviandoRef.current = true;
-    setProcesando(true);
-    setError('');
-    try {
-      let clienteId = null;
-      if (cliente.nombre.trim()) {
-        if (!clienteRegistradoRef.current) {
-          clienteRegistradoRef.current = await crearCliente(cliente);
-        }
-        clienteId = clienteRegistradoRef.current?.id ?? null;
-      }
-      const pedido = await crearPedido({ clienteId, items: items.map((item) => ({ productoId: item.id, cantidad: item.cantidad })) });
-      vaciarCarrito();
-      limpiarCliente();
-      navigate('/pedido', { replace: true, state: { pedido } });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      enviandoRef.current = false;
-      setProcesando(false);
-    }
-  }
-
-  return (
-    <section className="narrow-page"><h1>Confirmar pedido</h1>
-      <div className="form-card"><h2>Resumen de compra</h2>
-        {items.map((item) => <div className="receipt-row" key={item.id}><span>{item.cantidad} × {item.nombre}</span><b>{formatoMoneda(item.cantidad * item.precio)}</b></div>)}
-        <div className="summary"><span>Total</span><strong>{formatoMoneda(subtotal)}</strong></div>
-        <p className="muted">Cliente: {cliente.nombre || 'Invitado'}</p>
-        <p className="muted">Forma de pago: en caja (no se cobra desde esta pantalla).</p>
-        {error && <p className="error-box" role="alert">{error}</p>}
-        <button className="btn btn-primary btn-large" type="button" disabled={procesando} onClick={confirmarPedido}>{procesando ? 'Generando pedido...' : 'Generar pedido'} <ArrowRight size={20} /></button>
-        <Link className="btn btn-ghost" to="/carrito">Volver al carrito</Link>
-      </div>
-    </section>
-  );
-}
-
-function PedidoGenerado() {
-  const location = useLocation();
-  const pedido = location.state?.pedido;
-  if (!pedido) return <Navigate to="/" replace />;
-  return (
-    <section className="success-page"><CheckCircle2 size={70} className="success-icon" />
-      <h1>{pedido.demo ? 'Pedido de demostración' : '¡Pedido generado!'}</h1>
-      <p>{pedido.demo ? 'Esta operación es una simulación y no se guardó en el servidor.' : 'Muestra este código en caja para realizar el pago.'}</p>
-      <div className="code-card"><span>Código de pedido</span><strong>{pedido.codigo}</strong><span>Total: {formatoMoneda(pedido.total)}</span></div>
-      <Link to="/" className="btn btn-primary btn-large">Nueva compra</Link>
-    </section>
   );
 }
 

@@ -21,7 +21,6 @@ export { nombreDePagina };
 const sinAcentos = (texto) => normalizar(texto);
 
 const COMANDOS_FIJOS = 'buscar y el nombre del producto, agregar y el nombre del producto, siguiente, anterior, leer página, modo noche, modo día, volver, silencio o ayuda';
-export const AYUDA_COMANDOS = `Podés decir: inicio, catálogo, categorías, carrito, ${COMANDOS_FIJOS}.`;
 const AYUDA_POR_LECTURA = 6;
 
 export default function LectorVoz() {

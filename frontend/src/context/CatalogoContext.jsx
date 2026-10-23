@@ -180,9 +180,3 @@ export function useCatalogoPaginado({ buscar = '', categoria = '', orden = 'reco
     reintentar: () => cargarPagina(filtros, pagina).catch(() => {}),
   };
 }
-
-export function useCatalogoStore() {
-  const contexto = useContext(CatalogoContext);
-  if (!contexto) throw new Error('useCatalogoStore debe usarse dentro de <CatalogoProvider>.');
-  return contexto;
-}

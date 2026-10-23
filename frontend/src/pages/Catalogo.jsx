@@ -299,8 +299,6 @@ export default function Catalogo() {
     return () => mq.removeEventListener('change', actualizar);
   }, []);
 
-  const [segundosSesion, setSegundosSesion] = useState(180);
-
   const searchInputRef = useRef(null);
   const ultimaTarjetaLeidaRef = useRef(null);
 
@@ -379,19 +377,6 @@ export default function Catalogo() {
       document.removeEventListener('keydown', cerrarEscape);
     };
   }, [menuCategoriasAbierto]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSegundosSesion((prev) => (prev > 0 ? prev - 1 : 180));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatoTiempo = useMemo(() => {
-    const minutos = Math.floor(segundosSesion / 60);
-    const segundos = segundosSesion % 60;
-    return `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')} min`;
-  }, [segundosSesion]);
 
   // Búsqueda, categoría y orden ya vienen aplicados desde el backend por página.
   const productosFiltrados = productosOrdenados;
