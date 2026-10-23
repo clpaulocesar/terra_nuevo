@@ -10,9 +10,10 @@ const RETRASO_HOVER_MS = 300;
 const TOQUE_LARGO_MS = 500;
 const MAX_ITEMS = 10;
 
-// Comandos que no dependen de la pantalla.
+// Los comandos que requieren un producto abren el micrófono para dictarlo.
 const COMANDOS_FIJOS = [
-  { nombre: 'Buscar un producto', ejemplo: 'buscar colchón' },
+  { nombre: 'Buscar un producto', ejemplo: 'buscar colchón', dictar: true },
+  { nombre: 'Agregar al carrito', ejemplo: 'agregar confort lya', dictar: true },
   { nombre: 'Leer la página', ejemplo: 'leer página' },
   { nombre: 'Silencio', ejemplo: 'silencio' },
 ];
@@ -21,7 +22,7 @@ const COMANDOS_FIJOS = [
 // El micrófono muestra un panel con los comandos disponibles en la pantalla actual:
 // hover/foco en escritorio, toque largo o el botón "?" en pantallas táctiles.
 export default function BotonesVoz({ className = '' }) {
-  const { soportaVoz, soportaReconocimiento, vozActiva, escuchando, alternarVoz, escuchar } = useAccesibilidad();
+  const { soportaVoz, soportaReconocimiento, vozActiva, escuchando, alternarVoz, escuchar, ejecutarComando } = useAccesibilidad();
   const { contextoActual } = useNavegacion();
   const modoAccesible = useModoAccesibleOpcional();
   const [panelAbierto, setPanelAbierto] = useState(false);
@@ -84,6 +85,15 @@ export default function BotonesVoz({ className = '' }) {
     cerrar();
     escuchar();
   };
+  const alTocarComando = (comando) => {
+    cerrar();
+    if (comando.dictar) { escuchar(); return; }
+    ejecutarComando(comando.ejemplo);
+  };
+  const alPerderFoco = (evento) => {
+    if (contenedorRef.current?.contains(evento.relatedTarget)) return;
+    cerrarPorHover();
+  };
 
   // Escape y toque/clic fuera cierran el panel.
   useEffect(() => {
@@ -133,7 +143,7 @@ export default function BotonesVoz({ className = '' }) {
             className={`terra-theme-btn terra-voz__btn ${escuchando ? 'terra-theme-btn--on terra-voz__btn--escuchando' : ''}`}
             onClick={alTocarMicrofono}
             onFocus={abrirConRetraso}
-            onBlur={cerrarPorHover}
+            onBlur={alPerderFoco}
             onTouchStart={alIniciarToque}
             onTouchEnd={alTerminarToque}
             onTouchCancel={alTerminarToque}
@@ -156,7 +166,13 @@ export default function BotonesVoz({ className = '' }) {
           </button>
 
           {mostrarPanel && (
-            <div className="terra-voz__panel" role="tooltip" id={idPanel} data-sin-lectura="true">
+            <div
+              className="terra-voz__panel"
+              role={escuchando ? 'tooltip' : 'group'}
+              aria-label={escuchando ? undefined : 'Comandos de voz: tocá uno para ejecutarlo'}
+              id={idPanel}
+              data-sin-lectura="true"
+            >
               <span className="terra-voz__panel-flecha" aria-hidden="true" />
               {escuchando ? (
                 <>
@@ -166,15 +182,23 @@ export default function BotonesVoz({ className = '' }) {
               ) : (
                 <>
                   <b className="terra-voz__panel-titulo">Podés decir…</b>
-                  <ul className="terra-voz__lista">
-                    {comandos.map((c) => (
-                      <li key={c.ejemplo}><span>{c.nombre}</span><em>«{c.ejemplo}»</em></li>
-                    ))}
-                    {COMANDOS_FIJOS.map((c) => (
-                      <li key={c.ejemplo} className="terra-voz__lista-fijo"><span>{c.nombre}</span><em>«{c.ejemplo}»</em></li>
-                    ))}
-                  </ul>
-                  <small className="terra-voz__panel-pie">Decí <strong>ayuda</strong> para escuchar todos.</small>
+                    <ul className="terra-voz__lista">
+                      {comandos.map((c) => (
+                        <li key={c.ejemplo}>
+                          <button type="button" className="terra-voz__comando" onClick={() => alTocarComando(c)}>
+                            <span>{c.nombre}</span><em>«{c.ejemplo}»</em>
+                          </button>
+                        </li>
+                      ))}
+                      {COMANDOS_FIJOS.map((c) => (
+                        <li key={c.ejemplo} className="terra-voz__lista-fijo">
+                          <button type="button" className="terra-voz__comando" onClick={() => alTocarComando(c)}>
+                            <span>{c.nombre}</span><em>«{c.ejemplo}»</em>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  <small className="terra-voz__panel-pie">Tocá un comando o decí <strong>ayuda</strong> para escuchar todos.</small>
                 </>
               )}
             </div>

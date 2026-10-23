@@ -60,10 +60,14 @@
   border: 1px solid #e4e2e1; border-radius: 12px;
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
   font-size: 0.78rem; line-height: 1.35; text-align: left;
-  pointer-events: none; /* es un tooltip: no roba foco ni clics */
+  max-height: calc(100vh - 96px); overflow-y: auto;
   animation: terraPanelVoz 0.16s ease-out;
 }
 @keyframes terraPanelVoz { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .terra-voz__panel, .terra-voz__btn--escuchando { animation: none; }
+  .terra-voz__comando { transition: none; }
+}
 .terra-voz__panel-flecha {
   position: absolute; top: -7px; right: 36px; width: 12px; height: 12px;
   background: #fff; border-left: 1px solid #e4e2e1; border-top: 1px solid #e4e2e1;
@@ -73,10 +77,17 @@
 .terra-voz__panel-titulo--escuchando { color: #168147; }
 .terra-voz__panel-texto { margin: 0; color: #404944; }
 .terra-voz__panel-texto em { font-style: normal; font-weight: 800; color: #1b1c1c; }
-.terra-voz__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.25rem; }
-.terra-voz__lista li { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; }
-.terra-voz__lista li span { color: #404944; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.terra-voz__lista li em { font-style: normal; color: #a6192e; font-weight: 800; white-space: nowrap; }
+.terra-voz__lista { list-style: none; margin: 0 -0.35rem; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.1rem; }
+.terra-voz__comando {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem;
+  width: 100%; min-width: 0; min-height: 2.75rem; padding: 0.35rem 0.5rem;
+  border: 0; border-radius: 8px; background: transparent; color: inherit;
+  font: inherit; text-align: left; cursor: pointer; transition: background 0.15s ease;
+}
+.terra-voz__comando:hover { background: rgba(166, 25, 46, 0.08); }
+.terra-voz__comando:focus-visible { outline: 3px solid #a6192e; outline-offset: -3px; }
+.terra-voz__comando span { color: #404944; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1 1 auto; min-width: 0; }
+.terra-voz__comando em { font-style: normal; color: #a6192e; font-weight: 800; white-space: nowrap; flex: 0 0 auto; }
 .terra-voz__lista-fijo:first-of-type { margin-top: 0.3rem; padding-top: 0.3rem; border-top: 1px dashed #e4e2e1; }
 .terra-voz__panel-pie { display: block; margin-top: 0.5rem; color: #707974; font-size: 0.7rem; }
 .terra-voz__panel-pie strong { color: #a6192e; }

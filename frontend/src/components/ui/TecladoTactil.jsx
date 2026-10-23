@@ -193,7 +193,7 @@ const TecladoTactil = forwardRef(function TecladoTactil({
               </button>
               {FILAS[2].map((letra) => <button key={letra} type="button" onClick={() => insertarLetra(letra)} className="tt-key" {...eventosVistaPrevia(`letra-${letra}`)}>{mayusculas ? letra.toUpperCase() : letra}{vistaPrevia(`letra-${letra}`, mayusculas ? letra.toUpperCase() : letra)}</button>)}
               <button type="button" className="tt-key tt-key--backspace" aria-label="Borrar último carácter" {...eventosBorrado()}>
-                <span className="material-symbols-outlined">backspace</span>
+                <span className="material-symbols-outlined" aria-hidden="true">backspace</span>
                 {vistaPrevia('borrar', '⌫')}
               </button>
             </div>

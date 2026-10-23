@@ -55,19 +55,31 @@ export function AccesibilidadProvider({ children }) {
     return () => window.speechSynthesis.removeEventListener?.('voiceschanged', cargar);
   }, []);
 
+  // Chrome puede descartar una frase si speak() ocurre justo después de cancel().
+  // Agrupar los anuncios inmediatos deja que la última interacción se lea completa.
+  const pendienteHablarRef = useRef(null);
+
   const detener = useCallback(() => {
+    window.clearTimeout(pendienteHablarRef.current);
+    pendienteHablarRef.current = null;
     if (soportaVoz) window.speechSynthesis.cancel();
   }, []);
 
   const hablar = useCallback((texto, { interrumpir = true } = {}) => {
     if (!soportaVoz || !texto) return;
-    if (interrumpir) window.speechSynthesis.cancel();
-    const frase = new SpeechSynthesisUtterance(texto);
-    frase.lang = vozRef.current?.lang || 'es-ES';
-    if (vozRef.current) frase.voice = vozRef.current;
-    frase.rate = 1;
-    frase.pitch = 1;
-    window.speechSynthesis.speak(frase);
+    const decir = () => {
+      pendienteHablarRef.current = null;
+      const frase = new SpeechSynthesisUtterance(texto);
+      frase.lang = vozRef.current?.lang || 'es-ES';
+      if (vozRef.current) frase.voice = vozRef.current;
+      frase.rate = 1;
+      frase.pitch = 1;
+      window.speechSynthesis.speak(frase);
+    };
+    if (!interrumpir) { decir(); return; }
+    window.clearTimeout(pendienteHablarRef.current);
+    window.speechSynthesis.cancel();
+    pendienteHablarRef.current = window.setTimeout(decir, 90);
   }, []);
 
   // Anuncia para lectores de pantalla (siempre) y por voz (si el modo está activo).
@@ -100,6 +112,14 @@ export function AccesibilidadProvider({ children }) {
   const registrarManejadorComando = useCallback((fn) => {
     manejadorComandoRef.current = fn;
     return () => { if (manejadorComandoRef.current === fn) manejadorComandoRef.current = null; };
+  }, []);
+
+  const ejecutarComando = useCallback((frase) => {
+    const texto = String(frase || '').trim();
+    const manejador = manejadorComandoRef.current;
+    if (!texto || !manejador) return false;
+    manejador(texto, [texto]);
+    return true;
   }, []);
 
   const detenerEscucha = useCallback(() => {
@@ -162,7 +182,8 @@ export function AccesibilidadProvider({ children }) {
     escuchar,
     detenerEscucha,
     registrarManejadorComando,
-  }), [vozActiva, escuchando, anunciar, hablar, detener, cambiarVoz, alternarVoz, escuchar, detenerEscucha, registrarManejadorComando]);
+    ejecutarComando,
+  }), [vozActiva, escuchando, anunciar, hablar, detener, cambiarVoz, alternarVoz, escuchar, detenerEscucha, registrarManejadorComando, ejecutarComando]);
 
   return (
     <AccesibilidadContext.Provider value={valor}>

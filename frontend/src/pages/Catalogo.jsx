@@ -592,7 +592,7 @@ export default function Catalogo() {
         <section className="terra-search-bar">
           <div className="terra-search-bar__inner">
             <div className="terra-search-wrapper">
-              <span className="terra-search-icon material-symbols-outlined">search</span>
+              <span className="terra-search-icon material-symbols-outlined" aria-hidden="true">search</span>
               <input
                 ref={searchInputRef}
                 className="terra-search-input"
@@ -614,7 +614,7 @@ export default function Catalogo() {
                   onClick={() => cambiarBusqueda('')}
                   type="button"
                 >
-                  <span className="material-symbols-outlined">close</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">close</span>
                 </button>
               )}
             </div>
@@ -638,9 +638,9 @@ export default function Catalogo() {
                   type="button"
                   onClick={() => setMenuOrdenAbierto((prev) => !prev)}
                 >
-                  <span className="material-symbols-outlined terra-dropdown__icon">swap_vert</span>
+                  <span className="material-symbols-outlined terra-dropdown__icon" aria-hidden="true">swap_vert</span>
                   <span className="terra-dropdown__label">Orden: <strong>{nombreOrdenActual}</strong></span>
-                  <span className="material-symbols-outlined terra-dropdown__arrow">
+                  <span className="material-symbols-outlined terra-dropdown__arrow" aria-hidden="true">
                     {menuOrdenAbierto ? 'expand_less' : 'expand_more'}
                   </span>
                 </button>
@@ -661,7 +661,7 @@ export default function Catalogo() {
                         onClick={() => cambiarOrden(opt.id)}
                       >
                         <span>{opt.label}</span>
-                        {orden === opt.id && <span className="material-symbols-outlined terra-dropdown-item__check">done</span>}
+                        {orden === opt.id && <span className="material-symbols-outlined terra-dropdown-item__check" aria-hidden="true">done</span>}
                       </button>
                     ))}
                   </div>
@@ -704,13 +704,13 @@ export default function Catalogo() {
                     aria-expanded={menuCategoriasAbierto}
                     onClick={() => setMenuCategoriasAbierto((prev) => !prev)}
                   >
-                    <span className="material-symbols-outlined terra-cat__icon">
+                    <span className="material-symbols-outlined terra-cat__icon" aria-hidden="true">
                       {activaFueraDelRiel ? categoriaActivaObj.icon : 'category'}
                     </span>
                     <span className="terra-cat__label">
                       {activaFueraDelRiel ? categoriaActivaObj.nombre : 'Categorías'}
                     </span>
-                    <span className="material-symbols-outlined terra-cat__arrow">
+                    <span className="material-symbols-outlined terra-cat__arrow" aria-hidden="true">
                       {menuCategoriasAbierto ? 'expand_less' : 'expand_more'}
                     </span>
                   </button>
@@ -730,7 +730,7 @@ export default function Catalogo() {
                             aria-label="Cerrar categorías"
                             onClick={() => setMenuCategoriasAbierto(false)}
                           >
-                            <span className="material-symbols-outlined">close</span>
+                            <span className="material-symbols-outlined" aria-hidden="true">close</span>
                           </button>
                         </div>
                       <button
@@ -740,10 +740,10 @@ export default function Catalogo() {
                         className={`terra-cat-menu__item ${!categoriaSeleccionada ? 'terra-cat-menu__item--active' : ''}`}
                         onClick={() => cambiarCategoria('')}
                       >
-                        <span className="material-symbols-outlined">apps</span>
+                        <span className="material-symbols-outlined" aria-hidden="true">apps</span>
                         <span className="terra-cat-menu__name">Todos los productos</span>
                         {totalCategorias > 0 && <span className="terra-cat-menu__count">{totalCategorias}</span>}
-                        {!categoriaSeleccionada && <span className="material-symbols-outlined terra-cat-menu__check">done</span>}
+                        {!categoriaSeleccionada && <span className="material-symbols-outlined terra-cat-menu__check" aria-hidden="true">done</span>}
                       </button>
                       {categoriasDinamicas.map((cat) => {
                         const activa = esCategoriaActiva(cat.id);
@@ -756,10 +756,10 @@ export default function Catalogo() {
                             className={`terra-cat-menu__item ${activa ? 'terra-cat-menu__item--active' : ''}`}
                             onClick={() => cambiarCategoria(activa ? '' : cat.id)}
                           >
-                            <span className="material-symbols-outlined">{cat.icon}</span>
+                            <span className="material-symbols-outlined" aria-hidden="true">{cat.icon}</span>
                             <span className="terra-cat-menu__name">{cat.nombre}</span>
                             {Number.isFinite(Number(cat.total)) && <span className="terra-cat-menu__count">{cat.total}</span>}
-                            {activa && <span className="material-symbols-outlined terra-cat-menu__check">done</span>}
+                            {activa && <span className="material-symbols-outlined terra-cat-menu__check" aria-hidden="true">done</span>}
                           </button>
                         );
                       })}
@@ -774,7 +774,7 @@ export default function Catalogo() {
                   aria-pressed={soloOfertas}
                   onClick={alternarOfertas}
                 >
-                  <span className="material-symbols-outlined terra-cat__icon">local_fire_department</span>
+                  <span className="material-symbols-outlined terra-cat__icon" aria-hidden="true">local_fire_department</span>
                   <span className="terra-cat__label">Ofertas</span>
                   {soloOfertas && <span className="terra-cat__dot"></span>}
                 </button>
@@ -787,8 +787,10 @@ export default function Catalogo() {
                       type="button"
                       className={`terra-cat ${activa ? 'terra-cat--active' : ''}`}
                       onClick={() => cambiarCategoria(activa ? '' : cat.id)}
+                      aria-label={`Categoría ${cat.nombre}`}
+                      aria-pressed={activa}
                     >
-                      <span className="material-symbols-outlined terra-cat__icon">{cat.icon}</span>
+                      <span className="material-symbols-outlined terra-cat__icon" aria-hidden="true">{cat.icon}</span>
                       <span className="terra-cat__label">{cat.nombre}</span>
                       {activa && <span className="terra-cat__dot"></span>}
                     </button>
@@ -801,7 +803,7 @@ export default function Catalogo() {
                     className="terra-cat terra-cat--more"
                     onClick={() => setMenuCategoriasAbierto(true)}
                   >
-                    <span className="material-symbols-outlined terra-cat__icon">more_horiz</span>
+                    <span className="material-symbols-outlined terra-cat__icon" aria-hidden="true">more_horiz</span>
                     <span className="terra-cat__label">+{categoriasDinamicas.length - CATEGORIAS_VISIBLES} más</span>
                   </button>
                 )}
@@ -819,7 +821,7 @@ export default function Catalogo() {
               </div>
             ) : errorProductos ? (
               <div className="terra-empty">
-                <span className="material-symbols-outlined terra-empty__icon">cloud_off</span>
+                <span className="material-symbols-outlined terra-empty__icon" aria-hidden="true">cloud_off</span>
                 <h3 className="terra-empty__title">No se pudo cargar el catálogo</h3>
                 <p className="terra-empty__subtitle">{errorProductos}</p>
                 <button type="button" className="terra-btn-primary terra-btn--wide" onClick={reintentarCarga}>
@@ -828,7 +830,7 @@ export default function Catalogo() {
               </div>
             ) : productosFiltrados.length === 0 ? (
               <div className="terra-empty">
-                <span className="material-symbols-outlined terra-empty__icon">search_off</span>
+                <span className="material-symbols-outlined terra-empty__icon" aria-hidden="true">search_off</span>
                 <h3 className="terra-empty__title">No encontramos productos</h3>
                 <p className="terra-empty__subtitle">
                   Probá cambiando los filtros o limpiá la búsqueda.
@@ -910,19 +912,19 @@ export default function Catalogo() {
                         <div className="terra-card__badges">
 {producto.en_oferta && (
                             <span className="terra-badge terra-badge--oferta">
-                              <span className="material-symbols-outlined terra-badge__icon">local_fire_department</span>
+                              <span className="material-symbols-outlined terra-badge__icon" aria-hidden="true">local_fire_department</span>
                               Oferta{producto.descuento ? ` ${producto.descuento}` : ''}
                             </span>
                           )}
                           {ventasMaximas > 0 && Number(producto.ventas || 0) === ventasMaximas && (
                             <span className="terra-badge terra-badge--bestseller">
-                              <span className="material-symbols-outlined terra-badge__icon">workspace_premium</span>
+                              <span className="material-symbols-outlined terra-badge__icon" aria-hidden="true">workspace_premium</span>
                               Más vendido
                             </span>
                           )}
                           {producto.descuento && !producto.en_oferta && (
                             <span className="terra-badge terra-badge--promo">
-                              <span className="material-symbols-outlined terra-badge__icon">local_fire_department</span>
+                              <span className="material-symbols-outlined terra-badge__icon" aria-hidden="true">local_fire_department</span>
                               {producto.descuento}
                             </span>
                           )}
@@ -933,7 +935,7 @@ export default function Catalogo() {
                           )}
                           {producto.badge && !producto.descuento && !producto.badgeSecundario && (
                             <span className={`terra-badge terra-badge--${producto.badge === 'Más Vendido' ? 'bestseller' : producto.badge === 'Nuevo' ? 'nuevo' : 'destacado'}`}>
-                              {producto.badgeIcon && <span className="material-symbols-outlined terra-badge__icon">{producto.badgeIcon}</span>}
+                              {producto.badgeIcon && <span className="material-symbols-outlined terra-badge__icon" aria-hidden="true">{producto.badgeIcon}</span>}
                               {producto.badge}
                             </span>
                           )}
@@ -941,7 +943,7 @@ export default function Catalogo() {
 
                         {producto.tagMedida && (
                           <div className="terra-card__measure">
-                            <span className="material-symbols-outlined terra-card__measure-icon">
+                            <span className="material-symbols-outlined terra-card__measure-icon" aria-hidden="true">
                               {producto.tagMedidaIcon || 'verified'}
                             </span>
                             {producto.tagMedida}
@@ -1017,7 +1019,7 @@ export default function Catalogo() {
                           type="button"
                           disabled={!disponible}
                         >
-                          <span className="material-symbols-outlined terra-btn-agregar__icon">
+                          <span className="material-symbols-outlined terra-btn-agregar__icon" aria-hidden="true">
                             {recienAgregado ? 'done' : 'add_shopping_cart'}
                           </span>
                           <span className="terra-btn-agregar__label">
@@ -1030,8 +1032,8 @@ export default function Catalogo() {
                 })}
               </div>
               {esMayorista && <aside className="terra-wholesale-cart" aria-label="Resumen de pedido mayorista">
-                <header><span className="material-symbols-outlined">shopping_cart</span><div><h2>Pedido mayorista</h2><p>{items.length} {items.length === 1 ? 'línea' : 'líneas'} · {cantidadTotal} unidades</p></div></header>
-                {items.length ? <><div className="terra-wholesale-cart__items">{items.slice(0, 4).map((item) => <article key={item.lineaId}><div><strong>{item.nombre}</strong><small>{item.cantidad} un. · {formatoMoneda(item.precio)} c/u</small></div><b>{formatoMoneda(item.cantidad * item.precio)}</b><button type="button" onClick={() => quitarProducto(item.lineaId)}>Eliminar</button></article>)}</div>{items.length > 4 && <p className="terra-wholesale-cart__more">+ {items.length - 4} productos más en el pedido</p>}<div className="terra-wholesale-cart__total"><span>Subtotal mayorista</span><strong>{formatoMoneda(subtotal)}</strong></div><Link className="terra-wholesale-cart__checkout" to="/carrito">Revisar pedido mayorista <ArrowRight size={17} /></Link></> : <div className="terra-wholesale-cart__empty"><span className="material-symbols-outlined">inventory_2</span><p>Agrega productos y cantidades para preparar tu pedido.</p></div>}
+                <header><span className="material-symbols-outlined" aria-hidden="true">shopping_cart</span><div><h2>Pedido mayorista</h2><p>{items.length} {items.length === 1 ? 'línea' : 'líneas'} · {cantidadTotal} unidades</p></div></header>
+                {items.length ? <><div className="terra-wholesale-cart__items">{items.slice(0, 4).map((item) => <article key={item.lineaId}><div><strong>{item.nombre}</strong><small>{item.cantidad} un. · {formatoMoneda(item.precio)} c/u</small></div><b>{formatoMoneda(item.cantidad * item.precio)}</b><button type="button" onClick={() => quitarProducto(item.lineaId)}>Eliminar</button></article>)}</div>{items.length > 4 && <p className="terra-wholesale-cart__more">+ {items.length - 4} productos más en el pedido</p>}<div className="terra-wholesale-cart__total"><span>Subtotal mayorista</span><strong>{formatoMoneda(subtotal)}</strong></div><Link className="terra-wholesale-cart__checkout" to="/carrito">Revisar pedido mayorista <ArrowRight size={17} /></Link></> : <div className="terra-wholesale-cart__empty"><span className="material-symbols-outlined" aria-hidden="true">inventory_2</span><p>Agrega productos y cantidades para preparar tu pedido.</p></div>}
               </aside>}
               </div>
             )}
@@ -1045,7 +1047,7 @@ export default function Catalogo() {
                   disabled={pagina <= 1}
                   aria-label="Página anterior"
                 >
-                  <span className="material-symbols-outlined">chevron_left</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
                   <span className="terra-paginador__nav-label">Anterior</span>
                 </button>
 
@@ -1076,7 +1078,7 @@ export default function Catalogo() {
                   aria-label="Página siguiente"
                 >
                   <span className="terra-paginador__nav-label">Siguiente</span>
-                  <span className="material-symbols-outlined">chevron_right</span>
+                  <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
                 </button>
               </nav>
             )}
@@ -1088,7 +1090,7 @@ export default function Catalogo() {
         <div className="terra-modal-overlay" onClick={() => setModalAsesorAbierto(false)}>
           <div className="terra-modal" onClick={(e) => e.stopPropagation()}>
             <div className="terra-modal__icon">
-              <span className="material-symbols-outlined">support_agent</span>
+              <span className="material-symbols-outlined" aria-hidden="true">support_agent</span>
             </div>
             <h3 className="terra-modal__title">¡Asesor TERRA Notificado!</h3>
             <p className="terra-modal__text">
