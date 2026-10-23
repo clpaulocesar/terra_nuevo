@@ -353,7 +353,6 @@ html[data-theme="dark"] .cart-summary > small { color: var(--td-muted); }
 html[data-theme="dark"] .cart-quantity { background: var(--td-surface-3); }
 html[data-theme="dark"] .cart-quantity button { background: var(--td-surface); color: var(--td-text); }
 html[data-theme="dark"] .cart-summary-box,
-html[data-theme="dark"] .cart-payments span { background: var(--td-surface-2); color: var(--td-text); }
 html[data-theme="dark"] .cart-total span,
 html[data-theme="dark"] .cart-total b,
 html[data-theme="dark"] .cart-empty svg { color: var(--td-ok); }

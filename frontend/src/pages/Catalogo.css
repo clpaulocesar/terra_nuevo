@@ -526,9 +526,9 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 }
 
 /* ==== SELECTOR DE CATEGORÍAS (desplegable con todas las categorías) ==== */
-/* Solo en escritorio el menú cuelga dentro del riel y hace falta dejarlo ver.
-   En móvil es una hoja fija y el riel debe seguir recortando sus chips. */
-@media (min-width: 640px) {
+/* Sólo en escritorio el menú cuelga dentro del riel y hace falta dejarlo ver.
+   En móvil y tablet es una hoja fija para que el riel no ensanche la página. */
+@media (min-width: 1024px) {
   .terra-categories__inner--abierto { overflow: visible; }
 }
 
@@ -626,6 +626,22 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 }
 .terra-cat-menu__item--active .terra-cat-menu__count { background: rgba(255,255,255,0.22); color: #fff; }
 .terra-cat-menu__check { font-size: 18px !important; }
+
+/* En tablet se usa la misma hoja inferior que en móvil. Un menú absoluto dentro
+   del riel horizontal hace que sus chips desborden y desplaza todo el catálogo. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .terra-cat-backdrop { display: block; position: fixed; inset: 0; background: rgba(35, 26, 22, 0.45); z-index: 90; animation: terraFadeIn 0.2s ease both; }
+  .terra-cat-menu { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: 100%; max-width: 100vw; max-height: 78vh; overflow-x: hidden; margin: 0; padding: 6px 10px calc(14px + env(safe-area-inset-bottom, 0px)); border: none; border-radius: 22px 22px 0 0; box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.25); z-index: 95; animation: terraSlideUp 0.25s ease both; }
+  .terra-cat-menu__handle { display: block; width: 44px; height: 5px; margin: 6px auto 10px; border-radius: 999px; background: var(--linea); }
+  .terra-cat-menu__header { position: sticky; top: 0; background: #fff; z-index: 1; padding: 4px 6px 10px; gap: 10px; font-size: 1rem; text-transform: none; letter-spacing: 0; color: var(--tinta); font-weight: 900; }
+  .terra-cat-menu__header small { color: var(--muted); }
+  .terra-cat-menu__close { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: none; border-radius: 50%; background: var(--vino-suave); color: var(--vino-osc); cursor: pointer; }
+  .terra-cat-menu__close .material-symbols-outlined { font-size: 20px; }
+  .terra-cat-menu__item { min-height: 52px; padding: 10px 12px; font-size: 1rem; gap: 12px; }
+  .terra-cat-menu__item .material-symbols-outlined { font-size: 22px; }
+  .terra-cat-menu__name { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.25; }
+  .terra-cat-menu__count { font-size: 0.8rem; padding: 3px 10px; }
+}
 
 /* ==== PAGINADOR ==== */
 .terra-paginador {

@@ -1,15 +1,13 @@
 import { lazy, Suspense, useRef, useState, useEffect } from 'react';
 import {
-  BrowserRouter, Routes, Route, Navigate, Link,
+  BrowserRouter, Routes, Route, Link,
   NavLink, Outlet, useNavigate, useLocation,
 } from 'react-router-dom';
-import { ShoppingCart, ArrowRight, Home, Package, Tags, UserRound, LogOut, ChevronDown, BookOpen, ReceiptText, MessageCircle, FileText, ContactRound, QrCode, Menu, X } from 'lucide-react';
+import { ShoppingCart, Home, Package, Tags, UserRound, LogOut, ChevronDown, BookOpen, ReceiptText, MessageCircle, FileText, ContactRound, QrCode, Menu, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
-import { ClienteContext } from '../context/ClienteContext.jsx';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useContext } from 'react';
-import { formatoMoneda } from '../utils/formatoMoneda.js';
-import { leerCarritoQr } from '../services/qrCartService.js';
+
 import { MODO_DEMO, WHATSAPP_COMPROBANTES } from '../services/api.js';
 import Bienvenida from '../pages/Bienvenida.jsx';
 import Categorias from '../pages/Categorias.jsx';
@@ -68,20 +66,13 @@ function Layout() {
   const { loginMayoristaAbierto: cuentaAbierta, abrirLoginMayorista, cerrarLoginMayorista } = useNavegacion();
   const [menuCuentaAbierto, setMenuCuentaAbierto] = useState(false);
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
-  const [unidadesQr, setUnidadesQr] = useState(() => (leerCarritoQr() || []).reduce((t, i) => t + Number(i.cantidad || 0), 0));
   const navigate = useNavigate();
   const location = useLocation();
   const pulsacionesLogo = useRef([]);
 
   useEffect(() => {
-    const actualizar = () => setUnidadesQr((leerCarritoQr() || []).reduce((t, i) => t + Number(i.cantidad || 0), 0));
-    actualizar();
-    window.addEventListener('storage', actualizar);
-    return () => window.removeEventListener('storage', actualizar);
-  }, [location.pathname]);
-
-  useEffect(() => {
     setMenuMovilAbierto(false);
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [location.pathname]);
 
   const abrirAdminConLogo = (event) => {
@@ -216,10 +207,9 @@ function Layout() {
         type="button"
         className="catalog-qr-fab"
         onClick={() => navigate(`/catalogo?abrirQr=1&t=${Date.now()}`)}
-        aria-label={unidadesQr ? `Comprar por QR, ${unidadesQr} unidades agregadas` : 'Comprar por QR, abrir cámara'}
+        aria-label="Comprar por QR, abrir cámara"
       >
         <QrCode size={21} />
-        {unidadesQr > 0 && <b>{unidadesQr}</b>}
       </button>
     </div>
   );

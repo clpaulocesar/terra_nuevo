@@ -469,11 +469,11 @@ export default function PedidosAdmin() {
             </button>
           )}
           {POR_COBRAR.includes(pedido.estado) && (
-            <button type="button" className="order-icon-btn" onClick={() => anularPedido(pedido)} disabled={anulandoId === pedido.id} title="Anular venta por cancelación del cliente" aria-label="Anular venta por cancelación del cliente">
-              {anulandoId === pedido.id ? <RefreshCw size={15} className="is-spinning" /> : <X size={15} />}
+            <button type="button" className="order-edit-action" onClick={() => anularPedido(pedido)} disabled={anulandoId === pedido.id} title="Anular venta por cancelación del cliente">
+              {anulandoId === pedido.id ? <RefreshCw size={15} className="is-spinning" /> : <><X size={15} /> Anular</>}
             </button>
           )}
-          <button type="button" className="order-primary" onClick={() => abrirPedido(pedido)} title={POR_COBRAR.includes(pedido.estado) ? 'Registrar el pago del pedido' : 'Consultar el detalle del pedido'}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={16} /> Cobrar</> : 'Ver detalle'}</button>
+          <button type="button" className="order-primary-action" onClick={() => abrirPedido(pedido)} title={POR_COBRAR.includes(pedido.estado) ? 'Registrar el pago del pedido' : 'Consultar el detalle del pedido'}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={18} /> Cobrar</> : 'Ver detalle'}</button>
         </div>
       </article>)}
     </section>

@@ -97,6 +97,7 @@ export async function listarCategorias(req, res, next) {
       else if (n.includes('somm') || n.includes('somier')) { icon = 'layers'; emoji = '🛋️'; }
       else if (n.includes('cama') || n.includes('dorm')) { icon = 'bedroom_parent'; emoji = '🛏️'; }
       else if (n.includes('almohad')) { icon = 'hotel'; emoji = '☁️'; }
+      else if (n.includes('cojin')) { icon = 'chair'; emoji = '🛋️'; }
       else if (n.includes('ropa') || n.includes('saban') || n.includes('textil')) { icon = 'texture'; emoji = '🧺'; }
       else if (n.includes('mueble') || n.includes('living') || n.includes('sofa')) { icon = 'chair'; emoji = '🪑'; }
       else if (n.includes('espald') || n.includes('cabec') || n.includes('respald')) { icon = 'vertical_split'; emoji = '🖼️'; }
