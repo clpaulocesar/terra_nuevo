@@ -52,7 +52,7 @@ export default function DashboardAdmin() {
   const esUnDia = desde === hasta;
   const fechaGrande = esUnDia ? capitalizar(formatoLargo.format(fechaDesdeIso(desde))) : `Del ${formatoCorto.format(fechaDesdeIso(desde))} al ${formatoCorto.format(fechaDesdeIso(hasta))}`;
   const etiquetaPeriodo = periodo === 'hoy' ? 'hoy' : periodo === 'ayer' ? 'ayer' : esUnDia ? 'ese día' : 'en el período';
-  const sinCobrar = Math.max(0, resumen.pedidosTotales - resumen.pedidos);
+  const sinCobrar = Math.max(0, resumen.pedidosTotales - resumen.pedidos - resumen.pedidosAnulados);
   const plural = (n, singular, pluralTexto) => `${n} ${n === 1 ? singular : pluralTexto}`;
   const kpis = [
     ['Ventas cobradas', formatoMoneda(resumen.ventas), `${plural(resumen.pedidos, 'pedido cobrado', 'pedidos cobrados')} ${etiquetaPeriodo}`, CreditCard],

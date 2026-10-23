@@ -3,7 +3,7 @@ export function validarNit(nit) {
 }
 
 export function validarTelefono(telefono) {
-  return !telefono || /^[0-9+()\s-]{6,30}$/.test(telefono);
+  return !telefono || /^[0-9]{8}$/.test(telefono);
 }
 
 export function validarDatosCliente(cliente) {
@@ -16,7 +16,7 @@ export function validarDatosCliente(cliente) {
     errores.nombre = 'Ingresa un nombre de 2 a 120 caracteres';
   }
   if (!validarTelefono(telefono)) {
-    errores.telefono = 'El teléfono no tiene un formato válido';
+    errores.telefono = 'El teléfono debe tener 8 dígitos';
   }
   if (!validarNit(nit)) {
     errores.nit = 'El NIT debe tener entre 5 y 20 dígitos';

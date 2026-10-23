@@ -71,6 +71,9 @@
   pointer-events: none;
 }
 
+/* La página de carrito ya muestra sus propios controles; los FABs no deben tapar el resumen. */
+.app-shell:has(.cart-page) :is(.catalog-qr-fab, .cart-widget, .chat-widget) { display: none; }
+
 @media (max-width: 639px) {
   .catalog-qr-fab { right: 0.75rem; }
 }

@@ -43,13 +43,6 @@ function crearMensajeComprobante({ pedido, cliente, items }) {
     "Productos:",
     ...(lineas.length ? lineas : ["• Consulta el detalle del pedido"]),
     "",
-    `Cliente: ${cliente?.nombre || 'No registrado'}`,
-    `WhatsApp del cliente: +591 ${cliente?.telefono || 'No registrado'}`,
-    ...(pedido.direccion_entrega ? [`Envío: ${pedido.direccion_entrega}`, ...(pedido.referencia_entrega ? [`Referencia: ${pedido.referencia_entrega}`] : [])] : []),
-    '',
-    'Productos:',
-    ...(lineas.length ? lineas : ['• Consulta el detalle del pedido']),
-    '',
     `Total: ${formatoMoneda(pedido.total)}`,
     "Por favor, envíen el comprobante a este cliente.",
   ].join("\n");
@@ -143,6 +136,18 @@ export default function PedidoGenerado() {
               <b>{clienteTicket.nit}</b>
             </div>
           )}
+          {pedido.direccion_entrega && (
+            <div className="pedido-row">
+              <span>Envío</span>
+              <b>{pedido.direccion_entrega}</b>
+            </div>
+          )}
+          {pedido.direccion_entrega && pedido.referencia_entrega && (
+            <div className="pedido-row">
+              <span>Referencia</span>
+              <b>{pedido.referencia_entrega}</b>
+            </div>
+          )}
           <div className="pedido-row">
             <span>Estado</span>
             <b>Pendiente de pago</b>
@@ -155,19 +160,6 @@ export default function PedidoGenerado() {
             <ReceiptText size={18} /> Conservá este código hasta finalizar tu
             compra.
           </footer>
-          <header><ShoppingBag size={25} /><div><b>TERRA AUTOSERVICIO</b><span>Ticket de pago en caja</span></div></header>
-          <div className="pedido-code"><span>Código de pedido</span><strong>{pedido.codigo}</strong><QrCode size={100} /></div>
-          <div className="pedido-row"><span>Fecha y hora de emisión</span><b>{fechaGeneracion}</b></div>
-          {clienteTicket?.nit && <div className="pedido-row"><span>NIT</span><b>{clienteTicket.nit}</b></div>}
-          {pedido.direccion_entrega && (
-            <div className="pedido-row"><span>Envío</span><b>{pedido.direccion_entrega}</b></div>
-          )}
-          {pedido.direccion_entrega && pedido.referencia_entrega && (
-            <div className="pedido-row"><span>Referencia</span><b>{pedido.referencia_entrega}</b></div>
-          )}
-          <div className="pedido-row"><span>Estado</span><b>Pendiente de pago</b></div>
-          <div className="pedido-row"><span>Total a pagar</span><b>{formatoMoneda(pedido.total)}</b></div>
-          <footer><ReceiptText size={18} /> Conservá este código hasta finalizar tu compra.</footer>
         </article>
         <aside className="pedido-steps">
           <h2>¿Qué sigue?</h2>

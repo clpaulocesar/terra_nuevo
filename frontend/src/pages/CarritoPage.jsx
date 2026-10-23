@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -42,8 +42,21 @@ export default function CarritoPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const importacionQrProcesada = useRef(false);
+  const inicioArrastreResumen = useRef(null);
+  const [resumenAbierto, setResumenAbierto] = useState(false);
   const confirmarQr = searchParams.get("confirmarQr") === "1";
   const errorQr = searchParams.get("errorQr");
+  const cerrarOAbrirResumen = () => setResumenAbierto((abierto) => !abierto);
+  const iniciarArrastreResumen = (event) => {
+    inicioArrastreResumen.current = event.touches[0]?.clientY ?? null;
+  };
+  const terminarArrastreResumen = (event) => {
+    if (inicioArrastreResumen.current === null) return;
+    const desplazamiento = (event.changedTouches[0]?.clientY ?? inicioArrastreResumen.current) - inicioArrastreResumen.current;
+    if (desplazamiento < -30) setResumenAbierto(true);
+    if (desplazamiento > 30) setResumenAbierto(false);
+    inicioArrastreResumen.current = null;
+  };
 
   useEffect(() => {
     if (!confirmarQr || importacionQrProcesada.current) return;
@@ -232,7 +245,10 @@ export default function CarritoPage() {
               </article>
           ))}
         </div>
-        <aside className="cart-summary">
+        <aside className={`cart-summary ${resumenAbierto ? 'is-mobile-open' : ''}`}>
+          <button className="cart-mobile-summary-toggle" type="button" aria-label={resumenAbierto ? 'Contraer resumen del pedido' : 'Expandir resumen del pedido'} aria-expanded={resumenAbierto} onClick={cerrarOAbrirResumen} onTouchStart={iniciarArrastreResumen} onTouchEnd={terminarArrastreResumen}>
+            <span aria-hidden="true" />
+          </button>
           <h2>Liquidación final</h2>
           <div className="cart-summary-box">
             <p>
@@ -245,13 +261,8 @@ export default function CarritoPage() {
               <b>{formatoMoneda(subtotal)}</b>
             </p>
           </div>
-          <div className="cart-payments">
-            <span>Efectivo (Bs)</span>
-            <span>QR Simple</span>
-            <span>Tarjetas</span>
-          </div>
           <Link className="cart-confirm" to={destinoContinuar}>
-            <PackageOpen size={23} /> {esMayorista ? 'Continuar a confirmación' : 'Continuar y generar pedido'}
+            <PackageOpen size={23} /> Continuar y generar pedido
           </Link>
           <Link className="cart-back" to="/catalogo">
             Seguir comprando

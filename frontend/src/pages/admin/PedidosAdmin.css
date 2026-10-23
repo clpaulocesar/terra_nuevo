@@ -1,3 +1,9 @@
+/* Descarga de ticket por pedido desde la tabla */
+.order-actions{align-items:center;display:flex;flex-wrap:wrap;gap:.4rem}
+.order-actions .order-ticket{align-items:center;background:#f0eded;color:#404944;display:inline-flex;font-size:.72rem;gap:.3rem;padding:0 .6rem}
+.order-actions .order-ticket:hover{background:#e4e2e1;color:#a6192e}
+.order-actions .order-ticket:disabled{cursor:progress;opacity:.65}
+
 /* Adjunto de comprobante de pago en el modal de cobro de Pedidos */
 .orders-list-tools{align-items:center;display:flex;flex-wrap:wrap;gap:.5rem}
 .orders-list-tools label{flex:1 1 240px;min-width:0}

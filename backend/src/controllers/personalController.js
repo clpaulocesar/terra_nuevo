@@ -82,7 +82,6 @@ export async function actualizarPersonal(req, res, next) {
     return res.json({ success: true, data: personal, mensaje: 'Datos actualizados.' });
   } catch (error) { return next(error); }
 }
-
 export async function eliminarPersonal(req, res, next) {
   try {
     const id = texto(req.params.id);
