@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/jhonatanaldair01/terratabletv2.0/issues"
   },
-  "homepage": "https://github.com/jhonatanaldair01/terratabletv2.0#readme"
+  "homepage": "https://github.com/jhonatanaldair01/terratabletv2.0#readme",
+  "devDependencies": {
+    "playwright": "1.56"
+  }
 }
