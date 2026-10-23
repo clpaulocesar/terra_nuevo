@@ -4,6 +4,7 @@
 .dispatch-route__header div{color:var(--dp-text);font-size:.82rem;font-weight:800}
 .dispatch-route__header small,.dispatch-route__legend{color:var(--dp-muted);font-size:.75rem}
 .dispatch-route__map{border-radius:.55rem;height:16rem;overflow:hidden}
+.dispatch-card.is-route-open .dispatch-route__map{height:26rem}
 .dispatch-route__error{color:var(--dp-accent);font-size:.78rem;font-weight:700;margin:0}
 .dispatch-route__legend{margin:0}
 .dispatch-route-line{stroke:var(--dp-accent);stroke-linecap:round;stroke-linejoin:round}
@@ -14,4 +15,4 @@
 .dispatch-route-popup{display:grid;gap:.2rem}
 .dispatch-route-popup strong{color:var(--dp-text)}
 .dispatch-route-popup span{color:var(--dp-muted);font-size:.75rem}
-@media (max-width:700px){.dispatch-route__map{height:14rem}}
+@media (max-width:700px){.dispatch-route__map,.dispatch-card.is-route-open .dispatch-route__map{height:14rem}}

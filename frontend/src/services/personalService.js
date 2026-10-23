@@ -31,3 +31,10 @@ export function actualizarPersonal(id, datos) {
     body: datos,
   });
 }
+
+export function eliminarPersonal(id) {
+  return apiRequest(`/personal/${id}`, {
+    method: 'DELETE',
+    headers: encabezadoAdmin(),
+  });
+}

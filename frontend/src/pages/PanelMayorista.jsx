@@ -3,7 +3,6 @@ import { Navigate } from 'react-router-dom';
 import {
   BadgeCheck,
   Building2,
-  Camera,
   CheckCircle2,
   Home,
   Info,
@@ -12,7 +11,6 @@ import {
   PhoneCall,
   Save,
   Truck,
-  Upload,
   User,
 } from 'lucide-react';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
@@ -38,14 +36,12 @@ export default function PanelMayorista() {
         ? `${sesion.latitud}, ${sesion.longitud}`
         : '')
   );
-  const [avatarUrl, setAvatarUrl] = useState(null);
   const [guardadoExito, setGuardadoExito] = useState(false);
   const [errorGuardado, setErrorGuardado] = useState('');
   const [guardando, setGuardando] = useState(false);
   const [cargandoUbicacion, setCargandoUbicacion] = useState(false);
   const [cargandoDireccion, setCargandoDireccion] = useState(false);
 
-  const fileInputRef = useRef(null);
   const geocodificacionRef = useRef({ timer: null, controller: null });
   const direccionManualRef = useRef(false);
 
@@ -209,20 +205,6 @@ export default function PanelMayorista() {
     }
   };
 
-  // Cargar imagen o logo
-  const handleFotoSeleccionada = (e) => {
-    const archivo = e.target.files?.[0];
-    if (archivo) {
-      if (archivo.size > 5 * 1024 * 1024) {
-        alert('La imagen seleccionada supera el límite de 5MB.');
-        return;
-      }
-      const lector = new FileReader();
-      lector.onload = () => setAvatarUrl(lector.result);
-      lector.readAsDataURL(archivo);
-    }
-  };
-
   // Geolocalización GPS
   const handleObtenerGps = () => {
     if (!navigator.geolocation) {
@@ -300,32 +282,9 @@ export default function PanelMayorista() {
         <div className="b2b-profile-card__content">
           <div className="b2b-avatar-wrap">
             <div className="b2b-avatar-box">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="Logo Corporativo" />
-              ) : (
-                <>
-                  <span className="b2b-avatar-initials">{iniciales}</span>
-                  <span className="b2b-avatar-subtag">Mueblería</span>
-                </>
-              )}
+              <span className="b2b-avatar-initials">{iniciales}</span>
+              <span className="b2b-avatar-subtag">Mueblería</span>
             </div>
-            <button
-              type="button"
-              className="b2b-avatar-cam-btn"
-              title="Cambiar imagen corporativa"
-              aria-label="Cambiar imagen corporativa"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Camera size={16} />
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png, image/jpeg"
-              aria-label="Seleccionar imagen corporativa"
-              style={{ display: 'none' }}
-              onChange={handleFotoSeleccionada}
-            />
           </div>
 
           <div className="b2b-profile-details">
@@ -345,17 +304,6 @@ export default function PanelMayorista() {
               <span>•</span>
               <span>Santa Cruz, Bolivia</span>
             </p>
-            <div className="b2b-upload-action-row">
-              <button
-                type="button"
-                className="b2b-btn-upload-logo"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Upload size={14} />
-                <span>Subir o cambiar foto / logo corporativo</span>
-              </button>
-              <span className="b2b-upload-hint">(PNG, JPG hasta 5MB)</span>
-            </div>
           </div>
         </div>
       </article>

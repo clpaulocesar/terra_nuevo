@@ -54,20 +54,6 @@ export async function crearUsuarioAuthBD({ email, password }) {
   return { id: usuario.id, email: usuario.email, confirmado: Boolean(usuario.email_confirmed_at) };
 }
 
-export async function actualizarPasswordAuthBD({ email, password }) {
-  const correo = String(email || '').trim().toLowerCase();
-  const { rows } = await pool.query(
-    `UPDATE auth.users
-     SET encrypted_password = crypt($2, gen_salt('bf')),
-         email_confirmed_at = COALESCE(email_confirmed_at, now()),
-         updated_at = now()
-     WHERE email = $1
-     RETURNING id, email`,
-    [correo, password]
-  );
-  return rows[0] || null;
-}
-
 export async function eliminarUsuarioAuthBD({ id }) {
   if (!id) return;
   await pool.query('DELETE FROM auth.identities WHERE user_id = $1', [id]);

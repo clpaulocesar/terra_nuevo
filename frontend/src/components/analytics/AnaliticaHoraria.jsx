@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BarChart3, Clock3, Package } from 'lucide-react';
+import { BarChart3, Clock3 } from 'lucide-react';
 import { obtenerAnaliticaHoraria } from '../../services/pedidoService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import './AnaliticaHoraria.css';

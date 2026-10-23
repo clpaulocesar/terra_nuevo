@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { ArrowRight, Camera, CameraOff, Check, ExternalLink, ImageUp, Minus, Plus, ScanLine, ShoppingCart, Trash2, X } from 'lucide-react';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { obtenerProducto } from '../services/productoService.js';
-import { agregarProductoCarritoQr, leerCarritoQr, actualizarCantidadCarritoQr, limpiarCarritoQr } from '../services/qrCartService.js';
+
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { obtenerIconoCategoria } from '../data/categorias.js';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
@@ -81,7 +81,7 @@ export default function Catalogo() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { items, cantidadTotal, subtotal, agregarProducto, importarProductosQr, actualizarCantidad, quitarProducto } = useCarrito();
+  const { items, cantidadTotal, subtotal, agregarProducto, actualizarCantidad, quitarProducto } = useCarrito();
   const { esMayorista } = useContext(SesionClienteContext);
 
   const abrirCamaraAlEntrar = searchParams.get('abrirQr') === '1';
@@ -299,15 +299,10 @@ export default function Catalogo() {
     return () => mq.removeEventListener('change', actualizar);
   }, []);
 
-  const [segundosSesion, setSegundosSesion] = useState(180);
-
   const searchInputRef = useRef(null);
   const ultimaTarjetaLeidaRef = useRef(null);
 
   const [escanerAbierto, setEscanerAbierto] = useState(abrirCamaraAlEntrar);
-  const [carritoQr, setCarritoQr] = useState(() => {
-    try { return leerCarritoQr(); } catch { return []; }
-  });
   const [estadoEscaner, setEstadoEscaner] = useState('');
   const [errorEscaner, setErrorEscaner] = useState(false);
   const [ultimoProductoQrId, setUltimoProductoQrId] = useState('');
@@ -380,19 +375,6 @@ export default function Catalogo() {
     };
   }, [menuCategoriasAbierto]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSegundosSesion((prev) => (prev > 0 ? prev - 1 : 180));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatoTiempo = useMemo(() => {
-    const minutos = Math.floor(segundosSesion / 60);
-    const segundos = segundosSesion % 60;
-    return `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')} min`;
-  }, [segundosSesion]);
-
   // Búsqueda, categoría y orden ya vienen aplicados desde el backend por página.
   const productosFiltrados = productosOrdenados;
   const ventasMaximas = Math.max(0, ...productosFiltrados.map((producto) => Number(producto.ventas || 0)));
@@ -414,6 +396,10 @@ export default function Catalogo() {
   };
   const borrarCaracter = () => {
     setBuscar((prev) => prev.slice(0, -1));
+    setPagina(1);
+  };
+  const pegarCaracteres = (texto) => {
+    setBuscar((prev) => prev + texto);
     setPagina(1);
   };
   const abrirTecladoTactil = () => {
@@ -443,6 +429,8 @@ export default function Catalogo() {
     'nombre': 'Nombre A-Z',
   }[orden];
 
+  // El escáner suma directamente al carrito principal para no crear dos compras separadas.
+  const carritoQr = items;
   const unidadesQr = carritoQr.reduce((total, item) => total + Number(item.cantidad), 0);
   const totalQr = carritoQr.reduce((total, item) => total + Number(item.precio) * Number(item.cantidad), 0);
 
@@ -485,19 +473,11 @@ export default function Catalogo() {
     try {
       const producto = await obtenerProducto(idProducto);
       setUltimoProductoQrId(String(producto.id));
-      let resultadoAgregar = agregarProductoCarritoQr(producto);
-      if (resultadoAgregar.agregado && !agregarProducto(producto)) {
-        const itemQr = resultadoAgregar.items.find((item) => item.id === String(producto.id) && !item.color);
-        const itemsCorregidos = actualizarCantidadCarritoQr(producto.id, Number(itemQr?.cantidad || 1) - 1);
-        resultadoAgregar = { agregado: false, motivo: 'stock-maximo', items: itemsCorregidos };
-      }
-      setCarritoQr(resultadoAgregar.items);
+      const agregado = agregarProducto(producto);
       escaneoPausadoRef.current = true;
       setEscaneoPausado(true);
-      if (!resultadoAgregar.agregado) {
-        setEstadoEscaner(resultadoAgregar.motivo === 'stock-maximo'
-          ? `Ya agregaste todas las unidades disponibles de ${producto.nombre}.`
-          : `${producto.nombre} no está disponible para la compra.`);
+      if (!agregado) {
+        setEstadoEscaner(`Ya agregaste todas las unidades disponibles de ${producto.nombre}.`);
         setErrorEscaner(true);
       } else {
         setEstadoEscaner(`${producto.nombre} agregado. Ajustá la cantidad, escaneá otro producto o confirmá la compra.`);
@@ -543,21 +523,12 @@ export default function Catalogo() {
   };
 
   const cambiarCantidadQr = (id, cantidad) => {
-    const anterior = carritoQr.find((item) => item.id === id && !item.color);
-    const siguientes = actualizarCantidadCarritoQr(id, cantidad);
-    setCarritoQr(siguientes);
-    const siguiente = siguientes.find((item) => item.id === id && !item.color);
-    const diferencia = Number(siguiente?.cantidad || 0) - Number(anterior?.cantidad || 0);
-    const lineaId = `${id}::sin-color`;
-    const itemCarrito = items.find((item) => item.lineaId === lineaId);
+    const item = items.find((linea) => linea.id === String(id) && !linea.color);
+    if (!item) return;
+    const nuevaCantidad = Math.min(Math.max(0, Math.floor(Number(cantidad) || 0)), item.stock);
+    actualizarCantidad(item.lineaId, nuevaCantidad);
 
-    if (diferencia && itemCarrito) {
-      actualizarCantidad(lineaId, itemCarrito.cantidad + diferencia);
-    } else if (diferencia > 0 && siguiente) {
-      importarProductosQr([{ ...siguiente, cantidad: diferencia }]);
-    }
-
-    if (!siguiente) {
+    if (!nuevaCantidad) {
       setUltimoProductoQrId('');
       reanudarEscaneo();
     }
@@ -565,8 +536,6 @@ export default function Catalogo() {
 
   const confirmarCompraQr = () => {
     if (!unidadesQr) return;
-    limpiarCarritoQr();
-    setCarritoQr([]);
     setEscanerAbierto(false);
     navigate('/carrito');
   };
@@ -732,8 +701,9 @@ export default function Catalogo() {
             ref={tecladoRef}
             onCaracter={agregarCaracter}
             onBorrar={borrarCaracter}
-            onLimpiar={() => cambiarBusqueda('')}
             onCerrar={() => setTecladoAbierto(false)}
+            onPegar={pegarCaracteres}
+            valorActual={buscar}
           />
         )}
 

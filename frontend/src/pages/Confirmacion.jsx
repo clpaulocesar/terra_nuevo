@@ -1,6 +1,6 @@
 import { useContext, useRef, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, CreditCard, QrCode, ReceiptText, ShieldCheck, Truck } from 'lucide-react';
+import { ArrowLeft, Banknote, CheckCircle2, CreditCard, ReceiptText, ShieldCheck, Truck } from 'lucide-react';
 import { ClienteContext } from '../context/ClienteContext.jsx';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useCarrito } from '../hooks/useCarrito.js';
@@ -16,18 +16,36 @@ export default function Confirmacion() {
   const { sesion, esMayorista } = useContext(SesionClienteContext);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
+  const [metodoPago, setMetodoPago] = useState('');
   const [pedidoGenerado, setPedidoGenerado] = useState(null);
   const [clienteTicket, setClienteTicket] = useState(null);
   const [itemsTicket, setItemsTicket] = useState([]);
+  const [resumenAbierto, setResumenAbierto] = useState(false);
   const enviando = useRef(false);
   const clienteId = useRef(null);
+  const inicioArrastreResumen = useRef(null);
 
   // Tiene prioridad sobre el carrito vacío luego de completar la compra.
   if (pedidoGenerado) return <Navigate to="/pedido" replace state={{ pedido: pedidoGenerado, cliente: clienteTicket, items: itemsTicket }} />;
   if (!items.length) return <Navigate to="/carrito" replace />;
 
+  const iniciarArrastreResumen = (event) => {
+    inicioArrastreResumen.current = event.touches[0]?.clientY ?? null;
+  };
+  const terminarArrastreResumen = (event) => {
+    if (inicioArrastreResumen.current === null) return;
+    const desplazamiento = (event.changedTouches[0]?.clientY ?? inicioArrastreResumen.current) - inicioArrastreResumen.current;
+    if (desplazamiento < -30) setResumenAbierto(true);
+    if (desplazamiento > 30) setResumenAbierto(false);
+    inicioArrastreResumen.current = null;
+  };
+
   const confirmar = async () => {
     if (enviando.current) return;
+    if (!metodoPago) {
+      setError('Seleccioná un medio de pago para continuar.');
+      return;
+    }
 
     enviando.current = true;
     setProcesando(true);
@@ -103,13 +121,34 @@ export default function Confirmacion() {
           <h2>Artículos seleccionados ({items.length})</h2>
           {items.map((item) => <div className="confirm-item" key={item.id}><span>{item.cantidad} ×</span><div><b>{item.nombre}</b><small>{item.categoria}</small></div><strong>{formatoMoneda(item.precio * item.cantidad)}</strong></div>)}
         </div>
-        <aside className="confirm-summary">
+        <aside className={`confirm-summary ${resumenAbierto ? 'is-mobile-open' : ''}`}>
+          <button className="confirm-mobile-summary-toggle" type="button" aria-label={resumenAbierto ? 'Contraer resumen del pedido' : 'Expandir resumen del pedido'} aria-expanded={resumenAbierto} onClick={() => setResumenAbierto((abierto) => !abierto)} onTouchStart={iniciarArrastreResumen} onTouchEnd={terminarArrastreResumen}>
+            <span aria-hidden="true" />
+          </button>
           <h2>Liquidación final</h2>
-          <div><p><span>Subtotal</span><b>{formatoMoneda(subtotal)}</b></p><p><span>IVA</span><b>Incluido</b></p><hr /><p className="confirm-total"><span>Total a pagar en caja</span><b>{formatoMoneda(subtotal)}</b></p></div>
-          <p className="confirm-payment"><span>Medios de pago</span><i>Bs</i><i><QrCode size={18} /> QR</i><i><CreditCard size={18} /> Tarjeta</i></p>
+          <div className="confirm-summary-box">
+            <p><span>Subtotal de artículos</span><b>{formatoMoneda(subtotal)}</b></p>
+            <hr />
+            <p className="confirm-total"><span>Total a pagar en caja</span><b>{formatoMoneda(subtotal)}</b></p>
+          </div>
+          <section className="confirm-payment-methods" aria-labelledby="confirm-payment-title">
+            <span id="confirm-payment-title">Medios de pago</span>
+            <div className="confirm-payments" role="radiogroup" aria-label="Seleccioná un medio de pago">
+              <button className={metodoPago === 'efectivo' ? 'is-selected' : ''} type="button" role="radio" aria-checked={metodoPago === 'efectivo'} onClick={() => { setMetodoPago('efectivo'); setError(''); }}>
+                <span className="confirm-payment-icon"><Banknote size={15} /></span>
+                <b>Efectivo</b>
+              </button>
+              <button className={metodoPago === 'qr' ? 'is-selected' : ''} type="button" role="radio" aria-checked={metodoPago === 'qr'} onClick={() => { setMetodoPago('qr'); setError(''); }}>
+                <span className="confirm-payment-icon"><CreditCard size={15} /></span>
+                <b>QR/Transfer.</b>
+              </button>
+            </div>
+          </section>
           {error && <p className="confirm-error">{error}</p>}
-          <button disabled={procesando} onClick={confirmar} type="button"><CheckCircle2 size={23} />{procesando ? 'Generando ticket…' : 'Confirmar y generar pedido'}</button>
-          <Link to="/carrito">Modificar carrito</Link><small>Terminal seguro · Ticket inmediato en caja</small>
+          {!metodoPago && <p className="confirm-payment-help">Seleccioná un medio de pago para continuar.</p>}
+          <button className="confirm-submit" disabled={procesando || !metodoPago} onClick={confirmar} type="button"><CheckCircle2 size={23} />{procesando ? 'Generando ticket…' : 'Confirmar y generar pedido'}</button>
+          <Link className="confirm-edit" to="/carrito">Modificar carrito</Link>
+          <small>Terminal seguro · Ticket inmediato en caja</small>
         </aside>
       </div>
     </section>

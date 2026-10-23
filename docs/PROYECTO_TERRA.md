@@ -428,7 +428,6 @@ También están disponibles:
 | El chat no responde | `N8N_CHAT_URL` vacío, workflow inactivo o CORS del webhook. |
 | Las imágenes no suben | Faltan `VITE_SUPABASE_URL` / clave pública o el bucket no existe. |
 | El QR muestra “No se pudo cargar” | `API_URL` no apunta al backend público o el backend no permite CORS. |
-| `npm run build` falla con “Encountered diff marker” | Conflicto de merge sin resolver en `frontend/src/services/pedidoService.js`. |
 
 ---
 
@@ -1198,7 +1197,7 @@ El tamaño de texto se escala a **125 %** o **150 %** cambiando `html { font-siz
 - `frontend/src/utils/__tests__/nombreAccesible.a11y.test.jsx`
 - `frontend/src/__tests__/paginas.a11y.test.jsx`
 
-La última suite no puede cargarse mientras exista el conflicto de merge en `pedidoService.js` (ver sección 17).
+Ejecuta las suites después de cualquier cambio en rutas, catálogo o servicios de pedidos.
 
 ---
 
@@ -1227,8 +1226,7 @@ La última suite no puede cargarse mientras exista el conflicto de merge en `ped
 
 ### 13.3 Code splitting
 
-- `frontend/src/routes/AppRoutes.jsx` usa `React.lazy` para admin, vendedor y mayorista.
-- El kiosco (`/catalogo`) no descarga el backoffice.
+- Las rutas públicas y de backoffice se definen en `frontend/src/routes/AppRoutes.jsx`.
 - `theme-dark-admin.css` se importa solo en `AdminLayout`, `VendedorLayout`, `LoginAdmin` y `LoginVendedor`.
 - La ficha QR es un HTML aparte, sin React.
 
@@ -1243,7 +1241,7 @@ La última suite no puede cargarse mientras exista el conflicto de merge en `ped
   - CSS principal ≈ 212 KB.
   - Total de `dist/assets` ≈ 1,9 MB repartido en chunks.
 
-> Estos tamaños son de la carpeta `frontend/dist` existente, no de una compilación nueva. La compilación actual está bloqueada por el conflicto de merge.
+> Estos tamaños son de una compilación de referencia. Ejecuta `npm run build` para obtener los valores actuales.
 
 ### 13.5 Rendimiento del backend
 
@@ -1281,12 +1279,12 @@ npm test             # falla a propósito: no hay runner
 
 | Suite | Archivo | Estado |
 |---|---|---|
-| Navegación / intenciones | `frontend/src/navegacion/__tests__/interpretarIntencion.test.js` | **22/22 pasan**. |
+| Navegación / intenciones | `frontend/src/navegacion/__tests__/interpretarIntencion.test.js` | Ejecutar con `npm run test:nav`. |
 | Modo accesible | `frontend/src/accesibilidad/__tests__/modoAccesible.a11y.test.jsx` | Pasa. |
 | Nombres accesibles | `frontend/src/utils/__tests__/nombreAccesible.a11y.test.jsx` | Pasa. |
-| Páginas | `frontend/src/__tests__/paginas.a11y.test.jsx` | **No carga** por el conflicto de `pedidoService.js`. |
+| Páginas | `frontend/src/__tests__/paginas.a11y.test.jsx` | Ejecutar con `npm run test:a11y`. |
 
-En la última ejecución: `test:nav` 22/22; `test:a11y` 8 pruebas pasan en 2 archivos y 1 archivo falla al transformarse.
+Los resultados dependen del entorno y deben verificarse antes de desplegar.
 
 No hay pruebas unitarias ni de integración del backend. La verificación recomendada es:
 
@@ -1340,7 +1338,7 @@ No hay pruebas unitarias ni de integración del backend. La verificación recome
 
 ### 15.5 Checklist de despliegue
 
-1. Resolver conflictos de merge y confirmar que `npm run build` pasa.
+1. Confirmar que `npm run build` pasa.
 2. Configurar `backend/.env` y `frontend/.env` en el proveedor.
 3. Editar `config.js` con la URL pública de la API y el webhook de n8n.
 4. Verificar `/api/health`.
@@ -1430,11 +1428,9 @@ No hay pruebas unitarias ni de integración del backend. La verificación recome
 
 ## 17. Problemas conocidos, deuda y pendientes
 
-### 17.1 Bloqueante actual
+### 17.1 Bloqueantes conocidos
 
-| # | Problema | Evidencia | Impacto | Acción sugerida |
-|---|---|---|---|---|
-| 1 | Conflicto de merge sin resolver en `frontend/src/services/pedidoService.js` (marcadores en líneas 36, 55 y 87). | `git status` muestra `UU`; `npm run build` falla con “Encountered diff marker”. | **El frontend no compila** y `paginas.a11y.test.jsx` no carga. | Resolver conservando de `HEAD` `obtenerResumenPedidos` y `obtenerComparativaPeriodos`; del lado `main`, `actualizarEntregaPedido`, `asignarRepartidorPedido` y el envío del token en `actualizarEstadoPedido`. |
+No hay conflictos de merge conocidos en la rama integrada. Ejecuta las verificaciones de la sección 14 antes de desplegar cambios de pedidos.
 
 ### 17.2 Contradicciones entre documentación y código
 

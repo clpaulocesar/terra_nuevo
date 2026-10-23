@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { SesionClienteContext } from './SesionClienteContext.jsx';
 
 export const CarritoContext = createContext(null);
@@ -76,9 +76,24 @@ const precioParaCantidad = (producto, cantidad, esMayorista) => {
 };
 
 export function CarritoProvider({ children }) {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(leerCarritoGuardado);
   const [entregaDomicilio, setEntregaDomicilio] = useState(false);
   const { esMayorista } = useContext(SesionClienteContext);
+
+  // Se guarda antes de pintar para que una recarga inmediata no pierda una adición reciente.
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (!items.length) {
+        localStorage.removeItem(CARRITO_STORAGE_KEY);
+        return;
+      }
+      // Solo se conserva un borrador temporal de productos, nunca datos del cliente.
+      localStorage.setItem(CARRITO_STORAGE_KEY, JSON.stringify({ version: 1, actualizadoEn: Date.now(), items }));
+    } catch {
+      // El carrito sigue funcionando en memoria si el navegador bloquea el almacenamiento.
+    }
+  }, [items]);
 
   useEffect(() => {
     setItems((anterior) => anterior.map((item) => ({

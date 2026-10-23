@@ -2,10 +2,6 @@
 // los lectores de pantalla: aria-label, aria-labelledby, alt, title, texto visible.
 const INTERACTIVOS = 'a[href], button, input, select, textarea, summary, [role="button"], [role="link"], [role="option"], [role="tab"], [role="menuitem"], [tabindex]:not([tabindex="-1"])';
 
-export function esInteractivo(elemento) {
-  return Boolean(elemento?.matches?.(INTERACTIVOS));
-}
-
 export function elementoInteractivoDesde(objetivo) {
   if (!objetivo || typeof objetivo.closest !== 'function') return null;
   return objetivo.closest(INTERACTIVOS);

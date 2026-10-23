@@ -85,6 +85,38 @@ export async function actualizarPersonalBD(id, { nombre, vehiculo = null, placa 
   return rows[0] || null;
 }
 
+// Elimina la cuenta operativa y libera los pedidos que todavía la tenían asignada.
+// El usuario de Supabase se borra después, desde el controlador.
+export async function eliminarPersonalBD(id) {
+  await asegurarTablaPersonal();
+  const conexion = await pool.connect();
+  try {
+    await conexion.query('BEGIN');
+    await conexion.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_driver_id UUID');
+    await conexion.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_assigned_at TIMESTAMPTZ');
+    const cuenta = await conexion.query(
+      'SELECT id, auth_user_id AS "authUserId" FROM staff_accounts WHERE id = $1 FOR UPDATE',
+      [id],
+    );
+    if (!cuenta.rowCount) {
+      await conexion.query('ROLLBACK');
+      return null;
+    }
+    await conexion.query(
+      'UPDATE orders SET delivery_driver_id = NULL, delivery_assigned_at = NULL WHERE delivery_driver_id = $1',
+      [id],
+    );
+    await conexion.query('DELETE FROM staff_accounts WHERE id = $1', [id]);
+    await conexion.query('COMMIT');
+    return cuenta.rows[0];
+  } catch (error) {
+    await conexion.query('ROLLBACK');
+    throw error;
+  } finally {
+    conexion.release();
+  }
+}
+
 // Busca una cuenta del equipo (staff_accounts) por correo.
 // Si además existe en la tabla `users` (clientes), se toma el rol de staff.
 export async function buscarCuentaStaffBD(email) {

@@ -30,6 +30,10 @@ function asegurarColumnasEntrega() {
   return deliveryColumnsReady;
 }
 
+// Errores de validación del pedido: llevan código HTTP para que el cliente vea el motivo
+// en vez de un "Error interno del servidor".
+const errorPedido = (statusCode, mensaje) => Object.assign(new Error(mensaje), { statusCode });
+
 export async function crearPedidoBD(clienteId, items, { precioMayorista = false, entrega = null } = {}) {
   await Promise.all([asegurarEscalasMayoristasBD(), asegurarColumnasEntrega()]);
   const conexion = await pool.connect();
@@ -56,8 +60,8 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
          WHERE p.id=$1 AND COALESCE(p.activo,p.is_active,TRUE)=TRUE LIMIT 1`, [item.productoId, precioMayorista, item.cantidad]);
       if (!producto.rowCount) throw new Error('Producto no encontrado o inactivo en Supabase');
       const p = producto.rows[0];
-      if (Number(p.stock_quantity || 0) < item.cantidad) throw new Error(`Stock insuficiente para ${p.name}`);
-      if (item.cantidad < Number(p.minimum_order_quantity || 1)) throw new Error(`La compra mínima de ${p.name} es de ${p.minimum_order_quantity} unidades.`);
+      if (Number(p.stock_quantity || 0) < item.cantidad) throw errorPedido(409, `Stock insuficiente para ${p.name}. Disponible: ${Math.floor(Number(p.stock_quantity || 0))}.`);
+      if (item.cantidad < Number(p.minimum_order_quantity || 1)) throw errorPedido(400, `La cantidad mínima mayorista para ${p.name} es ${p.minimum_order_quantity}.`);
       const subtotalMinor = Number(p.price_minor) * item.cantidad;
       totalMinor += subtotalMinor;
       detalles.push({ variantId: p.variant_id, nombre: p.name, sku: p.sku, cantidad: item.cantidad, precioUnitario: aMonto(p.price_minor), subtotal: aMonto(subtotalMinor) });
@@ -130,7 +134,7 @@ export async function obtenerPedidoBD(id) {
   };
 }
 
-export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', limite = 100 } = {}) {
+export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', repartidorId = null, limite = 100 } = {}) {
   await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega(), asegurarTablaPersonal()]);
   const valores=[]; const condiciones=[];
   const termino=String(buscar||'').trim();
@@ -157,6 +161,7 @@ export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', 
   // Despacho solo trabaja con pedidos que se envían a domicilio.
   if(entrega==='domicilio') condiciones.push(`p.fulfillment_type='home_delivery'`);
   if(entrega==='retiro') condiciones.push(`p.fulfillment_type='store_pickup'`);
+  if(repartidorId){valores.push(repartidorId);condiciones.push(`p.delivery_driver_id=$${valores.length}`);}
   valores.push(limite); const where=condiciones.length?`WHERE ${condiciones.join(' AND ')}`:'';
   const { rows } = await pool.query(`
     WITH pedidos_base AS (

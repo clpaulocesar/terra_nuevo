@@ -1,0 +1,153 @@
+/* Estilos de impresión de la Guía de Usuario · TERRA Autoservicio (PDF vía Playwright). */
+/* Los márgenes (2 cm) los fija page.pdf; aquí sólo el tamaño. */
+@page { size: A4; }
+
+:root {
+  --vino: #a6192e;
+  --texto: #1b1c1c;
+  --muted: #707974;
+  --linea: #dcd9d9;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.45;
+  color: var(--texto);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ---------- Portada ---------- */
+body.portada {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 25.2cm;
+  padding: .5cm 0 0;
+}
+.portada .logo { width: 7.5cm; margin-bottom: 1.6cm; }
+.portada .etiqueta { color: var(--vino); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: 10pt; margin: 0 0 .4cm; }
+.portada h1 { font-size: 30pt; line-height: 1.15; margin: 0 0 .35cm; color: var(--texto); }
+.portada .subtitulo { font-size: 13pt; color: var(--muted); margin: 0 0 1.4cm; }
+.portada table { width: 100%; border-collapse: collapse; font-size: 10.5pt; }
+.portada th { width: 32%; text-align: left; background: transparent; color: var(--vino); font-weight: 700; padding: .45em .6em; border: 0; border-bottom: 1px solid var(--linea); vertical-align: top; }
+.portada td { padding: .45em .6em; border: 0; border-bottom: 1px solid var(--linea); vertical-align: top; }
+.portada .pie-portada { margin-top: auto; padding-top: 1.2cm; color: var(--muted); font-size: 9.5pt; }
+
+/* ---------- Cuerpo ---------- */
+h1, h2, h3, h4 {
+  color: var(--vino);
+  line-height: 1.25;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+h2 { font-size: 20pt; margin: 0 0 .6em; padding-bottom: .25em; border-bottom: 2px solid var(--vino); }
+h2.seccion { page-break-before: always; break-before: page; }
+h3 { font-size: 14pt; margin: 1.3em 0 .45em; }
+h4 { font-size: 12pt; margin: 1.1em 0 .35em; }
+
+p { margin: 0 0 .7em; orphans: 3; widows: 3; }
+li { orphans: 3; widows: 3; }
+ul, ol { margin: 0 0 .8em; padding-left: 1.4em; }
+li { margin-bottom: .25em; }
+li > ul, li > ol { margin-top: .25em; margin-bottom: .25em; }
+strong { font-weight: 700; }
+a { color: var(--vino); text-decoration: none; }
+hr { display: none; }
+code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 9.5pt;
+  background: #f3f1f1;
+  padding: 0 .3em;
+  border-radius: 3px;
+}
+
+/* La marca invisible que ubica cada sección en el PDF (lectura de texto). */
+.marca-pagina { font-size: 1px; color: #fff; }
+
+/* ---------- Índice ---------- */
+.indice ol { list-style: none; padding: 0; margin: 0; }
+.indice li { margin: 0; }
+.indice a {
+  display: flex;
+  align-items: baseline;
+  gap: .5em;
+  color: var(--texto);
+  padding: .42em 0;
+  border-bottom: 1px dotted #c9c4c4;
+  page-break-inside: avoid;
+}
+.indice .numero { color: var(--vino); font-weight: 700; min-width: 1.6em; }
+.indice .titulo { flex: 1 1 auto; }
+.indice .pagina { color: var(--vino); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ---------- Tablas ---------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.5pt;
+  margin: .5em 0 1em;
+  page-break-inside: auto;
+}
+thead { display: table-header-group; }
+tr { page-break-inside: avoid; break-inside: avoid; }
+th {
+  background: var(--vino);
+  color: #fff;
+  text-align: left;
+  font-weight: 700;
+  padding: .4em .55em;
+  border: 1px solid var(--vino);
+}
+td { padding: .38em .55em; border: 1px solid var(--linea); vertical-align: top; }
+tbody tr:nth-child(even) td { background: #faf5f5; }
+td code { white-space: nowrap; }
+.si { color: #168147; font-weight: 700; }
+.no { color: #ba1a1a; font-weight: 700; }
+
+/* ---------- Imágenes ---------- */
+figure {
+  margin: .9em auto 1.1em;
+  text-align: center;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+figure img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--linea);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .12);
+}
+figure.celular img { width: 40%; }
+figcaption { font-size: 9pt; color: var(--muted); margin-top: .45em; }
+
+/* ---------- Notas (reemplazan ⚠️ 💡 🔒) ---------- */
+.nota {
+  border-left: 4px solid;
+  border-radius: 6px;
+  padding: .55em .9em .5em;
+  margin: .6em 0 .9em;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.nota p { margin: 0; }
+.nota-etiqueta {
+  display: block;
+  font-weight: 700;
+  font-size: 8.5pt;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: .15em;
+}
+.nota-advertencia { background: #fff4e0; border-color: #d98c00; }
+.nota-advertencia .nota-etiqueta { color: #9a5f00; }
+.nota-consejo { background: #e9f1fb; border-color: #2a6fb8; }
+.nota-consejo .nota-etiqueta { color: #1f4f85; }
+.nota-privacidad { background: #f0f0f0; border-color: #6b6b6b; }
+.nota-privacidad .nota-etiqueta { color: #4a4a4a; }

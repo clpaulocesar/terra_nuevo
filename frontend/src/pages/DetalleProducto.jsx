@@ -575,7 +575,11 @@ export default function DetalleProducto() {
                 </>
               )}
             </button>
-            <Link className="product-buy__now" to="/carrito">
+            <Link
+              className="product-buy__now"
+              to="/carrito"
+              onClick={() => agregarProducto(producto, cantidad, color ? { color } : {})}
+            >
               Comprar ahora
             </Link>
             <div className="product-buy__guarantees">

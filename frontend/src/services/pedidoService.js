@@ -9,7 +9,7 @@ export async function crearPedido({ clienteId = null, items, token = null, entre
 }
 export async function crearVentaDirecta({ clienteId = null, items, metodoPago, tipoMayoristaManual = false }) {
   exigirConexionReal();
-  const token = sessionStorage.getItem('terra_admin_token');
+  const token = getAdminToken();
   if (!token) throw new Error('Inicia sesión nuevamente como administrador.');
   return apiRequest('/pedidos/venta-directa', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: { clienteId, items, metodoPago, tipoMayoristaManual } });
 }
