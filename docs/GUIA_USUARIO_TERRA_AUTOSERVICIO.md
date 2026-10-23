@@ -4,7 +4,7 @@
 |---|---|
 | **Sistema** | TERRA Autoservicio (kiosco digital, portal mayorista y backoffice) |
 | **Versión del sistema** | 2.0 |
-| **Versión del documento** | 1.1 |
+| **Versión del documento** | 1.2 |
 | **Fecha** | 23 de octubre de 2026 |
 | **Organización** | TERRA Autoservicio · Grupo Terra SRL · Sucursal Equipetrol, Santa Cruz de la Sierra, Bolivia |
 | **Dirigido a** | Clientes en tienda, clientes mayoristas, administradores, vendedores y personal de despacho |
@@ -339,6 +339,20 @@ Para ver qué puedes decir en la pantalla actual:
 
 ⚠️ El asistente orienta, pero no confirma precios, stock, pagos ni garantías. Para eso consulta en caja o con un asesor.
 
+### 8.6 Tutorial interactivo de la web
+
+**Objetivo**: conocer paso a paso las zonas principales del catálogo sin salir de la pantalla.
+
+1. En la cabecera, toca **Tutorial** (el botón con el signo **?**). En el celular aparece junto al menú.
+2. La primera vez que entras al catálogo, el sistema te invita con el mensaje **"Tutorial: uso de la web"**. Toca **Comenzar tutorial** o **Ahora no**.
+3. El tutorial oscurece la pantalla y resalta una zona por vez: buscador, categorías, ofertas, ordenar, producto, agregar al carrito, carrito e iniciar sesión. Cada paso explica para qué sirve.
+4. Usa **Siguiente** y **Anterior** para moverte, **Salir** para cerrarlo o **Finalizar** en el último paso. También puedes presionar **Escape**.
+5. Resultado: el recorrido se recuerda en ese dispositivo y no vuelve a aparecer solo. Puedes repetirlo cuando quieras con el botón **Tutorial**.
+
+- Si abres el tutorial desde otra pantalla, primero te lleva al catálogo.
+- En el celular, el último paso resalta el **menú** y explica que allí está **Iniciar sesión**.
+- Si ya iniciaste sesión como mayorista, el tutorial omite el paso de iniciar sesión.
+
 ---
 
 ## 9. Guía para el Cliente en tienda
@@ -350,7 +364,7 @@ Cualquier persona que usa la tablet del showroom (o la tienda desde su celular).
 ### 9.2 Pantalla principal y menú
 
 - **Inicio**: bienvenida con carrusel de fotos y el botón **Comenzar compra**.
-- **Cabecera**: logo TERRA (vuelve al inicio), **Catálogo de Productos**, altavoz, micrófono, botón **?**, modo día/noche, **Iniciar sesión** (solo mayoristas), **Carrito** con contador e **Inicio**.
+- **Cabecera**: logo TERRA (vuelve al inicio), **Catálogo de Productos**, altavoz, micrófono, botón **?**, modo día/noche, **Tutorial** (ver 8.6), **Iniciar sesión** (solo mayoristas), **Carrito** con contador e **Inicio**.
 - **Botones flotantes** a la derecha: **QR** (abre la cámara), **carrito flotante** (resumen rápido con **Ver Carrito** y **Vaciar carrito**) y **Asistente**.
 - **Botón ♿** abajo a la izquierda: modo accesible.
 
@@ -978,3 +992,4 @@ Al reportar un problema, indica: tu rol, la pantalla, el **código de pedido** s
 |---|---|---|---|
 | 1.0 | 23/10/2026 | Equipo TERRA Autoservicio | Primera versión. Cubre kiosco, portal mayorista, backoffice (administrador), portal de ventas (vendedor) y despacho. |
 | 1.1 | 23/10/2026 | Equipo TERRA Autoservicio | "Recordar sesión" funciona en los accesos mayorista y administrativo (6.2, 6.3, 10.6). "Comprar ahora" agrega el producto al carrito (9.4). Mensajes claros de stock insuficiente y mínimo mayorista (9.9, 10.6). Se quitó el QR de prueba del cobro (11.4) y la carga de logo del perfil mayorista (10.3). El botón "Factura PDF" pasa a llamarse "Descargar ticket" (10.5). El acceso administrativo muestra "Sucursal Equipetrol". |
+| 1.2 | 23/10/2026 | Equipo TERRA Autoservicio | Nuevo tutorial interactivo del catálogo: invitación en la primera visita, botón **Tutorial** en la cabecera y recorrido de 8 pasos adaptado a celular y mayoristas (8.6, 9.2). |

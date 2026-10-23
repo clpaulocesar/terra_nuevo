@@ -101,11 +101,12 @@
 .confirm-payment-methods { margin: 1rem 0 .8rem; }
 .confirm-payment-methods > span { display: block; font-size: .72rem; font-weight: 800; margin-bottom: .42rem; }
 .confirm-payments { display: flex; flex-wrap: wrap; gap: .42rem; }
-.confirm-payments button { align-items: center; background: #fff; border: 1px solid #e7e9ed; border-radius: 5px; color: var(--confirm-tinta); cursor: pointer; display: inline-flex; font: inherit; gap: .38rem; justify-content: flex-start; min-height: 2rem; padding: .32rem .5rem; transition: border-color .15s ease, box-shadow .15s ease; }
+.confirm-payments button { align-items: center; background: #fff; border: 1px solid #e7e9ed; border-radius: 5px; color: var(--confirm-tinta); cursor: pointer; display: inline-flex; flex: 1 1 0; font: inherit; gap: .38rem; justify-content: center; min-height: 2rem; padding: .32rem .5rem; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, color .15s ease; }
 .confirm-payments button:hover { border-color: var(--confirm-vino); box-shadow: 0 2px 5px rgb(166 25 46 / 9%); }
 .confirm-payment-icon { align-items: center; background: var(--confirm-vino); border-radius: 3px; color: #fff; display: flex; flex: 0 0 auto; height: 1rem; justify-content: center; width: 1rem; }
 .confirm-payments button b { font-size: .64rem; font-weight: 700; line-height: 1; white-space: nowrap; }
-.confirm-payments button.is-selected { background: #fffafa; border-color: var(--confirm-vino); box-shadow: 0 0 0 1px rgb(166 25 46 / 18%); }
+.confirm-payments button.is-selected { background: var(--confirm-vino); border-color: var(--confirm-vino); box-shadow: 0 0 0 1px rgb(166 25 46 / 18%); color: #fff; }
+.confirm-payments button.is-selected .confirm-payment-icon { background: #fff; color: var(--confirm-vino); }
 .confirm-error { color: var(--confirm-vino); font-size: .85rem; font-weight: 700; }
 .confirm-payment-help { color: var(--confirm-muted); font-size: .82rem; margin: 0 0 1rem; text-align: center; }
 
