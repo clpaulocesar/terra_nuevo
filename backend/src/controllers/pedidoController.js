@@ -211,7 +211,7 @@ export async function crearPedido(req, res, next) {
     let clienteId = req.body?.clienteId == null ? null : String(req.body.clienteId).trim();
     const mayorista = req.headers.authorization ? await obtenerMayoristaDesdeToken(req.headers.authorization) : null;
     if (req.headers.authorization && !mayorista) return res.status(403).json({ success: false, mensaje: 'La sesión mayorista no es válida.' });
-    if (mayorista) clienteId = mayorista.cliente_id;
+    if (mayorista && !clienteId) clienteId = mayorista.cliente_id;
 
     const items = req.body?.items;
     const metodoPagoSolicitado = String(req.body?.metodoPago || '').trim();
@@ -288,7 +288,18 @@ export async function crearPedido(req, res, next) {
     );
     let entrega = null;
     if (entregaDomicilio) {
-      if (mayorista) {
+      const direccionDirecta = String(req.body?.direccion || req.body?.direccionEntrega || '').trim();
+      const referenciaDirecta = String(req.body?.referencia || req.body?.referenciaEntrega || '').trim();
+
+      if (direccionDirecta) {
+        // Prioridad: dirección directa ingresada en el checkout (cliente minorista o mayorista con dirección explícita)
+        entrega = {
+          direccion: direccionDirecta,
+          referencia: referenciaDirecta || null,
+          latitud: null,
+          longitud: null,
+        };
+      } else if (mayorista) {
         if (!mayorista.direccion) {
           return res.status(400).json({ success: false, mensaje: 'Registrá una dirección de entrega antes de solicitar el envío a domicilio.' });
         }
@@ -299,17 +310,7 @@ export async function crearPedido(req, res, next) {
           longitud: mayorista.longitud ?? null,
         };
       } else {
-        const direccion = String(req.body?.direccion || req.body?.direccionEntrega || '').trim();
-        const referencia = String(req.body?.referencia || req.body?.referenciaEntrega || '').trim();
-        if (!direccion) {
-          return res.status(400).json({ success: false, mensaje: 'Ingresá la dirección para el envío a domicilio.' });
-        }
-        entrega = {
-          direccion,
-          referencia: referencia || null,
-          latitud: null,
-          longitud: null,
-        };
+        return res.status(400).json({ success: false, mensaje: 'Ingresá la dirección para el envío a domicilio.' });
       }
     }
 

@@ -54,18 +54,20 @@ export default function Confirmacion() {
     setError('');
 
     try {
-      const quiereEnvio = esMayorista ? entregaDomicilio : Boolean(cliente.entregaDomicilio);
-      const direccionEntrega = esMayorista ? (sesion?.direccion || null) : (quiereEnvio ? cliente.direccion : null);
-      const referenciaEntrega = esMayorista ? (sesion?.referencia || null) : (quiereEnvio ? cliente.referencia : null);
+      const esCompraMinorista = Boolean(cliente?.nombre || cliente?.telefono || cliente?.direccion || !esMayorista);
+      const esFlujoMayorista = esMayorista && !esCompraMinorista;
+
+      const quiereEnvio = esFlujoMayorista ? Boolean(entregaDomicilio) : Boolean(cliente.entregaDomicilio);
+      const direccionEntrega = esFlujoMayorista ? (sesion?.direccion || null) : (quiereEnvio ? (cliente.direccion || null) : null);
+      const referenciaEntrega = esFlujoMayorista ? (sesion?.referencia || null) : (quiereEnvio ? (cliente.referencia || null) : null);
 
       // Conserva los datos de facturación antes de limpiar el terminal compartido.
-      const datosClienteTicket = esMayorista
+      const datosClienteTicket = esFlujoMayorista
         ? { nombre: sesion?.nombre || 'Cliente mayorista', telefono: sesion?.telefono || '', nit: sesion?.nit || '', direccion: sesion?.direccion || '', referencia: sesion?.referencia || '' }
         : { ...cliente, direccion: direccionEntrega || '', referencia: referenciaEntrega || '' };
-      // El carrito se limpia al final; el ticket y WhatsApp necesitan conservar
-      // todos los datos visuales de sus líneas (nombre, cantidad y color).
+
       let id = null;
-      if (cliente.nombre && !esMayorista) {
+      if (cliente.nombre && !esFlujoMayorista) {
         clienteId.current ??= await crearCliente(cliente);
         id = clienteId.current?.id ?? null;
       }
@@ -84,7 +86,7 @@ export default function Confirmacion() {
 
       const pedido = await crearPedido({
         clienteId: id,
-        token: esMayorista ? sesion?.token : null,
+        token: esFlujoMayorista ? sesion?.token : null,
         entregaDomicilio: quiereEnvio,
         direccion: direccionEntrega,
         referencia: referenciaEntrega,
@@ -108,11 +110,14 @@ export default function Confirmacion() {
     }
   };
 
-  const quiereEnvio = esMayorista ? entregaDomicilio : Boolean(cliente.entregaDomicilio);
+  const esCompraMinorista = Boolean(cliente?.nombre || cliente?.telefono || cliente?.direccion || !esMayorista);
+  const esFlujoMayorista = esMayorista && !esCompraMinorista;
+
+  const quiereEnvio = esFlujoMayorista ? Boolean(entregaDomicilio) : Boolean(cliente.entregaDomicilio);
 
   const obtenerTipoEntregaItem = (item) => {
     if (!quiereEnvio) return 'store_pickup';
-    if (esMayorista) return 'home_delivery';
+    if (esFlujoMayorista) return 'home_delivery';
     if (!Array.isArray(cliente?.itemsEnvio)) return 'home_delivery';
     const lineaId = String(item.lineaId || '');
     const prodId = String(item.id || item.productoId || '');
@@ -125,7 +130,7 @@ export default function Confirmacion() {
 
   return (
     <section className="confirm-page">
-      <Link className="confirm-back" to={esMayorista ? '/mi-cuenta' : '/identificacion'}><ArrowLeft size={19} /> {esMayorista ? 'Volver a mi perfil' : 'Volver a identificación'}</Link>
+      <Link className="confirm-back" to={esFlujoMayorista ? '/mi-cuenta' : '/identificacion'}><ArrowLeft size={19} /> {esFlujoMayorista ? 'Volver a mi perfil' : 'Volver a identificación'}</Link>
       <header>
         <span>Paso 3 de 3 · Confirmación</span>
         <h1>Revisá y confirmá tu pedido</h1>
@@ -135,22 +140,22 @@ export default function Confirmacion() {
       <div className="confirm-layout">
         <div className="confirm-card">
           <h2>Datos del pedido</h2>
-          <div className="confirm-client"><ShieldCheck size={23} /><div><b>{esMayorista ? (sesion?.nombre || 'Cliente mayorista') : (cliente.nombre || 'Compra como invitado')}</b><span>{esMayorista ? (sesion?.telefono || 'Sin teléfono registrado') : (cliente.telefono || 'Sin teléfono registrado')} {(esMayorista ? sesion?.nit : cliente.nit) && `· NIT ${esMayorista ? sesion.nit : cliente.nit}`}</span></div></div>
+          <div className="confirm-client"><ShieldCheck size={23} /><div><b>{esFlujoMayorista ? (sesion?.nombre || 'Cliente mayorista') : (cliente.nombre || 'Compra como invitado')}</b><span>{esFlujoMayorista ? (sesion?.telefono || 'Sin teléfono registrado') : (cliente.telefono || 'Sin teléfono registrado')} {(esFlujoMayorista ? sesion?.nit : cliente.nit) && `· NIT ${esFlujoMayorista ? sesion.nit : cliente.nit}`}</span></div></div>
           <div className={`confirm-delivery${quiereEnvio ? '' : ' is-pickup'}`}>
             <Truck size={21} />
             <div>
               <b>{quiereEnvio ? 'Envío a domicilio' : 'Retiro en tienda'}</b>
               {quiereEnvio ? (
                 <>
-                  <span>{esMayorista ? (sesion?.direccion || 'Sin dirección registrada') : cliente.direccion}</span>
-                  {(esMayorista ? sesion?.referencia : cliente.referencia) && (
-                    <small>Referencia: {esMayorista ? sesion.referencia : cliente.referencia}</small>
+                  <span>{esFlujoMayorista ? (sesion?.direccion || 'Sin dirección registrada') : cliente.direccion}</span>
+                  {(esFlujoMayorista ? sesion?.referencia : cliente.referencia) && (
+                    <small>Referencia: {esFlujoMayorista ? sesion.referencia : cliente.referencia}</small>
                   )}
                 </>
               ) : (
                 <span>Pagás y retirás tu pedido en el mostrador de la tienda.</span>
               )}
-              <Link to={esMayorista ? '/carrito' : '/identificacion'}>
+              <Link to={esFlujoMayorista ? '/carrito' : '/identificacion'}>
                 {quiereEnvio ? 'Cambiar dirección o modalidad' : 'Cambiar a envío a domicilio'}
               </Link>
             </div>
