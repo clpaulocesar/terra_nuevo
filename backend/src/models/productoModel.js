@@ -5,7 +5,7 @@ import { pool } from '../config/database.js';
 const PRECIO_EFECTIVO = 'CASE WHEN COALESCE(p.en_oferta, FALSE) AND COALESCE(p.precio_oferta, 0) > 0 THEN p.precio_oferta ELSE COALESCE(p.public_price, 0) END';
 
 const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, p.codigo_terra AS codigo_terra, p.internal_code AS codigo_interno, p.slug AS slug,
-  p.name AS nombre, p.description AS descripcion, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
+  p.name AS nombre, p.description AS descripcion, p.marca AS marca, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
   ${PRECIO_EFECTIVO} AS precio, COALESCE(p.public_price, 0) AS precio_lista, p.precio_oferta AS precio_oferta, p.precio_fabrica AS precio_fabrica,
   p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
   p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, pi.intrucciones AS instrucciones, pi.detalle_completo AS instrucciones_detalle, pi.videos_url AS instrucciones_video, COALESCE(p.activo, p.is_active, TRUE) AS activo, COALESCE(p.en_oferta, FALSE) AS en_oferta,
@@ -302,6 +302,7 @@ export async function actualizarProductoBD(id, datos) {
       precioOpcional(datos.precioFabrica),
       precioOpcional(datos.precioOferta),
       datos.enOferta === undefined || datos.enOferta === null ? null : Boolean(datos.enOferta),
+      datos.marca ?? null,
     ]
   );
   if (rows[0] && Array.isArray(datos.escalasMayorista)) await reemplazarEscalasMayoristas(rows[0].id, datos.escalasMayorista);

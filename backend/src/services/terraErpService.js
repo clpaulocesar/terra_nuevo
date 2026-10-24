@@ -15,12 +15,16 @@ function configuracion() {
 
 async function solicitarToken() {
   const { baseUrl, usuario, clave } = configuracion();
-  const respuesta = await fetch(`${baseUrl}/api/auth/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ usuario, clave }),
-    signal: AbortSignal.timeout(15_000),
-  });
+  let respuesta;
+  try {
+    respuesta = await fetch(`${baseUrl}/api/auth/token`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario, clave }), signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    const error = new Error('No se pudo conectar con el ERP TERRA. Verifica red, IP, puerto y que el servicio ERP esté encendido.');
+    error.statusCode = 503;
+    throw error;
+  }
   const datos = await respuesta.json().catch(() => ({}));
   if (!respuesta.ok || !datos.token) {
     const error = new Error(datos?.error?.mensaje || 'No se pudo autenticar con el ERP TERRA.');
@@ -30,6 +34,8 @@ async function solicitarToken() {
   tokenActual = { valor: datos.token, venceEn: Date.now() + Math.max(60, Number(datos.expiraEnSegundos || 28_800) - 60) * 1000 };
   return tokenActual.valor;
 }
+
+export async function verificarConexionErp() { await solicitarToken(); return true; }
 
 async function token() {
   return tokenActual?.venceEn > Date.now() ? tokenActual.valor : solicitarToken();
@@ -56,12 +62,18 @@ async function llamada(ruta, opciones = {}, { timeout = 15_000 } = {}) {
   }
 }
 
-export function obtenerProductoErp(codigo) {
-  return llamada(`/api/productos/codigo/${encodeURIComponent(codigo)}`);
+function rutaProductoErp(referencia, sufijo = '') {
+  const valor = String(referencia || '').trim();
+  const tipo = /^\d+$/.test(valor) ? 'codigo' : 'terra';
+  return `/api/productos/${tipo}/${encodeURIComponent(valor)}${sufijo}`;
 }
 
-export function obtenerImagenesProductoErp(codigo) {
-  return llamada(`/api/productos/codigo/${encodeURIComponent(codigo)}/imagenes`, {}, { timeout: TIMEOUT_IMAGEN_MS });
+export function obtenerProductoErp(referencia) {
+  return llamada(rutaProductoErp(referencia));
+}
+
+export function obtenerImagenesProductoErp(referencia) {
+  return llamada(rutaProductoErp(referencia, '/imagenes'), {}, { timeout: TIMEOUT_IMAGEN_MS });
 }
 
 export function registrarCotizacionErp(productos) {

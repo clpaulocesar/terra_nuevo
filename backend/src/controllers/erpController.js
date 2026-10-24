@@ -1,19 +1,38 @@
 import { asegurarTablasErpBD, completarCotizacionBD, fallarCotizacionBD, finalizarSincronizacionBD, guardarProductoErpBD, iniciarSincronizacionBD, reservarCotizacionBD } from '../models/erpIntegracionModel.js';
-import { guardarImagenesErpEnSupabase, obtenerImagenesProductoErp, obtenerProductoErp, registrarCotizacionErp } from '../services/terraErpService.js';
+import { guardarImagenesErpEnSupabase, obtenerImagenesProductoErp, obtenerProductoErp, registrarCotizacionErp, verificarConexionErp } from '../services/terraErpService.js';
 
 function codigosValidos(lista) {
   if (!Array.isArray(lista) || !lista.length || lista.length > 500) return null;
-  const codigos = [...new Set(lista.map((valor) => String(valor || '').trim()))];
-  return codigos.every((codigo) => /^\d+$/.test(codigo)) ? codigos : null;
+  const codigos = [...new Set(lista.map((valor) => String(valor || '').trim().toUpperCase()))];
+  return codigos.every((codigo) => /^[A-Z0-9_-]+$/.test(codigo)) ? codigos : null;
 }
 
 export async function prepararIntegracionErp(req, res, next) {
   try { await asegurarTablasErpBD(); return res.json({ success: true, mensaje: 'Tablas de integración ERP listas.' }); } catch (error) { return next(error); }
 }
 
+export function estadoConfiguracionErp(req, res) {
+  const baseUrl = String(process.env.TERRA_ERP_BASE_URL || '').trim().replace(/\/$/, '');
+  const credenciales = Boolean(process.env.TERRA_ERP_API_USER && process.env.TERRA_ERP_API_PASSWORD);
+  const almacenamiento = Boolean(process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY));
+  return res.json({
+    success: true,
+    data: {
+      configurado: Boolean(baseUrl && credenciales && almacenamiento),
+      servidor: baseUrl || null,
+      credenciales,
+      almacenamiento,
+    },
+  });
+}
+
+export async function probarConexionErp(req, res, next) {
+  try { await verificarConexionErp(); return res.json({ success: true, data: { conectado: true } }); } catch (error) { return next(error); }
+}
+
 export async function sincronizarProductosErp(req, res, next) {
   const codigos = codigosValidos(req.body?.codigos);
-  if (!codigos) return res.status(400).json({ success: false, mensaje: 'Envía entre 1 y 500 códigos internos numéricos.' });
+  if (!codigos) return res.status(400).json({ success: false, mensaje: 'Envía entre 1 y 500 códigos internos numéricos o códigos TERRA alfanuméricos.' });
   const incluirImagenes = req.body?.incluirImagenes !== false;
   try {
     const ejecucionId = await iniciarSincronizacionBD({ solicitante: req.admin?.email, cantidad: codigos.length });

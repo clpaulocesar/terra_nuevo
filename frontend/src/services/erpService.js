@@ -11,6 +11,12 @@ export function prepararErp() {
   return apiRequest('/erp/preparar', { method: 'POST', headers: encabezados() });
 }
 
+export function obtenerConfiguracionErp() {
+  return apiRequest('/erp/configuracion', { headers: encabezados() });
+}
+
+export function probarConexionErp() { return apiRequest('/erp/conexion', { method: 'POST', headers: encabezados() }); }
+
 export function sincronizarProductosErp(codigos, incluirImagenes) {
   return apiRequest('/erp/sincronizaciones/productos', {
     method: 'POST',
