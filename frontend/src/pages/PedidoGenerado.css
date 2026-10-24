@@ -88,6 +88,68 @@
 .pedido-row b {
   color: #004230;
 }
+.pedido-ticket-items {
+  margin: 1rem 0;
+  padding: 0.8rem 0;
+  border-top: 1px dashed #bfc9c2;
+  border-bottom: 1px dashed #bfc9c2;
+}
+.pedido-ticket-items-title {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #707974;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.6rem;
+}
+.pedido-ticket-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.35rem 0;
+}
+.pedido-ticket-item-row:not(:last-child) {
+  border-bottom: 1px dotted #e3e8e5;
+}
+.pedido-ticket-item-main {
+  flex: 1;
+  min-width: 0;
+}
+.pedido-ticket-item-name {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #202020;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pedido-ticket-item-sub {
+  display: block;
+  font-size: 0.74rem;
+  color: #707974;
+}
+.pedido-ticket-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  flex-shrink: 0;
+}
+.pedido-ticket-badge.is-delivery {
+  background: #fdeeee;
+  color: #a6192e;
+  border: 1px solid rgba(166, 25, 46, 0.2);
+}
+.pedido-ticket-badge.is-pickup {
+  background: #f0eded;
+  color: #555;
+  border: 1px solid #dcdcdc;
+}
 .pedido-ticket footer {
   align-items: center;
   background: #ffdb9b88;

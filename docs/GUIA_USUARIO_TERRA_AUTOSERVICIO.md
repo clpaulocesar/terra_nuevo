@@ -441,8 +441,10 @@ Cualquier persona que usa la tablet del showroom (o la tienda desde su celular).
 **Objetivo**: asociar tu nombre al pedido para que te llamen en caja.
 
 1. En "Datos para tu pedido en tienda" escribe **Nombre y apellidos** (obligatorio, 2 a 120 caracteres).
-2. Opcionalmente escribe **Teléfono / WhatsApp** (prefijo +591) y **NIT** (5 a 20 dígitos).
-3. Deja marcada la casilla **Deseo recibir mi comprobante por WhatsApp** si quieres pedirlo después.
+2. Opcionalmente escribe **Teléfono de contacto** (prefijo +591) y **NIT** (5 a 20 dígitos).
+3. En "¿Deseás envío a domicilio?", selecciona:
+   - **No, retiro en tienda**: pagas y retiras todos tus productos en el mostrador.
+   - **Sí, envío a domicilio**: escribe la **Dirección de entrega** (calle, número y zona) y opcionalmente una **Referencia** en texto plano sin mapa. A continuación, selecciona qué artículos deseas enviar a domicilio y cuáles retirar en tienda tocando las tarjetas de producto (por defecto se envían todos; puedes usar el botón **Enviar todos** para restablecer).
 4. Toca **Continuar a confirmación**.
 5. Resultado: pasas a la pantalla de confirmación.
 
@@ -993,3 +995,5 @@ Al reportar un problema, indica: tu rol, la pantalla, el **código de pedido** s
 | 1.0 | 23/10/2026 | Equipo TERRA Autoservicio | Primera versión. Cubre kiosco, portal mayorista, backoffice (administrador), portal de ventas (vendedor) y despacho. |
 | 1.1 | 23/10/2026 | Equipo TERRA Autoservicio | "Recordar sesión" funciona en los accesos mayorista y administrativo (6.2, 6.3, 10.6). "Comprar ahora" agrega el producto al carrito (9.4). Mensajes claros de stock insuficiente y mínimo mayorista (9.9, 10.6). Se quitó el QR de prueba del cobro (11.4) y la carga de logo del perfil mayorista (10.3). El botón "Factura PDF" pasa a llamarse "Descargar ticket" (10.5). El acceso administrativo muestra "Sucursal Equipetrol". |
 | 1.2 | 23/10/2026 | Equipo TERRA Autoservicio | Nuevo tutorial interactivo del catálogo: invitación en la primera visita, botón **Tutorial** en la cabecera y recorrido de 8 pasos adaptado a celular y mayoristas (8.6, 9.2). |
+| 1.3 | 24/10/2026 | Equipo TERRA Autoservicio | Identificación minorista con selección directa de envío a domicilio (Sí/No en texto plano sin mapa), QR oficial de pago con zoom interactivo y simplificación de acciones del ticket (9.8, 9.9). |
+| 1.4 | 24/10/2026 | Equipo TERRA Autoservicio | Selección individual de productos para envío vs. retiro para clientes minoristas; visualización en tabla de pedidos admin con etiquetas de modalidad (Envío/Llevado), desglose interactivo en modal y tickets POS/digitales. |

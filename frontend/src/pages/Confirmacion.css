@@ -83,6 +83,28 @@
 .confirm-item > span { background: var(--confirm-vino-suave); border-radius: .4rem; color: var(--confirm-vino); font-weight: 800; padding: .35rem; }
 .confirm-item div { flex: 1; }
 .confirm-item small { color: var(--confirm-muted); display: block; }
+.confirm-item-details { flex: 1; min-width: 0; }
+.confirm-item-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.2rem; }
+.confirm-item-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  line-height: 1.2;
+}
+.confirm-item-badge.is-delivery {
+  background: var(--confirm-vino-suave);
+  color: var(--confirm-vino);
+  border: 1px solid rgba(166, 25, 46, 0.2);
+}
+.confirm-item-badge.is-pickup {
+  background: #ede9e3;
+  color: #5d534c;
+  border: 1px solid #ddd5cb;
+}
 
 .confirm-summary-box {
   background: var(--confirm-crema);

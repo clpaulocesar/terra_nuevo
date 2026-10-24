@@ -24,11 +24,16 @@ function formatoFechaPedido(fecha) {
 }
 
 function crearMensajeComprobante({ pedido, cliente, items }) {
+  const tieneEnvio = Boolean(pedido.direccion_entrega);
   const lineas = (items || []).map((item) => {
     const nombre = item.nombre || item.product_name || "Producto";
     const cantidad = item.cantidad || item.quantity || 1;
     const color = item.color?.nombre || item.color;
-    return `• ${cantidad} × ${nombre}${color ? ` (${color})` : ""}`;
+    const tipo = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
+    const modalidad = tieneEnvio
+      ? (tipo === 'home_delivery' ? ' [Envío a domicilio]' : ' [Retiro en tienda]')
+      : '';
+    return `• ${cantidad} × ${nombre}${color ? ` (${color})` : ""}${modalidad}`;
   });
 
   return [
@@ -149,6 +154,31 @@ export default function PedidoGenerado() {
             <span>Estado</span>
             <b>{pagoQrPendiente ? 'Pendiente de confirmación QR' : 'Pendiente de pago'}</b>
           </div>
+          {itemsTicket.length > 0 && (
+            <div className="pedido-ticket-items">
+              <span className="pedido-ticket-items-title">Detalle de productos ({itemsTicket.length})</span>
+              {itemsTicket.map((it, idx) => {
+                const tipo = it.tipoEntrega || it.tipo_entrega || it.delivery_type;
+                const tieneEnvio = Boolean(pedido.direccion_entrega);
+                return (
+                  <div key={it.id || idx} className="pedido-ticket-item-row">
+                    <div className="pedido-ticket-item-main">
+                      <span className="pedido-ticket-item-name">{it.nombre || it.product_name || 'Producto'}</span>
+                      <small className="pedido-ticket-item-sub">
+                        {it.cantidad} × {formatoMoneda(it.precio || it.precioUnitario || 0)}
+                        {it.color?.nombre || it.color ? ` · ${it.color?.nombre || it.color}` : ''}
+                      </small>
+                    </div>
+                    {tieneEnvio && (
+                      <span className={`pedido-ticket-badge ${tipo === 'home_delivery' ? 'is-delivery' : 'is-pickup'}`}>
+                        {tipo === 'home_delivery' ? '🚚 Envío' : '🛍️ Retiro'}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div className="pedido-row">
             <span>Total a pagar</span>
             <b>{formatoMoneda(pedido.total)}</b>

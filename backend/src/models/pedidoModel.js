@@ -30,6 +30,7 @@ function asegurarColumnasEntrega() {
     // Repartidor asignado desde el panel (staff_accounts con rol despacho).
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_driver_id UUID'),
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_assigned_at TIMESTAMPTZ'),
+    pool.query('ALTER TABLE order_items ADD COLUMN IF NOT EXISTS delivery_type TEXT'),
   ]);
   return deliveryColumnsReady;
 }
@@ -68,7 +69,7 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
       if (item.cantidad < Number(p.minimum_order_quantity || 1)) throw errorPedido(400, `La cantidad mínima mayorista para ${p.name} es ${p.minimum_order_quantity}.`);
       const subtotalMinor = Number(p.price_minor) * item.cantidad;
       totalMinor += subtotalMinor;
-      detalles.push({ variantId: p.variant_id, nombre: p.name, sku: p.sku, cantidad: item.cantidad, precioUnitario: aMonto(p.price_minor), subtotal: aMonto(subtotalMinor) });
+      detalles.push({ variantId: p.variant_id, nombre: p.name, sku: p.sku, cantidad: item.cantidad, precioUnitario: aMonto(p.price_minor), subtotal: aMonto(subtotalMinor), tipoEntrega: item.tipoEntrega || (entrega ? 'home_delivery' : 'store_pickup') });
     }
     const ticket = `TER-${randomUUID().slice(0, 8).toUpperCase()}`;
     const tipoEntrega = entrega?.direccion ? 'home_delivery' : 'store_pickup';
@@ -90,7 +91,7 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
       ]
     );
     for (const d of detalles) {
-      await conexion.query(`INSERT INTO order_items (order_id,product_variant_id,product_name,sku,quantity,unit_price_minor,discount_minor,total_minor,currency) VALUES ($1,$2,$3,$4,$5,$6,0,$7,'BOB')`, [nuevo.rows[0].id, d.variantId, d.nombre, d.sku, d.cantidad, Math.round(d.precioUnitario*100), Math.round(d.subtotal*100)]);
+      await conexion.query(`INSERT INTO order_items (order_id,product_variant_id,product_name,sku,quantity,unit_price_minor,discount_minor,total_minor,currency,delivery_type) VALUES ($1,$2,$3,$4,$5,$6,0,$7,'BOB',$8)`, [nuevo.rows[0].id, d.variantId, d.nombre, d.sku, d.cantidad, Math.round(d.precioUnitario*100), Math.round(d.subtotal*100), d.tipoEntrega || 'store_pickup']);
     }
     const totalPedidos = await conexion.query('SELECT count(*)::integer AS total FROM orders');
     const numero = totalPedidos.rows[0]?.total || 1;
@@ -101,42 +102,71 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
 
 export async function obtenerPedidoBD(id) {
   await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega()]);
+  const idLimpio = String(id || '').trim();
   const { rows } = await pool.query(
     `WITH pedidos_base AS (
        SELECT o.*, ROW_NUMBER() OVER (ORDER BY o.created_at ASC) AS numero_pedido
        FROM orders o
      )
-     SELECT p.id,p.numero_pedido::integer AS numero,p.ticket_number AS codigo,p.customer_id AS cliente_id,p.total_minor,p.status AS estado,p.created_at AS fecha,
-            p.payment_receipt_url AS comprobante_url,p.payment_method AS metodo_pago,
+     SELECT p.id,
+            p.numero_pedido::integer AS numero,
+            p.ticket_number AS codigo,
+            p.customer_id AS cliente_id,
+            p.total_minor,
+            p.status AS estado,
+            p.created_at AS fecha,
+            p.payment_receipt_url AS comprobante_url,
+            p.payment_method AS metodo_pago,
             p.payment_requested_method AS metodo_pago_solicitado,
             p.payment_confirmation_source AS fuente_confirmacion_pago,
             p.payment_confirmed_at AS pago_confirmado_en,
             p.fulfillment_type AS tipo_entrega,
-            p.delivery_address AS direccion_entrega,p.delivery_reference AS referencia_entrega,
-            p.delivery_lat AS latitud_entrega,p.delivery_lng AS longitud_entrega,
-            c.name AS cliente_nombre,c.phone AS cliente_telefono,c.nit AS cliente_nit
-     FROM pedidos_base p LEFT JOIN customers c ON c.id=p.customer_id WHERE p.id=$1`,
-    [id]
+            p.delivery_address AS direccion_entrega,
+            p.delivery_reference AS referencia_entrega,
+            p.delivery_lat AS latitud_entrega,
+            p.delivery_lng AS longitud_entrega,
+            COALESCE(c.name, c.contact_name, 'Compra como invitado') AS cliente_nombre,
+            COALESCE(c.phone, '') AS cliente_telefono,
+            COALESCE(c.nit, '') AS cliente_nit
+     FROM pedidos_base p
+     LEFT JOIN customers c ON c.id = p.customer_id
+     WHERE p.id::text = $1 OR p.ticket_number = $1`,
+    [idLimpio]
   );
   if (!rows[0]) return null;
+  const pedido = rows[0];
   const detalles = await pool.query(
-    `SELECT COALESCE(p.id::text, i.product_variant_id::text) AS "productoId",
+    `SELECT i.id AS "itemId",
+            COALESCE(p.id::text, i.product_variant_id::text, i.id::text) AS "productoId",
             i.product_name AS nombre,
             COALESCE(i.sku, p.codigo_terra, p.internal_code, '') AS sku,
             i.quantity AS cantidad,
             i.unit_price_minor/100.0 AS "precioUnitario",
-            i.total_minor/100.0 AS subtotal
+            i.total_minor/100.0 AS subtotal,
+            COALESCE(i.delivery_type, CASE WHEN o.fulfillment_type = 'home_delivery' THEN 'home_delivery' ELSE 'store_pickup' END) AS tipo_entrega
      FROM order_items i
-     LEFT JOIN products p ON (p.codigo_terra = i.sku OR p.internal_code = i.sku OR p.name = i.product_name)
-     WHERE i.order_id=$1
-     ORDER BY i.created_at`,
-    [id]
+     JOIN orders o ON o.id = i.order_id
+     LEFT JOIN LATERAL (
+       SELECT pr.id, pr.codigo_terra, pr.internal_code
+       FROM products pr
+       WHERE pr.id::text = i.product_variant_id::text
+          OR (i.sku IS NOT NULL AND i.sku <> '' AND (pr.codigo_terra = i.sku OR pr.internal_code = i.sku))
+       LIMIT 1
+     ) p ON true
+     WHERE i.order_id = $1
+     ORDER BY i.created_at ASC`,
+    [pedido.id]
   );
-  const pedido = rows[0];
   return {
     ...pedido,
     total: aMonto(pedido.total_minor),
-    cliente: pedido.cliente_nombre ? { nombre: pedido.cliente_nombre, telefono: pedido.cliente_telefono, nit: pedido.cliente_nit } : null,
+    cliente: {
+      nombre: pedido.cliente_nombre,
+      telefono: pedido.cliente_telefono,
+      nit: pedido.cliente_nit,
+      direccion: pedido.direccion_entrega,
+      referencia: pedido.referencia_entrega,
+    },
     items: detalles.rows,
   };
 }
@@ -204,7 +234,38 @@ export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', 
            COALESCE(c.contact_name,'') AS cliente_titular,
            COALESCE(c.phone,'') AS cliente_telefono,
            COALESCE(c.nit,'') AS cliente_nit,
-           COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items
+           COALESCE(
+             string_agg(
+               i.quantity::text || 'x ' || i.product_name ||
+               CASE
+                 WHEN p.delivery_address IS NOT NULL AND p.delivery_address <> '' THEN
+                   CASE
+                     WHEN COALESCE(i.delivery_type, p.fulfillment_type) = 'home_delivery' THEN ' [🚚 Envío]'
+                     ELSE ' [🛍️ Llevado]'
+                   END
+                 ELSE ''
+               END,
+               ', '
+             ),
+             ''
+           ) AS items,
+           COALESCE(
+             json_agg(
+               json_build_object(
+                 'id', i.id,
+                 'nombre', i.product_name,
+                 'sku', i.sku,
+                 'cantidad', i.quantity,
+                 'precioUnitario', i.unit_price_minor / 100.0,
+                 'subtotal', i.total_minor / 100.0,
+                 'tipo_entrega', COALESCE(i.delivery_type, CASE WHEN p.delivery_address IS NOT NULL AND p.delivery_address <> '' THEN p.fulfillment_type ELSE 'store_pickup' END)
+               )
+               ORDER BY i.created_at ASC
+             ) FILTER (WHERE i.id IS NOT NULL),
+             '[]'::json
+           ) AS items_detalle,
+           COALESCE(SUM(CASE WHEN COALESCE(i.delivery_type, p.fulfillment_type) = 'home_delivery' AND p.delivery_address IS NOT NULL AND p.delivery_address <> '' THEN i.quantity ELSE 0 END), 0)::integer AS cant_envio,
+           COALESCE(SUM(CASE WHEN COALESCE(i.delivery_type, p.fulfillment_type) <> 'home_delivery' OR p.delivery_address IS NULL OR p.delivery_address = '' THEN i.quantity ELSE 0 END), 0)::integer AS cant_llevado
     FROM pedidos_base p
     LEFT JOIN customers c ON c.id=p.customer_id
     LEFT JOIN order_items i ON i.order_id=p.id
@@ -431,6 +492,7 @@ export async function actualizarItemsPedidoBD(pedidoId, items) {
         cantidad,
         unitPriceMinor: Number(prod.price_minor),
         subtotalMinor,
+        tipoEntrega: item.tipoEntrega || item.tipo_entrega || (pedido.rows[0]?.delivery_address ? 'home_delivery' : 'store_pickup'),
       });
     }
 
@@ -438,9 +500,9 @@ export async function actualizarItemsPedidoBD(pedidoId, items) {
     await conexion.query(`DELETE FROM order_items WHERE order_id=$1`, [pedidoId]);
     for (const d of nuevosDetalles) {
       await conexion.query(
-        `INSERT INTO order_items (order_id, product_variant_id, product_name, sku, quantity, unit_price_minor, discount_minor, total_minor, currency)
-         VALUES ($1, NULL, $2, $3, $4, $5, 0, $6, 'BOB')`,
-        [pedidoId, d.nombre, d.sku, d.cantidad, d.unitPriceMinor, d.subtotalMinor]
+        `INSERT INTO order_items (order_id, product_variant_id, product_name, sku, quantity, unit_price_minor, discount_minor, total_minor, currency, delivery_type)
+         VALUES ($1, NULL, $2, $3, $4, $5, 0, $6, 'BOB', $7)`,
+        [pedidoId, d.nombre, d.sku, d.cantidad, d.unitPriceMinor, d.subtotalMinor, d.tipoEntrega]
       );
     }
 

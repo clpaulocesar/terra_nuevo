@@ -3,9 +3,25 @@ import { getAdminToken } from './adminService.js';
 
 function exigirConexionReal() { if (MODO_DEMO) throw new Error('El modo demostración está activo. Configura VITE_MODO_DEMO=false.'); }
 
-export async function crearPedido({ clienteId = null, items, token = null, entregaDomicilio = false, metodoPago }) {
+export async function crearPedido({ clienteId = null, items, token = null, entregaDomicilio = false, direccion = null, referencia = null, metodoPago }) {
   exigirConexionReal();
-  return apiRequest('/pedidos', { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {}, body: { clienteId, entregaDomicilio: Boolean(entregaDomicilio), metodoPago, items: items.map(item => ({ productoId: String(item.productoId), cantidad: Number(item.cantidad), color: String(item.color || '').trim() || null })) } });
+  return apiRequest('/pedidos', {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: {
+      clienteId,
+      entregaDomicilio: Boolean(entregaDomicilio),
+      direccion,
+      referencia,
+      metodoPago,
+      items: items.map((item) => ({
+        productoId: String(item.productoId),
+        cantidad: Number(item.cantidad),
+        color: String(item.color || '').trim() || null,
+        tipoEntrega: item.tipoEntrega || item.tipo_entrega || (entregaDomicilio ? 'home_delivery' : 'store_pickup'),
+      })),
+    },
+  });
 }
 export async function crearVentaDirecta({ clienteId = null, items, metodoPago, tipoMayoristaManual = false }) {
   exigirConexionReal();
@@ -98,7 +114,13 @@ export async function actualizarItemsPedido(id, items) {
   return apiRequest(`/pedidos/${id}/items`, {
     method: 'PUT',
     headers: { Authorization: `Bearer ${token}` },
-    body: { items: items.map(item => ({ productoId: String(item.productoId), cantidad: Number(item.cantidad) })) },
+    body: {
+      items: items.map((item) => ({
+        productoId: String(item.productoId),
+        cantidad: Number(item.cantidad),
+        tipoEntrega: item.tipoEntrega || item.tipo_entrega || 'store_pickup',
+      })),
+    },
   });
 }
 
