@@ -121,7 +121,7 @@ Permitir que clientes y personal de TERRA usen el sistema con autonomía, sin er
 | **Pedido** | Compra confirmada por el cliente. Nace como "Pendiente de pago" y se cobra en caja. |
 | **Ticket** | Comprobante del pedido con el **código de pedido** (formato `TER-XXXXXXXX`) que el cliente muestra en caja. |
 | **Código de pedido** | Identificador único de cada pedido. Empieza con "TER-" seguido de 8 letras y números. |
-| **Cobrar / Confirmar pago** | Acción de caja que marca el pedido como "Cobrado" con el método de pago usado. |
+| **Cobrar / Confirmar pago** | Acción de administración o ventas que marca como "Cobrado" un pago manual de efectivo o tarjeta. Los pagos QR se confirman automáticamente cuando la entidad de pago notifica al sistema. |
 | **Comprobante de pago** | Foto o captura del pago (QR, voucher) que caja puede adjuntar al pedido. |
 | **Anular venta** | Marcar como "Cancelado" un pedido que el cliente no va a pagar. Solo se puede anular un pedido pendiente. |
 | **Venta directa** | Venta cobrada en el mostrador por el personal, sin pasar por el kiosco. |
@@ -470,7 +470,7 @@ Cualquier persona que usa la tablet del showroom (o la tienda desde su celular).
 **¿Qué sigue?**
 
 1. **Acercate a caja** y muestra el código de tu pedido.
-2. **Realizá el pago** con efectivo, QR Simple o tarjeta.
+2. **Realizá el pago** con efectivo, QR Simple o tarjeta. Si elegiste QR, el pedido queda pendiente hasta que la entidad de pago lo confirme.
 3. **Coordiná tu entrega**: retiro en tienda o consulta opciones de despacho.
 
 Botones disponibles: **Descargar ticket**, **Enviar ticket a WhatsApp TERRA** (solo si marcaste la casilla de WhatsApp; abre un mensaje listo para enviar al número oficial de TERRA), **Nueva compra** y **Seguir explorando**.
@@ -627,15 +627,15 @@ Responsable de la operación completa: cobra pedidos, administra catálogo, prec
 1. Entra a **Pedidos**. Usa la pestaña **Pendientes de pago** o busca por "Cliente, teléfono, NIT o ticket" y toca **Buscar**.
 2. Localiza el pedido por su código (el cliente te muestra el ticket) y toca **Cobrar**.
 3. En la ventana "Caja Equipetrol" verifica cliente, "Monto a liquidar" y "Artículos del pedido".
-4. Elige el método de pago: **QR Simple**, **Efectivo** o **Tarjeta**.
+4. Para un cobro manual, elige **Efectivo** o **Tarjeta**. Si el cliente eligió QR, no lo confirmes manualmente: espera la notificación automática de la entidad de pago.
 5. Opcional: toca **Cargar comprobante** y elige una foto del pago (JPG, PNG o WEBP, máximo 8 MB).
-6. Toca **Confirmar pago**. Verás "Guardando…".
+6. Toca **Confirmar cobro manual**. Verás "Guardando…".
 7. Resultado: el pedido pasa a **Cobrado** y desaparece de "Pendientes de pago".
 8. Toca **Imprimir ticket** para entregar el comprobante impreso.
 
 ![Ventana de cobro de pedido](img/admin-pedidos-cobrar-paso4.png)
 
-💡 En un pedido ya cobrado, el mismo botón se llama **Guardar comprobante** y sirve para adjuntar o cambiar la foto del pago y el método.
+💡 Un pago QR pendiente conserva ese estado hasta que la entidad de pago lo confirme. Esta medida evita marcar como cobrado un pago que todavía no fue validado.
 
 ### 11.5 Procedimiento: editar los artículos de un pedido pendiente
 

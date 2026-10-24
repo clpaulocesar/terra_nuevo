@@ -9,6 +9,10 @@ function asegurarColumnasPago() {
   if (!paymentColumnsReady) paymentColumnsReady = Promise.all([
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_receipt_url TEXT'),
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method TEXT'),
+    // Separa la elección del cliente de una confirmación real de cobro.
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_requested_method TEXT'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_confirmation_source TEXT'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_confirmed_at TIMESTAMPTZ'),
   ]);
   return paymentColumnsReady;
 }
@@ -34,8 +38,8 @@ function asegurarColumnasEntrega() {
 // en vez de un "Error interno del servidor".
 const errorPedido = (statusCode, mensaje) => Object.assign(new Error(mensaje), { statusCode });
 
-export async function crearPedidoBD(clienteId, items, { precioMayorista = false, entrega = null } = {}) {
-  await Promise.all([asegurarEscalasMayoristasBD(), asegurarColumnasEntrega()]);
+export async function crearPedidoBD(clienteId, items, { precioMayorista = false, entrega = null, metodoPagoSolicitado = null } = {}) {
+  await Promise.all([asegurarEscalasMayoristasBD(), asegurarColumnasEntrega(), asegurarColumnasPago()]);
   const conexion = await pool.connect();
   try {
     await conexion.query('BEGIN');
@@ -72,9 +76,9 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
       `INSERT INTO orders (
          customer_id,status,fulfillment_type,subtotal_minor,discount_minor,
          delivery_fee_minor,total_minor,currency,ticket_number,
-         delivery_address,delivery_reference,delivery_lat,delivery_lng
+         delivery_address,delivery_reference,delivery_lat,delivery_lng,payment_requested_method
        )
-       VALUES ($1,'pending',$2,$3,0,0,$3,'BOB',$4,$5,$6,$7,$8)
+       VALUES ($1,'pending',$2,$3,0,0,$3,'BOB',$4,$5,$6,$7,$8,$9)
        RETURNING id, ticket_number AS codigo, customer_id AS cliente_id, total_minor,
                  status AS estado, created_at AS fecha, fulfillment_type AS tipo_entrega,
                  delivery_address AS direccion_entrega, delivery_reference AS referencia_entrega,
@@ -82,7 +86,7 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
       [
         clienteId, tipoEntrega, totalMinor, ticket,
         entrega?.direccion || null, entrega?.referencia || null,
-        entrega?.latitud ?? null, entrega?.longitud ?? null,
+        entrega?.latitud ?? null, entrega?.longitud ?? null, metodoPagoSolicitado,
       ]
     );
     for (const d of detalles) {
@@ -104,6 +108,9 @@ export async function obtenerPedidoBD(id) {
      )
      SELECT p.id,p.numero_pedido::integer AS numero,p.ticket_number AS codigo,p.customer_id AS cliente_id,p.total_minor,p.status AS estado,p.created_at AS fecha,
             p.payment_receipt_url AS comprobante_url,p.payment_method AS metodo_pago,
+            p.payment_requested_method AS metodo_pago_solicitado,
+            p.payment_confirmation_source AS fuente_confirmacion_pago,
+            p.payment_confirmed_at AS pago_confirmado_en,
             p.fulfillment_type AS tipo_entrega,
             p.delivery_address AS direccion_entrega,p.delivery_reference AS referencia_entrega,
             p.delivery_lat AS latitud_entrega,p.delivery_lng AS longitud_entrega,
@@ -177,6 +184,9 @@ export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', 
            p.created_at AS fecha,
            p.payment_receipt_url AS comprobante_url,
            p.payment_method AS metodo_pago,
+           p.payment_requested_method AS metodo_pago_solicitado,
+           p.payment_confirmation_source AS fuente_confirmacion_pago,
+           p.payment_confirmed_at AS pago_confirmado_en,
            p.fulfillment_type AS tipo_entrega,
            p.delivery_address AS direccion_entrega,
            p.delivery_reference AS referencia_entrega,
@@ -201,7 +211,9 @@ export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', 
     LEFT JOIN staff_accounts d ON d.id=p.delivery_driver_id
     ${where}
     GROUP BY p.id, p.numero_pedido, p.ticket_number, p.customer_id, p.total_minor, p.status, p.created_at,
-             p.payment_receipt_url, p.payment_method, p.fulfillment_type, p.delivery_address, p.delivery_reference,
+             p.payment_receipt_url, p.payment_method, p.payment_requested_method,
+             p.payment_confirmation_source, p.payment_confirmed_at,
+             p.fulfillment_type, p.delivery_address, p.delivery_reference,
              p.delivery_lat, p.delivery_lng,
              p.delivery_status, p.delivery_started_at, p.delivered_at,
              p.delivery_driver_id, p.delivery_assigned_at,
@@ -292,14 +304,14 @@ export async function listarPedidosPorClienteBD(clienteId, limite = 50) {
        FROM orders o
      )
      SELECT p.id,p.numero_pedido::integer AS numero,p.ticket_number AS codigo,p.total_minor/100.0 AS total,p.status AS estado,p.created_at AS fecha,
-            p.payment_method AS metodo_pago,
+            p.payment_method AS metodo_pago,p.payment_requested_method AS metodo_pago_solicitado,
             p.fulfillment_type AS tipo_entrega,p.delivery_address AS direccion_entrega,
             p.delivery_reference AS referencia_entrega,
             COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items
      FROM pedidos_base p
      LEFT JOIN order_items i ON i.order_id=p.id
      WHERE p.customer_id=$1
-     GROUP BY p.id, p.numero_pedido, p.ticket_number, p.total_minor, p.status, p.created_at, p.payment_method,
+     GROUP BY p.id, p.numero_pedido, p.ticket_number, p.total_minor, p.status, p.created_at, p.payment_method, p.payment_requested_method,
               p.fulfillment_type, p.delivery_address, p.delivery_reference
      ORDER BY p.created_at DESC
      LIMIT $2`,
@@ -308,14 +320,15 @@ export async function listarPedidosPorClienteBD(clienteId, limite = 50) {
   return rows;
 }
 
-export async function registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl }) {
+export async function registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl, fuente = 'manual' }) {
   await asegurarColumnasPago();
   const { rows } = await pool.query(
     `UPDATE orders
-     SET status='completed', payment_method=$1, payment_receipt_url=COALESCE($2, payment_receipt_url), updated_at=NOW()
-     WHERE id=$3
+     SET status='completed', payment_method=$1, payment_receipt_url=COALESCE($2, payment_receipt_url),
+         payment_confirmation_source=$3, payment_confirmed_at=NOW(), updated_at=NOW()
+     WHERE id=$4
      RETURNING id`,
-    [metodoPago, comprobanteUrl || null, id]
+    [metodoPago, comprobanteUrl || null, fuente, id]
   );
   return rows[0] ? obtenerPedidoBD(id) : null;
 }

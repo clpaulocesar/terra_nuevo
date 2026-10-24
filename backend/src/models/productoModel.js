@@ -12,6 +12,23 @@ const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, 
   COALESCE((SELECT json_agg(json_build_object('minCantidad', w.minimum_quantity, 'precio', w.unit_price) ORDER BY w.minimum_quantity)
     FROM wholesale_price_tiers w WHERE w.product_id=p.id), '[]'::json) AS escalas_mayorista`;
 
+export async function buscarCoincidenciasNombreProductoBD({ nombre, medida = '', color = '', excluirId = null }) {
+  const nombreLimpio = String(nombre || '').trim().replace(/\s+/g, ' ');
+  if (!nombreLimpio) return [];
+  const { rows } = await pool.query(
+    `SELECT id, codigo_terra AS codigo, name AS nombre, COALESCE(size,'') AS medida, COALESCE(color,'') AS color,
+            LOWER(REGEXP_REPLACE(BTRIM(name), '\\s+', ' ', 'g')) = LOWER($1) AND COALESCE(size,'') = $2 AND COALESCE(color,'') = $3 AS exacto
+       FROM products
+      WHERE ($4::uuid IS NULL OR id <> $4)
+        AND (LOWER(REGEXP_REPLACE(BTRIM(name), '\\s+', ' ', 'g')) = LOWER($1)
+          OR LOWER(name) LIKE LOWER($5))
+      ORDER BY exacto DESC, name ASC
+      LIMIT 10`,
+    [nombreLimpio, String(medida || '').trim(), String(color || '').trim(), excluirId, `${nombreLimpio.slice(0, 28)}%`]
+  );
+  return rows;
+}
+
 let escalasReady;
 export function asegurarEscalasMayoristasBD() {
   if (!escalasReady) {

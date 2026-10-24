@@ -94,6 +94,7 @@ export default function PedidoGenerado() {
   // El carrito se limpia al crear el pedido. Si la navegación trae una lista vacía,
   // conservamos el detalle devuelto por el backend para el ticket y WhatsApp.
   const itemsTicket = state?.items?.length ? state.items : (pedido.items || []);
+  const pagoQrPendiente = pedido.metodo_pago_solicitado === 'qr' && !pedido.metodo_pago;
   const solicitarComprobante = Boolean(clienteTicket?.whatsapp && WHATSAPP_COMPROBANTES);
   const mensajeWhatsApp = encodeURIComponent(crearMensajeComprobante({
     pedido,
@@ -150,7 +151,7 @@ export default function PedidoGenerado() {
           )}
           <div className="pedido-row">
             <span>Estado</span>
-            <b>Pendiente de pago</b>
+            <b>{pagoQrPendiente ? 'Pendiente de confirmación QR' : 'Pendiente de pago'}</b>
           </div>
           <div className="pedido-row">
             <span>Total a pagar</span>
@@ -173,8 +174,8 @@ export default function PedidoGenerado() {
           <div>
             <i>2</i>
             <p>
-              <b>Realizá el pago</b>
-              <span>Podés pagar con efectivo, QR Simple o tarjeta.</span>
+              <b>{pagoQrPendiente ? 'Esperá la confirmación QR' : 'Realizá el pago'}</b>
+              <span>{pagoQrPendiente ? 'La entidad de pago confirmará la transacción automáticamente cuando la integración esté activa.' : 'Podés pagar con efectivo, QR Simple o tarjeta.'}</span>
             </p>
           </div>
           <div>

@@ -20,7 +20,7 @@ export async function registrarPagoPedido(req, res, next) {
     const id = String(req.params.id || '').trim();
     const metodoPago = String(req.body?.metodoPago || '').trim();
     const comprobanteUrl = String(req.body?.comprobanteUrl || '').trim() || null;
-    if (!id || !['qr', 'efectivo', 'tarjeta'].includes(metodoPago)) {
+    if (!id || !['efectivo', 'tarjeta'].includes(metodoPago)) {
       return res.status(400).json({ success: false, mensaje: 'Datos de pago inválidos.' });
     }
     if (comprobanteUrl && (comprobanteUrl.length > 2000 || !/^https:\/\//i.test(comprobanteUrl))) {
@@ -31,7 +31,7 @@ export async function registrarPagoPedido(req, res, next) {
     if (['cancelled', 'cancelado'].includes(String(actual.estado || '').toLowerCase())) {
       return res.status(409).json({ success: false, mensaje: 'No se puede cobrar un pedido anulado.' });
     }
-    const pedido = await registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl });
+    const pedido = await registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl, fuente: 'manual' });
     if (!pedido) return res.status(404).json({ success: false, mensaje: 'Pedido no encontrado.' });
     return res.json({ success: true, data: pedido });
   } catch (error) { next(error); }
@@ -214,6 +214,14 @@ export async function crearPedido(req, res, next) {
     if (mayorista) clienteId = mayorista.cliente_id;
 
     const items = req.body?.items;
+    const metodoPagoSolicitado = String(req.body?.metodoPago || '').trim();
+
+    if (!['efectivo', 'qr'].includes(metodoPagoSolicitado)) {
+      return res.status(400).json({
+        success: false,
+        mensaje: 'Seleccioná un método de pago válido.',
+      });
+    }
 
     if (
       clienteId !== null &&
@@ -291,7 +299,11 @@ export async function crearPedido(req, res, next) {
     const pedido = await crearPedidoBD(
       clienteId,
       itemsNormalizados,
-      { precioMayorista: Boolean(mayorista), entrega }
+      {
+        precioMayorista: Boolean(mayorista),
+        entrega,
+        metodoPagoSolicitado,
+      }
     );
 
     return res.status(201).json({

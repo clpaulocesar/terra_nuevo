@@ -3,9 +3,9 @@ import { getAdminToken } from './adminService.js';
 
 function exigirConexionReal() { if (MODO_DEMO) throw new Error('El modo demostración está activo. Configura VITE_MODO_DEMO=false.'); }
 
-export async function crearPedido({ clienteId = null, items, token = null, entregaDomicilio = false }) {
+export async function crearPedido({ clienteId = null, items, token = null, entregaDomicilio = false, metodoPago }) {
   exigirConexionReal();
-  return apiRequest('/pedidos', { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {}, body: { clienteId, entregaDomicilio: Boolean(entregaDomicilio), items: items.map(item => ({ productoId: String(item.productoId), cantidad: Number(item.cantidad), color: String(item.color || '').trim() || null })) } });
+  return apiRequest('/pedidos', { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {}, body: { clienteId, entregaDomicilio: Boolean(entregaDomicilio), metodoPago, items: items.map(item => ({ productoId: String(item.productoId), cantidad: Number(item.cantidad), color: String(item.color || '').trim() || null })) } });
 }
 export async function crearVentaDirecta({ clienteId = null, items, metodoPago, tipoMayoristaManual = false }) {
   exigirConexionReal();
@@ -81,7 +81,16 @@ export async function asignarRepartidorPedido(id, repartidorId = null) {
     body: { repartidorId },
   });
 }
-export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = null }) { exigirConexionReal(); return apiRequest(`/pedidos/${id}/pago`, { method: 'PATCH', body: { metodoPago, comprobanteUrl } }); }
+export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = null }) {
+  exigirConexionReal();
+  const token = getAdminToken();
+  if (!token) throw new Error('Inicia sesión como administrador o vendedor para registrar el cobro.');
+  return apiRequest(`/pedidos/${id}/pago`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+    body: { metodoPago, comprobanteUrl },
+  });
+}
 export async function actualizarItemsPedido(id, items) {
   exigirConexionReal();
   const token = getAdminToken();
