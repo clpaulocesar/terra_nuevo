@@ -167,13 +167,6 @@
   font-family: inherit;
   font-size: 1rem;
 }
-.pedido-download {
-  background: #a6192e;
-  color: #fff;
-}
-.pedido-download:hover {
-  background: #8e1527;
-}
 .pedido-home {
   background: #004230;
   color: #fff;
@@ -230,5 +223,12 @@
     box-shadow: none;
     margin: 0 auto;
     max-width: 420px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pedido-page * {
+    transition: none;
+    animation: none;
   }
 }

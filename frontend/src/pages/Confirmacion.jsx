@@ -1,6 +1,6 @@
 import { useContext, useRef, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, Banknote, CheckCircle2, CreditCard, ReceiptText, ShieldCheck, Truck } from 'lucide-react';
+import { ArrowLeft, Banknote, CheckCircle2, CreditCard, Maximize2, QrCode, ReceiptText, ShieldCheck, Truck, ZoomIn } from 'lucide-react';
 import { ClienteContext } from '../context/ClienteContext.jsx';
 import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useCarrito } from '../hooks/useCarrito.js';
@@ -8,6 +8,7 @@ import { crearCliente } from '../services/clienteService.js';
 import { crearPedido } from '../services/pedidoService.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { descargarTicket } from '../utils/descargarTicket.js';
+import ModalQrPago from '../components/ui/ModalQrPago.jsx';
 import './Confirmacion.css';
 
 export default function Confirmacion() {
@@ -20,6 +21,7 @@ export default function Confirmacion() {
   const [pedidoGenerado, setPedidoGenerado] = useState(null);
   const [clienteTicket, setClienteTicket] = useState(null);
   const [itemsTicket, setItemsTicket] = useState([]);
+  const [mostrarModalQr, setMostrarModalQr] = useState(false);
   const [resumenAbierto, setResumenAbierto] = useState(false);
   const enviando = useRef(false);
   const clienteId = useRef(null);
@@ -52,7 +54,7 @@ export default function Confirmacion() {
     setError('');
 
     try {
-      // Conserva los datos de facturación antes de limpiar el kiosco compartido.
+      // Conserva los datos de facturación antes de limpiar el terminal compartido.
       const datosClienteTicket = esMayorista
         ? { nombre: sesion?.nombre || 'Cliente mayorista', telefono: sesion?.telefono || '', nit: sesion?.nit || '' }
         : { ...cliente };
@@ -95,7 +97,7 @@ export default function Confirmacion() {
       <header>
         <span>Paso 3 de 3 · Confirmación</span>
         <h1>Revisá y confirmá tu pedido</h1>
-        <p>{esMayorista && entregaDomicilio ? 'Generamos el pedido para pagar en caja y coordinamos el envío a tu dirección.' : 'Generaremos un ticket para pagar en caja. No se cobra nada desde este kiosco.'}</p>
+        <p>{esMayorista && entregaDomicilio ? 'Generamos el pedido para pagar en caja y coordinamos el envío a tu dirección.' : 'Generaremos un ticket para pagar en caja. No se cobra nada desde este terminal de autoservicio.'}</p>
       </header>
       <div className="confirm-notice"><ReceiptText size={30} /><div><b>Pago en mostrador presencial</b><p>{esMayorista && entregaDomicilio ? 'Presentá el código del pedido al cajero para efectuar el pago y coordinar el envío a domicilio.' : 'Presentá el código del pedido al cajero para efectuar el pago y coordinar la entrega.'}</p></div></div>
       <div className="confirm-layout">
@@ -145,7 +147,46 @@ export default function Confirmacion() {
               </button>
             </div>
           </section>
-          {metodoPago === 'qr' && <p className="confirm-payment-help">Al confirmar tu pedido podrás escanear el código QR oficial de TERRA para transferir el monto exacto desde tu banca móvil.</p>}
+          {metodoPago === 'qr' && (
+            <div className="confirm-qr-box">
+              <div className="confirm-qr-header">
+                <QrCode size={18} />
+                <span>QR Simple Interoperable</span>
+              </div>
+              <div
+                className="confirm-qr-img-wrapper"
+                role="button"
+                tabIndex={0}
+                onClick={() => setMostrarModalQr(true)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMostrarModalQr(true); } }}
+                title="Tocar para ampliar código QR"
+                aria-label="Tocar para ampliar código QR en pantalla completa"
+              >
+                <img
+                  src="/images/QRPAGO.jpeg"
+                  alt="Código QR Oficial de Pago TERRA - Tocar para ampliar"
+                  className="confirm-qr-img"
+                />
+                <span className="confirm-qr-expand-hint">
+                  <ZoomIn size={13} /> Tocar para ampliar
+                </span>
+              </div>
+              <div className="confirm-qr-monto">
+                <span>Total a transferir:</span>
+                <strong>{formatoMoneda(subtotal)}</strong>
+              </div>
+              <button
+                type="button"
+                className="confirm-qr-zoom-action"
+                onClick={() => setMostrarModalQr(true)}
+              >
+                <Maximize2 size={16} /> Ampliar QR para escanear
+              </button>
+              <p className="confirm-qr-instruction">
+                Escaneá desde cualquier banca móvil (BCP, Unión, BNB, Mercantil, Bisa, GanaMóvil, etc.) y confirmá para generar tu ticket de retiro.
+              </p>
+            </div>
+          )}
           {error && <p className="confirm-error">{error}</p>}
           {!metodoPago && <p className="confirm-payment-help">Seleccioná un medio de pago para continuar.</p>}
           <button className="confirm-submit" disabled={procesando || !metodoPago} onClick={confirmar} type="button"><CheckCircle2 size={23} />{procesando ? 'Generando ticket…' : 'Confirmar y generar pedido'}</button>
@@ -153,6 +194,11 @@ export default function Confirmacion() {
           <small>Terminal seguro · Ticket inmediato en caja</small>
         </aside>
       </div>
+      <ModalQrPago
+        abierto={mostrarModalQr}
+        onCerrar={() => setMostrarModalQr(false)}
+        monto={subtotal}
+      />
     </section>
   );
 }

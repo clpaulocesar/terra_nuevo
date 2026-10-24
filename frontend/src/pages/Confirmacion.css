@@ -109,6 +109,115 @@
 .confirm-payments button.is-selected .confirm-payment-icon { background: #fff; color: var(--confirm-vino); }
 .confirm-error { color: var(--confirm-vino); font-size: .85rem; font-weight: 700; }
 .confirm-payment-help { color: var(--confirm-muted); font-size: .82rem; margin: 0 0 1rem; text-align: center; }
+.confirm-qr-box {
+  background: var(--confirm-crema);
+  border: 1px solid var(--confirm-linea);
+  border-radius: 14px;
+  margin: 0.8rem 0 1rem;
+  padding: 1rem;
+  text-align: center;
+}
+.confirm-qr-header {
+  align-items: center;
+  color: var(--confirm-vino);
+  display: flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-bottom: 0.65rem;
+}
+.confirm-qr-img-wrapper {
+  background: #fff;
+  border: 1.5px solid var(--confirm-linea);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(35, 26, 22, 0.08);
+  cursor: pointer;
+  display: inline-block;
+  margin: 0 auto 0.65rem;
+  padding: 0.6rem;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.confirm-qr-img-wrapper:hover {
+  border-color: var(--confirm-vino);
+  box-shadow: 0 6px 20px rgba(166, 25, 46, 0.16);
+  transform: translateY(-2px);
+}
+.confirm-qr-img {
+  border-radius: 8px;
+  display: block;
+  height: auto;
+  max-width: 195px;
+  width: 100%;
+}
+.confirm-qr-expand-hint {
+  align-items: center;
+  background: rgba(35, 26, 22, 0.82);
+  border-radius: 999px;
+  bottom: 0.85rem;
+  color: #fff;
+  display: inline-flex;
+  font-size: 0.68rem;
+  font-weight: 800;
+  gap: 0.3rem;
+  left: 50%;
+  padding: 0.25rem 0.65rem;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.confirm-qr-monto {
+  align-items: center;
+  background: var(--confirm-vino-suave);
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.8rem;
+}
+.confirm-qr-monto span {
+  color: var(--confirm-vino);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.confirm-qr-monto strong {
+  color: var(--confirm-vino);
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+.confirm-qr-zoom-action {
+  align-items: center;
+  background: #fff;
+  border: 1.5px solid var(--confirm-vino);
+  border-radius: 10px;
+  color: var(--confirm-vino);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 0.45rem;
+  justify-content: center;
+  margin-bottom: 0.65rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.9rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  width: 100%;
+}
+.confirm-qr-zoom-action:hover {
+  background: var(--confirm-vino);
+  color: #fff;
+}
+.confirm-qr-instruction {
+  color: var(--confirm-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin: 0;
+  text-align: left;
+}
 
 .confirm-submit,
 .confirm-edit {
@@ -181,6 +290,7 @@
   .confirm-summary.is-mobile-open .confirm-payment-methods,
   .confirm-summary.is-mobile-open .confirm-error,
   .confirm-summary.is-mobile-open .confirm-payment-help,
+  .confirm-summary.is-mobile-open .confirm-qr-box,
   .confirm-summary.is-mobile-open .confirm-edit,
   .confirm-summary.is-mobile-open > small { display: block; }
   .confirm-summary.is-mobile-open .confirm-payments { display: flex; }

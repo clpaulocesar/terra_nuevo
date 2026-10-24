@@ -201,7 +201,7 @@ export default function CarritoPage() {
         <div>
           <b>Pago en mostrador presencial</b>
           <p>Tu pedido se generará para pagar en caja. No se realizará ningún
-            cobro en este kiosco.</p>
+            cobro en este terminal de autoservicio.</p>
         </div>
       </div>}
       <div className="cart-layout">

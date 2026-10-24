@@ -37,7 +37,7 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
   <div style="width: 380px; background: #ffffff; padding: 28px; border-radius: 16px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a;">
     <div style="text-align: center; border-bottom: 2px dashed #a6192e; padding-bottom: 18px; margin-bottom: 20px;">
       <img src="/logo-terra.png" alt="TERRA Autoservicio" style="width: 240px; max-width: 100%; height: auto; display: block; margin: 0 auto;" />
-      <div style="margin: 8px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Ticket de Pago en Caja · Kiosco Digital</div>
+      <div style="margin: 8px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Ticket de Pago en Caja · Terminal Autoservicio</div>
     </div>
 
     <div style="background: #fff1f2; border: 2px dashed #a6192e; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 20px;">
@@ -52,6 +52,7 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
       ${cliente?.nit ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">NIT:</span> <b style="color: #1e293b;">${cliente.nit}</b></div>` : ''}
       ${direccionEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Envío:</span> <b style="color: #1e293b;">${direccionEntrega}</b></div>` : ''}
       ${referenciaEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Referencia:</span> <b style="color: #1e293b;">${referenciaEntrega}</b></div>` : ''}
+      ${pedido.metodo_pago_solicitado === 'qr' ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Medio de pago:</span> <b style="color: #a6192e;">QR Simple (Glosa: ${pedido.codigo || pedido.id})</b></div>` : ''}
       <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Estado:</span> <b style="color: ${cobrado ? '#146440' : '#9a6513'};">${estadoTexto}</b></div>
     </div>
 
