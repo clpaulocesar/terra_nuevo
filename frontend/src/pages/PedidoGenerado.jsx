@@ -14,6 +14,7 @@ import { obtenerPedido } from "../services/pedidoService.js";
 import { WHATSAPP_COMPROBANTES } from "../services/api.js";
 import { formatoMoneda } from "../utils/formatoMoneda.js";
 import { descargarTicket } from "../utils/descargarTicket.js";
+import ModalQrPago from "../components/ui/ModalQrPago.jsx";
 import "./PedidoGenerado.css";
 
 function formatoFechaPedido(fecha) {
@@ -54,6 +55,7 @@ export default function PedidoGenerado() {
   const [pedido, setPedido] = useState(state?.pedido || null);
   const [cargando, setCargando] = useState(Boolean(id && !state?.pedido));
   const [error, setError] = useState("");
+  const [mostrarQrModal, setMostrarQrModal] = useState(false);
 
   useEffect(() => {
     if (!id || pedido) return;
@@ -174,8 +176,30 @@ export default function PedidoGenerado() {
           <div>
             <i>2</i>
             <p>
-              <b>{pagoQrPendiente ? 'Esperá la confirmación QR' : 'Realizá el pago'}</b>
-              <span>{pagoQrPendiente ? 'La entidad de pago confirmará la transacción automáticamente cuando la integración esté activa.' : 'Podés pagar con efectivo, QR Simple o tarjeta.'}</span>
+              <b>{pagoQrPendiente ? 'Pagá con QR Simple' : 'Realizá el pago'}</b>
+              <span>{pagoQrPendiente ? `Escaneá el código QR oficial de TERRA con tu banca móvil por ${formatoMoneda(pedido.total)}.` : 'Podés pagar con efectivo, QR Simple o tarjeta en caja.'}</span>
+              {pagoQrPendiente && (
+                <button
+                  type="button"
+                  onClick={() => setMostrarQrModal(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    marginTop: '0.5rem',
+                    padding: '0.4rem 0.8rem',
+                    background: '#a6192e',
+                    color: '#fff',
+                    borderRadius: '0.5rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <QrCode size={15} /> Ver código QR para pagar
+                </button>
+              )}
             </p>
           </div>
           <div>
@@ -201,6 +225,14 @@ export default function PedidoGenerado() {
         >
           <Download size={20} /> Descargar ticket
         </button>
+        <button
+          type="button"
+          onClick={() => setMostrarQrModal(true)}
+          className="pedido-download"
+          style={{ background: '#7e1122' }}
+        >
+          <QrCode size={20} /> Ver QR de Pago Oficial
+        </button>
         {solicitarComprobante && <a
           className="pedido-whatsapp"
           href={`https://wa.me/${WHATSAPP_COMPROBANTES}?text=${mensajeWhatsApp}`}
@@ -216,6 +248,12 @@ export default function PedidoGenerado() {
           Seguir explorando
         </Link>
       </div>
+      <ModalQrPago
+        abierto={mostrarQrModal}
+        onCerrar={() => setMostrarQrModal(false)}
+        monto={pedido.total}
+        codigoPedido={pedido.codigo}
+      />
     </section>
   );
 }

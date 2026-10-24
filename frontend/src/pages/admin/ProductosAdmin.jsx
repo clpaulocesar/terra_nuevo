@@ -963,7 +963,7 @@ export default function ProductosAdmin() {
                       </span>
                       <div>
                         <b>{p.nombre}</b>
-                        <small>{p.sku} · {p.detalle}</small>
+                        <small>{p.marca ? `${p.marca} · ` : ''}{p.sku} · {p.detalle}</small>
                       </div>
                     </div>
                   </td>

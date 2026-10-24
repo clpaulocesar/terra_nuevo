@@ -27,6 +27,7 @@ import { getAdminUser } from '../../services/adminService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import { imagenDeProducto, usarImagenFallback } from '../../utils/imagenProducto.js';
 import { imprimirTicketVenta } from '../../utils/imprimirTicketVenta.js';
+import ModalQrPago from '../../components/ui/ModalQrPago.jsx';
 import './VentasDirectasAdmin.css';
 
 const TODAS = 'Todas';
@@ -88,6 +89,7 @@ export default function VentasDirectasAdmin() {
   const [exito, setExito] = useState('');
   const [ultimaVenta, setUltimaVenta] = useState(null);
   const [guardando, setGuardando] = useState(false);
+  const [mostrarQrModal, setMostrarQrModal] = useState(false);
 
   const [escanerAbierto, setEscanerAbierto] = useState(false);
   const [estadoEscaner, setEstadoEscaner] = useState('');
@@ -722,6 +724,17 @@ export default function VentasDirectasAdmin() {
             </div>
           )}
 
+          {metodoPago === 'qr' && (
+            <button
+              type="button"
+              className="direct-print-btn"
+              onClick={() => setMostrarQrModal(true)}
+              style={{ marginBottom: '0.6rem', width: '100%', justifyContent: 'center' }}
+            >
+              <QrCode size={16} /> Mostrar QR Oficial al Cliente
+            </button>
+          )}
+
           <button type="button" className="direct-save" disabled={guardando || !carrito.length} onClick={guardar}>
             {metodoPago === 'qr' ? <QrCode size={19} /> : <CreditCard size={19} />}
             {guardando ? 'Registrando...' : 'Cobrar y registrar venta'}
@@ -751,6 +764,12 @@ export default function VentasDirectasAdmin() {
           </div>
         </div>
       )}
+      <ModalQrPago
+        abierto={mostrarQrModal}
+        onCerrar={() => setMostrarQrModal(false)}
+        monto={total}
+        codigoPedido={ultimaVenta?.codigo || ultimaVenta?.ticket_number}
+      />
     </main>
   );
 }

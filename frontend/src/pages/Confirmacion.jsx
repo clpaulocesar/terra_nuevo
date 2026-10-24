@@ -145,7 +145,7 @@ export default function Confirmacion() {
               </button>
             </div>
           </section>
-          {metodoPago === 'qr' && <p className="confirm-payment-help">El pago QR quedará pendiente hasta que la entidad confirme la transacción. No se marcará como cobrado desde esta pantalla.</p>}
+          {metodoPago === 'qr' && <p className="confirm-payment-help">Al confirmar tu pedido podrás escanear el código QR oficial de TERRA para transferir el monto exacto desde tu banca móvil.</p>}
           {error && <p className="confirm-error">{error}</p>}
           {!metodoPago && <p className="confirm-payment-help">Seleccioná un medio de pago para continuar.</p>}
           <button className="confirm-submit" disabled={procesando || !metodoPago} onClick={confirmar} type="button"><CheckCircle2 size={23} />{procesando ? 'Generando ticket…' : 'Confirmar y generar pedido'}</button>

@@ -32,6 +32,7 @@ import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import { imprimirTicketPedido } from '../../utils/imprimirTicket.js';
 import ReportePedidosVendedor from '../../components/vendedor/ReportePedidosVendedor.jsx';
 import './Admin.css';
+import ModalQrPago from '../../components/ui/ModalQrPago.jsx';
 import './PedidosAdmin.css';
 
 const etiquetas = { pending: 'Pendiente de pago', pendiente_pago: 'Pendiente de pago', paid: 'Cobrado', completed: 'Cobrado', pagado: 'Cobrado', shipped: 'En despacho', delivered: 'Entregado', entregado: 'Entregado', cancelled: 'Cancelado', cancelado: 'Cancelado' };
@@ -72,6 +73,7 @@ export default function PedidosAdmin() {
   const [subiendoPago, setSubiendoPago] = useState(false);
   const [anulandoId, setAnulandoId] = useState(null);
   const [imprimiendoId, setImprimiendoId] = useState(null);
+  const [mostrarQrModal, setMostrarQrModal] = useState(false);
 
   // Estados para edición y adición de productos si el cliente cambia de opinión
   const [modoEdicion, setModoEdicion] = useState(false);
@@ -633,11 +635,29 @@ export default function PedidosAdmin() {
             <QrCode />QR automático
           </button>
         </div>
-        {seleccion.metodo_pago_solicitado === 'qr' && <p className="orders-hint">El cliente eligió QR. Esperá la confirmación automática de la entidad; no lo marques como cobrado manualmente.</p>}
+        {(metodo === 'qr' || seleccion.metodo_pago_solicitado === 'qr') && (
+          <div className="orders-hint" style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-start' }}>
+            <p>Cobro por QR Bancario: muestra el QR oficial al cliente y verifica el abono en la banca móvil.</p>
+            <button
+              type="button"
+              className="orders-modal-ticket-btn"
+              onClick={() => setMostrarQrModal(true)}
+              style={{ background: 'var(--vino, #a6192e)', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '0.4rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}
+            >
+              <QrCode size={16} /> Mostrar QR Oficial al Cliente
+            </button>
+          </div>
+        )}
         {metodo === 'efectivo' && <p className="orders-hint">Recibí el monto en efectivo y registrá el cobro.</p>}
         {metodo === 'tarjeta' && <p className="orders-hint">Procesá la tarjeta en el POS y registrá el cobro.</p>}
       </>}
       <section className="orders-receipt"><div className="orders-receipt-head"><div><b><ImagePlus size={17} /> Comprobante de pago</b><span>Opcional · JPG, PNG o WEBP · máximo 8 MB</span></div>{comprobanteActual && <a href={comprobanteActual} target="_blank" rel="noreferrer" aria-label="Ver comprobante en una pestaña nueva"><ExternalLink size={17} /></a>}</div><label className="orders-receipt-btn"><ImagePlus size={17} /> {archivoComprobante ? 'Cambiar imagen' : comprobanteActual ? 'Reemplazar imagen' : 'Cargar comprobante'}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setArchivoComprobante(event.target.files?.[0] || null)} /></label>{comprobanteActual ? <div className="orders-receipt-preview"><img src={comprobanteActual} alt="Comprobante de pago" /><div><p>{archivoComprobante ? archivoComprobante.name : 'Comprobante guardado en Supabase'}</p>{archivoComprobante && <button type="button" className="orders-receipt-remove" onClick={() => setArchivoComprobante(null)}><Trash2 size={14} /> Quitar cambio</button>}</div></div> : <span className="orders-receipt-empty">Aún no se adjuntó una imagen.</span>}</section>
       {error && <p className="orders-alert is-error">{error}</p>}<footer><button onClick={() => setSeleccion(null)}>Cerrar</button><button type="button" className="orders-modal-ticket-btn" onClick={() => imprimirTicket(seleccion)} disabled={imprimiendoId === seleccion.id}>{imprimiendoId === seleccion.id ? 'Generando…' : <><Printer size={16} /> Imprimir ticket</>}</button>{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={iniciarEdicion}><Edit3 size={15} /> Editar / Agregar</button>)}{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={() => anularPedido(seleccion)} disabled={anulandoId === seleccion.id}>{anulandoId === seleccion.id ? 'Anulando…' : <><X size={15} /> Anular venta</>}</button>)}{pendiente && !modoEdicion && <button onClick={registrarPago} disabled={subiendoPago}>{subiendoPago ? 'Guardando…' : <><CheckCircle2 /> Confirmar cobro manual</>}</button>}</footer></section></div>}
+    <ModalQrPago
+      abierto={mostrarQrModal}
+      onCerrar={() => setMostrarQrModal(false)}
+      monto={seleccion?.total}
+      codigoPedido={seleccion?.codigo || seleccion?.ticket_number}
+    />
   </main>;
 }

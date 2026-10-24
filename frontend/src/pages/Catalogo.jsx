@@ -1027,7 +1027,14 @@ export default function Catalogo() {
                           to={`/productos/${producto.id}`}
                           className="terra-card__title-link"
                         >
-                          <h2 className="terra-card__title">{producto.nombre}</h2>
+                          <h2 className="terra-card__title">
+                            {Boolean(producto.marca) && (
+                              <span className="block text-xs uppercase tracking-wider text-stone-500 font-semibold mb-0.5">
+                                {producto.marca}
+                              </span>
+                            )}
+                            {producto.nombre}
+                          </h2>
                         </Link>
 
                         {Boolean(producto.descripcion) && (
