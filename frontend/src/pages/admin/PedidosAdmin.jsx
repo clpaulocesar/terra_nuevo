@@ -4,9 +4,11 @@ import {
   Check,
   CheckCircle2,
   CreditCard,
+  Download,
   Edit3,
   ExternalLink,
   ImagePlus,
+  MapPin,
   Minus,
   Package,
   Plus,
@@ -14,7 +16,9 @@ import {
   QrCode,
   RefreshCw,
   Search,
+  Store,
   Trash2,
+  Truck,
   X,
 } from 'lucide-react';
 import { useLocation, useSearchParams } from 'react-router-dom';
@@ -30,8 +34,10 @@ import { getAdminUser } from '../../services/adminService.js';
 import { subirComprobantePago } from '../../services/storageService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import { imprimirTicketPedido } from '../../utils/imprimirTicket.js';
+import { descargarTicket } from '../../utils/descargarTicket.js';
 import ReportePedidosVendedor from '../../components/vendedor/ReportePedidosVendedor.jsx';
 import './Admin.css';
+import ModalQrPago from '../../components/ui/ModalQrPago.jsx';
 import './PedidosAdmin.css';
 
 const etiquetas = { pending: 'Pendiente de pago', pendiente_pago: 'Pendiente de pago', paid: 'Cobrado', completed: 'Cobrado', pagado: 'Cobrado', shipped: 'En despacho', delivered: 'Entregado', entregado: 'Entregado', cancelled: 'Cancelado', cancelado: 'Cancelado' };
@@ -72,6 +78,7 @@ export default function PedidosAdmin() {
   const [subiendoPago, setSubiendoPago] = useState(false);
   const [anulandoId, setAnulandoId] = useState(null);
   const [imprimiendoId, setImprimiendoId] = useState(null);
+  const [mostrarQrModal, setMostrarQrModal] = useState(false);
 
   // Estados para edición y adición de productos si el cliente cambia de opinión
   const [modoEdicion, setModoEdicion] = useState(false);
@@ -135,7 +142,7 @@ export default function PedidosAdmin() {
 
   const abrirPedido = async (pedido, { iniciarEnEdicion = false } = {}) => {
     setSeleccion(pedido);
-    setMetodo(pedido.metodo_pago || 'qr');
+    setMetodo(pedido.metodo_pago === 'tarjeta' ? 'tarjeta' : 'efectivo');
     setArchivoComprobante(null);
     setError('');
     setModoEdicion(iniciarEnEdicion);
@@ -150,17 +157,28 @@ export default function PedidosAdmin() {
 
     try {
       const completo = await obtenerPedido(pedido.id);
-      if (completo && Array.isArray(completo.items)) {
-        setItemsEditados(
-          completo.items.map((it) => ({
-            productoId: it.productoId || it.id,
-            nombre: it.nombre || it.product_name,
-            sku: it.sku || '',
-            cantidad: Number(it.cantidad || 1),
-            precioUnitario: Number(it.precioUnitario || 0),
-            subtotal: Number(it.subtotal || 0),
-          }))
-        );
+      if (completo) {
+        setSeleccion((prev) => (prev && prev.id === pedido.id ? {
+          ...prev,
+          ...completo,
+          items_detalle: completo.items || prev.items_detalle,
+          cant_envio: (completo.items || []).filter((it) => (it.tipo_entrega || it.tipoEntrega) === 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0),
+          cant_llevado: (completo.items || []).filter((it) => (it.tipo_entrega || it.tipoEntrega) !== 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0),
+        } : prev));
+        if (Array.isArray(completo.items)) {
+          setItemsEditados(
+            completo.items.map((it) => ({
+              productoId: it.productoId || it.id,
+              nombre: it.nombre || it.product_name,
+              sku: it.sku || '',
+              cantidad: Number(it.cantidad || 1),
+              precioUnitario: Number(it.precioUnitario || 0),
+              subtotal: Number(it.subtotal || 0),
+              tipo_entrega: it.tipo_entrega || it.tipoEntrega || 'store_pickup',
+              tipoEntrega: it.tipo_entrega || it.tipoEntrega || 'store_pickup',
+            }))
+          );
+        }
       }
     } catch (err) {
       if (iniciarEnEdicion) {
@@ -224,6 +242,20 @@ export default function PedidosAdmin() {
         ...actual,
         cantidad: nuevaCantidad,
         subtotal: (actual.precioUnitario || 0) * nuevaCantidad,
+      };
+      return copia;
+    });
+  };
+
+  const alternarTipoEntregaEditado = (index) => {
+    setItemsEditados((prev) => {
+      const copia = [...prev];
+      const actual = copia[index];
+      const nuevoTipo = (actual.tipo_entrega === 'home_delivery' || actual.tipoEntrega === 'home_delivery') ? 'store_pickup' : 'home_delivery';
+      copia[index] = {
+        ...actual,
+        tipo_entrega: nuevoTipo,
+        tipoEntrega: nuevoTipo,
       };
       return copia;
     });
@@ -337,6 +369,9 @@ export default function PedidosAdmin() {
         );
       }
 
+      const nuevaCantEnvio = itemsEditados.filter((it) => (it.tipo_entrega || it.tipoEntrega) === 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0);
+      const nuevaCantLlevado = itemsEditados.filter((it) => (it.tipo_entrega || it.tipoEntrega) !== 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0);
+
       setPedidos((lista) =>
         lista.map((p) =>
           p.id === seleccion.id
@@ -344,6 +379,8 @@ export default function PedidosAdmin() {
                 ...p,
                 total: nuevoTotal,
                 items: itemsCadena,
+                cant_envio: nuevaCantEnvio,
+                cant_llevado: nuevaCantLlevado,
               }
             : p
         )
@@ -407,15 +444,49 @@ export default function PedidosAdmin() {
     }
   };
 
+  const prepararPedidoParaTicket = async (pedido) => {
+    const pedidoCompleto = await obtenerPedido(pedido.id);
+    return {
+      ...pedido,
+      ...pedidoCompleto,
+      cliente: pedidoCompleto?.cliente || {
+        nombre: pedido.cliente || pedido.cliente_nombre || 'Compra como invitado',
+        telefono: pedido.cliente_telefono || '',
+        nit: pedido.cliente_nit || '',
+        direccion: pedido.direccion_entrega || '',
+        referencia: pedido.referencia_entrega || '',
+      },
+      items: pedidoCompleto?.items?.length ? pedidoCompleto.items : pedido.items,
+    };
+  };
+
   const imprimirTicket = async (pedido) => {
     const ventana = window.open('', '_blank', 'width=430,height=760');
     if (!ventana) { setError('Permite las ventanas emergentes para imprimir el ticket.'); return; }
     ventana.document.write('<title>Generando ticket…</title><p style="font-family:Arial;padding:24px">Generando ticket…</p>');
     ventana.document.close();
     setImprimiendoId(pedido.id);
-    try { imprimirTicketPedido(await obtenerPedido(pedido.id), ventana); }
-    catch (err) { ventana.close(); setError(err.message || 'No se pudo generar el ticket del pedido.'); }
-    finally { setImprimiendoId(null); }
+    try {
+      const pedidoParaTicket = await prepararPedidoParaTicket(pedido);
+      imprimirTicketPedido(pedidoParaTicket, ventana);
+    } catch (err) {
+      ventana.close();
+      setError(err.message || 'No se pudo generar el ticket del pedido.');
+    } finally {
+      setImprimiendoId(null);
+    }
+  };
+
+  const descargarTicketJpg = async (pedido) => {
+    setImprimiendoId(pedido.id);
+    try {
+      const pedidoParaTicket = await prepararPedidoParaTicket(pedido);
+      await descargarTicket(pedidoParaTicket, pedidoParaTicket.cliente, pedidoParaTicket.items);
+    } catch (err) {
+      setError(err.message || 'No se pudo descargar el ticket del pedido.');
+    } finally {
+      setImprimiendoId(null);
+    }
   };
 
   const contarUnidades = (items) => {
@@ -458,7 +529,65 @@ export default function PedidosAdmin() {
       <header><div><span>Órdenes de autoservicio</span><h2>Pedidos en operación</h2></div><div className="orders-list-tools"><label><Search size={18} /><input value={buscar} onChange={(event) => setBuscar(event.target.value)} placeholder={TEXTO_BUSQUEDA} aria-label={`Filtrar pedidos: ${TEXTO_BUSQUEDA}`} /></label><ReportePedidosVendedor pedidos={pedidos} /><button type="button" className="orders-refresh" onClick={actualizar} disabled={actualizando}><RefreshCw size={16} className={actualizando ? 'is-spinning' : ''} /> Actualizar</button></div></header>
       {cargando && pedidos.length === 0 && <p>Cargando pedidos reales...</p>}{error && <p className="error-box">{error}</p>}
       {!cargando && !error && vista.length === 0 && <p>{buscar.trim() ? `No hay pedidos que coincidan con «${buscar.trim()}».` : 'No hay pedidos registrados todavía.'}</p>}
-      {vista.map((pedido) => <article key={pedido.id}><div><b>{pedido.numero ? `Pedido #${pedido.numero}` : ''} {pedido.codigo ? `· #${pedido.codigo}` : ''}</b><small>{formatoFechaHora(pedido.fecha)}</small></div><div><b>{pedido.cliente}</b><small>{pedido.cliente_telefono ? `Tel. ${pedido.cliente_telefono}` : pedido.comprobante_url ? 'Comprobante adjunto' : 'Sin teléfono registrado'}{pedido.cliente_nit ? ` · NIT ${pedido.cliente_nit}` : ''}{pedido.repartidor_nombre ? ` · Conductor: ${pedido.repartidor_nombre}` : ''}</small></div><p>{pedido.items || 'Sin artículos'}</p><strong>{formatoMoneda(pedido.total)}</strong><i className={pedido.estado}>{etiquetas[pedido.estado] || pedido.estado}</i>
+      {vista.map((pedido) => {
+        const tieneDireccion = Boolean(pedido.direccion_entrega && pedido.direccion_entrega.trim());
+        const cantEnvio = Number(pedido.cant_envio || 0);
+        const cantLlevado = Number(pedido.cant_llevado || 0);
+        const esMixto = tieneDireccion && cantEnvio > 0 && cantLlevado > 0;
+        const esEnvioPuro = tieneDireccion && cantEnvio > 0 && cantLlevado === 0;
+
+        return (
+          <article key={pedido.id}>
+            <div>
+              <b>{pedido.numero ? `Pedido #${pedido.numero}` : ''} {pedido.codigo ? `· #${pedido.codigo}` : ''}</b>
+              <small>{formatoFechaHora(pedido.fecha)}</small>
+              {esMixto ? (
+                <span className="order-delivery-badge is-mixed" title={`Mixto: ${cantEnvio} para envío y ${cantLlevado} llevado por cliente`}>
+                  <Package size={12} /> Mixto: Envío + Retiro
+                </span>
+              ) : esEnvioPuro ? (
+                <span className="order-delivery-badge is-delivery" title={`Envío a domicilio: ${pedido.direccion_entrega}`}>
+                  <Truck size={12} /> Envío a domicilio
+                </span>
+              ) : (
+                <span className="order-delivery-badge is-pickup" title="El cliente lleva sus productos en tienda">
+                  <Store size={12} /> Retiro en tienda (Llevado)
+                </span>
+              )}
+            </div>
+            <div>
+              <b>{pedido.cliente}</b>
+              <small>
+                {pedido.cliente_telefono ? `Tel. ${pedido.cliente_telefono}` : pedido.comprobante_url ? 'Comprobante adjunto' : 'Sin teléfono registrado'}
+                {pedido.cliente_nit ? ` · NIT ${pedido.cliente_nit}` : ''}
+                {pedido.repartidor_nombre ? ` · Conductor: ${pedido.repartidor_nombre}` : ''}
+              </small>
+              {tieneDireccion && cantEnvio > 0 ? (
+                <span className="order-address-text" title={pedido.direccion_entrega}>
+                  <MapPin size={11} /> {pedido.direccion_entrega}
+                </span>
+              ) : (
+                <span className="order-pickup-text">
+                  <Store size={11} /> Retiro en mostrador
+                </span>
+              )}
+            </div>
+            <div className="order-items-col">
+              <p className="order-items-text">{pedido.items || 'Sin artículos'}</p>
+              <div className="order-item-tags">
+                {cantEnvio > 0 && <span className="tag-envio">🚚 {cantEnvio} para envío</span>}
+                {cantLlevado > 0 && (
+                  <span className="tag-llevado">
+                    🛍️ {cantLlevado} {tieneDireccion && cantEnvio > 0 ? 'llevado' : 'llevado en tienda'}
+                  </span>
+                )}
+                {cantEnvio === 0 && cantLlevado === 0 && (
+                  <span className="tag-llevado">🛍️ {contarUnidades(pedido.items)} llevado en tienda</span>
+                )}
+              </div>
+            </div>
+            <strong>{formatoMoneda(pedido.total)}</strong>
+            <i className={pedido.estado}>{etiquetas[pedido.estado] || pedido.estado}</i>
         <div className="order-actions">
           <button type="button" className="order-icon-btn" onClick={() => imprimirTicket(pedido)} disabled={imprimiendoId === pedido.id} title="Imprimir ticket térmico" aria-label={`Imprimir ticket del pedido ${pedido.numero || pedido.codigo || ''}`}>
             {imprimiendoId === pedido.id ? <RefreshCw size={15} className="is-spinning" /> : <Printer size={15} />}
@@ -475,9 +604,53 @@ export default function PedidosAdmin() {
           )}
           <button type="button" className="order-primary-action" onClick={() => abrirPedido(pedido)} title={POR_COBRAR.includes(pedido.estado) ? 'Registrar el pago del pedido' : 'Consultar el detalle del pedido'}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={18} /> Cobrar</> : 'Ver detalle'}</button>
         </div>
-      </article>)}
+      </article>
+    );})}
     </section>
-    {seleccion && <div className="orders-modal"><section role="dialog" aria-modal="true" aria-labelledby="pedido-modal-titulo"><header><div><span>Caja Equipetrol</span><h2 id="pedido-modal-titulo">{seleccion.numero ? `Pedido #${seleccion.numero} · ` : ''}#{seleccion.codigo}</h2><p>Cliente: {seleccion.cliente}</p>{(seleccion.cliente_telefono || seleccion.cliente_nit) && <p className="orders-client-data">{seleccion.cliente_telefono ? `Tel. ${seleccion.cliente_telefono}` : ''}{seleccion.cliente_telefono && seleccion.cliente_nit ? ' · ' : ''}{seleccion.cliente_nit ? `NIT ${seleccion.cliente_nit}` : ''}</p>}{seleccion.direccion_entrega && <p className="orders-hint"><Package size={16} /> Envío: {seleccion.direccion_entrega}{seleccion.referencia_entrega ? ` · ${seleccion.referencia_entrega}` : ''}</p>}</div><button onClick={() => setSeleccion(null)} aria-label="Cerrar">×</button></header><div className="orders-total"><span>{anulado ? 'Pedido anulado' : 'Monto a liquidar'}</span><b>{formatoMoneda(seleccion.total)}</b></div>{anulado && <p className="orders-alert is-error" role="status"><X size={15} /> Esta venta fue anulada. No se puede cobrar ni guardar un comprobante.</p>}
+    {seleccion && (() => {
+      const tieneDireccionModal = Boolean(seleccion.direccion_entrega && seleccion.direccion_entrega.trim());
+      const cantEnvioModal = Number(seleccion.cant_envio || 0);
+      const cantLlevadoModal = Number(seleccion.cant_llevado || 0);
+      const esMixtoModal = tieneDireccionModal && cantEnvioModal > 0 && cantLlevadoModal > 0;
+      const esEnvioPuroModal = tieneDireccionModal && cantEnvioModal > 0 && cantLlevadoModal === 0;
+
+      return (
+        <div className="orders-modal"><section role="dialog" aria-modal="true" aria-labelledby="pedido-modal-titulo"><header><div><span>Caja Equipetrol</span><h2 id="pedido-modal-titulo">{seleccion.numero ? `Pedido #${seleccion.numero} · ` : ''}#{seleccion.codigo}</h2><p>Cliente: {seleccion.cliente}</p>{(seleccion.cliente_telefono || seleccion.cliente_nit) && <p className="orders-client-data">{seleccion.cliente_telefono ? `Tel. ${seleccion.cliente_telefono}` : ''}{seleccion.cliente_telefono && seleccion.cliente_nit ? ' · ' : ''}{seleccion.cliente_nit ? `NIT ${seleccion.cliente_nit}` : ''}</p>}</div><button onClick={() => setSeleccion(null)} aria-label="Cerrar">×</button></header>
+        {esMixtoModal ? (
+          <div className="orders-modal-delivery-card is-mixed">
+            <div className="delivery-card-header">
+              <Package size={17} />
+              <span>Modalidad Mixta: Envío a Domicilio + Retiro en Tienda</span>
+            </div>
+            <p>
+              El cliente se lleva <b>{cantLlevadoModal} producto(s) en mano</b> y se despacha(n) <b>{cantEnvioModal} a domicilio</b>.
+            </p>
+            <div className="delivery-card-address">
+              <MapPin size={13} />
+              <span>Dirección de envío: <b>{seleccion.direccion_entrega}</b>{seleccion.referencia_entrega ? ` · Ref: ${seleccion.referencia_entrega}` : ''}</span>
+            </div>
+          </div>
+        ) : esEnvioPuroModal ? (
+          <div className="orders-modal-delivery-card is-delivery">
+            <div className="delivery-card-header">
+              <Truck size={17} />
+              <span>Modalidad 100% Envío a Domicilio</span>
+            </div>
+            <div className="delivery-card-address">
+              <MapPin size={13} />
+              <span>Dirección: <b>{seleccion.direccion_entrega}</b>{seleccion.referencia_entrega ? ` · Ref: ${seleccion.referencia_entrega}` : ''}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="orders-modal-delivery-card is-pickup">
+            <div className="delivery-card-header">
+              <Store size={17} />
+              <span>Modalidad: Retiro en Tienda (Llevado en mano)</span>
+            </div>
+            <p>El cliente paga en caja y retira todos los productos directamente en el mostrador.</p>
+          </div>
+        )}
+        <div className="orders-total"><span>{anulado ? 'Pedido anulado' : 'Monto a liquidar'}</span><b>{formatoMoneda(seleccion.total)}</b></div>{anulado && <p className="orders-alert is-error" role="status"><X size={15} /> Esta venta fue anulada. No se puede cobrar ni guardar un comprobante.</p>}
       <div className="orders-items-section">
         <div className="orders-items-head">
           <h3>Artículos del pedido</h3>
@@ -489,7 +662,35 @@ export default function PedidosAdmin() {
         </div>
         {mensajeEdicion && <p className="orders-edit-success">{mensajeEdicion}</p>}
         {!modoEdicion ? (
-          <p className="orders-items-summary">{seleccion.items || 'Sin artículos registrados'}</p>
+          <div className="orders-modal-items-list">
+            {(Array.isArray(seleccion.items_detalle) && seleccion.items_detalle.length > 0) ? (
+              seleccion.items_detalle.map((item, idx) => {
+                const esEnvio = item.tipo_entrega === 'home_delivery';
+                return (
+                  <div key={item.id || idx} className="orders-modal-item-row">
+                    <div>
+                      <b>{item.nombre}</b>
+                      <small>{item.cantidad} × {formatoMoneda(item.precioUnitario)}</small>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      {seleccion.direccion_entrega ? (
+                        <span className={`orders-item-delivery-badge ${esEnvio ? 'is-delivery' : 'is-pickup'}`}>
+                          {esEnvio ? '🚚 Para envío' : '🛍️ Llevado'}
+                        </span>
+                      ) : (
+                        <span className="orders-item-delivery-badge is-pickup">
+                          🛍️ Llevado en tienda
+                        </span>
+                      )}
+                      <strong>{formatoMoneda(item.subtotal)}</strong>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="orders-items-summary">{seleccion.items || 'Sin artículos registrados'}</p>
+            )}
+          </div>
         ) : (
           <div className="orders-items-editor">
             {cargandoItems ? (
@@ -522,6 +723,16 @@ export default function PedidosAdmin() {
                       <div className="orders-item-subtotal">
                         {formatoMoneda(Number(item.precioUnitario || 0) * Number(item.cantidad || 1))}
                       </div>
+                      {seleccion.direccion_entrega && (
+                        <button
+                          type="button"
+                          className={`orders-item-delivery-toggle ${(item.tipo_entrega || item.tipoEntrega) === 'home_delivery' ? 'is-delivery' : 'is-pickup'}`}
+                          onClick={() => alternarTipoEntregaEditado(idx)}
+                          title="Cambiar modalidad de este producto"
+                        >
+                          {(item.tipo_entrega || item.tipoEntrega) === 'home_delivery' ? '🚚 Envío' : '🛍️ Llevado'}
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="orders-item-remove"
@@ -613,8 +824,49 @@ export default function PedidosAdmin() {
           </div>
         )}
       </div>
-      <div className="orders-methods"><button className={metodo === 'qr' ? 'active' : ''} onClick={() => setMetodo('qr')}><QrCode />QR Simple</button><button className={metodo === 'efectivo' ? 'active' : ''} onClick={() => setMetodo('efectivo')}><Package />Efectivo</button><button className={metodo === 'tarjeta' ? 'active' : ''} onClick={() => setMetodo('tarjeta')}><CreditCard />Tarjeta</button></div>{metodo === 'qr' && <p className="orders-hint">Cobra con el QR oficial de la tienda y luego confirma el pago.</p>}{metodo === 'efectivo' && <p className="orders-hint">Cobra el monto en efectivo en caja y luego confirma el pago.</p>}{metodo === 'tarjeta' && <p className="orders-hint">Pasa la tarjeta por el POS y luego confirma el pago.</p>}
+      {pendiente && <>
+        <div className="orders-methods">
+          <button
+            className={metodo === 'efectivo' ? 'active' : ''}
+            type="button"
+            onClick={() => setMetodo('efectivo')}
+          >
+            <Package />Efectivo
+          </button>
+          <button
+            className={metodo === 'tarjeta' ? 'active' : ''}
+            type="button"
+            onClick={() => setMetodo('tarjeta')}
+          >
+            <CreditCard />Tarjeta
+          </button>
+          <button type="button" disabled title="La confirmación QR llegará desde la entidad de pago">
+            <QrCode />QR automático
+          </button>
+        </div>
+        {(metodo === 'qr' || seleccion.metodo_pago_solicitado === 'qr') && (
+          <div className="orders-hint" style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-start' }}>
+            <p>Cobro por QR Bancario: muestra el QR oficial al cliente y verifica el abono en la banca móvil.</p>
+            <button
+              type="button"
+              className="orders-modal-ticket-btn"
+              onClick={() => setMostrarQrModal(true)}
+              style={{ background: 'var(--vino, #a6192e)', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '0.4rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}
+            >
+              <QrCode size={16} /> Mostrar QR Oficial al Cliente
+            </button>
+          </div>
+        )}
+        {metodo === 'efectivo' && <p className="orders-hint">Recibí el monto en efectivo y registrá el cobro.</p>}
+        {metodo === 'tarjeta' && <p className="orders-hint">Procesá la tarjeta en el POS y registrá el cobro.</p>}
+      </>}
       <section className="orders-receipt"><div className="orders-receipt-head"><div><b><ImagePlus size={17} /> Comprobante de pago</b><span>Opcional · JPG, PNG o WEBP · máximo 8 MB</span></div>{comprobanteActual && <a href={comprobanteActual} target="_blank" rel="noreferrer" aria-label="Ver comprobante en una pestaña nueva"><ExternalLink size={17} /></a>}</div><label className="orders-receipt-btn"><ImagePlus size={17} /> {archivoComprobante ? 'Cambiar imagen' : comprobanteActual ? 'Reemplazar imagen' : 'Cargar comprobante'}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setArchivoComprobante(event.target.files?.[0] || null)} /></label>{comprobanteActual ? <div className="orders-receipt-preview"><img src={comprobanteActual} alt="Comprobante de pago" /><div><p>{archivoComprobante ? archivoComprobante.name : 'Comprobante guardado en Supabase'}</p>{archivoComprobante && <button type="button" className="orders-receipt-remove" onClick={() => setArchivoComprobante(null)}><Trash2 size={14} /> Quitar cambio</button>}</div></div> : <span className="orders-receipt-empty">Aún no se adjuntó una imagen.</span>}</section>
-      {error && <p className="orders-alert is-error">{error}</p>}<footer><button onClick={() => setSeleccion(null)}>Cerrar</button><button type="button" className="orders-modal-ticket-btn" onClick={() => imprimirTicket(seleccion)} disabled={imprimiendoId === seleccion.id}>{imprimiendoId === seleccion.id ? 'Generando…' : <><Printer size={16} /> Imprimir ticket</>}</button>{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={iniciarEdicion}><Edit3 size={15} /> Editar / Agregar</button>)}{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={() => anularPedido(seleccion)} disabled={anulandoId === seleccion.id}>{anulandoId === seleccion.id ? 'Anulando…' : <><X size={15} /> Anular venta</>}</button>)}{!anulado && <button onClick={registrarPago} disabled={subiendoPago}>{subiendoPago ? 'Guardando…' : pendiente ? <><CheckCircle2 /> Confirmar pago</> : <><CheckCircle2 /> Guardar comprobante</>}</button>}</footer></section></div>}
+      {error && <p className="orders-alert is-error">{error}</p>}<footer><button onClick={() => setSeleccion(null)}>Cerrar</button><button type="button" className="orders-modal-ticket-btn" onClick={() => imprimirTicket(seleccion)} disabled={imprimiendoId === seleccion.id} title="Imprimir ticket para impresora térmica POS">{imprimiendoId === seleccion.id ? 'Generando…' : <><Printer size={16} /> Imprimir ticket</>}</button><button type="button" className="orders-modal-ticket-btn" onClick={() => descargarTicketJpg(seleccion)} disabled={imprimiendoId === seleccion.id} title="Descargar ticket en formato imagen JPG" style={{ background: '#fff', border: '1px solid #dcdcdc', color: '#202020' }}>{imprimiendoId === seleccion.id ? 'Generando…' : <><Download size={16} /> Descargar JPG</>}</button>{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={iniciarEdicion}><Edit3 size={15} /> Editar / Agregar</button>)}{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={() => anularPedido(seleccion)} disabled={anulandoId === seleccion.id}>{anulandoId === seleccion.id ? 'Anulando…' : <><X size={15} /> Anular venta</>}</button>)}{pendiente && !modoEdicion && <button onClick={registrarPago} disabled={subiendoPago}>{subiendoPago ? 'Guardando…' : <><CheckCircle2 /> Confirmar cobro manual</>}</button>}</footer></section></div>);})}
+    <ModalQrPago
+      abierto={mostrarQrModal}
+      onCerrar={() => setMostrarQrModal(false)}
+      monto={seleccion?.total}
+      codigoPedido={seleccion?.codigo || seleccion?.ticket_number}
+    />
   </main>;
 }

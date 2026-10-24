@@ -29,7 +29,9 @@ router.put('/:id/items', authAdmin, actualizarItemsPedido);
 router.patch('/:id/estado', authAdmin, requiereRol('admin', 'vendedor'), actualizarEstadoPedido);
 router.patch('/:id/entrega', authAdmin, requiereRol('admin', 'vendedor', 'despacho'), actualizarEntregaPedido);
 router.patch('/:id/repartidor', authAdmin, requiereRol('admin', 'vendedor'), asignarRepartidorPedido);
-router.patch('/:id/pago', registrarPagoPedido);
+// El cobro manual altera el estado financiero del pedido. Nunca puede quedar
+// expuesto al navegador del cliente; QR se confirmará por webhook del proveedor.
+router.patch('/:id/pago', authAdmin, requiereRol('admin', 'vendedor'), registrarPagoPedido);
 router.get('/:id', obtenerPedido);
 
 export default router;

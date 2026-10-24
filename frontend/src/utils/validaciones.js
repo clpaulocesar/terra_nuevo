@@ -21,5 +21,8 @@ export function validarDatosCliente(cliente) {
   if (!validarNit(nit)) {
     errores.nit = 'El NIT debe tener entre 5 y 20 dígitos';
   }
+  if (cliente.entregaDomicilio && (!cliente.direccion || cliente.direccion.trim().length < 5)) {
+    errores.direccion = 'Ingresá la calle, número y zona para el envío a domicilio';
+  }
   return errores;
 }

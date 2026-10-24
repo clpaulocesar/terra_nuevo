@@ -504,6 +504,11 @@ export default function DetalleProducto() {
             )}
           </div>
           <section className="product-buy">
+            {Boolean(producto.marca) && (
+              <span className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-1 block">
+                {producto.marca}
+              </span>
+            )}
             <h1>{producto.nombre}</h1>
             <div className="product-buy__rating">
               <span>
@@ -658,6 +663,12 @@ export default function DetalleProducto() {
         <article>
           <h2>Ficha técnica y dimensiones</h2>
           <dl>
+            {Boolean(producto.marca) && (
+              <>
+                <dt>Marca</dt>
+                <dd>{producto.marca}</dd>
+              </>
+            )}
             <dt>Modelo</dt>
             <dd>{producto.nombre}</dd>
             <dt>Categoría</dt>

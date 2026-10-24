@@ -121,7 +121,7 @@ Permitir que clientes y personal de TERRA usen el sistema con autonomía, sin er
 | **Pedido** | Compra confirmada por el cliente. Nace como "Pendiente de pago" y se cobra en caja. |
 | **Ticket** | Comprobante del pedido con el **código de pedido** (formato `TER-XXXXXXXX`) que el cliente muestra en caja. |
 | **Código de pedido** | Identificador único de cada pedido. Empieza con "TER-" seguido de 8 letras y números. |
-| **Cobrar / Confirmar pago** | Acción de caja que marca el pedido como "Cobrado" con el método de pago usado. |
+| **Cobrar / Confirmar pago** | Acción de administración o ventas que marca como "Cobrado" un pago manual de efectivo o tarjeta. Los pagos QR se confirman automáticamente cuando la entidad de pago notifica al sistema. |
 | **Comprobante de pago** | Foto o captura del pago (QR, voucher) que caja puede adjuntar al pedido. |
 | **Anular venta** | Marcar como "Cancelado" un pedido que el cliente no va a pagar. Solo se puede anular un pedido pendiente. |
 | **Venta directa** | Venta cobrada en el mostrador por el personal, sin pasar por el kiosco. |
@@ -441,8 +441,10 @@ Cualquier persona que usa la tablet del showroom (o la tienda desde su celular).
 **Objetivo**: asociar tu nombre al pedido para que te llamen en caja.
 
 1. En "Datos para tu pedido en tienda" escribe **Nombre y apellidos** (obligatorio, 2 a 120 caracteres).
-2. Opcionalmente escribe **Teléfono / WhatsApp** (prefijo +591) y **NIT** (5 a 20 dígitos).
-3. Deja marcada la casilla **Deseo recibir mi comprobante por WhatsApp** si quieres pedirlo después.
+2. Opcionalmente escribe **Teléfono de contacto** (prefijo +591) y **NIT** (5 a 20 dígitos).
+3. En "¿Deseás envío a domicilio?", selecciona:
+   - **No, retiro en tienda**: pagas y retiras todos tus productos en el mostrador.
+   - **Sí, envío a domicilio**: escribe la **Dirección de entrega** (calle, número y zona) y opcionalmente una **Referencia** en texto plano sin mapa. A continuación, selecciona qué artículos deseas enviar a domicilio y cuáles retirar en tienda tocando las tarjetas de producto (por defecto se envían todos; puedes usar el botón **Enviar todos** para restablecer).
 4. Toca **Continuar a confirmación**.
 5. Resultado: pasas a la pantalla de confirmación.
 
@@ -470,7 +472,7 @@ Cualquier persona que usa la tablet del showroom (o la tienda desde su celular).
 **¿Qué sigue?**
 
 1. **Acercate a caja** y muestra el código de tu pedido.
-2. **Realizá el pago** con efectivo, QR Simple o tarjeta.
+2. **Realizá el pago** con efectivo, QR Simple o tarjeta. Si elegiste QR, el pedido queda pendiente hasta que la entidad de pago lo confirme.
 3. **Coordiná tu entrega**: retiro en tienda o consulta opciones de despacho.
 
 Botones disponibles: **Descargar ticket**, **Enviar ticket a WhatsApp TERRA** (solo si marcaste la casilla de WhatsApp; abre un mensaje listo para enviar al número oficial de TERRA), **Nueva compra** y **Seguir explorando**.
@@ -627,15 +629,15 @@ Responsable de la operación completa: cobra pedidos, administra catálogo, prec
 1. Entra a **Pedidos**. Usa la pestaña **Pendientes de pago** o busca por "Cliente, teléfono, NIT o ticket" y toca **Buscar**.
 2. Localiza el pedido por su código (el cliente te muestra el ticket) y toca **Cobrar**.
 3. En la ventana "Caja Equipetrol" verifica cliente, "Monto a liquidar" y "Artículos del pedido".
-4. Elige el método de pago: **QR Simple**, **Efectivo** o **Tarjeta**.
+4. Para un cobro manual, elige **Efectivo** o **Tarjeta**. Si el cliente eligió QR, no lo confirmes manualmente: espera la notificación automática de la entidad de pago.
 5. Opcional: toca **Cargar comprobante** y elige una foto del pago (JPG, PNG o WEBP, máximo 8 MB).
-6. Toca **Confirmar pago**. Verás "Guardando…".
+6. Toca **Confirmar cobro manual**. Verás "Guardando…".
 7. Resultado: el pedido pasa a **Cobrado** y desaparece de "Pendientes de pago".
 8. Toca **Imprimir ticket** para entregar el comprobante impreso.
 
 ![Ventana de cobro de pedido](img/admin-pedidos-cobrar-paso4.png)
 
-💡 En un pedido ya cobrado, el mismo botón se llama **Guardar comprobante** y sirve para adjuntar o cambiar la foto del pago y el método.
+💡 Un pago QR pendiente conserva ese estado hasta que la entidad de pago lo confirme. Esta medida evita marcar como cobrado un pago que todavía no fue validado.
 
 ### 11.5 Procedimiento: editar los artículos de un pedido pendiente
 
@@ -993,3 +995,5 @@ Al reportar un problema, indica: tu rol, la pantalla, el **código de pedido** s
 | 1.0 | 23/10/2026 | Equipo TERRA Autoservicio | Primera versión. Cubre kiosco, portal mayorista, backoffice (administrador), portal de ventas (vendedor) y despacho. |
 | 1.1 | 23/10/2026 | Equipo TERRA Autoservicio | "Recordar sesión" funciona en los accesos mayorista y administrativo (6.2, 6.3, 10.6). "Comprar ahora" agrega el producto al carrito (9.4). Mensajes claros de stock insuficiente y mínimo mayorista (9.9, 10.6). Se quitó el QR de prueba del cobro (11.4) y la carga de logo del perfil mayorista (10.3). El botón "Factura PDF" pasa a llamarse "Descargar ticket" (10.5). El acceso administrativo muestra "Sucursal Equipetrol". |
 | 1.2 | 23/10/2026 | Equipo TERRA Autoservicio | Nuevo tutorial interactivo del catálogo: invitación en la primera visita, botón **Tutorial** en la cabecera y recorrido de 8 pasos adaptado a celular y mayoristas (8.6, 9.2). |
+| 1.3 | 24/10/2026 | Equipo TERRA Autoservicio | Identificación minorista con selección directa de envío a domicilio (Sí/No en texto plano sin mapa), QR oficial de pago con zoom interactivo y simplificación de acciones del ticket (9.8, 9.9). |
+| 1.4 | 24/10/2026 | Equipo TERRA Autoservicio | Selección individual de productos para envío vs. retiro para clientes minoristas; visualización en tabla de pedidos admin con etiquetas de modalidad (Envío/Llevado), desglose interactivo en modal y tickets POS/digitales. |

@@ -3,7 +3,6 @@ import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import {
   CheckCircle2,
   Clock3,
-  Download,
   Home,
   MessageCircle,
   QrCode,
@@ -13,7 +12,6 @@ import {
 import { obtenerPedido } from "../services/pedidoService.js";
 import { WHATSAPP_COMPROBANTES } from "../services/api.js";
 import { formatoMoneda } from "../utils/formatoMoneda.js";
-import { descargarTicket } from "../utils/descargarTicket.js";
 import "./PedidoGenerado.css";
 
 function formatoFechaPedido(fecha) {
@@ -26,11 +24,16 @@ function formatoFechaPedido(fecha) {
 }
 
 function crearMensajeComprobante({ pedido, cliente, items }) {
+  const tieneEnvio = Boolean(pedido.direccion_entrega);
   const lineas = (items || []).map((item) => {
     const nombre = item.nombre || item.product_name || "Producto";
     const cantidad = item.cantidad || item.quantity || 1;
     const color = item.color?.nombre || item.color;
-    return `• ${cantidad} × ${nombre}${color ? ` (${color})` : ""}`;
+    const tipo = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
+    const modalidad = tieneEnvio
+      ? (tipo === 'home_delivery' ? ' [Envío a domicilio]' : ' [Retiro en tienda]')
+      : '';
+    return `• ${cantidad} × ${nombre}${color ? ` (${color})` : ""}${modalidad}`;
   });
 
   return [
@@ -91,9 +94,8 @@ export default function PedidoGenerado() {
     state?.cliente?.nombre || state?.cliente?.nit
       ? state.cliente
       : pedido.cliente;
-  // El carrito se limpia al crear el pedido. Si la navegación trae una lista vacía,
-  // conservamos el detalle devuelto por el backend para el ticket y WhatsApp.
   const itemsTicket = state?.items?.length ? state.items : (pedido.items || []);
+  const pagoQrPendiente = pedido.metodo_pago_solicitado === 'qr' && !pedido.metodo_pago;
   const solicitarComprobante = Boolean(clienteTicket?.whatsapp && WHATSAPP_COMPROBANTES);
   const mensajeWhatsApp = encodeURIComponent(crearMensajeComprobante({
     pedido,
@@ -150,8 +152,33 @@ export default function PedidoGenerado() {
           )}
           <div className="pedido-row">
             <span>Estado</span>
-            <b>Pendiente de pago</b>
+            <b>{pagoQrPendiente ? 'Pendiente de confirmación QR' : 'Pendiente de pago'}</b>
           </div>
+          {itemsTicket.length > 0 && (
+            <div className="pedido-ticket-items">
+              <span className="pedido-ticket-items-title">Detalle de productos ({itemsTicket.length})</span>
+              {itemsTicket.map((it, idx) => {
+                const tipo = it.tipoEntrega || it.tipo_entrega || it.delivery_type;
+                const tieneEnvio = Boolean(pedido.direccion_entrega);
+                return (
+                  <div key={it.id || idx} className="pedido-ticket-item-row">
+                    <div className="pedido-ticket-item-main">
+                      <span className="pedido-ticket-item-name">{it.nombre || it.product_name || 'Producto'}</span>
+                      <small className="pedido-ticket-item-sub">
+                        {it.cantidad} × {formatoMoneda(it.precio || it.precioUnitario || 0)}
+                        {it.color?.nombre || it.color ? ` · ${it.color?.nombre || it.color}` : ''}
+                      </small>
+                    </div>
+                    {tieneEnvio && (
+                      <span className={`pedido-ticket-badge ${tipo === 'home_delivery' ? 'is-delivery' : 'is-pickup'}`}>
+                        {tipo === 'home_delivery' ? '🚚 Envío' : '🛍️ Retiro'}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div className="pedido-row">
             <span>Total a pagar</span>
             <b>{formatoMoneda(pedido.total)}</b>
@@ -167,14 +194,18 @@ export default function PedidoGenerado() {
             <i>1</i>
             <p>
               <b>Acercate a caja</b>
-              <span>Mostrá el código de tu pedido al cajero.</span>
+              <span>Mostrá el código de tu pedido al personal en mostrador.</span>
             </p>
           </div>
           <div>
             <i>2</i>
             <p>
-              <b>Realizá el pago</b>
-              <span>Podés pagar con efectivo, QR Simple o tarjeta.</span>
+              <b>{pagoQrPendiente ? 'Pago con QR Simple' : 'Realizá el pago'}</b>
+              <span>
+                {pagoQrPendiente
+                  ? `Mostrá tu comprobante de transferencia por ${formatoMoneda(pedido.total)} en caja.`
+                  : 'Podés pagar con efectivo, QR Simple o tarjeta en caja.'}
+              </span>
             </p>
           </div>
           <div>
@@ -191,23 +222,16 @@ export default function PedidoGenerado() {
         </aside>
       </div>
       <div className="pedido-actions">
-        <button
-          type="button"
-          onClick={() =>
-            descargarTicket(pedido, clienteTicket, itemsTicket)
-          }
-          className="pedido-download"
-        >
-          <Download size={20} /> Descargar ticket
-        </button>
-        {solicitarComprobante && <a
-          className="pedido-whatsapp"
-          href={`https://wa.me/${WHATSAPP_COMPROBANTES}?text=${mensajeWhatsApp}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <MessageCircle size={20} /> Enviar ticket a WhatsApp TERRA
-        </a>}
+        {solicitarComprobante && (
+          <a
+            className="pedido-whatsapp"
+            href={`https://wa.me/${WHATSAPP_COMPROBANTES}?text=${mensajeWhatsApp}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <MessageCircle size={20} /> Enviar ticket a WhatsApp TERRA
+          </a>
+        )}
         <Link to="/" className="pedido-home">
           <Home size={20} /> Nueva compra
         </Link>

@@ -20,7 +20,7 @@ export async function registrarPagoPedido(req, res, next) {
     const id = String(req.params.id || '').trim();
     const metodoPago = String(req.body?.metodoPago || '').trim();
     const comprobanteUrl = String(req.body?.comprobanteUrl || '').trim() || null;
-    if (!id || !['qr', 'efectivo', 'tarjeta'].includes(metodoPago)) {
+    if (!id || !['efectivo', 'tarjeta'].includes(metodoPago)) {
       return res.status(400).json({ success: false, mensaje: 'Datos de pago inválidos.' });
     }
     if (comprobanteUrl && (comprobanteUrl.length > 2000 || !/^https:\/\//i.test(comprobanteUrl))) {
@@ -31,7 +31,7 @@ export async function registrarPagoPedido(req, res, next) {
     if (['cancelled', 'cancelado'].includes(String(actual.estado || '').toLowerCase())) {
       return res.status(409).json({ success: false, mensaje: 'No se puede cobrar un pedido anulado.' });
     }
-    const pedido = await registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl });
+    const pedido = await registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl, fuente: 'manual' });
     if (!pedido) return res.status(404).json({ success: false, mensaje: 'Pedido no encontrado.' });
     return res.json({ success: true, data: pedido });
   } catch (error) { next(error); }
@@ -214,6 +214,14 @@ export async function crearPedido(req, res, next) {
     if (mayorista) clienteId = mayorista.cliente_id;
 
     const items = req.body?.items;
+    const metodoPagoSolicitado = String(req.body?.metodoPago || '').trim();
+
+    if (!['efectivo', 'qr'].includes(metodoPagoSolicitado)) {
+      return res.status(400).json({
+        success: false,
+        mensaje: 'Seleccioná un método de pago válido.',
+      });
+    }
 
     if (
       clienteId !== null &&
@@ -236,11 +244,15 @@ export async function crearPedido(req, res, next) {
       });
     }
 
-    const productos = new Map();
+    const entregaDomicilio = req.body?.entregaDomicilio === true;
+    const agrupados = new Map();
 
     for (const item of items) {
       const productoId = String(item?.productoId || '').trim();
       const cantidad = Number(item?.cantidad);
+      const tipoEntrega = entregaDomicilio
+        ? (item?.tipoEntrega === 'store_pickup' ? 'store_pickup' : 'home_delivery')
+        : 'store_pickup';
 
       if (
         !productoId ||
@@ -254,8 +266,8 @@ export async function crearPedido(req, res, next) {
         });
       }
 
-      const cantidadTotal =
-        (productos.get(productoId) || 0) + cantidad;
+      const clave = `${productoId}__${tipoEntrega}`;
+      const cantidadTotal = (agrupados.get(clave) || 0) + cantidad;
 
       if (cantidadTotal > 100) {
         return res.status(400).json({
@@ -264,34 +276,51 @@ export async function crearPedido(req, res, next) {
         });
       }
 
-      productos.set(productoId, cantidadTotal);
+      agrupados.set(clave, cantidadTotal);
     }
 
     const itemsNormalizados = Array.from(
-      productos,
-      ([productoId, cantidad]) => ({
-        productoId,
-        cantidad,
-      })
+      agrupados,
+      ([clave, cantidad]) => {
+        const [productoId, tipoEntrega] = clave.split('__');
+        return { productoId, cantidad, tipoEntrega };
+      }
     );
-
-    const entregaDomicilio = req.body?.entregaDomicilio === true;
-    if (entregaDomicilio && (!mayorista || !mayorista.direccion)) {
-      return res.status(400).json({ success: false, mensaje: 'Registrá una dirección de entrega antes de solicitar el envío a domicilio.' });
-    }
-    const entrega = entregaDomicilio && mayorista?.direccion
-      ? {
+    let entrega = null;
+    if (entregaDomicilio) {
+      if (mayorista) {
+        if (!mayorista.direccion) {
+          return res.status(400).json({ success: false, mensaje: 'Registrá una dirección de entrega antes de solicitar el envío a domicilio.' });
+        }
+        entrega = {
           direccion: mayorista.direccion,
           referencia: mayorista.referencia || null,
           latitud: mayorista.latitud ?? null,
           longitud: mayorista.longitud ?? null,
+        };
+      } else {
+        const direccion = String(req.body?.direccion || req.body?.direccionEntrega || '').trim();
+        const referencia = String(req.body?.referencia || req.body?.referenciaEntrega || '').trim();
+        if (!direccion) {
+          return res.status(400).json({ success: false, mensaje: 'Ingresá la dirección para el envío a domicilio.' });
         }
-      : null;
+        entrega = {
+          direccion,
+          referencia: referencia || null,
+          latitud: null,
+          longitud: null,
+        };
+      }
+    }
 
     const pedido = await crearPedidoBD(
       clienteId,
       itemsNormalizados,
-      { precioMayorista: Boolean(mayorista), entrega }
+      {
+        precioMayorista: Boolean(mayorista),
+        entrega,
+        metodoPagoSolicitado,
+      }
     );
 
     return res.status(201).json({

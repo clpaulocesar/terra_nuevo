@@ -1,25 +1,130 @@
 import { formatoMoneda } from './formatoMoneda.js';
 
 function escapar(valor) {
-  return String(valor ?? '').replace(/[&<>'"]/g, (caracter) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' })[caracter]);
+  return String(valor ?? '').replace(/[&<>'"]/g, (caracter) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#039;',
+    '"': '&quot;',
+  })[caracter]);
 }
 
 /** Abre un ticket compacto y nativo para imprimir desde caja. */
 export function imprimirTicketPedido(pedido, ventana = null) {
   const destino = ventana || window.open('', '_blank', 'width=430,height=760');
-  if (!destino) throw new Error('El navegador bloqueó la ventana de impresión. Permite las ventanas emergentes e intenta nuevamente.');
+  if (!destino) {
+    throw new Error('El navegador bloqueó la ventana de impresión. Permite las ventanas emergentes e intenta nuevamente.');
+  }
 
-  const cliente = pedido.cliente || {};
-  const fecha = new Intl.DateTimeFormat('es-BO', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/La_Paz' }).format(new Date(pedido.fecha || Date.now()));
-  const detalle = (Array.isArray(pedido.items) ? pedido.items : []).map((item) => `
-    <tr><td><b>${escapar(item.nombre || 'Producto')}</b><br><small>${Number(item.cantidad || 0)} × ${formatoMoneda(item.precioUnitario || item.precio || 0)}</small></td><td>${formatoMoneda(item.subtotal || Number(item.cantidad || 0) * Number(item.precioUnitario || item.precio || 0))}</td></tr>`).join('') || '<tr><td colspan="2">Sin artículos registrados</td></tr>';
+  const cliente = typeof pedido.cliente === 'object' && pedido.cliente !== null
+    ? pedido.cliente
+    : {};
+
+  const nombreCliente = cliente.nombre || pedido.cliente_nombre || (typeof pedido.cliente === 'string' ? pedido.cliente : '') || 'Compra como invitado';
+  const telefonoCliente = cliente.telefono || pedido.cliente_telefono || pedido.telefono || '';
+  const nitCliente = cliente.nit || pedido.cliente_nit || pedido.nit || '';
+  const direccionEntrega = pedido.direccion_entrega || cliente.direccion;
+  const referenciaEntrega = pedido.referencia_entrega || cliente.referencia;
+  const metodoPago = pedido.metodo_pago || pedido.metodo_pago_solicitado;
+  const estadoClave = String(pedido.estado || '').toLowerCase();
+  const cobrado = ['completed', 'paid', 'pagado', 'delivered', 'entregado', 'shipped', 'ready_for_pickup', 'out_for_delivery'].includes(estadoClave);
+  const anulado = ['cancelled', 'cancelado'].includes(estadoClave);
+  const estadoTexto = anulado ? 'Cancelado / Anulado' : (cobrado ? 'Cobrado en caja' : 'Pendiente de pago');
+
+  const fecha = new Intl.DateTimeFormat('es-BO', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'America/La_Paz',
+  }).format(new Date(pedido.fecha || Date.now()));
+
+  const detalle = (Array.isArray(pedido.items) ? pedido.items : []).map((item) => {
+    const tipo = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
+    const etiqueta = direccionEntrega
+      ? (tipo === 'home_delivery'
+        ? '<br><span style="color:#a6192e;font-weight:bold;font-size:10px;">[🚚 ENVÍO A DOMICILIO]</span>'
+        : '<br><span style="color:#004230;font-weight:bold;font-size:10px;">[🛍️ LLEVADO EN TIENDA]</span>')
+      : '<br><span style="color:#555;font-weight:bold;font-size:10px;">[🛍️ LLEVADO / RETIRO EN TIENDA]</span>';
+    const cant = Number(item.cantidad || item.quantity || 1);
+    const precio = Number(item.precioUnitario || item.precio || 0);
+    const sub = Number(item.subtotal || cant * precio);
+    return `
+      <tr>
+        <td>
+          <b>${escapar(item.nombre || item.product_name || 'Producto')}</b><br>
+          <small>${cant} × ${formatoMoneda(precio)}</small>
+          ${item.color?.nombre || item.color ? `<br><small style="color:#666;">Color: ${escapar(item.color?.nombre || item.color)}</small>` : ''}
+          ${etiqueta}
+        </td>
+        <td>${formatoMoneda(sub)}</td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="2">Sin artículos registrados</td></tr>';
 
   const codigoTicket = pedido.numero ? `Pedido #${pedido.numero} · ${pedido.codigo || pedido.id}` : (pedido.codigo || pedido.id);
-  // Un pedido anulado se imprime igual (constancia), pero marcado para que caja no lo cobre ni lo entregue.
-  const anulado = ['cancelled', 'cancelado'].includes(String(pedido.estado || '').toLowerCase());
   const avisoAnulado = anulado
     ? '<div class="anulado"><b>PEDIDO ANULADO</b><span>Esta venta fue cancelada. No es válida para pago ni entrega.</span></div>'
     : '';
-  destino.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Ticket ${escapar(codigoTicket)}</title><style>body{font:13px Arial,sans-serif;color:#202020;margin:0;padding:20px}main{max-width:340px;margin:auto}header{text-align:center;border-bottom:2px dashed #a6192e;padding-bottom:12px}header img{max-width:190px}h1{font-size:15px;margin:9px 0 0}.code{background:#fff1f3;border:1px dashed #a6192e;border-radius:7px;color:#a6192e;font:bold 17px monospace;letter-spacing:1px;margin:15px 0;padding:10px;text-align:center}.meta{color:#4d5552;line-height:1.6;margin:10px 0}table{border-collapse:collapse;width:100%;margin-top:15px}td{border-bottom:1px dashed #d6d6d6;padding:9px 0;vertical-align:bottom}td:last-child{text-align:right;font-weight:bold}small{color:#65706b}.total{display:flex;justify-content:space-between;font-size:18px;font-weight:bold;border-top:2px solid #202020;margin-top:14px;padding-top:12px}.total span:last-child{color:#a6192e}footer{color:#68716d;font-size:11px;margin-top:25px;text-align:center}.anulado{background:#a6192e;border-radius:7px;color:#fff;margin:14px 0 0;padding:10px 12px;text-align:center}.anulado b{display:block;font-size:16px;letter-spacing:2px}.anulado span{display:block;font-size:12px;margin-top:4px}.es-anulado .code,.es-anulado .total span:last-child{color:#68716d;text-decoration:line-through}@media print{body{padding:0}button{display:none}}</style></head><body class="${anulado ? 'es-anulado' : ''}"><main><header><img src="${window.location.origin}/logo-terra.png" alt="TERRA Autoservicio"><h1>${anulado ? 'Ticket de pedido anulado' : 'Ticket de pedido'}</h1></header>${avisoAnulado}<div class="code">${escapar(codigoTicket)}</div><div class="meta"><b>Fecha:</b> ${escapar(fecha)}<br><b>Cliente:</b> ${escapar(cliente.nombre || pedido.cliente_nombre || pedido.cliente || 'Compra como invitado')}${cliente.telefono ? `<br><b>Teléfono:</b> ${escapar(cliente.telefono)}` : ''}${cliente.nit ? `<br><b>NIT:</b> ${escapar(cliente.nit)}` : ''}</div><table>${detalle}</table><div class="total"><span>Total</span><span>${formatoMoneda(pedido.total)}</span></div><footer>${anulado ? 'Pedido anulado · sin valor como comprobante de pago.' : 'Gracias por comprar en TERRA Autoservicio.'}</footer></main><script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script></body></html>`);
+
+  const html = `<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Ticket ${escapar(codigoTicket)}</title>
+  <style>
+    body { font: 13px Arial, sans-serif; color: #202020; margin: 0; padding: 20px; }
+    main { max-width: 340px; margin: auto; }
+    header { text-align: center; border-bottom: 2px dashed #a6192e; padding-bottom: 12px; }
+    header img { max-width: 190px; }
+    h1 { font-size: 15px; margin: 9px 0 0; }
+    .code { background: #fff1f3; border: 1px dashed #a6192e; border-radius: 7px; color: #a6192e; font: bold 17px monospace; letter-spacing: 1px; margin: 15px 0; padding: 10px; text-align: center; }
+    .meta { color: #4d5552; line-height: 1.6; margin: 10px 0; }
+    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+    td { border-bottom: 1px dashed #d6d6d6; padding: 9px 0; vertical-align: bottom; }
+    td:last-child { text-align: right; font-weight: bold; }
+    small { color: #65706b; }
+    .total { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; border-top: 2px solid #202020; margin-top: 14px; padding-top: 12px; }
+    .total span:last-child { color: #a6192e; }
+    footer { color: #68716d; font-size: 11px; margin-top: 25px; text-align: center; }
+    .anulado { background: #a6192e; border-radius: 7px; color: #fff; margin: 14px 0 0; padding: 10px 12px; text-align: center; }
+    .anulado b { display: block; font-size: 16px; letter-spacing: 2px; }
+    .anulado span { display: block; font-size: 12px; margin-top: 4px; }
+    .es-anulado .code, .es-anulado .total span:last-child { color: #68716d; text-decoration: line-through; }
+    @media print { body { padding: 0; } button { display: none; } }
+  </style>
+</head>
+<body class="${anulado ? 'es-anulado' : ''}">
+  <main>
+    <header>
+      <img src="${window.location.origin}/logo-terra.png" alt="TERRA Autoservicio">
+      <h1>${anulado ? 'Ticket de pedido anulado' : 'Ticket de pedido'}</h1>
+    </header>
+    ${avisoAnulado}
+    <div class="code">${escapar(codigoTicket)}</div>
+    <div class="meta">
+      <b>Fecha:</b> ${escapar(fecha)}<br>
+      <b>Cliente:</b> ${escapar(nombreCliente)}
+      ${telefonoCliente ? `<br><b>Teléfono:</b> ${escapar(telefonoCliente)}` : ''}
+      ${nitCliente ? `<br><b>NIT:</b> ${escapar(nitCliente)}` : ''}
+      ${direccionEntrega ? `<br><b>Envío:</b> ${escapar(direccionEntrega)}` : ''}
+      ${referenciaEntrega ? `<br><b>Ref:</b> ${escapar(referenciaEntrega)}` : ''}
+      ${metodoPago ? `<br><b>Medio de pago:</b> ${escapar(metodoPago === 'qr' ? 'QR Simple' : metodoPago.toUpperCase())}` : ''}
+      <br><b>Estado:</b> <span style="font-weight:bold;color:${anulado ? '#a6192e' : (cobrado ? '#006633' : '#b45309')};">${estadoTexto}</span>
+    </div>
+    <table>${detalle}</table>
+    <div class="total">
+      <span>Total</span>
+      <span>${formatoMoneda(pedido.total)}</span>
+    </div>
+    <footer>${anulado ? 'Pedido anulado · sin valor como comprobante de pago.' : 'Gracias por comprar en TERRA Autoservicio.'}</footer>
+  </main>
+  <script>
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 250);
+    };
+  </script>
+</body>
+</html>`;
+
+  destino.document.write(html);
   destino.document.close();
 }

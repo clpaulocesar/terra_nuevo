@@ -7,6 +7,7 @@ import {
   actualizarStockBD,
   eliminarProductoBD,
   cambiarVisibilidadProductoBD,
+  buscarCoincidenciasNombreProductoBD,
 } from '../models/productoModel.js';
 import { migrateAndSeed } from '../config/migrate_seed.js';
 
@@ -146,6 +147,10 @@ export async function crearProducto(req, res, next) {
         success: false,
         mensaje: 'Nombre, categoría y precio son obligatorios',
       });
+    }
+    const coincidencias = await buscarCoincidenciasNombreProductoBD({ nombre: datos.nombre, medida: datos.medida, color: datos.detalle });
+    if (coincidencias.some((producto) => producto.exacto)) {
+      return res.status(409).json({ success: false, mensaje: 'Ya existe un producto con el mismo nombre, medida y color.', coincidencias });
     }
 
     const precioMayorista = datos.precioMayorista === '' || datos.precioMayorista == null ? null : Number(datos.precioMayorista);

@@ -1,4 +1,5 @@
 import { apiRequest, MODO_DEMO } from './api.js';
+import { getAdminToken } from './adminService.js';
 
 export function normalizarProducto(producto) {
   // `precio` ya viene del backend como precio efectivo (oferta si aplica);
@@ -48,6 +49,7 @@ export function normalizarProducto(producto) {
   };
 }
 function exigirConexionReal() { if (MODO_DEMO) throw new Error('El modo demostración está activo. Configura VITE_MODO_DEMO=false para usar PostgreSQL.'); }
+function encabezadoAdmin() { const token = getAdminToken(); if (!token) throw new Error('Inicia sesión como administrador para modificar productos.'); return { Authorization: `Bearer ${token}` }; }
 function construirQueryProductos({
   buscar = '',
   categoria = '',
@@ -106,16 +108,17 @@ export async function listarProductosPaginado({ signal, ...filtros } = {}) {
   };
 }
 export async function obtenerProducto(id) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}`)); }
-export async function crearProducto(datos) { exigirConexionReal(); return normalizarProducto(await apiRequest('/productos', { method: 'POST', body: datos })); }
-export async function actualizarProducto(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}`, { method: 'PUT', body: datos })); }
-export async function actualizarStock(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}/stock`, { method: 'PATCH', body: datos })); }
+export async function crearProducto(datos) { exigirConexionReal(); return normalizarProducto(await apiRequest('/productos', { method: 'POST', headers: encabezadoAdmin(), body: datos })); }
+export async function actualizarProducto(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}`, { method: 'PUT', headers: encabezadoAdmin(), body: datos })); }
+export async function actualizarStock(id, datos) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}/stock`, { method: 'PATCH', headers: encabezadoAdmin(), body: datos })); }
 // Suma unidades al stock actual (ingreso de almacén); el backend hace la suma para no pisar lecturas viejas.
-export async function agregarStock(id, cantidad) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}/stock`, { method: 'PATCH', body: { agregar: Number(cantidad) } })); }
+export async function agregarStock(id, cantidad) { exigirConexionReal(); return normalizarProducto(await apiRequest(`/productos/${id}/stock`, { method: 'PATCH', headers: encabezadoAdmin(), body: { agregar: Number(cantidad) } })); }
 export async function cambiarVisibilidadProducto(id, activo) {
   exigirConexionReal();
   try {
     const res = await apiRequest(`/productos/${id}/visibilidad`, {
       method: 'PATCH',
+      headers: encabezadoAdmin(),
       body: { activo: Boolean(activo) },
     });
     const data = res?.data || res;
@@ -124,6 +127,7 @@ export async function cambiarVisibilidadProducto(id, activo) {
     if (err.message?.includes('Ruta no encontrada') || err.message?.includes('404')) {
       const resFallback = await apiRequest(`/productos/${id}`, {
         method: 'PUT',
+        headers: encabezadoAdmin(),
         body: { activo: Boolean(activo) },
       });
       const dataFallback = resFallback?.data || resFallback;
@@ -132,7 +136,7 @@ export async function cambiarVisibilidadProducto(id, activo) {
     throw err;
   }
 }
-export async function eliminarProducto(id) { exigirConexionReal(); return apiRequest(`/productos/${id}`, { method: 'DELETE' }); }
+export async function eliminarProducto(id) { exigirConexionReal(); return apiRequest(`/productos/${id}`, { method: 'DELETE', headers: encabezadoAdmin() }); }
 // `todas: true` incluye las categorías sin productos (uso del backoffice); el catálogo público solo recibe las que tienen productos activos.
 export async function listarCategorias({ signal, todas = false } = {}) { try { const r = await apiRequest(todas ? '/categorias?todas=1' : '/categorias', { signal }); return Array.isArray(r) ? r : r?.data || []; } catch { return []; } }
 export async function crearCategoria(datos) { exigirConexionReal(); return apiRequest('/categorias', { method: 'POST', body: datos }); }

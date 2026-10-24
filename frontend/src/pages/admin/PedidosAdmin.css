@@ -454,3 +454,241 @@
   .orders-list > article > *:nth-child(5) { grid-area: estado; justify-self: end; }
   .orders-list > article > .order-actions { grid-area: acciones; margin-top: .45rem; }
 }
+
+/* Indicadores de modalidad de entrega en tabla y modal */
+.order-delivery-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  background: #fdeeee;
+  color: #a6192e;
+  border: 1px solid rgba(166, 25, 46, 0.2);
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 800;
+  padding: .15rem .45rem;
+  margin-top: .25rem;
+  line-height: 1.1;
+  width: fit-content;
+}
+
+.order-address-text {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  color: #707974;
+  font-size: .72rem;
+  margin-top: .25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.order-items-col {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.order-items-text {
+  margin: 0;
+  font-size: .84rem;
+  line-height: 1.4;
+  color: #333;
+}
+
+.order-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+  margin-top: .15rem;
+}
+
+.tag-envio,
+.tag-llevado {
+  display: inline-flex;
+  align-items: center;
+  font-size: .68rem;
+  font-weight: 800;
+  padding: .12rem .45rem;
+  border-radius: 999px;
+  line-height: 1.2;
+}
+
+.tag-envio {
+  background: #fdeeee;
+  color: #a6192e;
+  border: 1px solid #fecdd3;
+}
+
+.tag-llevado {
+  background: #e6f4ea;
+  color: #004230;
+  border: 1px solid #ceead6;
+}
+
+/* Lista de artículos en el modal */
+.orders-modal-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  max-height: 240px;
+  overflow-y: auto;
+  margin-top: .4rem;
+}
+
+.orders-modal-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .55rem .75rem;
+  background: #fdfcfb;
+  border: 1px solid #f0eded;
+  border-radius: .6rem;
+}
+
+.orders-modal-item-row b {
+  display: block;
+  font-size: .85rem;
+  color: #1b1c1c;
+}
+
+.orders-modal-item-row small {
+  display: block;
+  font-size: .74rem;
+  color: #707974;
+  margin-top: .1rem;
+}
+
+.orders-modal-item-row strong {
+  font-size: .88rem;
+  color: #1b1c1c;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.orders-item-delivery-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: .72rem;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: .2rem .55rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.orders-item-delivery-badge.is-delivery {
+  background: #fdeeee;
+  color: #a6192e;
+  border: 1px solid rgba(166, 25, 46, 0.2);
+}
+
+.orders-item-delivery-badge.is-pickup {
+  background: #e6f4ea;
+  color: #004230;
+  border: 1px solid #ceead6;
+}
+
+.order-delivery-badge.is-mixed {
+  background: #fff8e1;
+  color: #8f4c00;
+  border: 1px solid #ffe082;
+}
+
+.order-delivery-badge.is-pickup {
+  background: #e6f4ea;
+  color: #004230;
+  border: 1px solid #ceead6;
+}
+
+.order-delivery-badge.is-delivery {
+  background: #fdeeee;
+  color: #a6192e;
+  border: 1px solid rgba(166, 25, 46, 0.2);
+}
+
+.order-pickup-text {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  color: #004230;
+  font-size: .72rem;
+  font-weight: 700;
+  margin-top: .25rem;
+}
+
+.orders-modal-delivery-card {
+  padding: .75rem 1rem;
+  border-radius: .6rem;
+  margin: .6rem 0 .8rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  font-size: .84rem;
+}
+
+.orders-modal-delivery-card.is-mixed {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  color: #5c3500;
+}
+
+.orders-modal-delivery-card.is-delivery {
+  background: #fdeeee;
+  border: 1px solid rgba(166, 25, 46, 0.2);
+  color: #63101b;
+}
+
+.orders-modal-delivery-card.is-pickup {
+  background: #e6f4ea;
+  border: 1px solid #ceead6;
+  color: #004230;
+}
+
+.delivery-card-header {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .88rem;
+  font-weight: 800;
+}
+
+.orders-modal-delivery-card p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.delivery-card-address {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .15rem;
+  font-size: .8rem;
+}
+
+.orders-item-delivery-toggle {
+  display: inline-flex;
+  align-items: center;
+  font-size: .74rem;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: .25rem .6rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: .15s ease;
+}
+
+.orders-item-delivery-toggle.is-delivery {
+  background: #fdeeee;
+  color: #a6192e;
+  border-color: rgba(166, 25, 46, 0.25);
+}
+
+.orders-item-delivery-toggle.is-pickup {
+  background: #e6f4ea;
+  color: #004230;
+  border-color: #ceead6;
+}

@@ -138,36 +138,271 @@ section.ident-page > h1 {
 }
 .ident-card small { display: block; margin-top: 0.35rem; color: #c0392b; font-size: 0.78rem; font-weight: 600; }
 
-/* ==== TOGGLE WHATSAPP ==== */
-.ident-whatsapp {
+/* ==== MODALIDAD DE ENTREGA (SÍ / NO A DOMICILIO - SOLO TEXTO SIN MAPA) ==== */
+.ident-delivery-choice {
+  margin: 1.2rem 0;
+  border-top: 1px dashed var(--ip-linea);
+  padding-top: 1.1rem;
+}
+.ident-delivery-title {
   display: flex;
   align-items: center;
+  gap: 0.45rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--ip-tinta);
+  margin-bottom: 0.65rem;
+}
+.ident-delivery-title svg {
+  color: var(--ip-vino);
+}
+.ident-delivery-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
-  width: 100%;
+  margin-bottom: 0.8rem;
+}
+.ident-delivery-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
   background: var(--ip-crema);
   border: 1.5px solid var(--ip-linea);
   border-radius: 14px;
-  padding: 0.9rem 1rem;
+  padding: 0.85rem 1rem;
   text-align: left;
+  cursor: pointer;
+  min-height: 3.4rem;
+  font: inherit;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ident-delivery-btn:hover {
+  border-color: #e2d2c6;
+}
+.ident-delivery-btn.is-selected {
+  background: #fff;
+  border-color: var(--ip-vino);
+  box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.12);
+}
+.ident-delivery-btn svg {
+  color: var(--ip-muted);
+  flex-shrink: 0;
+}
+.ident-delivery-btn.is-selected svg {
+  color: var(--ip-vino);
+}
+.ident-delivery-btn b {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--ip-tinta);
+}
+.ident-delivery-btn small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--ip-muted);
+  margin-top: 0.15rem;
+}
+.ident-delivery-fields {
+  display: grid;
+  gap: 1rem;
+  background: #faf8f7;
+  border: 1px solid var(--ip-linea);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* ==== SELECCIÓN DE PRODUCTOS PARA ENVÍO ==== */
+.ident-delivery-items-wrap {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--ip-linea);
+}
+
+.ident-delivery-items-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ident-delivery-items-header b {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--ip-tinta);
+}
+
+.ident-delivery-items-header b svg {
+  color: var(--ip-vino);
+}
+
+.ident-delivery-items-header small {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--ip-muted);
+  margin-top: 0.15rem;
+}
+
+.ident-delivery-btn-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #fff;
+  border: 1px solid var(--ip-linea);
+  border-radius: 999px;
+  color: var(--ip-vino);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.45rem 0.85rem;
+  min-height: 2.75rem;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
-.ident-whatsapp:hover { border-color: #e2d2c6; }
-.ident-whatsapp > span {
-  flex: 0 0 auto;
+
+.ident-delivery-btn-all:hover {
+  background: var(--ip-vino-suave);
+  border-color: var(--ip-vino);
+}
+
+.ident-delivery-items-grid {
   display: grid;
-  place-items: center;
-  width: 1.7rem;
-  height: 1.7rem;
-  border-radius: 9px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.65rem;
+}
+
+.ident-delivery-item-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
   background: #fff;
   border: 1.5px solid var(--ip-linea);
-  color: #fff;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  border-radius: 12px;
+  cursor: pointer;
+  min-height: 3.5rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  user-select: none;
 }
-.ident-whatsapp > span:has(svg) { background: var(--ip-vino); border-color: var(--ip-vino); }
-.ident-whatsapp b { font-size: 0.9rem; font-weight: 800; }
-.ident-whatsapp small { display: block; margin-top: 0.1rem; color: var(--ip-muted); font-size: 0.78rem; font-weight: 500; }
+
+.ident-delivery-item-card:hover {
+  border-color: #d1bfb2;
+}
+
+.ident-delivery-item-card:active {
+  transform: scale(0.99);
+}
+
+.ident-delivery-item-card.is-delivery {
+  border-color: var(--ip-vino);
+  background: #fffdfd;
+  box-shadow: 0 0 0 2px rgba(166, 25, 46, 0.1);
+}
+
+.ident-delivery-item-card.is-pickup {
+  border-color: #d5cbbf;
+  background: #fbf9f7;
+  opacity: 0.9;
+}
+
+.ident-delivery-item-thumb {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  background: var(--ip-crema);
+  border: 1px solid var(--ip-linea);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: var(--ip-muted);
+}
+
+.ident-delivery-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ident-delivery-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ident-delivery-item-info strong {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ip-tinta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ident-delivery-item-info span {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--ip-muted);
+  margin-top: 0.1rem;
+}
+
+.ident-delivery-item-badge {
+  flex-shrink: 0;
+}
+
+.pill-delivery,
+.pill-pickup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.pill-delivery {
+  background: var(--ip-vino-suave);
+  color: var(--ip-vino);
+  border: 1px solid rgba(166, 25, 46, 0.2);
+}
+
+.pill-pickup {
+  background: #ede9e3;
+  color: #5d534c;
+  border: 1px solid #ddd5cb;
+}
+
+.ident-delivery-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--ip-crema);
+  border: 1px solid var(--ip-linea);
+  border-radius: 10px;
+  font-size: 0.78rem;
+  color: var(--ip-muted);
+}
+
+.ident-delivery-counter b {
+  color: var(--ip-tinta);
+}
+@media (max-width: 540px) {
+  .ident-delivery-options {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* ==== BOTONES ==== */
 .ident-next,

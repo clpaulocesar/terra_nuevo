@@ -2,7 +2,15 @@ import { createContext, useCallback, useMemo, useState } from 'react';
 
 export const ClienteContext = createContext(null);
 
-const CLIENTE_VACIO = { nombre: '', telefono: '', nit: '' };
+const CLIENTE_VACIO = {
+  nombre: '',
+  telefono: '',
+  nit: '',
+  entregaDomicilio: false,
+  direccion: '',
+  referencia: '',
+  itemsEnvio: [],
+};
 
 export function ClienteProvider({ children }) {
   // No guardamos datos personales en localStorage: la tablet es compartida.
