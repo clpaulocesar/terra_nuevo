@@ -158,9 +158,31 @@ export default function PedidosAdmin() {
     try {
       const completo = await obtenerPedido(pedido.id);
       if (completo) {
+        const nombreCliente = typeof completo.cliente === 'object' && completo.cliente !== null
+          ? (completo.cliente.nombre || completo.cliente_nombre || pedido.cliente || 'Compra como invitado')
+          : (completo.cliente || completo.cliente_nombre || pedido.cliente || 'Compra como invitado');
+        const telCliente = typeof completo.cliente === 'object' && completo.cliente !== null
+          ? (completo.cliente.telefono || completo.cliente_telefono || pedido.cliente_telefono || '')
+          : (completo.cliente_telefono || pedido.cliente_telefono || '');
+        const nitCliente = typeof completo.cliente === 'object' && completo.cliente !== null
+          ? (completo.cliente.nit || completo.cliente_nit || pedido.cliente_nit || '')
+          : (completo.cliente_nit || pedido.cliente_nit || '');
+        const dirEntrega = typeof completo.cliente === 'object' && completo.cliente !== null
+          ? (completo.cliente.direccion || completo.direccion_entrega || pedido.direccion_entrega || '')
+          : (completo.direccion_entrega || pedido.direccion_entrega || '');
+        const refEntrega = typeof completo.cliente === 'object' && completo.cliente !== null
+          ? (completo.cliente.referencia || completo.referencia_entrega || pedido.referencia_entrega || '')
+          : (completo.referencia_entrega || pedido.referencia_entrega || '');
+
         setSeleccion((prev) => (prev && prev.id === pedido.id ? {
           ...prev,
           ...completo,
+          cliente: nombreCliente,
+          cliente_nombre: nombreCliente,
+          cliente_telefono: telCliente,
+          cliente_nit: nitCliente,
+          direccion_entrega: dirEntrega,
+          referencia_entrega: refEntrega,
           items_detalle: completo.items || prev.items_detalle,
           cant_envio: (completo.items || []).filter((it) => (it.tipo_entrega || it.tipoEntrega) === 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0),
           cant_llevado: (completo.items || []).filter((it) => (it.tipo_entrega || it.tipoEntrega) !== 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0),
@@ -615,7 +637,7 @@ export default function PedidosAdmin() {
       const esEnvioPuroModal = tieneDireccionModal && cantEnvioModal > 0 && cantLlevadoModal === 0;
 
       return (
-        <div className="orders-modal"><section role="dialog" aria-modal="true" aria-labelledby="pedido-modal-titulo"><header><div><span>Caja Equipetrol</span><h2 id="pedido-modal-titulo">{seleccion.numero ? `Pedido #${seleccion.numero} · ` : ''}#{seleccion.codigo}</h2><p>Cliente: {seleccion.cliente}</p>{(seleccion.cliente_telefono || seleccion.cliente_nit) && <p className="orders-client-data">{seleccion.cliente_telefono ? `Tel. ${seleccion.cliente_telefono}` : ''}{seleccion.cliente_telefono && seleccion.cliente_nit ? ' · ' : ''}{seleccion.cliente_nit ? `NIT ${seleccion.cliente_nit}` : ''}</p>}</div><button onClick={() => setSeleccion(null)} aria-label="Cerrar">×</button></header>
+        <div className="orders-modal"><section role="dialog" aria-modal="true" aria-labelledby="pedido-modal-titulo"><header><div><span>Caja Equipetrol</span><h2 id="pedido-modal-titulo">{seleccion.numero ? `Pedido #${seleccion.numero} · ` : ''}#{seleccion.codigo}</h2><p>Cliente: {typeof seleccion.cliente === 'object' && seleccion.cliente !== null ? (seleccion.cliente.nombre || seleccion.cliente_nombre || 'Compra como invitado') : (seleccion.cliente || 'Compra como invitado')}</p>{(seleccion.cliente_telefono || seleccion.cliente_nit) && <p className="orders-client-data">{seleccion.cliente_telefono ? `Tel. ${seleccion.cliente_telefono}` : ''}{seleccion.cliente_telefono && seleccion.cliente_nit ? ' · ' : ''}{seleccion.cliente_nit ? `NIT ${seleccion.cliente_nit}` : ''}</p>}</div><button onClick={() => setSeleccion(null)} aria-label="Cerrar">×</button></header>
         {esMixtoModal ? (
           <div className="orders-modal-delivery-card is-mixed">
             <div className="delivery-card-header">
