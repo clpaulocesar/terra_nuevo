@@ -38,7 +38,24 @@ export function imprimirTicketPedido(pedido, ventana = null) {
     timeZone: 'America/La_Paz',
   }).format(new Date(pedido.fecha || Date.now()));
 
-  const detalle = (Array.isArray(pedido.items) ? pedido.items : []).map((item) => {
+  const items = Array.isArray(pedido.items) ? pedido.items : [];
+  const resumenEntrega = items.reduce(
+    (resumen, item) => {
+      const tipo = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
+      const cantidad = Number(item.cantidad || item.quantity || 1);
+      if (tipo === 'home_delivery') resumen.envio += cantidad;
+      else resumen.retiro += cantidad;
+      return resumen;
+    },
+    { envio: 0, retiro: 0 }
+  );
+  const textoEntrega = resumenEntrega.envio && resumenEntrega.retiro
+    ? `Modalidad mixta: ${resumenEntrega.envio} para envío y ${resumenEntrega.retiro} para retiro en tienda`
+    : resumenEntrega.envio
+      ? `Envío a domicilio: ${resumenEntrega.envio} producto(s)`
+      : `Retiro en tienda: ${resumenEntrega.retiro} producto(s)`;
+
+  const detalle = items.map((item) => {
     const tipo = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
     const etiqueta = direccionEntrega
       ? (tipo === 'home_delivery'
@@ -107,6 +124,7 @@ export function imprimirTicketPedido(pedido, ventana = null) {
       ${nitCliente ? `<br><b>NIT:</b> ${escapar(nitCliente)}` : ''}
       ${direccionEntrega ? `<br><b>Envío:</b> ${escapar(direccionEntrega)}` : ''}
       ${referenciaEntrega ? `<br><b>Ref:</b> ${escapar(referenciaEntrega)}` : ''}
+      <br><b>Modalidad:</b> ${escapar(textoEntrega)}
       ${metodoPago ? `<br><b>Medio de pago:</b> ${escapar(metodoPago === 'qr' ? 'QR Simple' : metodoPago.toUpperCase())}` : ''}
       <br><b>Estado:</b> <span style="font-weight:bold;color:${anulado ? '#a6192e' : (cobrado ? '#006633' : '#b45309')};">${estadoTexto}</span>
     </div>

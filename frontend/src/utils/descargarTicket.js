@@ -23,7 +23,26 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
   const anulado = ['cancelled', 'cancelado'].includes(estadoClave);
   const estadoTexto = anulado ? 'Cancelado / Anulado' : (cobrado ? 'Cobrado' : 'Pendiente de pago');
 
-  const filas = (items.length > 0 ? items : (pedido.items || []))
+  const itemsTicket = Array.isArray(items) && items.length
+    ? items
+    : (Array.isArray(pedido.items) ? pedido.items : []);
+  const resumenEntrega = itemsTicket.reduce(
+    (resumen, item) => {
+      const tipoEntrega = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
+      const cantidad = Number(item.cantidad || item.quantity || 1);
+      if (tipoEntrega === 'home_delivery') resumen.envio += cantidad;
+      else resumen.retiro += cantidad;
+      return resumen;
+    },
+    { envio: 0, retiro: 0 }
+  );
+  const textoEntrega = resumenEntrega.envio && resumenEntrega.retiro
+    ? `Modalidad mixta: ${resumenEntrega.envio} para envío y ${resumenEntrega.retiro} para retiro en tienda`
+    : resumenEntrega.envio
+      ? `Envío a domicilio: ${resumenEntrega.envio} producto(s)`
+      : `Retiro en tienda: ${resumenEntrega.retiro} producto(s)`;
+
+  const filas = itemsTicket
     .map(
       (item) => {
         const tipoEntrega = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
@@ -72,6 +91,7 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
       ${nitCliente ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">NIT:</span> <b style="color: #1e293b;">${nitCliente}</b></div>` : ''}
       ${direccionEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Envío:</span> <b style="color: #1e293b;">${direccionEntrega}</b></div>` : ''}
       ${referenciaEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Referencia:</span> <b style="color: #1e293b;">${referenciaEntrega}</b></div>` : ''}
+      <div style="margin-bottom: 6px;"><span style="color: #64748b;">Modalidad:</span> <b style="color: #1e293b;">${textoEntrega}</b></div>
       ${metodoPago ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Medio de pago:</span> <b style="color: #a6192e;">${metodoPago === 'qr' ? `QR Simple (Glosa: ${pedido.codigo || pedido.id})` : metodoPago.toUpperCase()}</b></div>` : ''}
       <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Estado:</span> <b style="color: ${anulado ? '#a6192e' : (cobrado ? '#146440' : '#9a6513')};">${estadoTexto}</b></div>
     </div>

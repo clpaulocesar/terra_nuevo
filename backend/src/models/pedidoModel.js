@@ -443,7 +443,7 @@ export async function actualizarItemsPedidoBD(pedidoId, items) {
   try {
     await conexion.query('BEGIN');
     const pedidoActual = await conexion.query(
-      `SELECT id, status, customer_id, fulfillment_type FROM orders WHERE id=$1 FOR UPDATE`,
+      `SELECT id, status, customer_id, fulfillment_type, delivery_address FROM orders WHERE id=$1 FOR UPDATE`,
       [pedidoId]
     );
     if (!pedidoActual.rowCount) throw new Error('Pedido no encontrado.');
@@ -492,7 +492,7 @@ export async function actualizarItemsPedidoBD(pedidoId, items) {
         cantidad,
         unitPriceMinor: Number(prod.price_minor),
         subtotalMinor,
-        tipoEntrega: item.tipoEntrega || item.tipo_entrega || (pedido.rows[0]?.delivery_address ? 'home_delivery' : 'store_pickup'),
+        tipoEntrega: item.tipoEntrega || item.tipo_entrega || (pActual.delivery_address ? 'home_delivery' : 'store_pickup'),
       });
     }
 

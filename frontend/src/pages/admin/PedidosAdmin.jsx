@@ -468,6 +468,9 @@ export default function PedidosAdmin() {
 
   const prepararPedidoParaTicket = async (pedido) => {
     const pedidoCompleto = await obtenerPedido(pedido.id);
+    const direccionEntrega = pedidoCompleto?.direccion_entrega || pedido.direccion_entrega || '';
+    const items = pedidoCompleto?.items?.length ? pedidoCompleto.items : pedido.items;
+    const tipoPredeterminado = direccionEntrega ? 'home_delivery' : 'store_pickup';
     return {
       ...pedido,
       ...pedidoCompleto,
@@ -478,7 +481,12 @@ export default function PedidosAdmin() {
         direccion: pedido.direccion_entrega || '',
         referencia: pedido.referencia_entrega || '',
       },
-      items: pedidoCompleto?.items?.length ? pedidoCompleto.items : pedido.items,
+      items: Array.isArray(items)
+        ? items.map((item) => ({
+          ...item,
+          tipo_entrega: item.tipo_entrega || item.tipoEntrega || item.delivery_type || tipoPredeterminado,
+        }))
+        : items,
     };
   };
 
