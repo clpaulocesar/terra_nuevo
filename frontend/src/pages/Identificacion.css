@@ -544,3 +544,27 @@ section.ident-page > h1 {
 @media (pointer: fine) {
   .ident-teclado { display: none; }
 }
+
+.ident-delivery-rate {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.ident-delivery-rate > span {
+  color: var(--terra-text, var(--ip-tinta));
+  font-weight: 700;
+}
+
+.ident-delivery-rate select {
+  min-height: 2.75rem;
+  border: 1px solid var(--terra-border, var(--ip-linea));
+  border-radius: var(--terra-radius, 0.5rem);
+  background: var(--terra-surface, var(--ip-fondo));
+  color: var(--terra-text, var(--ip-tinta));
+  padding: 0.5rem;
+}
+
+.ident-delivery-rate strong {
+  color: var(--terra-text, var(--ip-tinta));
+}

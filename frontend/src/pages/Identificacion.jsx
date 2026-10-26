@@ -18,6 +18,7 @@ import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { validarDatosCliente } from '../utils/validaciones.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
+import { listarTarifasEnvio } from '../services/envioService.js';
 import './Identificacion.css';
 import TecladoTactil from '../components/ui/TecladoTactil.jsx';
 
@@ -48,6 +49,9 @@ export default function Identificacion() {
     referencia: cliente?.referencia || '',
   }));
   const [entregaDomicilio, setEntregaDomicilio] = useState(() => Boolean(cliente?.entregaDomicilio));
+  const [tarifasEnvio, setTarifasEnvio] = useState([]);
+  const [zonaEnvioId, setZonaEnvioId] = useState(() => cliente?.zonaEnvioId || '');
+  const [cargandoTarifas, setCargandoTarifas] = useState(false);
   const [itemsEnvio, setItemsEnvio] = useState(() => {
     const guardados = cliente?.itemsEnvio;
     if (Array.isArray(guardados) && guardados.length) return new Set(guardados);
@@ -84,6 +88,25 @@ export default function Identificacion() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [tecladoAbierto, esTactil]);
+
+  useEffect(() => {
+    if (!entregaDomicilio) return undefined;
+    let vigente = true;
+    setCargandoTarifas(true);
+    listarTarifasEnvio()
+      .then((tarifas) => {
+        if (vigente) setTarifasEnvio(Array.isArray(tarifas) ? tarifas : []);
+      })
+      .catch(() => {
+        if (vigente) setErrores((anterior) => ({ ...anterior, zonaEnvioId: 'No se pudieron cargar las tarifas. Volvé a intentarlo.' }));
+      })
+      .finally(() => {
+        if (vigente) setCargandoTarifas(false);
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [entregaDomicilio]);
 
   if (esMayorista) return <Navigate to="/confirmacion" replace />;
   if (!items.length) return <Navigate to="/carrito" replace />;
@@ -137,6 +160,7 @@ export default function Identificacion() {
     const datosValidados = {
       ...datos,
       entregaDomicilio,
+      zonaEnvioId,
     };
     const erroresNuevos = validarDatosCliente(datosValidados);
     setErrores(erroresNuevos);
@@ -149,10 +173,14 @@ export default function Identificacion() {
       entregaDomicilio,
       direccion: entregaDomicilio ? (datos.direccion || '').trim() : '',
       referencia: entregaDomicilio ? (datos.referencia || '').trim() : '',
+      zonaEnvioId: entregaDomicilio ? zonaEnvioId : '',
       itemsEnvio: entregaDomicilio ? Array.from(itemsEnvio) : [],
     });
     nav('/confirmacion');
   };
+
+  const tarifaSeleccionada = tarifasEnvio.find((tarifa) => tarifa.id === zonaEnvioId);
+  const subtotal = items.reduce((suma, item) => suma + Number(item.precio || 0) * Number(item.cantidad || 0), 0);
 
   return (
     <section className="ident-page" style={{ paddingBottom: tecladoAbierto && esTactil ? 'clamp(20rem, 40vh, 26rem)' : 0 }}>
@@ -274,6 +302,37 @@ export default function Identificacion() {
                   </label>
 
                   {/* Selección de productos para envío a domicilio */}
+                  <label className="ident-delivery-rate">
+                    <span>Zona de entrega y costo <b>*</b></span>
+                    <select
+                      value={zonaEnvioId}
+                      disabled={cargandoTarifas}
+                      onChange={(event) => {
+                        setZonaEnvioId(event.target.value);
+                        setErrores((anterior) => {
+                          const siguientes = { ...anterior };
+                          delete siguientes.zonaEnvioId;
+                          return siguientes;
+                        });
+                      }}
+                    >
+                      <option value="">
+                        {cargandoTarifas ? 'Cargando tarifas…' : 'Seleccioná tu zona'}
+                      </option>
+                      {tarifasEnvio.map((tarifa) => (
+                        <option key={tarifa.id} value={tarifa.id}>
+                          {tarifa.nombre} — {formatoMoneda(tarifa.costo)}
+                        </option>
+                      ))}
+                    </select>
+                    {tarifaSeleccionada && (
+                      <strong>
+                        Costo de envío: {formatoMoneda(tarifaSeleccionada.costo)} · Total estimado: {formatoMoneda(subtotal + Number(tarifaSeleccionada.costo))}
+                      </strong>
+                    )}
+                    {errores.zonaEnvioId && <small>{errores.zonaEnvioId}</small>}
+                  </label>
+
                   <div className="ident-delivery-items-wrap">
                     <div className="ident-delivery-items-header">
                       <div>

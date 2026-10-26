@@ -1,0 +1,32 @@
+.shipping-rates { color: var(--terra-text, var(--td-text)); }
+.shipping-rates__hero, .shipping-rates__summary, .shipping-rates__table { background: var(--terra-surface, var(--td-surface)); border: 1px solid var(--terra-border, var(--td-line)); border-radius: var(--terra-radius, 1rem); }
+.shipping-rates__hero { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.5rem; }
+.shipping-rates__hero span, .shipping-rates__place { display: inline-flex; align-items: center; gap: 0.5rem; }
+.shipping-rates__hero h1 { margin: 0.4rem 0; font-size: 1.75rem; }
+.shipping-rates__hero p, .shipping-rates__table p { margin: 0; color: var(--terra-muted, var(--td-muted)); }
+.shipping-rates__hero > button, .shipping-rates__modal footer button:last-child { min-height: 2.75rem; border: 0; border-radius: var(--terra-radius, 0.5rem); background: var(--terra-primary, var(--td-accent)); color: var(--terra-on-primary, var(--td-surface)); padding: 0.5rem 0.9rem; font-weight: 700; }
+.shipping-rates__summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 1rem 0; padding: 1rem; }
+.shipping-rates__summary article { display: flex; align-items: center; gap: 0.75rem; }
+.shipping-rates__summary small, .shipping-rates__summary b { display: block; }
+.shipping-rates__summary b { font-size: 1.5rem; }
+.shipping-rates__table header { padding: 1.25rem; }
+.shipping-rates__scroll { overflow-x: auto; }
+.shipping-rates table { width: 100%; border-collapse: collapse; min-width: 38rem; }
+.shipping-rates th, .shipping-rates td { border-top: 1px solid var(--terra-border, var(--td-line)); padding: 1rem 1.25rem; text-align: left; }
+.shipping-rates th { color: var(--terra-muted, var(--td-muted)); font-size: 0.8rem; text-transform: uppercase; }
+.shipping-rates__status { border-radius: 999px; background: var(--terra-muted-bg, var(--td-surface-2)); padding: 0.3rem 0.6rem; font-size: 0.8rem; font-weight: 700; }
+.shipping-rates__status.is-active { background: var(--terra-success-bg, var(--td-ok-bg)); color: var(--terra-success, var(--td-ok)); }
+.shipping-rates__actions { display: flex; gap: 0.5rem; }
+.shipping-rates__actions button { min-width: 2.75rem; min-height: 2.75rem; border: 1px solid var(--terra-border, var(--td-line)); border-radius: var(--terra-radius, 0.5rem); background: transparent; color: inherit; }
+.shipping-rates__state, .shipping-rates__error { padding: 1rem 1.25rem; }
+.shipping-rates__error { color: var(--terra-danger, var(--td-danger)); }
+.shipping-rates__modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: var(--terra-overlay, var(--td-surface-2)); padding: 1rem; }
+.shipping-rates__modal form { width: min(100%, 32rem); display: grid; gap: 1rem; background: var(--terra-surface, var(--td-surface)); border-radius: var(--terra-radius, 1rem); padding: 1.25rem; }
+.shipping-rates__modal header, .shipping-rates__modal footer { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.shipping-rates__modal header div { display: flex; align-items: center; gap: 0.6rem; }
+.shipping-rates__modal h2 { margin: 0; font-size: 1.25rem; }
+.shipping-rates__modal label { display: grid; gap: 0.4rem; font-weight: 700; }
+.shipping-rates__modal input:not([type='checkbox']) { min-height: 2.75rem; border: 1px solid var(--terra-border, var(--td-line)); border-radius: var(--terra-radius, 0.5rem); background: var(--terra-surface, var(--td-surface)); color: inherit; padding: 0 0.7rem; }
+.shipping-rates__toggle { display: flex !important; align-items: center; grid-template-columns: auto 1fr; }
+.shipping-rates__modal footer button { min-height: 2.75rem; border: 0; border-radius: var(--terra-radius, 0.5rem); padding: 0.5rem 0.9rem; }
+@media (max-width: 48rem) { .shipping-rates__hero { align-items: stretch; flex-direction: column; } .shipping-rates__summary { grid-template-columns: 1fr; } }

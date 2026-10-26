@@ -3,7 +3,7 @@ import { getAdminToken } from './adminService.js';
 
 function exigirConexionReal() { if (MODO_DEMO) throw new Error('El modo demostración está activo. Configura VITE_MODO_DEMO=false.'); }
 
-export async function crearPedido({ clienteId = null, items, token = null, entregaDomicilio = false, direccion = null, referencia = null, metodoPago }) {
+export async function crearPedido({ clienteId = null, items, token = null, entregaDomicilio = false, zonaEnvioId = null, direccion = null, referencia = null, metodoPago }) {
   exigirConexionReal();
   return apiRequest('/pedidos', {
     method: 'POST',
@@ -11,6 +11,7 @@ export async function crearPedido({ clienteId = null, items, token = null, entre
     body: {
       clienteId,
       entregaDomicilio: Boolean(entregaDomicilio),
+      zonaEnvioId,
       direccion,
       referencia,
       metodoPago,

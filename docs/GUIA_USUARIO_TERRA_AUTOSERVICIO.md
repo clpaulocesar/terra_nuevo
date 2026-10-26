@@ -445,8 +445,9 @@ Cualquier persona que usa la tablet del showroom (o la tienda desde su celular).
 3. En "¿Deseás envío a domicilio?", selecciona:
    - **No, retiro en tienda**: pagas y retiras todos tus productos en el mostrador.
    - **Sí, envío a domicilio**: escribe la **Dirección de entrega** (calle, número y zona) y opcionalmente una **Referencia** en texto plano sin mapa. A continuación, selecciona qué artículos deseas enviar a domicilio y cuáles retirar en tienda tocando las tarjetas de producto (por defecto se envían todos; puedes usar el botón **Enviar todos** para restablecer).
-4. Toca **Continuar a confirmación**.
-5. Resultado: pasas a la pantalla de confirmación.
+4. Si elegiste envío, selecciona la **Zona de entrega y costo**. Verás el costo de transporte y el total estimado antes de continuar.
+5. Toca **Continuar a confirmación**.
+6. Resultado: pasas a la pantalla de confirmación.
 
 💡 Si no quieres dar tus datos, toca **Continuar como invitado**. El pedido se registra como "Compra como invitado".
 
@@ -544,8 +545,9 @@ Con sesión iniciada, el botón con tus iniciales abre:
    - **Retiro en tienda**: pagas y retiras en el mostrador.
    - **Envío a domicilio**: a la dirección de tu perfil. Si no tienes dirección, toca **Registrar dirección** y vuelve.
 5. Toca **Continuar a confirmación** (el mayorista no pasa por Identificación).
-6. Revisa el recuadro **Envío a domicilio** o **Retiro en tienda** y toca **Confirmar y generar pedido**.
-7. Resultado: se genera el ticket con tu código de pedido. El pago se realiza en caja o según lo coordinado con tu asesor; si elegiste envío, el pedido pasa al equipo de despacho.
+6. Si elegiste **Envío a domicilio**, en la confirmación selecciona tu **Zona de entrega y tarifa**. El sistema muestra el costo y lo suma al total a pagar en caja. Si tu dirección no corresponde claramente a una zona, consulta antes con el personal de TERRA.
+7. Revisa el recuadro **Envío a domicilio** o **Retiro en tienda** y toca **Confirmar y generar pedido**.
+8. Resultado: se genera el ticket con tu código de pedido. El pago se realiza en caja o según lo coordinado con tu asesor; si elegiste envío, el pedido pasa al equipo de despacho con su zona y tarifa registrada.
 
 ![Catálogo mayorista con precios B2B](img/mayorista-catalogo-paso2.png)
 
@@ -908,7 +910,7 @@ Ingresa por `/admin/login` (sección 6.3). Entra directo a **Despacho**, el úni
 **Objetivo**: registrar cada etapa del reparto para que la tienda y el cliente sepan dónde está el pedido.
 
 1. En **Despacho**, toca **Solo mis envíos** para ver los asignados a ti. Usa las pestañas **Para entregar**, **En camino**, **Entregados** o **Todos**.
-2. Abre la tarjeta del envío: muestra pedido, cliente, teléfono, **Dirección de entrega**, referencia, artículos, total y la etiqueta de pago ("Cobrado" o "Pago pendiente").
+2. Abre la tarjeta del envío: muestra pedido, cliente, teléfono, **Dirección de entrega**, referencia, zona y costo de envío, artículos, total y la etiqueta de pago ("Cobrado" o "Pago pendiente").
 3. Antes de salir, toca **Llamar** o **WhatsApp** para avisar al cliente (el mensaje se arma solo).
 4. Toca **Abrir Maps** para navegar hasta la dirección, o **Ver ruta** para ver la distancia y el tiempo estimado desde la tienda.
 5. Al salir con el pedido, toca **Salir a entregar**. Verás "Salida registrada: el pedido quedó en camino" y pasa a **En camino**.
@@ -1002,3 +1004,6 @@ Al reportar un problema, indica: tu rol, la pantalla, el **código de pedido** s
 | 1.3 | 24/10/2026 | Equipo TERRA Autoservicio | Identificación minorista con selección directa de envío a domicilio (Sí/No en texto plano sin mapa), QR oficial de pago con zoom interactivo y simplificación de acciones del ticket (9.8, 9.9). |
 | 1.4 | 24/10/2026 | Equipo TERRA Autoservicio | Selección individual de productos para envío vs. retiro para clientes minoristas; visualización en tabla de pedidos admin con etiquetas de modalidad (Envío/Llevado), desglose interactivo en modal y tickets POS/digitales. |
 | 1.5 | 26/10/2026 | Equipo TERRA Autoservicio | Edición completa de modalidad de entrega en pedidos pendientes (Admin y Vendedor): botones rápidos todo llevado en mano / todo envío a domicilio, alternancia por producto, edición de dirección de despacho y persistencia en base de datos (11.5). |
+| 1.6 | 26/10/2026 | Equipo TERRA Autoservicio | Selección de zona de entrega al confirmar el pedido, cálculo seguro de la tarifa de transporte y registro de zona/costo en despacho. |
+| 1.7 | 26/10/2026 | Equipo TERRA Autoservicio | Clientes minoristas ven y seleccionan su tarifa de envío durante Identificación, antes de continuar a la confirmación. |
+| 1.8 | 26/10/2026 | Equipo TERRA Autoservicio | Nueva pantalla administrativa de Tarifas de envío: alta, edición, activación temporal y eliminación de zonas y barrios. |

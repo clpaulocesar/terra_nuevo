@@ -25,6 +25,7 @@ export const DESTINOS = {
   adminDashboard:  { ruta: '/admin',                 nombre: 'Dashboard',                    acceso: ['admin', 'vendedor'], alias: ['dashboard', 'resumen', 'tablero', 'panel principal'] },
   adminDespacho:   { ruta: '/admin/despacho',        nombre: 'Despacho a domicilio',          acceso: ['admin', 'despacho'], alias: ['despacho', 'envios', 'entregas', 'reparto', 'envios a domicilio', 'logistica', 'salir a entregar'] },
   adminRepartidores: { ruta: '/admin/repartidores',  nombre: 'Repartidores',                  acceso: ['admin'], alias: ['repartidores', 'choferes', 'vehiculos', 'placas', 'asignar envios', 'asignar repartidor'] },
+  adminTarifasEnvio: { ruta: '/admin/tarifas-envio', nombre: 'Tarifas de envío',             acceso: ['admin'], alias: ['tarifas de envio', 'costos de envio', 'zonas de envio', 'barrios de envio'] },
   adminPedidos:    { ruta: '/admin/pedidos',         nombre: 'Pedidos',                      acceso: ['admin', 'vendedor'], alias: ['pedidos', 'ordenes'] },
   adminVentas:     { ruta: '/admin/ventas-directas', nombre: 'Ventas directas',              acceso: ['admin', 'vendedor'],             alias: ['ventas directas', 'venta en mostrador', 'cobrar', 'ventas'] },
   adminProductos:  { ruta: '/admin/productos',       nombre: 'Productos',                    acceso: ['admin'],                         alias: ['productos', 'inventario de productos', 'catalogo'] },
