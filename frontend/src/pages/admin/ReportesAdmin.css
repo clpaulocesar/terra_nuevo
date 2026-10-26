@@ -179,66 +179,136 @@
   animation: repSpin 1s linear infinite;
 }
 
-/* Menú de exportación */
+/* Menú de exportación profesional */
 .rep-dropdown {
   position: relative;
 }
 
-.rep-menu {
-  background: #fff;
-  border: 1px solid #eee7e6;
-  border-radius: .8rem;
-  box-shadow: 0 16px 36px #0000001f;
-  min-width: 15rem;
-  padding: .4rem;
+.rep-btn--export {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-weight: 700;
+}
+
+.rep-caret {
+  transition: transform .2s ease;
+}
+
+.rep-caret.open {
+  transform: rotate(180deg);
+}
+
+.rep-menu--pro {
+  background: #ffffff;
+  border: 1px solid #e5dfd9;
+  border-radius: .85rem;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.05);
+  min-width: 18.5rem;
+  padding: .45rem;
   position: absolute;
   right: 0;
-  top: calc(100% + .4rem);
-  z-index: 40;
+  top: calc(100% + .45rem);
+  z-index: 50;
+  animation: repMenuFadeIn .15s ease-out;
+}
+
+@keyframes repMenuFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rep-menu__header {
+  padding: .45rem .6rem .55rem;
+  border-bottom: 1px solid #f1eceb;
+  margin-bottom: .3rem;
 }
 
 .rep-menu__title {
-  color: var(--rep-muted);
+  color: var(--rep-red);
   display: block;
-  font-size: .62rem;
+  font-size: .72rem;
   font-weight: 800;
-  letter-spacing: .07em;
-  padding: .35rem .5rem;
+  letter-spacing: .06em;
   text-transform: uppercase;
 }
 
-.reports .rep-menu button {
+.rep-menu__subtitle {
+  color: var(--rep-muted);
+  display: block;
+  font-size: .68rem;
+  margin-top: .1rem;
+}
+
+.reports .rep-menu--pro .rep-menu__item {
   align-items: center;
   background: transparent;
   border: 0;
   border-radius: .6rem;
   color: var(--rep-ink);
+  cursor: pointer;
   display: flex;
-  gap: .6rem;
+  gap: .7rem;
   margin: 0;
-  padding: .55rem .5rem;
+  padding: .55rem .6rem;
   text-align: left;
+  transition: background .15s ease;
   width: 100%;
 }
 
-.reports .rep-menu button:hover {
-  background: var(--rep-soft);
+.reports .rep-menu--pro .rep-menu__item:hover {
+  background: #fbf8f6;
 }
 
-.rep-menu svg {
-  color: var(--rep-red);
+.rep-menu__icon {
+  align-items: center;
+  border-radius: .55rem;
+  display: flex;
   flex-shrink: 0;
+  height: 2.2rem;
+  justify-content: center;
+  width: 2.2rem;
 }
 
-.rep-menu b {
+.rep-menu__icon--pdf {
+  background: #fdeeee;
+  color: #a6192e;
+}
+
+.rep-menu__icon--excel {
+  background: #e6f4ea;
+  color: #0e7039;
+}
+
+.rep-menu__icon--csv {
+  background: #f1f4f8;
+  color: #374151;
+}
+
+.rep-menu__info {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+}
+
+.rep-menu__info b {
+  color: #191c1d;
   display: block;
-  font-size: .78rem;
+  font-size: .8rem;
   font-weight: 800;
 }
 
-.rep-menu small {
+.rep-menu__info small {
   color: var(--rep-muted);
-  font-size: .66rem;
+  font-size: .67rem;
+  line-height: 1.25;
 }
 
 /* ---------------------------------------------------------

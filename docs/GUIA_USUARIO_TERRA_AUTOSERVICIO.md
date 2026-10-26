@@ -4,8 +4,8 @@
 |---|---|
 | **Sistema** | TERRA Autoservicio (kiosco digital, portal mayorista y backoffice) |
 | **Versión del sistema** | 2.0 |
-| **Versión del documento** | 1.2 |
-| **Fecha** | 23 de octubre de 2026 |
+| **Versión del documento** | 1.5 |
+| **Fecha** | 26 de octubre de 2026 |
 | **Organización** | TERRA Autoservicio · Grupo Terra SRL · Sucursal Equipetrol, Santa Cruz de la Sierra, Bolivia |
 | **Dirigido a** | Clientes en tienda, clientes mayoristas, administradores, vendedores y personal de despacho |
 
@@ -639,15 +639,19 @@ Responsable de la operación completa: cobra pedidos, administra catálogo, prec
 
 💡 Un pago QR pendiente conserva ese estado hasta que la entidad de pago lo confirme. Esta medida evita marcar como cobrado un pago que todavía no fue validado.
 
-### 11.5 Procedimiento: editar los artículos de un pedido pendiente
+### 11.5 Procedimiento: editar artículos y modalidad de entrega (llevar a mano vs. envío) de un pedido pendiente
 
-1. En **Pedidos**, abre un pedido **Pendiente de pago** (botón **Cobrar** o el lápiz "Editar o agregar productos").
+1. En **Pedidos** (tanto en Administrador como en Vendedor), abre un pedido **Pendiente de pago** (botón **Cobrar** o el lápiz "Editar o agregar productos").
 2. Toca **Editar / Agregar**.
-3. Cambia cantidades con **−** / **+** (1 a 100) o elimina líneas con la papelera. Para sumar productos, busca en "Buscar por nombre o SKU..." y toca **Agregar**.
-4. Revisa el **Nuevo total calculado** y toca **Guardar cambios**.
-5. Resultado: "¡Productos y total del pedido actualizados con éxito!". Los precios se recalculan con los vigentes (mayorista si el cliente es mayorista).
+3. **Modalidad de entrega (Llevar a mano / Envío)**:
+   - Puedes usar los botones rápidos en la cabecera: **🛍️ Llevárselo a mano (Todo)** para que el cliente retire todo en mostrador, o **🚚 Envío a domicilio (Todo)** para despachar todo.
+   - En cada fila de producto, puedes alternar individualmente si el cliente se lo lleva en mano o desea envío con el botón de alternancia (**🛍️ Llevado** / **🚚 Envío**), permitiendo compras mixtas.
+   - Si al menos un producto está configurado para envío, se habilitan los campos obligatorios de **Dirección de entrega** y referencia adicional para actualizar los datos de despacho.
+4. **Artículos y cantidades**: Cambia cantidades con **−** / **+** (1 a 100) o elimina líneas con la papelera. Para sumar productos, busca en "Buscar por nombre o SKU..." y toca **Agregar**.
+5. Revisa el **Nuevo total calculado** y toca **Guardar cambios**.
+6. Resultado: "¡Productos y modalidad de entrega actualizados con éxito!". El pedido actualiza sus totales, etiquetas de despacho, cantidades de envío/retiro y dirección.
 
-⚠️ No se pueden editar pedidos ya cobrados o anulados. El pedido debe conservar al menos un producto.
+⚠️ No se pueden editar pedidos ya cobrados o anulados. El pedido debe conservar al menos un producto. Si hay productos para envío, la dirección de entrega es obligatoria.
 
 ### 11.6 Procedimiento: anular una venta
 
@@ -997,3 +1001,4 @@ Al reportar un problema, indica: tu rol, la pantalla, el **código de pedido** s
 | 1.2 | 23/10/2026 | Equipo TERRA Autoservicio | Nuevo tutorial interactivo del catálogo: invitación en la primera visita, botón **Tutorial** en la cabecera y recorrido de 8 pasos adaptado a celular y mayoristas (8.6, 9.2). |
 | 1.3 | 24/10/2026 | Equipo TERRA Autoservicio | Identificación minorista con selección directa de envío a domicilio (Sí/No en texto plano sin mapa), QR oficial de pago con zoom interactivo y simplificación de acciones del ticket (9.8, 9.9). |
 | 1.4 | 24/10/2026 | Equipo TERRA Autoservicio | Selección individual de productos para envío vs. retiro para clientes minoristas; visualización en tabla de pedidos admin con etiquetas de modalidad (Envío/Llevado), desglose interactivo en modal y tickets POS/digitales. |
+| 1.5 | 26/10/2026 | Equipo TERRA Autoservicio | Edición completa de modalidad de entrega en pedidos pendientes (Admin y Vendedor): botones rápidos todo llevado en mano / todo envío a domicilio, alternancia por producto, edición de dirección de despacho y persistencia en base de datos (11.5). |
