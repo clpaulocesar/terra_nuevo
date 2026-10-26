@@ -324,6 +324,29 @@
 }
 
 .confirm-delivery:not(.is-pickup) b { color: #0f5132; }
+.confirm-delivery-rate {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.confirm-delivery-rate > span {
+  color: var(--terra-text, var(--td-text));
+  font-weight: 700;
+}
+
+.confirm-delivery-rate select {
+  min-height: 2.75rem;
+  border: 1px solid var(--terra-border, var(--td-line));
+  border-radius: var(--terra-radius, 0.5rem);
+  background: var(--terra-surface, var(--td-surface));
+  color: var(--terra-text, var(--td-text));
+  padding: 0.5rem;
+}
+
+.confirm-delivery-rate small {
+  color: var(--terra-muted, var(--td-muted));
+}
 .confirm-delivery.is-pickup { background: #fff8e9; border-color: #f0e0b8; }
 .confirm-delivery.is-pickup svg { color: #a3761b; }
 .confirm-delivery.is-pickup b { color: #5f4a15; }

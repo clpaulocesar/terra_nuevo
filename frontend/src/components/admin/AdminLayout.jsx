@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Car, LayoutDashboard, Package, ReceiptText, Store, LogOut, Tags, TrendingUp, Truck, Users, X, ShoppingCart, UserCog, Warehouse } from 'lucide-react';
+import { Car, LayoutDashboard, Package, ReceiptText, Store, LogOut, Tags, TrendingUp, Truck, Users, X, ShoppingCart, UserCog, Warehouse, MapPinned } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { cerrarSesionAdmin, getAdminUser } from '../../services/adminService.js';
 import AdminHeader from './AdminHeader.jsx';
@@ -19,6 +19,7 @@ const enlaces = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true, roles: ['admin', 'vendedor'] },
   { to: '/admin/despacho', label: 'Despacho', icon: Truck, roles: ['admin', 'despacho'] },
   { to: '/admin/repartidores', label: 'Repartidores', icon: Car, roles: ['admin'] },
+  { to: '/admin/tarifas-envio', label: 'Tarifas de envío', icon: MapPinned, roles: ['admin'] },
   { to: '/admin/pedidos', label: 'Pedidos', icon: ReceiptText, roles: ['admin', 'vendedor'] },
   { to: '/admin/ventas-directas', label: 'Ventas directas', icon: ShoppingCart, roles: ['admin', 'vendedor'] },
   { to: '/admin/productos', label: 'Productos', icon: Package, roles: ['admin'] },

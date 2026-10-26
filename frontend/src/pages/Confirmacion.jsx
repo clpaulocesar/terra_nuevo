@@ -1,4 +1,4 @@
-import { useContext, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, Banknote, CheckCircle2, CreditCard, Maximize2, QrCode, ReceiptText, ShieldCheck, Truck, ZoomIn } from 'lucide-react';
 import { ClienteContext } from '../context/ClienteContext.jsx';
@@ -6,6 +6,7 @@ import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { useCarrito } from '../hooks/useCarrito.js';
 import { crearCliente } from '../services/clienteService.js';
 import { crearPedido } from '../services/pedidoService.js';
+import { listarTarifasEnvio } from '../services/envioService.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { descargarTicket } from '../utils/descargarTicket.js';
 import ModalQrPago from '../components/ui/ModalQrPago.jsx';
@@ -23,9 +24,34 @@ export default function Confirmacion() {
   const [itemsTicket, setItemsTicket] = useState([]);
   const [mostrarModalQr, setMostrarModalQr] = useState(false);
   const [resumenAbierto, setResumenAbierto] = useState(false);
+  const [tarifasEnvio, setTarifasEnvio] = useState([]);
+  const [zonaEnvioId, setZonaEnvioId] = useState(() => cliente?.zonaEnvioId || '');
+  const [cargandoTarifas, setCargandoTarifas] = useState(false);
   const enviando = useRef(false);
   const clienteId = useRef(null);
   const inicioArrastreResumen = useRef(null);
+  const esCompraMinorista = Boolean(cliente?.nombre || cliente?.telefono || cliente?.direccion || !esMayorista);
+  const esFlujoMayorista = esMayorista && !esCompraMinorista;
+  const quiereEnvio = esFlujoMayorista ? Boolean(entregaDomicilio) : Boolean(cliente.entregaDomicilio);
+
+  useEffect(() => {
+    if (!quiereEnvio) return undefined;
+    let vigente = true;
+    setCargandoTarifas(true);
+    listarTarifasEnvio()
+      .then((tarifas) => {
+        if (vigente) setTarifasEnvio(Array.isArray(tarifas) ? tarifas : []);
+      })
+      .catch(() => {
+        if (vigente) setError('No se pudieron cargar las tarifas de envío. Volvé a intentarlo.');
+      })
+      .finally(() => {
+        if (vigente) setCargandoTarifas(false);
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [quiereEnvio]);
 
   // Tiene prioridad sobre el carrito vacío luego de completar la compra.
   if (pedidoGenerado) return <Navigate to="/pedido" replace state={{ pedido: pedidoGenerado, cliente: clienteTicket, items: itemsTicket }} />;
@@ -46,6 +72,10 @@ export default function Confirmacion() {
     if (enviando.current) return;
     if (!metodoPago) {
       setError('Seleccioná un medio de pago para continuar.');
+      return;
+    }
+    if (quiereEnvio && !zonaEnvioId) {
+      setError('Seleccioná la zona de entrega para calcular el envío.');
       return;
     }
 
@@ -88,6 +118,7 @@ export default function Confirmacion() {
         clienteId: id,
         token: esFlujoMayorista ? sesion?.token : null,
         entregaDomicilio: quiereEnvio,
+        zonaEnvioId: quiereEnvio ? zonaEnvioId : null,
         direccion: direccionEntrega,
         referencia: referenciaEntrega,
         metodoPago,
@@ -110,10 +141,9 @@ export default function Confirmacion() {
     }
   };
 
-  const esCompraMinorista = Boolean(cliente?.nombre || cliente?.telefono || cliente?.direccion || !esMayorista);
-  const esFlujoMayorista = esMayorista && !esCompraMinorista;
-
-  const quiereEnvio = esFlujoMayorista ? Boolean(entregaDomicilio) : Boolean(cliente.entregaDomicilio);
+  const tarifaSeleccionada = tarifasEnvio.find((tarifa) => tarifa.id === zonaEnvioId);
+  const costoEnvio = Number(tarifaSeleccionada?.costo || 0);
+  const totalConEnvio = subtotal + costoEnvio;
 
   const obtenerTipoEntregaItem = (item) => {
     if (!quiereEnvio) return 'store_pickup';
@@ -160,6 +190,29 @@ export default function Confirmacion() {
               </Link>
             </div>
           </div>
+          {quiereEnvio && (
+            <label className="confirm-delivery-rate">
+              <span>Zona de entrega y tarifa</span>
+              <select
+                value={zonaEnvioId}
+                onChange={(event) => {
+                  setZonaEnvioId(event.target.value);
+                  setError('');
+                }}
+                disabled={cargandoTarifas}
+              >
+                <option value="">
+                  {cargandoTarifas ? 'Cargando tarifas…' : 'Seleccioná tu zona'}
+                </option>
+                {tarifasEnvio.map((tarifa) => (
+                  <option key={tarifa.id} value={tarifa.id}>
+                    {tarifa.nombre} — {formatoMoneda(tarifa.costo)}
+                  </option>
+                ))}
+              </select>
+              <small>Bs. 50 aplica para sucursal central y Radial 10: 3 Pasos al Frente, Radial 10 y Av. Sudamericana.</small>
+            </label>
+          )}
           <h2>Artículos seleccionados ({items.length})</h2>
           {items.map((item) => {
             const tipoEntregaItem = obtenerTipoEntregaItem(item);
@@ -189,8 +242,9 @@ export default function Confirmacion() {
           <h2>Liquidación final</h2>
           <div className="confirm-summary-box">
             <p><span>Subtotal de artículos</span><b>{formatoMoneda(subtotal)}</b></p>
+            {quiereEnvio && <p><span>Envío{tarifaSeleccionada ? ` · ${tarifaSeleccionada.nombre}` : ''}</span><b>{tarifaSeleccionada ? formatoMoneda(costoEnvio) : 'Seleccioná una zona'}</b></p>}
             <hr />
-            <p className="confirm-total"><span>Total a pagar en caja</span><b>{formatoMoneda(subtotal)}</b></p>
+            <p className="confirm-total"><span>Total a pagar en caja</span><b>{formatoMoneda(totalConEnvio)}</b></p>
           </div>
           <section className="confirm-payment-methods" aria-labelledby="confirm-payment-title">
             <span id="confirm-payment-title">Medios de pago</span>
@@ -231,7 +285,7 @@ export default function Confirmacion() {
               </div>
               <div className="confirm-qr-monto">
                 <span>Total a transferir:</span>
-                <strong>{formatoMoneda(subtotal)}</strong>
+                <strong>{formatoMoneda(totalConEnvio)}</strong>
               </div>
               <button
                 type="button"
@@ -247,7 +301,7 @@ export default function Confirmacion() {
           )}
           {error && <p className="confirm-error">{error}</p>}
           {!metodoPago && <p className="confirm-payment-help">Seleccioná un medio de pago para continuar.</p>}
-          <button className="confirm-submit" disabled={procesando || !metodoPago} onClick={confirmar} type="button"><CheckCircle2 size={23} />{procesando ? 'Generando ticket…' : 'Confirmar y generar pedido'}</button>
+          <button className="confirm-submit" disabled={procesando || !metodoPago || (quiereEnvio && (!zonaEnvioId || cargandoTarifas))} onClick={confirmar} type="button"><CheckCircle2 size={23} />{procesando ? 'Generando ticket…' : 'Confirmar y generar pedido'}</button>
           <Link className="confirm-edit" to="/carrito">Modificar carrito</Link>
           <small>Terminal seguro · Ticket inmediato en caja</small>
         </aside>

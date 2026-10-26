@@ -24,5 +24,8 @@ export function validarDatosCliente(cliente) {
   if (cliente.entregaDomicilio && (!cliente.direccion || cliente.direccion.trim().length < 5)) {
     errores.direccion = 'Ingresá la calle, número y zona para el envío a domicilio';
   }
+  if (cliente.entregaDomicilio && !String(cliente.zonaEnvioId || '').trim()) {
+    errores.zonaEnvioId = 'Seleccioná la zona para calcular el costo de envío';
+  }
   return errores;
 }

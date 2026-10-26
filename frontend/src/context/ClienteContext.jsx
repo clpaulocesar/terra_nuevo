@@ -9,6 +9,7 @@ const CLIENTE_VACIO = {
   entregaDomicilio: false,
   direccion: '',
   referencia: '',
+  zonaEnvioId: '',
   itemsEnvio: [],
 };
 

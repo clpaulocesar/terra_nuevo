@@ -288,12 +288,17 @@ export async function crearPedido(req, res, next) {
     );
     let entrega = null;
     if (entregaDomicilio) {
+      const zonaId = String(req.body?.zonaEnvioId || '').trim();
+      if (!zonaId || zonaId.length > 80) {
+        return res.status(400).json({ success: false, mensaje: 'Seleccioná una zona de envío válida.' });
+      }
       const direccionDirecta = String(req.body?.direccion || req.body?.direccionEntrega || '').trim();
       const referenciaDirecta = String(req.body?.referencia || req.body?.referenciaEntrega || '').trim();
 
       if (direccionDirecta) {
         // Prioridad: dirección directa ingresada en el checkout (cliente minorista o mayorista con dirección explícita)
         entrega = {
+          zonaId,
           direccion: direccionDirecta,
           referencia: referenciaDirecta || null,
           latitud: null,
@@ -304,6 +309,7 @@ export async function crearPedido(req, res, next) {
           return res.status(400).json({ success: false, mensaje: 'Registrá una dirección de entrega antes de solicitar el envío a domicilio.' });
         }
         entrega = {
+          zonaId,
           direccion: mayorista.direccion,
           referencia: mayorista.referencia || null,
           latitud: mayorista.latitud ?? null,

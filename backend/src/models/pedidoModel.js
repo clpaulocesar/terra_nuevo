@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { pool } from '../config/database.js';
 import { asegurarEscalasMayoristasBD } from './productoModel.js';
 import { asegurarTablaPersonal } from './personalModel.js';
+import { asegurarTarifasEnvioBD, obtenerTarifaEnvioBD } from './envioModel.js';
 
 const aMonto = (minor) => Number(minor || 0) / 100;
 let paymentColumnsReady;
@@ -30,6 +31,8 @@ function asegurarColumnasEntrega() {
     // Repartidor asignado desde el panel (staff_accounts con rol despacho).
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_driver_id UUID'),
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_assigned_at TIMESTAMPTZ'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_zone_id TEXT'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_zone_name TEXT'),
     pool.query('ALTER TABLE order_items ADD COLUMN IF NOT EXISTS delivery_type TEXT'),
   ]);
   return deliveryColumnsReady;
@@ -40,7 +43,7 @@ function asegurarColumnasEntrega() {
 const errorPedido = (statusCode, mensaje) => Object.assign(new Error(mensaje), { statusCode });
 
 export async function crearPedidoBD(clienteId, items, { precioMayorista = false, entrega = null, metodoPagoSolicitado = null } = {}) {
-  await Promise.all([asegurarEscalasMayoristasBD(), asegurarColumnasEntrega(), asegurarColumnasPago()]);
+  await Promise.all([asegurarEscalasMayoristasBD(), asegurarColumnasEntrega(), asegurarColumnasPago(), asegurarTarifasEnvioBD()]);
   const conexion = await pool.connect();
   try {
     await conexion.query('BEGIN');
@@ -71,23 +74,29 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
       totalMinor += subtotalMinor;
       detalles.push({ variantId: p.variant_id, nombre: p.name, sku: p.sku, cantidad: item.cantidad, precioUnitario: aMonto(p.price_minor), subtotal: aMonto(subtotalMinor), tipoEntrega: item.tipoEntrega || (entrega ? 'home_delivery' : 'store_pickup') });
     }
+    const tarifa = entrega ? await obtenerTarifaEnvioBD(entrega.zonaId, conexion) : null;
+    if (entrega && !tarifa) throw errorPedido(400, 'Seleccioná una zona de envío válida.');
+    const costoEnvioMinor = Number(tarifa?.fee_minor || 0);
     const ticket = `TER-${randomUUID().slice(0, 8).toUpperCase()}`;
     const tipoEntrega = entrega?.direccion ? 'home_delivery' : 'store_pickup';
     const nuevo = await conexion.query(
       `INSERT INTO orders (
          customer_id,status,fulfillment_type,subtotal_minor,discount_minor,
          delivery_fee_minor,total_minor,currency,ticket_number,
-         delivery_address,delivery_reference,delivery_lat,delivery_lng,payment_requested_method
-       )
-       VALUES ($1,'pending',$2,$3,0,0,$3,'BOB',$4,$5,$6,$7,$8,$9)
+         delivery_address,delivery_reference,delivery_lat,delivery_lng,payment_requested_method,
+         delivery_zone_id,delivery_zone_name
+       ) VALUES ($1,'pending',$2,$3,0,$4,$5,'BOB',$6,$7,$8,$9,$10,$11,$12,$13)
        RETURNING id, ticket_number AS codigo, customer_id AS cliente_id, total_minor,
                  status AS estado, created_at AS fecha, fulfillment_type AS tipo_entrega,
                  delivery_address AS direccion_entrega, delivery_reference AS referencia_entrega,
-                 delivery_lat AS latitud_entrega, delivery_lng AS longitud_entrega`,
+                 delivery_lat AS latitud_entrega, delivery_lng AS longitud_entrega,
+                 delivery_fee_minor / 100.0 AS costo_envio, delivery_zone_id AS zona_envio_id,
+                 delivery_zone_name AS zona_envio`,
       [
-        clienteId, tipoEntrega, totalMinor, ticket,
+        clienteId, tipoEntrega, totalMinor, costoEnvioMinor, totalMinor + costoEnvioMinor, ticket,
         entrega?.direccion || null, entrega?.referencia || null,
         entrega?.latitud ?? null, entrega?.longitud ?? null, metodoPagoSolicitado,
+        tarifa?.id || null, tarifa?.nombre || null,
       ]
     );
     for (const d of detalles) {
@@ -125,6 +134,9 @@ export async function obtenerPedidoBD(id) {
             p.delivery_reference AS referencia_entrega,
             p.delivery_lat AS latitud_entrega,
             p.delivery_lng AS longitud_entrega,
+            p.delivery_fee_minor / 100.0 AS costo_envio,
+            p.delivery_zone_id AS zona_envio_id,
+            p.delivery_zone_name AS zona_envio,
             COALESCE(c.name, c.contact_name, 'Compra como invitado') AS cliente_nombre,
             COALESCE(c.phone, '') AS cliente_telefono,
             COALESCE(c.nit, '') AS cliente_nit
@@ -222,6 +234,9 @@ export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', 
            p.delivery_reference AS referencia_entrega,
            p.delivery_lat AS latitud_entrega,
            p.delivery_lng AS longitud_entrega,
+           p.delivery_fee_minor / 100.0 AS costo_envio,
+           p.delivery_zone_id AS zona_envio_id,
+           p.delivery_zone_name AS zona_envio,
            p.delivery_status AS estado_entrega,
            p.delivery_started_at AS entrega_iniciada,
            p.delivered_at AS entrega_confirmada,
@@ -275,7 +290,7 @@ export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', 
              p.payment_receipt_url, p.payment_method, p.payment_requested_method,
              p.payment_confirmation_source, p.payment_confirmed_at,
              p.fulfillment_type, p.delivery_address, p.delivery_reference,
-             p.delivery_lat, p.delivery_lng,
+             p.delivery_lat, p.delivery_lng, p.delivery_fee_minor, p.delivery_zone_id, p.delivery_zone_name,
              p.delivery_status, p.delivery_started_at, p.delivered_at,
              p.delivery_driver_id, p.delivery_assigned_at,
              c.id, c.name, c.contact_name, c.phone, c.nit,
