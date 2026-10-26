@@ -3,7 +3,7 @@ import { getAdminToken } from './adminService.js';
 
 function exigirConexionReal() { if (MODO_DEMO) throw new Error('El modo demostración está activo. Configura VITE_MODO_DEMO=false.'); }
 
-export async function crearPedido({ clienteId = null, items, token = null, entregaDomicilio = false, direccion = null, referencia = null, metodoPago }) {
+export async function crearPedido({ clienteId = null, items, token = null, entregaDomicilio = false, zonaEnvioId = null, direccion = null, referencia = null, metodoPago }) {
   exigirConexionReal();
   return apiRequest('/pedidos', {
     method: 'POST',
@@ -11,6 +11,7 @@ export async function crearPedido({ clienteId = null, items, token = null, entre
     body: {
       clienteId,
       entregaDomicilio: Boolean(entregaDomicilio),
+      zonaEnvioId,
       direccion,
       referencia,
       metodoPago,
@@ -97,14 +98,14 @@ export async function asignarRepartidorPedido(id, repartidorId = null) {
     body: { repartidorId },
   });
 }
-export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = null }) {
+export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = null, costoEnvio = null }) {
   exigirConexionReal();
   const token = getAdminToken();
   if (!token) throw new Error('Inicia sesión como administrador o vendedor para registrar el cobro.');
   return apiRequest(`/pedidos/${id}/pago`, {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${token}` },
-    body: { metodoPago, comprobanteUrl },
+    body: { metodoPago, comprobanteUrl, costoEnvio },
   });
 }
 export async function actualizarItemsPedido(id, items, { direccion = undefined, referencia = undefined } = {}) {

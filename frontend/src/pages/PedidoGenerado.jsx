@@ -150,6 +150,12 @@ export default function PedidoGenerado() {
               <b>{pedido.referencia_entrega}</b>
             </div>
           )}
+          {pedido.zona_envio && (
+            <div className="pedido-row">
+              <span>Tarifa de envío</span>
+              <b>{pedido.tarifa_envio_pendiente ? 'Por definir en caja' : `${pedido.zona_envio} · ${formatoMoneda(pedido.costo_envio)}`}</b>
+            </div>
+          )}
           <div className="pedido-row">
             <span>Estado</span>
             <b>{pagoQrPendiente ? 'Pendiente de confirmación QR' : 'Pendiente de pago'}</b>

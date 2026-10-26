@@ -10,6 +10,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import asistenteRoutes from './routes/asistenteRoutes.js';
 import personalRoutes from './routes/personalRoutes.js';
 import geocodificacionRoutes from './routes/geocodificacionRoutes.js';
+import envioRoutes from './routes/envioRoutes.js';
 
 import { verificarConexion } from './config/database.js';
 
@@ -159,6 +160,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/asistente', asistenteRoutes);
 app.use('/api/personal', personalRoutes);
 app.use('/api/geocodificacion', geocodificacionRoutes);
+app.use('/api/envios', envioRoutes);
 
 // Manejo centralizado de errores.
 app.use(rutaNoEncontrada);

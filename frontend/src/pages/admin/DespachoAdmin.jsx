@@ -314,6 +314,7 @@ export default function DespachoAdmin() {
                   <b>Dirección de entrega</b>
                   <p>{pedido.direccion_entrega || 'Sin dirección registrada'}</p>
                   {pedido.referencia_entrega && <small>Referencia: {pedido.referencia_entrega}</small>}
+                  {pedido.zona_envio && <small>Zona: {pedido.zona_envio} · Envío: {formatoMoneda(pedido.costo_envio)}</small>}
                 </div>
               </div>
 

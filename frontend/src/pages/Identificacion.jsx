@@ -149,10 +149,12 @@ export default function Identificacion() {
       entregaDomicilio,
       direccion: entregaDomicilio ? (datos.direccion || '').trim() : '',
       referencia: entregaDomicilio ? (datos.referencia || '').trim() : '',
+      zonaEnvioId: '',
       itemsEnvio: entregaDomicilio ? Array.from(itemsEnvio) : [],
     });
     nav('/confirmacion');
   };
+
 
   return (
     <section className="ident-page" style={{ paddingBottom: tecladoAbierto && esTactil ? 'clamp(20rem, 40vh, 26rem)' : 0 }}>
@@ -274,6 +276,10 @@ export default function Identificacion() {
                   </label>
 
                   {/* Selección de productos para envío a domicilio */}
+                  <p className="ident-delivery-rate">
+                    El costo de envío será definido por la vendedora en caja antes de cobrar.
+                  </p>
+
                   <div className="ident-delivery-items-wrap">
                     <div className="ident-delivery-items-header">
                       <div>
