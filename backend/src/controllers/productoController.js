@@ -16,7 +16,7 @@ export async function seedProductos(req, res, next) {
     const resultado = await migrateAndSeed({ closePool: false });
     return res.json({
       success: true,
-      mensaje: 'Base de datos sincronizada con éxito en Supabase',
+      mensaje: 'Base de datos sincronizada con éxito',
       total: resultado.total,
     });
   } catch (error) {
@@ -53,7 +53,7 @@ export async function listarProductos(req, res, next) {
     const soloActivos = req.query.todos === 'true' ? false : true;
     const soloPromos = req.query.promos === 'true';
     const soloOfertas = req.query.ofertas === 'true';
-    const conStock = req.query.stock === 'true';
+    const conStock = req.query.todos === 'true' || req.query.stock === 'false' ? false : true;
     const precioMin = req.query.precioMin != null && req.query.precioMin !== '' ? Number(req.query.precioMin) : null;
     const precioMax = req.query.precioMax != null && req.query.precioMax !== '' ? Number(req.query.precioMax) : null;
 
