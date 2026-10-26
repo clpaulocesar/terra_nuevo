@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, EyeOff, ImagePlus, Link2, PackagePlus, Palette, Play, Plus, Printer, QrCode, Search, SlidersHorizontal, Star, Store, Tag, Trash2, Truck, X } from 'lucide-react';
+import { Armchair, Barcode, BedDouble, Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, EyeOff, ImagePlus, Lamp, LayoutGrid, Link2, List, Monitor, MoreVertical, Package, PackagePlus, Palette, Play, Plug, Plus, Printer, QrCode, Search, SlidersHorizontal, Sparkles, Star, Store, Table, Tag, Trash2, Truck, X } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { listarProductosPaginado, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto, cambiarVisibilidadProducto } from '../../services/productoService.js';
 import { mediaDeVideo } from '../../utils/videoEmbed.js';
@@ -365,6 +365,76 @@ function GaleriaProducto({ colores, setColores, imagenes, setImagenes, destino, 
   );
 }
 
+const stockTotalDe = (producto) => Number(producto.stock ?? producto.showroom ?? 0);
+
+function IconoCategoria({ categoria }) {
+  const nombre = String(categoria).toLowerCase();
+  if (nombre.includes('sala') || nombre.includes('sof')) return <Armchair size={15} />;
+  if (nombre.includes('dormitorio') || nombre.includes('cama') || nombre.includes('colch')) return <BedDouble size={15} />;
+  if (nombre.includes('comedor') || nombre.includes('mesa')) return <Table size={15} />;
+  if (nombre.includes('ilumin') || nombre.includes('lampar')) return <Lamp size={15} />;
+  if (nombre.includes('decor') || nombre.includes('adorno')) return <Sparkles size={15} />;
+  if (nombre.includes('electro')) return <Plug size={15} />;
+  return <Tag size={15} />;
+}
+
+function TarjetaProducto({ producto, onVer, onEditar, onEliminar }) {
+  const stock = stockTotalDe(producto);
+  return (
+    <article className="product-card-admin">
+      <button
+        type="button"
+        className="product-card-admin__media"
+        onClick={() => onVer(producto)}
+        aria-label={`Vista previa de ${producto.nombre}`}
+      >
+        {producto.imagen_url ? (
+          <img src={producto.imagen_url} alt={producto.nombre} loading="lazy" />
+        ) : (
+          <Package size={30} />
+        )}
+      </button>
+      <div className="product-card-admin__body">
+        <span className="product-card-admin__cat">{producto.categoria}</span>
+        <b>{producto.nombre}</b>
+        <small>{producto.sku}{producto.detalle ? ` · ${producto.detalle}` : ''}</small>
+        <div className="product-card-admin__meta">
+          <strong>Bs {producto.precio}</strong>
+          <span className={stock < 2 ? 'is-low' : ''}>{stock} un.</span>
+        </div>
+        <span className={producto.visible ? 'products-status is-available' : 'products-status is-out'}>
+          <i />
+          {producto.visible ? 'En línea' : 'Oculto'}
+        </span>
+      </div>
+      <div className="product-card-admin__actions">
+        <button
+          type="button"
+          onClick={() => onVer(producto)}
+          aria-label={`Vista previa de ${producto.nombre}`}
+        >
+          <Eye size={16} />
+        </button>
+        <button
+          type="button"
+          onClick={() => onEditar(producto)}
+          aria-label={`Editar ${producto.nombre}`}
+        >
+          <Edit3 size={16} />
+        </button>
+        <button
+          type="button"
+          className="is-danger"
+          onClick={() => onEliminar(producto)}
+          aria-label={`Eliminar ${producto.nombre}`}
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+    </article>
+  );
+}
+
 export default function ProductosAdmin() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -379,6 +449,11 @@ export default function ProductosAdmin() {
   const [porPagina, setPorPagina] = useState(25);
   const [ordenCol, setOrdenCol] = useState('nombre');
   const [ordenDir, setOrdenDir] = useState('asc');
+  const [vista, setVista] = useState('tabla');
+  const [mostrarFiltros, setMostrarFiltros] = useState(true);
+  const [accionesProducto, setAccionesProducto] = useState(null);
+  const [seleccionados, setSeleccionados] = useState(() => new Set());
+  const inputBusquedaRef = useRef(null);
 
   // Modales
   const [nuevoProducto, setNuevoProducto] = useState(false);
@@ -523,6 +598,8 @@ export default function ProductosAdmin() {
         case 'sku': return String(p.sku || '');
         case 'categoria': return String(p.categoria || '');
         case 'precio': return Number(String(p.precio || '0').replace(/\./g, '').replace(/,/g, '.')) || 0;
+        case 'mayorista': return Number(p.precioMayorista || 0);
+        case 'stock': return stockTotalDe(p);
         case 'showroom': return Number(p.showroom || 0);
         case 'visible': return p.visible ? 1 : 0;
         default: return String(p.nombre || '').toLowerCase();
@@ -540,15 +617,31 @@ export default function ProductosAdmin() {
   const totalPaginasTabla = Math.max(1, Math.ceil(visiblesOrdenados.length / porPagina));
   const paginaSegura = Math.min(paginaTabla, totalPaginasTabla);
   const visiblesPagina = visiblesOrdenados.slice((paginaSegura - 1) * porPagina, paginaSegura * porPagina);
+  const idsPagina = visiblesPagina.map((p) => p.id);
+  const todosPaginaSeleccionados = idsPagina.length > 0 && idsPagina.every((id) => seleccionados.has(id));
+  const filtrosActivos = (categoria !== 'Todos' ? 1 : 0) + (soloKiosco ? 1 : 0);
+  const numerosPagina = useMemo(() => {
+    const total = totalPaginasTabla;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const paginas = [1];
+    if (paginaSegura > 3) paginas.push('...');
+    for (let n = Math.max(2, paginaSegura - 1); n <= Math.min(total - 1, paginaSegura + 1); n += 1) {
+      paginas.push(n);
+    }
+    if (paginaSegura < total - 2) paginas.push('...');
+    paginas.push(total);
+    return paginas;
+  }, [totalPaginasTabla, paginaSegura]);
 
   useEffect(() => { setPaginaTabla(1); }, [buscar, categoria, soloKiosco, porPagina]);
 
   // Escape cierra el modal abierto (accesibilidad de teclado).
   useEffect(() => {
-    if (!vistaProducto && !editarProducto && !nuevoProducto && !ajuste && !qrProducto) return undefined;
+    if (!vistaProducto && !editarProducto && !nuevoProducto && !ajuste && !qrProducto && !accionesProducto) return undefined;
     const alEscape = (e) => {
       if (e.key !== 'Escape') return;
       if (qrProducto) setQrProducto(null);
+      else if (accionesProducto) setAccionesProducto(null);
       else if (ajuste) setAjuste(null);
       else if (vistaProducto) setVistaProducto(null);
       else if (editarProducto) setEditarProducto(null);
@@ -556,7 +649,7 @@ export default function ProductosAdmin() {
     };
     document.addEventListener('keydown', alEscape);
     return () => document.removeEventListener('keydown', alEscape);
-  }, [vistaProducto, editarProducto, nuevoProducto, ajuste, qrProducto]);
+  }, [vistaProducto, editarProducto, nuevoProducto, ajuste, qrProducto, accionesProducto]);
 
   const alternarOrden = (col) => {
     if (ordenCol === col) setOrdenDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -570,6 +663,54 @@ export default function ProductosAdmin() {
   const ariaOrden = (col) => (ordenCol === col ? (ordenDir === 'asc' ? 'ascending' : 'descending') : 'none');
 
   const indicadorOrden = (col) => (ordenCol === col ? (ordenDir === 'asc' ? ' ▲' : ' ▼') : '');
+
+  const cambiarOrden = (columna) => {
+    setOrdenCol(columna);
+    setOrdenDir('asc');
+  };
+
+  const limpiarFiltros = () => {
+    setBuscar('');
+    setCategoria('Todos');
+    setSoloKiosco(false);
+  };
+
+  const alternarSeleccion = (id) => {
+    setSeleccionados((prev) => {
+      const siguiente = new Set(prev);
+      if (siguiente.has(id)) siguiente.delete(id);
+      else siguiente.add(id);
+      return siguiente;
+    });
+  };
+
+  const alternarTodosPagina = () => {
+    setSeleccionados((prev) => {
+      const siguiente = new Set(prev);
+      if (todosPaginaSeleccionados) idsPagina.forEach((id) => siguiente.delete(id));
+      else idsPagina.forEach((id) => siguiente.add(id));
+      return siguiente;
+    });
+  };
+
+  const borrarSeleccionados = async () => {
+    const ids = [...seleccionados];
+    if (!ids.length) return;
+    const plural = ids.length === 1 ? '' : 's';
+    const confirmado = await confirmarEliminacion({
+      titulo: `¿Eliminar ${ids.length} producto${plural}?`,
+      texto: 'Se borrarán del catálogo y de la base de datos. No podrás revertir esta acción.',
+    });
+    if (!confirmado) return;
+    try {
+      for (const id of ids) await eliminarProducto(id);
+      setProductos((lista) => lista.filter((item) => !seleccionados.has(item.id)));
+      setSeleccionados(new Set());
+      await avisoEliminado(`${ids.length} producto${plural} eliminado${plural}.`);
+    } catch (err) {
+      await avisoError(`No se pudieron eliminar todos los productos: ${err.message}`);
+    }
+  };
 
   // ---------- Exportación ----------
   const columnasExport = [
@@ -838,23 +979,28 @@ export default function ProductosAdmin() {
 
       <header className="products-heading">
         <div>
-          <div>
-            <h1>Catálogo de productos e inventario</h1>
+          <div className="hero-head">
+            <span className="hero-icon"><PackagePlus size={18} /></span>
+            <span className="hero-kicker">Inventario y catálogo</span>
+          </div>
+          <h1>Catálogo de productos e inventario</h1>
+          <div className="products-hero-badges">
             <b>{productos.length} productos registrados{cargando ? ` · cargando ${progresoCarga}...` : ''}</b>
+            <span className="products-hero-live"><i /> Kiosco en línea</span>
           </div>
           <p>Gestión de catálogo digital, inventario multialmacén y visibilidad en kioscos.</p>
         </div>
         <div className="products-toolbar">
-          <button onClick={exportarExcelProductos}>
+          <button type="button" onClick={exportarExcelProductos}>
             <Download size={17} /> Excel
           </button>
-          <button onClick={exportarPDFProductos}>
+          <button type="button" onClick={exportarPDFProductos}>
             <Download size={17} /> PDF
           </button>
-          <button onClick={() => productos.length > 0 && setAjuste({ ...productos[0] })}>
+          <button type="button" onClick={() => productos.length > 0 && setAjuste({ ...productos[0] })}>
             <SlidersHorizontal size={18} /> Ajuste rápido
           </button>
-          <button className="primary" onClick={() => setNuevoProducto(true)}>
+          <button type="button" className="primary" onClick={() => setNuevoProducto(true)}>
             <Plus size={18} /> Nuevo producto
           </button>
         </div>
@@ -862,181 +1008,478 @@ export default function ProductosAdmin() {
 
       <section className="products-kpis">
         <article>
-          <Store />
-          <div>
+          <span className="kpi-icon" data-tone="wine"><Store size={22} /></span>
+          <div className="kpi-body">
             <small>Showroom Equipetrol</small>
             <b>{totalShowroom} unid.</b>
             <span>Disponible en sala</span>
           </div>
         </article>
         <article>
-          <Box />
-          <div>
-            <small>Activos en kioscos</small>
+          <span className="kpi-icon" data-tone="blue"><Box size={22} /></span>
+          <div className="kpi-body">
+            <small>Modelos activos</small>
             <b>{totalModelosKiosco} modelos</b>
-            <span>Sincronización continua</span>
+            <span>Visibles en el catálogo</span>
           </div>
         </article>
         <article>
-          <CheckCircle2 />
-          <div>
+          <span className="kpi-icon" data-tone="green"><CheckCircle2 size={22} /></span>
+          <div className="kpi-body">
             <small>Valor inventario</small>
             <b>Bs {valorInventario}</b>
             <span>Costo total en tienda</span>
           </div>
         </article>
+        <article>
+          <span className="kpi-icon" data-tone="dark"><Monitor size={22} /></span>
+          <div className="kpi-body">
+            <small>Kioscos</small>
+            <b>1 <em className="kpi-live">En Línea</em></b>
+            <span>Sincronización continua</span>
+          </div>
+        </article>
       </section>
 
       <section className="products-filters">
-        <label>
-          <Search size={19} />
-          <input
-            value={buscar}
-            onChange={e => setBuscar(e.target.value)}
-            placeholder="Buscar por SKU, modelo o acabado..."
-            aria-label="Buscar por SKU, modelo o acabado"
-          />
-        </label>
-        <label className="products-switch">
-          <span>Solo visibles en kiosco</span>
-          <input
-            checked={soloKiosco}
-            onChange={e => setSoloKiosco(e.target.checked)}
-            type="checkbox"
-          />
-        </label>
-        <button onClick={() => { setBuscar(''); setCategoria('Todos'); setSoloKiosco(false); }}>
-          <X size={17} /> Limpiar filtros
-        </button>
-        <nav>
-          {categorias.map(item => (
-            <button
-              key={item}
-              className={categoria === item ? 'active' : ''}
-              onClick={() => setCategoria(item)}
-            >
-              {item}
-            </button>
-          ))}
-        </nav>
+        <div className="products-filters__bar">
+          <label className="products-search">
+            <Search size={18} />
+            <input
+              ref={inputBusquedaRef}
+              value={buscar}
+              onChange={(e) => setBuscar(e.target.value)}
+              placeholder="Buscar por SKU, modelo o acabado..."
+              aria-label="Buscar por SKU, modelo o acabado"
+            />
+            {buscar && (
+              <button
+                type="button"
+                className="products-search__clear"
+                onClick={() => setBuscar('')}
+                aria-label="Borrar búsqueda"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </label>
+          <button
+            type="button"
+            className="products-icon-btn"
+            title="Enfocar el buscador para escanear un código de barras"
+            aria-label="Buscar por código de barras"
+            onClick={() => inputBusquedaRef.current?.focus()}
+          >
+            <Barcode size={19} />
+          </button>
+          <button
+            type="button"
+            className={mostrarFiltros ? 'products-filter-btn active' : 'products-filter-btn'}
+            aria-expanded={mostrarFiltros}
+            onClick={() => setMostrarFiltros((valor) => !valor)}
+          >
+            <SlidersHorizontal size={17} /> Filtros <em>{filtrosActivos}</em>
+          </button>
+          <label className="products-check">
+            <input
+              type="checkbox"
+              checked={soloKiosco}
+              onChange={(e) => setSoloKiosco(e.target.checked)}
+            />
+            <span>Solo visibles en kiosco</span>
+          </label>
+          <button type="button" className="products-clear" onClick={limpiarFiltros}>
+            Limpiar
+          </button>
+        </div>
+        {mostrarFiltros && (
+          <nav>
+            {categorias.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={categoria === item ? 'active' : ''}
+                onClick={() => setCategoria(item)}
+              >
+                <IconoCategoria categoria={item} />
+                {item}
+              </button>
+            ))}
+          </nav>
+        )}
       </section>
 
       <section className="products-table">
         <header>
-        <div>
-          <h2>Productos y stock por ubicación</h2>
-          <span>Mostrando {visiblesPagina.length} de {visiblesOrdenados.length} registros · Página {paginaSegura} de {totalPaginasTabla}</span>
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <label style={{ fontSize: 12, color: '#56605c' }}>Filas:
-            <select value={porPagina} onChange={(e) => setPorPagina(Number(e.target.value))} style={{ marginLeft: 6 }}>
-              {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </label>
-        </div>
-        </header>
-
-        <div className="products-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('nombre')} onKeyDown={teclaOrden('nombre')} onClick={() => alternarOrden('nombre')}>Producto{indicadorOrden('nombre')}</th>
-                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('categoria')} onKeyDown={teclaOrden('categoria')} onClick={() => alternarOrden('categoria')}>Categoría{indicadorOrden('categoria')}</th>
-                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('precio')} onKeyDown={teclaOrden('precio')} onClick={() => alternarOrden('precio')}>Precio{indicadorOrden('precio')}</th>
-                <th>Precio mayorista</th>
-                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('showroom')} onKeyDown={teclaOrden('showroom')} onClick={() => alternarOrden('showroom')}>Showroom{indicadorOrden('showroom')}</th>
-                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('visible')} onKeyDown={teclaOrden('visible')} onClick={() => alternarOrden('visible')}>Kiosco{indicadorOrden('visible')}</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visiblesPagina.map(p => (
-                <tr key={p.id}>
-                  <td>
-                    <div className="product-info">
-                      <span className={`product-thumb ${p.tono || 'green'}`}>
-                        {p.imagen_url ? (
-                          <img src={p.imagen_url} alt={p.nombre} />
-                        ) : (
-                          <Box size={22} />
-                        )}
-                      </span>
-                      <div>
-                        <b>{p.nombre}</b>
-                        <small>{p.marca ? `${p.marca} · ` : ''}{p.sku} · {p.detalle}</small>
-                      </div>
-                    </div>
-                  </td>
-                  <td>{p.categoria}</td>
-                  <td><strong>Bs {p.precio}</strong></td>
-                  <td><strong>{p.precioMayorista === null ? 'No definido' : `Bs ${p.precioMayorista.toLocaleString('es-BO')}`}</strong></td>
-                  <td>
-                    <span className={p.showroom < 2 ? 'stock low' : 'stock'}>
-                      {p.showroom} un.
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="kiosk-badge-btn"
-                      title={p.visible ? 'Clic para ocultar este producto a los clientes' : 'Clic para mostrar este producto en catálogo'}
-                      onClick={() => alternarVisibilidad(p)}
-                      style={{ cursor: 'pointer', border: 'none', background: 'transparent', padding: 0 }}
-                    >
-                      <span className={p.visible ? 'kiosk visible' : 'kiosk'}>
-                        {p.visible ? 'Activo' : 'Oculto'}
-                      </span>
-                    </button>
-                  </td>
-                  <td>
-                    <div className="product-actions">
-                      <button
-                        className={`product-action-vis ${p.visible ? '' : 'is-hidden'}`}
-                        title={p.visible ? 'Ocultar este producto (no mostrar a clientes)' : 'Mostrar este producto a clientes'}
-                        aria-label={p.visible ? `Ocultar ${p.nombre}` : `Mostrar ${p.nombre}`}
-                        onClick={() => alternarVisibilidad(p)}
-                      >
-                        {p.visible ? <EyeOff size={17} /> : <Eye size={17} />}
-                      </button>
-                      <button title="Vista previa / Ver fotos" aria-label={`Vista previa de ${p.nombre}`} onClick={() => abrirVista(p)}>
-                        <Eye size={17} />
-                      </button>
-                      <button title="Ajustar stock" aria-label={`Ajustar stock de ${p.nombre}`} onClick={() => setAjuste({ ...p })}>
-                        <SlidersHorizontal size={17} />
-                      </button>
-                      <button title="Editar producto y fotos" aria-label={`Editar ${p.nombre}`} onClick={() => abrirEdicion(p)}>
-                        <Edit3 size={17} />
-                      </button>
-                      <button title="Generar QR de la ficha" aria-label={`Generar QR de ${p.nombre}`} onClick={() => { setQrProducto(p); setQrCopiado(false); }}>
-                        <QrCode size={17} />
-                      </button>
-                      <button title="Imprimir ticket / etiqueta de producto" aria-label={`Imprimir ticket de ${p.nombre}`} onClick={() => imprimirTicketProducto(p)}>
-                        <Printer size={17} />
-                      </button>
-                      <button className="product-action-delete" title="Eliminar producto" aria-label={`Eliminar ${p.nombre}`} onClick={() => borrarProducto(p)}>
-                        <Trash2 size={17} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="products-pagination">
-          <span className="info">Página {paginaSegura} de {totalPaginasTabla} · {visiblesOrdenados.length} registros</span>
-          <div className="controls">
-            <label style={{ fontSize: 12, color: '#56605c', display: 'flex', alignItems: 'center', gap: 6 }}>Filas:
+          <div className="products-table__title">
+            <h2>Productos y stock por ubicación</h2>
+            <span>
+              Mostrando {visiblesPagina.length} de {visiblesOrdenados.length} registros · Página {paginaSegura} de {totalPaginasTabla}
+            </span>
+          </div>
+          <div className="products-table__controls">
+            <label className="products-control">
+              Filas
               <select value={porPagina} onChange={(e) => setPorPagina(Number(e.target.value))}>
                 {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
             </label>
-            <button type="button" onClick={() => setPaginaTabla((p) => Math.max(1, p - 1))} disabled={paginaSegura <= 1}>Anterior</button>
-            <span className="page-pill">{paginaSegura}</span>
-            <button type="button" onClick={() => setPaginaTabla((p) => Math.min(totalPaginasTabla, p + 1))} disabled={paginaSegura >= totalPaginasTabla}>Siguiente</button>
+            <label className="products-control">
+              Ordenar por
+              <select value={ordenCol} onChange={(e) => cambiarOrden(e.target.value)}>
+                <option value="nombre">Nombre</option>
+                <option value="precio">Precio</option>
+                <option value="mayorista">Precio mayorista</option>
+                <option value="stock">Stock total</option>
+                <option value="showroom">Showroom</option>
+                <option value="categoria">Categoría</option>
+                <option value="sku">SKU</option>
+              </select>
+            </label>
+            <div className="products-view-toggle" role="group" aria-label="Vista de productos">
+              <button
+                type="button"
+                className={vista === 'tabla' ? 'active' : ''}
+                aria-pressed={vista === 'tabla'}
+                onClick={() => setVista('tabla')}
+              >
+                <List size={15} /> Tabla
+              </button>
+              <button
+                type="button"
+                className={vista === 'tarjetas' ? 'active' : ''}
+                aria-pressed={vista === 'tarjetas'}
+                onClick={() => setVista('tarjetas')}
+              >
+                <LayoutGrid size={15} /> Tarjetas
+              </button>
+            </div>
+            {seleccionados.size > 0 && (
+              <button type="button" className="products-bulk-delete" onClick={borrarSeleccionados}>
+                <Trash2 size={15} /> Eliminar ({seleccionados.size})
+              </button>
+            )}
+          </div>
+        </header>
+
+        {vista === 'tabla' ? (
+          <div className="products-scroll">
+            <table className="products-table-grid">
+              <thead>
+                <tr>
+                  <th className="products-check-cell">
+                    <div className="products-check-wrap">
+                      <input
+                        id="seleccionar-pagina"
+                        type="checkbox"
+                        checked={todosPaginaSeleccionados}
+                        onChange={alternarTodosPagina}
+                        aria-labelledby="seleccionar-pagina-label"
+                      />
+                      <span id="seleccionar-pagina-label" className="products-visually-hidden">
+                        Seleccionar todos los productos de esta página
+                      </span>
+                    </div>
+                  </th>
+                  <th
+                    className="products-sort"
+                    tabIndex={0}
+                    aria-sort={ariaOrden('nombre')}
+                    onKeyDown={teclaOrden('nombre')}
+                    onClick={() => alternarOrden('nombre')}
+                  >
+                    Producto{indicadorOrden('nombre')}
+                  </th>
+                  <th
+                    className="products-sort"
+                    tabIndex={0}
+                    aria-sort={ariaOrden('categoria')}
+                    onKeyDown={teclaOrden('categoria')}
+                    onClick={() => alternarOrden('categoria')}
+                  >
+                    Categoría{indicadorOrden('categoria')}
+                  </th>
+                  <th
+                    className="products-sort"
+                    tabIndex={0}
+                    aria-sort={ariaOrden('precio')}
+                    onKeyDown={teclaOrden('precio')}
+                    onClick={() => alternarOrden('precio')}
+                  >
+                    Precio{indicadorOrden('precio')}
+                  </th>
+                  <th
+                    className="products-sort"
+                    tabIndex={0}
+                    aria-sort={ariaOrden('mayorista')}
+                    onKeyDown={teclaOrden('mayorista')}
+                    onClick={() => alternarOrden('mayorista')}
+                  >
+                    Precio mayorista{indicadorOrden('mayorista')}
+                  </th>
+                  <th
+                    className="products-sort"
+                    tabIndex={0}
+                    aria-sort={ariaOrden('stock')}
+                    onKeyDown={teclaOrden('stock')}
+                    onClick={() => alternarOrden('stock')}
+                  >
+                    Stock total{indicadorOrden('stock')}
+                  </th>
+                  <th
+                    className="products-sort"
+                    tabIndex={0}
+                    aria-sort={ariaOrden('showroom')}
+                    onKeyDown={teclaOrden('showroom')}
+                    onClick={() => alternarOrden('showroom')}
+                  >
+                    Showroom{indicadorOrden('showroom')}
+                  </th>
+                  <th
+                    className="products-sort"
+                    tabIndex={0}
+                    aria-sort={ariaOrden('visible')}
+                    onKeyDown={teclaOrden('visible')}
+                    onClick={() => alternarOrden('visible')}
+                  >
+                    Kiosco{indicadorOrden('visible')}
+                  </th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visiblesPagina.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} className="products-empty">
+                      <Package size={26} />
+                      <b>Sin resultados</b>
+                      <span>Prueba con otro término o limpia los filtros.</span>
+                    </td>
+                  </tr>
+                ) : visiblesPagina.map((p) => {
+                  const stock = stockTotalDe(p);
+                  return (
+                    <tr key={p.id} className={seleccionados.has(p.id) ? 'is-selected' : ''}>
+                      <td className="products-check-cell">
+                        <div className="products-check-wrap">
+                          <input
+                            id={`seleccionar-${p.id}`}
+                            type="checkbox"
+                            checked={seleccionados.has(p.id)}
+                            onChange={() => alternarSeleccion(p.id)}
+                            aria-labelledby={`seleccionar-${p.id}-label`}
+                          />
+                          <span id={`seleccionar-${p.id}-label`} className="products-visually-hidden">
+                            Seleccionar {p.nombre}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="products-visually-hidden" aria-hidden="true">Producto</span>
+                        <div className="product-info">
+                          <span className={`product-thumb ${p.tono || 'green'}`}>
+                            {p.imagen_url ? (
+                              <img src={p.imagen_url} alt={p.nombre} loading="lazy" />
+                            ) : (
+                              <Package size={20} />
+                            )}
+                          </span>
+                          <div>
+                            <b>{p.nombre}</b>
+                            <small>{p.marca ? `${p.marca} · ` : ''}{p.sku}</small>
+                            <small>{p.detalle}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span className="products-cat-pill">{p.categoria}</span></td>
+                      <td><strong>Bs {p.precio}</strong></td>
+                      <td>
+                        {p.precioMayorista === null
+                          ? <span className="products-muted">—</span>
+                          : <strong>Bs {p.precioMayorista.toLocaleString('es-BO')}</strong>}
+                      </td>
+                      <td>
+                        <span className={stock < 2 ? 'stock-total low' : 'stock-total'}>
+                          {stock} un.
+                        </span>
+                      </td>
+                      <td>
+                        <span className={p.showroom < 2 ? 'stock low' : 'stock'}>
+                          {p.showroom} un.
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className={p.visible ? 'products-kiosk-toggle is-on' : 'products-kiosk-toggle'}
+                          role="switch"
+                          aria-checked={p.visible}
+                          title={p.visible ? 'Ocultar este producto a los clientes' : 'Mostrar este producto en el catálogo'}
+                          onClick={() => alternarVisibilidad(p)}
+                        >
+                          <span className="products-kiosk-toggle__track"><i /></span>
+                          {p.visible ? 'En línea' : 'Oculto'}
+                        </button>
+                      </td>
+                      <td>
+                        <span className={stock > 0 ? 'products-status is-available' : 'products-status is-out'}>
+                          <i /> {stock > 0 ? 'Disponible' : 'Agotado'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="product-actions">
+                          <button
+                            type="button"
+                            title="Vista previa / Ver fotos"
+                            aria-label={`Vista previa de ${p.nombre}`}
+                            onClick={() => abrirVista(p)}
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            title="Editar producto y fotos"
+                            aria-label={`Editar ${p.nombre}`}
+                            onClick={() => abrirEdicion(p)}
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            className="product-action-delete"
+                            title="Eliminar producto"
+                            aria-label={`Eliminar ${p.nombre}`}
+                            onClick={() => borrarProducto(p)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            className="product-action-more"
+                            title="Más acciones"
+                            aria-label={`Más acciones de ${p.nombre}`}
+                            onClick={() => setAccionesProducto(p)}
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="products-cards">
+            {visiblesPagina.length === 0 ? (
+              <p className="products-empty">Sin resultados. Prueba con otro término o limpia los filtros.</p>
+            ) : (
+              visiblesPagina.map((p) => (
+                <TarjetaProducto
+                  key={p.id}
+                  producto={p}
+                  onVer={abrirVista}
+                  onEditar={abrirEdicion}
+                  onEliminar={borrarProducto}
+                />
+              ))
+            )}
+          </div>
+        )}
+
+        <div className="products-pagination">
+          <span className="info">
+            Página {paginaSegura} de {totalPaginasTabla} · {visiblesOrdenados.length} registros
+          </span>
+          <div className="controls">
+            <button
+              type="button"
+              className="products-page-arrow"
+              onClick={() => setPaginaTabla((p) => Math.max(1, p - 1))}
+              disabled={paginaSegura <= 1}
+              aria-label="Página anterior"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            {numerosPagina.map((n, i) => (
+              n === '...' ? (
+                <span key={`puntos-${i}`} className="products-page-dots">…</span>
+              ) : (
+                <button
+                  key={n}
+                  type="button"
+                  className={n === paginaSegura ? 'is-current' : ''}
+                  aria-current={n === paginaSegura ? 'page' : undefined}
+                  onClick={() => setPaginaTabla(n)}
+                >
+                  {n}
+                </button>
+              )
+            ))}
+            <button
+              type="button"
+              className="products-page-arrow"
+              onClick={() => setPaginaTabla((p) => Math.min(totalPaginasTabla, p + 1))}
+              disabled={paginaSegura >= totalPaginasTabla}
+              aria-label="Página siguiente"
+            >
+              <ChevronRight size={16} />
+            </button>
           </div>
         </div>
       </section>
+
+      {accionesProducto && (
+        <div className="products-modal product-actions-modal">
+          <section role="dialog" aria-modal="true" aria-labelledby="acciones-producto-titulo">
+            <header>
+              <div>
+                <span><MoreVertical size={20} /></span>
+                <div>
+                  <h2 id="acciones-producto-titulo">Acciones del producto</h2>
+                  <p>{accionesProducto.sku} · {accionesProducto.nombre}</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setAccionesProducto(null)} aria-label="Cerrar"><X /></button>
+            </header>
+            <div className="product-actions-modal__body">
+              <button
+                type="button"
+                onClick={() => { setAjuste({ ...accionesProducto }); setAccionesProducto(null); }}
+              >
+                <SlidersHorizontal size={18} />
+                <span><b>Ajustar stock</b><small>Actualiza las unidades del showroom.</small></span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setQrProducto(accionesProducto); setQrCopiado(false); setAccionesProducto(null); }}
+              >
+                <QrCode size={18} />
+                <span><b>Generar QR</b><small>Ficha pública para descargar o imprimir.</small></span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { imprimirTicketProducto(accionesProducto); setAccionesProducto(null); }}
+              >
+                <Printer size={18} />
+                <span><b>Imprimir etiqueta</b><small>Ticket con precio y código del producto.</small></span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { alternarVisibilidad(accionesProducto); setAccionesProducto(null); }}
+              >
+                {accionesProducto.visible ? <EyeOff size={18} /> : <Eye size={18} />}
+                <span>
+                  <b>{accionesProducto.visible ? 'Ocultar en kiosco' : 'Mostrar en kiosco'}</b>
+                  <small>Cambia la visibilidad para los clientes.</small>
+                </span>
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* MODAL VISTA PREVIA (VER PRODUCTO CON FOTOS) */}
       {vistaProducto && (
