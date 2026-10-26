@@ -12,6 +12,7 @@ import './AdminSidebarFix.css';
 import './AdminNavigationHidden.css';
 import './AdminContentFix.css';
 import './AdminTheme.css';
+import '../../pages/admin/AdminRedesign.css';
 import '../../theme-dark-admin.css';
 
 const enlaces = [

@@ -1,0 +1,1079 @@
+/* ============================================================
+   TERRA Backoffice · diseño de referencia
+   Sidebar vino oscuro con imagen, header blanco, banner hero
+   con foto, tarjetas KPI con iconos circulares de color,
+   pestañas pill y botones semánticos.
+   Todas las reglas prefijadas con .admin-shell para imponerse
+   al CSS de cada página (Vite lo inyecta después).
+   ============================================================ */
+
+.admin-shell {
+  --t-wine: #a6192e;
+  --t-wine-deep: #7c1222;
+  --t-wine-dark: #4d0a13;
+  --t-wine-soft: #fbeef0;
+  --t-bg: #f6f3f4;
+  --t-surface: #ffffff;
+  --t-panel: #f5f2f3;
+  --t-ink: #2a2224;
+  --t-ink-2: #6b6265;
+  --t-line: #ece7e9;
+  --t-line-2: #e3dcdf;
+  --t-green: #2f7d5a;
+  --t-green-soft: #e9f4ee;
+  --t-blue: #3a6ea5;
+  --t-blue-soft: #eaf1f8;
+  --t-amber: #a9761a;
+  --t-amber-soft: #fdf2dd;
+  --t-red: #d92d3f;
+  --t-r: 16px;
+  --t-r-sm: 10px;
+
+  background: var(--t-bg);
+  grid-template-columns: 268px minmax(0, 1fr);
+  font-family: 'Manrope', system-ui, sans-serif;
+  color: var(--t-ink);
+}
+
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell strong,
+.admin-shell b { font-family: 'Manrope', system-ui, sans-serif; }
+
+/* ============================================================
+   SIDEBAR · vino oscuro con imagen
+   ============================================================ */
+.admin-shell .admin-sidebar {
+  background-color: #4a0a12;
+  background-image: url('/images/panelAdmin/Fondo burdeos con curvas y salón v.png');
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: center bottom;
+  border: 0;
+  box-shadow: 8px 0 24px -18px rgba(0, 0, 0, 0.5);
+  padding: 1.15rem 0.95rem 1rem;
+  overflow: hidden;
+}
+.admin-shell .admin-sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(93, 13, 26, 0.98) 0%,
+    rgba(87, 12, 23, 0.94) 30%,
+    rgba(74, 10, 19, 0.55) 45%,
+    rgba(61, 8, 16, 0.16) 60%,
+    rgba(53, 7, 13, 0.04) 78%,
+    rgba(45, 6, 12, 0.08) 100%
+  );
+  pointer-events: none;
+}
+.admin-shell .admin-sidebar > * { position: relative; z-index: 1; }
+
+.admin-shell .admin-brand {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.5rem 1.1rem;
+}
+.admin-shell .admin-brand-logo {
+  width: 100%;
+  max-width: 210px;
+  height: auto;
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.4rem 0.6rem;
+}
+
+.admin-shell .admin-sidebar nav { gap: 0.3rem; }
+.admin-shell .admin-sidebar nav a {
+  border-radius: 12px;
+  border-left: 3px solid transparent;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.86rem;
+  font-weight: 600;
+  padding: 0.72rem 0.85rem;
+  transition: background 0.16s, color 0.16s, border-color 0.16s;
+}
+.admin-shell .admin-sidebar nav a svg { color: rgba(255, 255, 255, 0.9); }
+.admin-shell .admin-sidebar nav a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.admin-shell .admin-sidebar nav a.active {
+  background: linear-gradient(90deg, #8f1727, #6f1120);
+  border-left-color: #fff;
+  color: #fff;
+  box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.6);
+}
+.admin-shell .admin-sidebar nav a.active svg { color: #fff; }
+
+.admin-shell .admin-user {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+}
+.admin-shell .admin-user > span {
+  background: #fff !important;
+  color: var(--t-wine-dark) !important;
+}
+.admin-shell .admin-user b { color: #fff; font-weight: 700; }
+.admin-shell .admin-user small { color: rgba(255, 255, 255, 0.72) !important; }
+
+.admin-shell .admin-sidebar footer { border-top: 1px solid rgba(255, 255, 255, 0.14); }
+.admin-shell .admin-sidebar footer button {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 700;
+  transition: background 0.16s, border-color 0.16s;
+}
+.admin-shell .admin-sidebar footer button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* ============================================================
+   HEADER · barra blanca
+   ============================================================ */
+.admin-shell .admin-header-bar {
+  background: var(--t-surface);
+  border-bottom: 1px solid var(--t-line);
+  padding: 0.7rem 1.7rem;
+  box-shadow: 0 1px 2px rgba(42, 34, 36, 0.03);
+}
+.admin-shell .admin-home-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.1rem; height: 2.1rem; border-radius: 10px;
+  color: var(--t-ink-2); background: var(--t-panel);
+}
+.admin-shell .admin-home-link:hover { background: #ece7e9; color: var(--t-wine); }
+.admin-shell .admin-breadcrumbs { font-size: 0.85rem; color: var(--t-ink-2); }
+.admin-shell .admin-breadcrumbs a { color: var(--t-ink-2); font-weight: 600; }
+.admin-shell .admin-breadcrumbs a:hover { color: var(--t-wine); }
+.admin-shell .admin-breadcrumbs .breadcrumb-current { color: var(--t-wine); font-weight: 800; }
+.admin-shell .admin-breadcrumbs .breadcrumb-sep { color: #c9c0c3; }
+
+.admin-shell .admin-search-box {
+  background: var(--t-panel);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 0.55rem 0.9rem;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.admin-shell .admin-search-box:focus-within {
+  background: #fff;
+  border-color: var(--t-wine);
+  box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.1);
+}
+
+.admin-shell .admin-header-bar .admin-header-right .admin-icon-btn {
+  background: var(--t-panel) !important;
+  border: 0 !important;
+  color: var(--t-ink-2) !important;
+  border-radius: 12px !important;
+  width: 2.4rem; height: 2.4rem;
+  min-width: 2.4rem; min-height: 0;
+  margin: 0; padding: 0;
+  position: relative;
+}
+.admin-shell .admin-header-bar .admin-header-right .admin-icon-btn:hover {
+  background: #ece7e9 !important;
+  color: var(--t-wine) !important;
+}
+.admin-shell .admin-header-bar .admin-header-right .admin-avatar-btn {
+  background: var(--t-wine-deep) !important;
+  color: #fff !important;
+  border-radius: 999px !important;
+  width: 2.4rem; height: 2.4rem;
+  min-width: 2.4rem; min-height: 0;
+  margin: 0; padding: 0;
+}
+.admin-shell .admin-header-bar .admin-header-right .admin-avatar-btn:hover {
+  background: var(--t-wine) !important;
+  color: #fff !important;
+}
+.admin-shell .admin-notif-dot,
+.admin-shell .admin-notif-badge {
+  position: absolute; top: -0.25rem; right: -0.25rem;
+  min-width: 1.15rem; height: 1.15rem; padding: 0 0.25rem;
+  border-radius: 999px; background: var(--t-red); color: #fff;
+  font-size: 0.66rem; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 2px var(--t-surface);
+}
+
+/* Menús desplegables del encabezado */
+.admin-shell .admin-header-bar .admin-dropdown-menu {
+  background: var(--t-surface);
+  border: 1px solid var(--t-line-2);
+  border-radius: 16px;
+  box-shadow: 0 24px 48px -26px rgba(42, 34, 36, 0.42);
+  padding: 0.7rem;
+}
+.admin-shell .admin-header-bar .admin-dropdown-header {
+  border-bottom: 1px solid var(--t-line);
+  padding: 0.35rem 0.6rem 0.7rem;
+  margin-bottom: 0.35rem;
+}
+.admin-shell .admin-header-bar .admin-dropdown-header strong {
+  color: var(--t-ink); font-size: 0.9rem; font-weight: 800;
+}
+.admin-shell .admin-header-bar .admin-dropdown-header small { color: var(--t-ink-2); }
+
+.admin-shell .admin-header-bar .admin-dropdown-item {
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--t-ink) !important;
+  border-radius: 10px;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  gap: 0.65rem;
+  font-weight: 600;
+  justify-content: flex-start;
+}
+.admin-shell .admin-header-bar .admin-dropdown-item:hover {
+  background: var(--t-panel) !important;
+  color: var(--t-wine) !important;
+}
+.admin-shell .admin-header-bar .admin-dropdown-item svg { color: var(--t-ink-2); }
+.admin-shell .admin-header-bar .admin-dropdown-item:hover svg { color: var(--t-wine); }
+.admin-shell .admin-header-bar .admin-dropdown-item.danger { color: var(--t-red) !important; }
+.admin-shell .admin-header-bar .admin-dropdown-item.danger svg { color: var(--t-red); }
+.admin-shell .admin-header-bar .admin-dropdown-item.danger:hover {
+  background: var(--t-wine-soft) !important;
+  color: var(--t-red) !important;
+}
+.admin-shell .admin-header-bar .admin-dropdown-menu hr { border-top-color: var(--t-line) !important; }
+
+.admin-shell .admin-header-bar .admin-notif-item {
+  border-bottom: 1px solid var(--t-line);
+  padding: 0.6rem 0.7rem;
+}
+.admin-shell .admin-header-bar .admin-notif-item:last-child { border-bottom: 0; }
+.admin-shell .admin-header-bar .admin-notif-item b {
+  color: var(--t-wine); font-size: 0.82rem; font-weight: 800;
+}
+.admin-shell .admin-header-bar .admin-notif-item p { color: var(--t-ink-2); }
+.admin-shell .admin-header-bar .admin-notif-scroll {
+  max-height: 20rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.admin-shell .admin-header-bar .admin-notif-scroll::-webkit-scrollbar { width: 8px; }
+.admin-shell .admin-header-bar .admin-notif-scroll::-webkit-scrollbar-track { background: transparent; }
+.admin-shell .admin-header-bar .admin-notif-scroll::-webkit-scrollbar-thumb {
+  background: var(--t-line-2); border-radius: 999px;
+}
+
+.admin-shell .admin-header-bar .admin-menu-toggle {
+  width: 2.4rem; height: 2.4rem;
+  min-width: 2.4rem; min-height: 0;
+  margin: 0; padding: 0;
+  border-radius: 10px;
+  background: var(--t-panel); color: var(--t-ink);
+}
+.admin-shell .admin-header-bar .admin-menu-toggle:hover { background: #ece7e9; color: var(--t-wine); }
+
+/* ============================================================
+   CONTENIDO
+   ============================================================ */
+.admin-shell .admin-main-wrap,
+.admin-shell .admin-content { min-width: 0; }
+.admin-shell .admin-content { padding: 1.5rem 1.8rem 3rem; background: var(--t-bg); }
+.admin-shell .admin-content .dash,
+.admin-shell .admin-content .orders,
+.admin-shell .admin-content .products-admin,
+.admin-shell .admin-content .categories-admin,
+.admin-shell .admin-content .clients-admin {
+  background: transparent; padding: 0; min-height: 0;
+}
+.admin-shell .admin-content button {
+  margin-top: 0; min-height: 0; width: auto; font-family: inherit;
+}
+
+/* ============================================================
+   BANNER HERO de página
+   ============================================================ */
+.admin-shell .orders-hero,
+.admin-shell .products-heading,
+.admin-shell .categories-heading,
+.admin-shell .clients-heading,
+.admin-shell .dash-welcome {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(105deg, #7c1222 0%, #a6192e 58%, #7c1222 100%);
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px -26px rgba(124, 18, 34, 0.7);
+  color: #fff;
+  padding: 1.7rem 2rem;
+  min-height: 150px;
+  display: block;
+}
+.admin-shell .orders-hero::after,
+.admin-shell .products-heading::after,
+.admin-shell .categories-heading::after,
+.admin-shell .clients-heading::after,
+.admin-shell .dash-welcome::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/panelAdmin/Salón moderno en tonos burdeos.png');
+  background-size: cover;
+  background-position: right center;
+  -webkit-mask-image: linear-gradient(90deg, transparent 32%, #000 72%);
+  mask-image: linear-gradient(90deg, transparent 32%, #000 72%);
+  opacity: 0.95;
+  pointer-events: none;
+}
+.admin-shell .orders-hero > *,
+.admin-shell .products-heading > *,
+.admin-shell .categories-heading > *,
+.admin-shell .clients-heading > *,
+.admin-shell .dash-welcome > * { position: relative; z-index: 1; }
+
+.admin-shell .hero-head {
+  display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.7rem;
+}
+.admin-shell .hero-head span.hero-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.1rem; height: 2.1rem; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.admin-shell .hero-kicker { font-size: 0.8rem; font-weight: 700; color: rgba(255, 255, 255, 0.92); }
+
+.admin-shell .orders-hero h1,
+.admin-shell .products-heading h1,
+.admin-shell .categories-heading h1,
+.admin-shell .clients-heading h1,
+.admin-shell .dash h1,
+.admin-shell .products-admin .products-heading h1,
+.admin-shell .clients-admin .clients-heading h1,
+.admin-shell .categories-admin .categories-heading h1 {
+  color: #fff !important;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+  max-width: 60%;
+}
+.admin-shell .orders-hero p,
+.admin-shell .products-heading p,
+.admin-shell .dash-welcome p {
+  color: rgba(255, 255, 255, 0.85) !important;
+  margin: 0.35rem 0 0;
+  font-size: 0.92rem;
+  max-width: 58%;
+}
+.admin-shell .products-heading > div { max-width: 55%; }
+
+/* ============================================================
+   TARJETAS KPI con iconos circulares de color
+   ============================================================ */
+.admin-shell .orders-metrics,
+.admin-shell .dash-kpis,
+.admin-shell .products-kpis,
+.admin-shell .categories-kpis,
+.admin-shell .clients-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1rem;
+}
+.admin-shell .orders-metrics article,
+.admin-shell .dash-kpis article,
+.admin-shell .products-kpis article,
+.admin-shell .categories-kpis article,
+.admin-shell .clients-kpis article {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.9rem;
+  background: var(--t-surface);
+  border: 1px solid var(--t-line);
+  border-radius: var(--t-r);
+  box-shadow: 0 12px 30px -24px rgba(42, 34, 36, 0.5);
+  padding: 1.15rem 1.25rem;
+}
+.admin-shell .orders-metrics article > .kpi-icon,
+.admin-shell .dash-kpis article > .kpi-icon,
+.admin-shell .products-kpis article > .kpi-icon,
+.admin-shell .categories-kpis article > .kpi-icon,
+.admin-shell .clients-kpis article > .kpi-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 3.4rem; height: 3.4rem; border-radius: 999px;
+  background: var(--t-wine-deep); color: #fff;
+}
+.admin-shell [data-tone='green'] { background: var(--t-green) !important; }
+.admin-shell [data-tone='blue'] { background: var(--t-blue) !important; }
+.admin-shell [data-tone='wine'] { background: var(--t-wine-deep) !important; }
+
+.admin-shell .kpi-body { display: flex; flex-direction: column; }
+.admin-shell .kpi-body b {
+  color: var(--t-ink); font-size: 0.86rem; font-weight: 700; margin-bottom: 0.15rem;
+}
+.admin-shell .kpi-body small { color: var(--t-ink-2); font-size: 0.76rem; }
+.admin-shell .orders-metrics article > strong,
+.admin-shell .orders-metrics article > .kpi-body > strong,
+.admin-shell .dash-kpis article > strong,
+.admin-shell .products-kpis article > b,
+.admin-shell .products-kpis article .kpi-body > b,
+.admin-shell .categories-kpis article .kpi-body > b,
+.admin-shell .clients-kpis article .kpi-body > b {
+  font-size: 1.7rem; font-weight: 800; color: var(--t-ink);
+}
+.admin-shell .kpi-chevron {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.9rem; height: 1.9rem; border-radius: 999px;
+  border: 1px solid var(--t-line-2); color: var(--t-ink-2); background: #fff;
+}
+.admin-shell .kpi-watermark {
+  position: absolute; right: 1.1rem; bottom: 0.4rem;
+  color: var(--t-wine-soft); pointer-events: none;
+}
+.admin-shell .kpi-watermark svg { width: 3.2rem; height: 3.2rem; }
+
+/* Cifra dentro de las tarjetas KPI */
+.admin-shell .kpi-body > strong { font-size: 1.7rem; font-weight: 800; color: var(--t-ink); line-height: 1.15; }
+.admin-shell [data-tone='dark'] { background: var(--t-ink) !important; }
+
+/* Productos / Categorías / Clientes: KPIs simples */
+.admin-shell .products-kpis article,
+.admin-shell .categories-kpis article,
+.admin-shell .clients-kpis article { grid-template-columns: auto 1fr; }
+
+/* ============================================================
+   PESTAÑAS pill
+   ============================================================ */
+.admin-shell .orders-tabs,
+.admin-shell .products-filters nav,
+.admin-shell .categories-filters nav {
+  display: flex; flex-wrap: wrap; gap: 0.6rem;
+}
+.admin-shell .orders-tabs button,
+.admin-shell .products-filters nav button,
+.admin-shell .categories-filters nav button {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: var(--t-surface);
+  border: 1px solid var(--t-line-2);
+  border-radius: 12px;
+  color: var(--t-ink-2);
+  font-weight: 700;
+  padding: 0.6rem 1rem;
+  transition: all 0.15s;
+}
+.admin-shell .orders-tabs button:hover,
+.admin-shell .products-filters nav button:hover,
+.admin-shell .categories-filters nav button:hover { border-color: #d3c8cc; color: var(--t-ink); }
+.admin-shell .orders-tabs button.active,
+.admin-shell .products-filters nav button.active,
+.admin-shell .categories-filters nav button.active {
+  background: var(--t-wine) !important;
+  border-color: var(--t-wine) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 22px -14px rgba(166, 25, 46, 0.85);
+}
+.admin-shell .orders-tabs button em {
+  font-style: normal;
+  background: var(--t-red); color: #fff;
+  border-radius: 999px; font-size: 0.68rem; font-weight: 800;
+  padding: 0.05rem 0.45rem; margin-left: 0.15rem;
+}
+
+/* ============================================================
+   PANELES Y TABLAS
+   ============================================================ */
+.admin-shell .orders-list,
+.admin-shell .products-filters,
+.admin-shell .categories-filters,
+.admin-shell .clients-filters,
+.admin-shell .products-table,
+.admin-shell .categories-table,
+.admin-shell .clients-table,
+.admin-shell .dash-card {
+  background: var(--t-surface);
+  border: 1px solid var(--t-line);
+  border-radius: var(--t-r);
+  box-shadow: 0 14px 34px -28px rgba(42, 34, 36, 0.5);
+}
+.admin-shell .orders-list { overflow-x: auto; overflow-y: hidden; }
+.admin-shell .orders-list > header,
+.admin-shell .dash-card > header,
+.admin-shell .products-table > header,
+.admin-shell .categories-table > header,
+.admin-shell .clients-table > header {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 1.1rem 1.25rem;
+  background: transparent;
+  border-bottom: 1px solid var(--t-line);
+}
+.admin-shell .dash-card > header > div { flex: 1; }
+.admin-shell .dash-card > header > b { color: var(--t-amber); font-weight: 800; font-size: 0.82rem; }
+.admin-shell .panel-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.4rem; height: 2.4rem; border-radius: 10px;
+  background: var(--t-wine-soft); color: var(--t-wine);
+  flex: 0 0 auto;
+}
+.admin-shell .orders-list h2,
+.admin-shell .products-table h2,
+.admin-shell .categories-table h2,
+.admin-shell .clients-table h2 { font-size: 1.05rem; font-weight: 800; margin: 0; }
+.admin-shell .orders-list header span,
+.admin-shell .products-table header span,
+.admin-shell .categories-table header span,
+.admin-shell .clients-table header span { color: var(--t-ink-2); font-size: 0.76rem; }
+
+.admin-shell .orders-list header label,
+.admin-shell .products-filters > label:first-child,
+.admin-shell .categories-filters > label,
+.admin-shell .clients-filters label {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: var(--t-panel);
+  border: 1px solid var(--t-line-2);
+  border-radius: 12px;
+  padding: 0.55rem 0.85rem;
+  margin-left: auto;
+}
+.admin-shell .orders-list header label input,
+.admin-shell .products-filters input,
+.admin-shell .categories-filters input,
+.admin-shell .clients-filters input {
+  background: transparent; border: 0; outline: none; color: var(--t-ink);
+}
+
+/* Tabla */
+.admin-shell .orders-table,
+.admin-shell .products-table table,
+.admin-shell .categories-table table,
+.admin-shell .clients-table table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+.admin-shell .products-table,
+.admin-shell .categories-table,
+.admin-shell .clients-table { overflow-x: auto; }
+.admin-shell .orders-table th,
+.admin-shell .products-table th,
+.admin-shell .categories-table th,
+.admin-shell .clients-table th {
+  background: var(--t-panel);
+  color: var(--t-ink-2);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 0.8rem 1rem;
+  border: 0;
+  white-space: nowrap;
+}
+.admin-shell .orders-table td,
+.admin-shell .products-table td,
+.admin-shell .categories-table td,
+.admin-shell .clients-table td {
+  padding: 0.9rem 1rem;
+  border-top: 1px solid var(--t-line);
+  color: var(--t-ink);
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+.admin-shell .orders-table tbody tr:hover,
+.admin-shell .products-table tbody tr:hover,
+.admin-shell .categories-table tbody tr:hover,
+.admin-shell .clients-table tbody tr:hover { background: #faf7f8; }
+.admin-shell .orders-table td b { font-weight: 800; }
+.admin-shell .orders-table td small,
+.admin-shell .products-table td small,
+.admin-shell .clients-table td small { display: block; color: var(--t-ink-2); font-size: 0.72rem; }
+
+.admin-shell .row-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem; border-radius: 8px;
+  background: var(--t-wine-soft); color: var(--t-wine);
+  margin-right: 0.6rem; vertical-align: middle;
+}
+.admin-shell .row-main { display: inline-flex; align-items: center; }
+
+/* ============================================================
+   ESTADO (pills)
+   ============================================================ */
+.admin-shell .orders-table i,
+.admin-shell .orders-list article i {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  border-radius: 999px;
+  font-size: 0.74rem; font-weight: 800; font-style: normal;
+  padding: 0.35rem 0.7rem;
+  background: var(--t-panel); color: var(--t-ink-2);
+}
+.admin-shell .orders-table i.pending,
+.admin-shell .orders-table i.pendiente_pago,
+.admin-shell .orders-list article i.pending,
+.admin-shell .orders-list article i.pendiente_pago {
+  background: var(--t-amber-soft); color: var(--t-amber);
+}
+.admin-shell .orders-table i.pagado,
+.admin-shell .orders-table i.completed,
+.admin-shell .orders-table i.paid,
+.admin-shell .orders-list article i.pagado,
+.admin-shell .orders-list article i.completed {
+  background: var(--t-green-soft); color: var(--t-green);
+}
+.admin-shell .orders-table i.shipped {
+  background: var(--t-blue-soft); color: var(--t-blue);
+}
+.admin-shell .kiosk { border-radius: 999px; background: var(--t-panel); color: var(--t-ink-2); }
+.admin-shell .products-admin .kiosk.visible,
+.admin-shell .categories-admin .category-visible {
+  background: var(--t-green-soft) !important; color: var(--t-green) !important;
+}
+.admin-shell .clients-admin .client-status {
+  background: var(--t-wine-soft) !important; color: var(--t-wine) !important;
+}
+
+/* ============================================================
+   BOTONES semánticos + iconos
+   ============================================================ */
+.admin-shell .btn,
+.admin-shell .btn-primary,
+.admin-shell .btn-danger,
+.admin-shell .btn-success,
+.admin-shell .btn-warn,
+.admin-shell .btn-ghost,
+.admin-shell .products-toolbar button,
+.admin-shell .products-table > header > button,
+.admin-shell .categories-heading button,
+.admin-shell .clients-heading button,
+.admin-shell .products-filters > button,
+.admin-shell .categories-filters > button,
+.admin-shell .clients-filters button,
+.admin-shell .category-actions button,
+.admin-shell .order-actions button {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  border-radius: 12px;
+  font-weight: 700;
+  padding: 0.62rem 1rem;
+  border: 1px solid var(--t-line-2);
+  background: var(--t-surface);
+  color: var(--t-ink);
+  transition: all 0.15s;
+}
+.admin-shell .btn:hover,
+.admin-shell .products-toolbar button:hover,
+.admin-shell .products-filters > button:hover,
+.admin-shell .categories-filters > button:hover,
+.admin-shell .clients-filters button:hover,
+.admin-shell .categories-heading button:hover,
+.admin-shell .clients-heading button:hover { background: var(--t-panel); }
+
+.admin-shell .btn-primary,
+.admin-shell .order-actions button,
+.admin-shell .products-toolbar .primary,
+.admin-shell .products-modal .primary,
+.admin-shell .categories-add,
+.admin-shell .category-modal .primary,
+.admin-shell .clients-heading .primary,
+.admin-shell .products-table > header > .primary,
+.admin-shell .dash-orders header > button,
+.admin-shell .dash-stock > button,
+.admin-shell .orders-modal footer button.primary {
+  background: var(--t-wine) !important;
+  border-color: var(--t-wine) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 22px -14px rgba(166, 25, 46, 0.9);
+}
+.admin-shell .btn-primary:hover,
+.admin-shell .order-actions button:hover,
+.admin-shell .products-toolbar .primary:hover,
+.admin-shell .clients-heading .primary:hover,
+.admin-shell .dash-stock > button:hover { background: var(--t-wine-deep) !important; }
+
+.admin-shell .btn-danger { background: var(--t-red) !important; border-color: var(--t-red) !important; color: #fff !important; }
+.admin-shell .btn-danger:hover { filter: brightness(0.93); }
+.admin-shell .btn-success { background: var(--t-green) !important; border-color: var(--t-green) !important; color: #fff !important; }
+.admin-shell .btn-success:hover { filter: brightness(0.94); }
+.admin-shell .btn-warn { background: var(--t-amber) !important; border-color: var(--t-amber) !important; color: #fff !important; }
+.admin-shell .btn-ghost { background: transparent !important; border-color: var(--t-line-2) !important; color: var(--t-ink-2) !important; }
+
+.admin-shell .icon-btn,
+.admin-shell .kebab {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.1rem; height: 2.1rem; border-radius: 10px;
+  border: 1px solid var(--t-line-2); background: var(--t-surface); color: var(--t-ink-2);
+}
+.admin-shell .icon-btn:hover,
+.admin-shell .kebab:hover { background: var(--t-panel); color: var(--t-ink); }
+
+/* ============================================================
+   FORMULARIOS / MODALES / AVISOS
+   ============================================================ */
+.admin-shell .product-form-grid input,
+.admin-shell .product-form-grid select,
+.admin-shell .product-form-grid textarea,
+.admin-shell .category-modal input {
+  background: var(--t-panel); border: 1px solid var(--t-line-2);
+  border-radius: 12px; color: var(--t-ink);
+}
+.admin-shell .product-form-grid input:focus,
+.admin-shell .product-form-grid select:focus,
+.admin-shell .product-form-grid textarea:focus,
+.admin-shell .category-modal input:focus {
+  background: #fff; border-color: var(--t-wine);
+  box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.1);
+}
+.admin-shell .products-modal > section,
+.admin-shell .category-modal form,
+.admin-shell .orders-modal > section,
+.admin-shell .product-create-modal > form {
+  background: var(--t-surface); border-radius: var(--t-r);
+  box-shadow: 0 44px 80px -44px rgba(42, 34, 36, 0.7);
+}
+.admin-shell .products-toast,
+.admin-shell .categories-toast,
+.admin-shell .clients-toast,
+.admin-shell .orders-toast { background: var(--t-ink); border-radius: 12px; color: #fff; }
+.admin-shell .products-db-error,
+.admin-shell .admin-error {
+  background: var(--t-wine-soft); border: 1px solid #f0cdd2; color: var(--t-wine-deep);
+  border-radius: 12px;
+}
+
+/* ============================================================
+   Rejilla / móvil
+   ============================================================ */
+.admin-shell .dash-grid { min-width: 0; }
+.admin-shell .dash-orders,
+.admin-shell .dash-stock { min-width: 0; }
+.admin-shell .dash-table { overflow-x: auto; }
+.admin-shell .dash-table > div:first-child {
+  background: var(--t-panel); color: var(--t-ink-2); font-weight: 800;
+}
+.admin-shell .dash-table i {
+  border-radius: 999px; background: var(--t-panel); color: var(--t-ink-2) !important;
+  font-style: normal; font-weight: 800; padding: 0.28rem 0.6rem; text-transform: capitalize;
+}
+
+.admin-shell .admin-mobile-bottom-nav {
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--t-wine-dark);
+  border-top: 0;
+}
+.admin-shell .admin-mobile-nav-item { color: rgba(255, 255, 255, 0.7); }
+.admin-shell .admin-mobile-nav-item.active { color: #fff; }
+
+@media (max-width: 1100px) {
+  .admin-shell .orders-metrics,
+  .admin-shell .dash-kpis,
+  .admin-shell .products-kpis,
+  .admin-shell .categories-kpis,
+  .admin-shell .clients-kpis { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 1024px) {
+  .admin-shell { grid-template-columns: 240px minmax(0, 1fr); }
+  .admin-shell .admin-content { padding: 1.3rem 1.3rem 5.5rem; }
+  .admin-shell .admin-kiosk-status-pill { display: none; }
+}
+@media (max-width: 768px) {
+  .admin-shell { grid-template-columns: 1fr; }
+  .admin-shell .admin-content { padding: 1rem 1rem 5.5rem; }
+  .admin-shell .orders-hero h1,
+  .admin-shell .products-heading h1,
+  .admin-shell .categories-heading h1,
+  .admin-shell .clients-heading h1 { max-width: 100%; }
+  .admin-shell .orders-hero p,
+  .admin-shell .products-heading p,
+  .admin-shell .dash-welcome p { max-width: 100%; }
+  .admin-shell .admin-header-bar { padding: 0.6rem 0.85rem; }
+}
+@media (max-width: 560px) {
+  .admin-shell .orders-metrics,
+  .admin-shell .dash-kpis,
+  .admin-shell .products-kpis,
+  .admin-shell .categories-kpis,
+  .admin-shell .clients-kpis { grid-template-columns: 1fr !important; }
+  .admin-shell .orders-hero,
+  .admin-shell .products-heading,
+  .admin-shell .categories-heading,
+  .admin-shell .clients-heading,
+  .admin-shell .dash-welcome { padding: 1.3rem 1.2rem; min-height: 0; }
+  .admin-shell .orders-hero::after,
+  .admin-shell .products-heading::after,
+  .admin-shell .categories-heading::after,
+  .admin-shell .clients-heading::after,
+  .admin-shell .dash-welcome::after { opacity: 0.4; }
+}
+
+/* ============================================================
+   MODAL DE PRODUCTO (crear / editar / ver / confirmaciones)
+   ============================================================ */
+.admin-shell .products-modal {
+  background: rgba(42, 10, 16, 0.52) !important;
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  padding: 1.4rem !important;
+  z-index: 80;
+}
+.admin-shell .product-create-modal { align-items: center !important; }
+
+.admin-shell .product-create-modal > form {
+  background: var(--t-surface);
+  border-radius: var(--t-r) !important;
+  box-shadow: 0 44px 90px -40px rgba(42, 10, 16, 0.7);
+  width: 100%;
+  max-width: 980px !important;
+  max-height: calc(100vh - 2.8rem) !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: auto;
+}
+.admin-shell .products-modal > section {
+  background: var(--t-surface);
+  border-radius: var(--t-r) !important;
+  box-shadow: 0 44px 90px -40px rgba(42, 10, 16, 0.7);
+  padding: 1.4rem !important;
+}
+
+/* Cabecera del modal */
+.admin-shell .products-modal header {
+  background: var(--t-surface) !important;
+  border-bottom: 1px solid var(--t-line) !important;
+  box-shadow: none !important;
+  padding: 1.25rem 1.6rem !important;
+}
+.admin-shell .products-modal header > div { gap: 0.85rem !important; }
+.admin-shell .products-modal header > div > span {
+  background: var(--t-wine-soft) !important;
+  border: 1px solid #f0cdd2 !important;
+  border-radius: 12px !important;
+  color: var(--t-wine) !important;
+  width: 44px; height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 !important;
+}
+.admin-shell .products-modal header h2 {
+  color: var(--t-ink) !important;
+  font-size: 1.18rem !important;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.admin-shell .products-modal header p {
+  color: var(--t-ink-2) !important;
+  font-size: 0.8rem !important;
+}
+.admin-shell .products-modal header > button {
+  background: var(--t-panel) !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  color: var(--t-ink-2) !important;
+  width: 2.2rem; height: 2.2rem;
+  min-height: 0 !important; margin: 0 !important; padding: 0 !important;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.admin-shell .products-modal header > button:hover { background: #ece7e9 !important; color: var(--t-wine) !important; }
+
+/* Pasos del formulario */
+.admin-shell .product-form-steps {
+  background: var(--t-panel) !important;
+  border-bottom: 1px solid var(--t-line) !important;
+  padding: 0 1.6rem !important;
+  gap: 1.6rem !important;
+}
+.admin-shell .product-form-steps span {
+  color: var(--t-ink-2) !important;
+  font-size: 0.74rem !important;
+  font-weight: 700;
+  padding: 0.8rem 0 !important;
+  border-bottom: 2px solid transparent;
+}
+.admin-shell .product-form-steps span:first-child {
+  color: var(--t-wine) !important;
+  border-color: var(--t-wine) !important;
+}
+.admin-shell .product-form-steps b {
+  background: #e7e2e4 !important;
+  color: var(--t-ink-2) !important;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.64rem !important;
+}
+.admin-shell .product-form-steps span:first-child b { background: var(--t-wine) !important; color: #fff !important; }
+
+/* Campos */
+.admin-shell .product-create-modal .product-form-grid {
+  gap: 1.1rem 1.4rem !important;
+  padding: 1.6rem 1.6rem 0.4rem !important;
+}
+.admin-shell .product-create-modal .product-form-grid label {
+  color: var(--t-ink) !important;
+  font-size: 0.76rem !important;
+  font-weight: 800;
+}
+.admin-shell .product-create-modal .product-form-grid input,
+.admin-shell .product-create-modal .product-form-grid select,
+.admin-shell .product-create-modal .product-form-grid textarea {
+  background: var(--t-panel) !important;
+  border: 1px solid var(--t-line-2) !important;
+  border-radius: 12px !important;
+  color: var(--t-ink) !important;
+  min-height: 44px !important;
+}
+.admin-shell .product-create-modal .product-form-grid textarea { min-height: 104px !important; }
+.admin-shell .product-create-modal .product-form-grid input:focus,
+.admin-shell .product-create-modal .product-form-grid select:focus,
+.admin-shell .product-create-modal .product-form-grid textarea:focus {
+  background: #fff !important;
+  border-color: var(--t-wine) !important;
+  box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.1) !important;
+}
+.admin-shell .product-form-section-title {
+  border-bottom: 1px solid var(--t-line) !important;
+  padding-bottom: 0.8rem !important;
+}
+.admin-shell .product-form-section-title span { color: var(--t-ink) !important; font-size: 0.92rem !important; font-weight: 800; }
+.admin-shell .product-form-section-title span:before { background: var(--t-wine) !important; }
+.admin-shell .product-form-section-title small { color: var(--t-ink-2) !important; font-size: 0.72rem !important; }
+.admin-shell .product-form-section-title em { color: #9a9093 !important; font-size: 0.68rem !important; }
+
+/* Selector de variantes de color */
+.admin-shell .product-create-modal .product-color-picker {
+  background: var(--t-wine-soft) !important;
+  border: 1px solid #f0cdd2 !important;
+  border-radius: 14px !important;
+  padding: 0.9rem 1rem !important;
+}
+.admin-shell .product-create-modal .product-color-picker legend { color: var(--t-ink) !important; font-size: 0.8rem !important; font-weight: 800; }
+.admin-shell .product-create-modal .product-color-picker legend small { color: var(--t-ink-2) !important; }
+.admin-shell .product-create-modal .product-color-picker__create button {
+  background: var(--t-wine) !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  min-height: 42px !important;
+  padding: 0 0.9rem !important;
+  width: auto !important;
+  margin: 0 !important;
+  font-weight: 800;
+}
+.admin-shell .product-create-modal .product-color-picker__list > span {
+  background: var(--t-surface) !important;
+  border: 1px solid var(--t-line-2) !important;
+  border-radius: 999px !important;
+}
+.admin-shell .product-create-modal .product-color-picker__list button { background: transparent !important; color: var(--t-wine) !important; }
+
+/* Galería / carga de imágenes */
+.admin-shell .product-create-modal .product-gallery {
+  background: var(--t-surface) !important;
+  border-top: 1px solid var(--t-line) !important;
+  border-bottom: 1px solid var(--t-line) !important;
+  margin: 1.1rem 0 0 !important;
+  padding: 1.5rem 1.6rem !important;
+}
+.admin-shell .product-create-modal .product-gallery b { color: var(--t-ink) !important; font-size: 0.95rem !important; }
+.admin-shell .product-create-modal .product-gallery small { color: var(--t-ink-2) !important; }
+.admin-shell .product-create-modal .product-upload {
+  background: var(--t-panel) !important;
+  border: 1px dashed #cbbfc2 !important;
+  border-radius: 12px !important;
+  color: var(--t-wine) !important;
+}
+.admin-shell .product-create-modal .product-color-image-target {
+  background: var(--t-panel) !important;
+  border: 1px solid var(--t-line-2) !important;
+  border-radius: 12px !important;
+}
+.admin-shell .product-create-modal .product-color-cover,
+.admin-shell .product-create-modal .product-color-cover--secondary {
+  background: var(--t-surface) !important;
+  border: 1px solid var(--t-line-2) !important;
+  border-radius: 10px !important;
+  color: var(--t-ink) !important;
+  min-height: 40px !important;
+  width: auto !important;
+  margin: 0 0 0.7rem !important;
+  font-weight: 700;
+}
+.admin-shell .product-create-modal .product-url-row input { background: var(--t-panel) !important; border: 1px solid var(--t-line-2) !important; border-radius: 12px !important; min-height: 44px !important; }
+
+/* Aviso kiosco */
+.admin-shell .product-create-modal .product-kiosk-check {
+  background: var(--t-wine-soft) !important;
+  border: 1px solid #f0cdd2 !important;
+  border-radius: 14px !important;
+  margin: 1.3rem 1.6rem !important;
+  padding: 0.95rem 1.1rem !important;
+}
+
+/* Pie de acciones */
+.admin-shell .product-create-modal > form > footer {
+  background: var(--t-surface) !important;
+  border-top: 1px solid var(--t-line) !important;
+  box-shadow: none !important;
+  padding: 1rem 1.6rem !important;
+  gap: 0.7rem !important;
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 !important;
+}
+.admin-shell .product-create-modal > form > footer button {
+  background: var(--t-panel) !important;
+  border: 1px solid var(--t-line-2) !important;
+  border-radius: 12px !important;
+  color: var(--t-ink) !important;
+  min-height: 44px !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 1.1rem !important;
+  font-weight: 800;
+  font-size: 0.82rem;
+  flex: 0 0 auto !important;
+}
+.admin-shell .product-create-modal > form > footer button.primary {
+  background: var(--t-wine) !important;
+  border-color: var(--t-wine) !important;
+  color: #fff !important;
+  box-shadow: 0 12px 24px -14px rgba(166, 25, 46, 0.9);
+  margin: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .admin-shell .products-modal { padding: 0 !important; z-index: 80 !important; }
+  .admin-shell .product-create-modal { align-items: stretch !important; }
+  .admin-shell .product-create-modal > form {
+    max-width: 100% !important;
+    max-height: 100vh !important;
+    min-height: 100vh !important;
+    border-radius: 0 !important;
+  }
+  .admin-shell .product-create-modal > form > header,
+  .admin-shell .product-create-modal .product-form-grid,
+  .admin-shell .product-create-modal .product-gallery,
+  .admin-shell .product-create-modal > form > footer { padding-left: 1rem !important; padding-right: 1rem !important; }
+
+  .admin-shell .products-modal header { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+  .admin-shell .products-modal header h2 { font-size: 1.05rem !important; }
+  .admin-shell .product-form-steps { gap: 1.1rem !important; padding: 0 1rem !important; }
+
+  .admin-shell .product-create-modal > form > footer {
+    flex-wrap: nowrap;
+    padding-bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .admin-shell .product-create-modal > form > footer:before { content: none !important; }
+  .admin-shell .product-create-modal > form > footer button { flex: 1 1 0 !important; font-size: 0.88rem !important; padding-left: 0.6rem !important; padding-right: 0.6rem !important; }
+
+  .admin-shell .product-create-modal .product-color-image-target {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+    width: 100%;
+  }
+  .admin-shell .product-create-modal .product-color-image-target select { width: 100%; }
+}
