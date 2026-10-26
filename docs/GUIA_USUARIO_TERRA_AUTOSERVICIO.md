@@ -4,7 +4,7 @@
 |---|---|
 | **Sistema** | TERRA Autoservicio (kiosco digital, portal mayorista y backoffice) |
 | **Versión del sistema** | 2.0 |
-| **Versión del documento** | 1.5 |
+| **Versión del documento** | 2.0 |
 | **Fecha** | 26 de octubre de 2026 |
 | **Organización** | TERRA Autoservicio · Grupo Terra SRL · Sucursal Equipetrol, Santa Cruz de la Sierra, Bolivia |
 | **Dirigido a** | Clientes en tienda, clientes mayoristas, administradores, vendedores y personal de despacho |
@@ -391,7 +391,7 @@ Cualquier persona que usa la tablet del showroom (o la tienda desde su celular).
 ### 9.4 Procedimiento: ver el detalle de un producto
 
 1. Toca la tarjeta del producto.
-2. Revisa las fotos (hasta 4 vistas), el video si existe, el precio, la **Ficha técnica y dimensiones** y la **Descripción completa**.
+2. Revisa las fotos originales cargadas del producto (hasta 4 vistas), el video si existe, el precio, la **Ficha técnica y dimensiones** y la **Descripción completa**.
 3. Elige la **Cantidad** con **−** y **+** (hasta el stock disponible).
 4. Toca **Agregar al carrito**. El botón cambia a "Agregado al carrito".
 5. Resultado: el contador del carrito aumenta. **Volver al catálogo** te regresa a la lista.
@@ -1008,3 +1008,4 @@ Al reportar un problema, indica: tu rol, la pantalla, el **código de pedido** s
 | 1.7 | 26/10/2026 | Equipo TERRA Autoservicio | Clientes minoristas ven y seleccionan su tarifa de envío durante Identificación, antes de continuar a la confirmación. |
 | 1.8 | 26/10/2026 | Equipo TERRA Autoservicio | Nueva pantalla administrativa de Tarifas de envío: alta, edición, activación temporal y eliminación de zonas y barrios. |
 | 1.9 | 26/10/2026 | Equipo TERRA Autoservicio | Envíos minoristas con tarifa por definir: no se muestra el costo al cliente; caja debe registrarlo antes de cobrar. |
+| 2.0 | 26/10/2026 | Equipo TERRA Autoservicio | Las fotos del detalle de producto se muestran en su formato original, sin recorte automático del fondo. |
