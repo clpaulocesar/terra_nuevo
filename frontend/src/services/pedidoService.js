@@ -107,7 +107,7 @@ export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = nul
     body: { metodoPago, comprobanteUrl },
   });
 }
-export async function actualizarItemsPedido(id, items) {
+export async function actualizarItemsPedido(id, items, { direccion = undefined, referencia = undefined } = {}) {
   exigirConexionReal();
   const token = getAdminToken();
   if (!token) throw new Error('Inicia sesión nuevamente para modificar el pedido.');
@@ -116,10 +116,12 @@ export async function actualizarItemsPedido(id, items) {
     headers: { Authorization: `Bearer ${token}` },
     body: {
       items: items.map((item) => ({
-        productoId: String(item.productoId),
+        productoId: String(item.productoId || item.id),
         cantidad: Number(item.cantidad),
         tipoEntrega: item.tipoEntrega || item.tipo_entrega || 'store_pickup',
       })),
+      ...(direccion !== undefined ? { direccion } : {}),
+      ...(referencia !== undefined ? { referencia } : {}),
     },
   });
 }

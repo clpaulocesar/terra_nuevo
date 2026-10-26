@@ -435,7 +435,7 @@ export async function asignarRepartidorBD(id, repartidorId) {
   return rows[0] ? obtenerPedidoBD(id) : null;
 }
 
-export async function actualizarItemsPedidoBD(pedidoId, items) {
+export async function actualizarItemsPedidoBD(pedidoId, items, { direccion = undefined, referencia = undefined } = {}) {
   if (!Array.isArray(items) || !items.length) {
     throw new Error('El pedido debe tener al menos un producto.');
   }
@@ -443,7 +443,7 @@ export async function actualizarItemsPedidoBD(pedidoId, items) {
   try {
     await conexion.query('BEGIN');
     const pedidoActual = await conexion.query(
-      `SELECT id, status, customer_id, fulfillment_type FROM orders WHERE id=$1 FOR UPDATE`,
+      `SELECT id, status, customer_id, fulfillment_type, delivery_address, delivery_reference FROM orders WHERE id=$1 FOR UPDATE`,
       [pedidoId]
     );
     if (!pedidoActual.rowCount) throw new Error('Pedido no encontrado.');
@@ -492,7 +492,7 @@ export async function actualizarItemsPedidoBD(pedidoId, items) {
         cantidad,
         unitPriceMinor: Number(prod.price_minor),
         subtotalMinor,
-        tipoEntrega: item.tipoEntrega || item.tipo_entrega || (pedido.rows[0]?.delivery_address ? 'home_delivery' : 'store_pickup'),
+        tipoEntrega: item.tipoEntrega || item.tipo_entrega || (pActual.delivery_address ? 'home_delivery' : 'store_pickup'),
       });
     }
 
@@ -506,9 +506,32 @@ export async function actualizarItemsPedidoBD(pedidoId, items) {
       );
     }
 
+    const tieneEnvio = nuevosDetalles.some((d) => d.tipoEntrega === 'home_delivery');
+    const nuevoFulfillment = tieneEnvio ? 'home_delivery' : 'store_pickup';
+    let nuevaDireccion = pActual.delivery_address;
+    let nuevaReferencia = pActual.delivery_reference;
+
+    if (direccion !== undefined) {
+      nuevaDireccion = direccion ? String(direccion).trim() : null;
+    }
+    if (referencia !== undefined) {
+      nuevaReferencia = referencia ? String(referencia).trim() : null;
+    }
+    if (!tieneEnvio) {
+      nuevaDireccion = null;
+      nuevaReferencia = null;
+    }
+
     await conexion.query(
-      `UPDATE orders SET subtotal_minor=$1, total_minor=$1, updated_at=NOW() WHERE id=$2`,
-      [totalMinor, pedidoId]
+      `UPDATE orders
+       SET subtotal_minor=$1,
+           total_minor=$1,
+           fulfillment_type=$3,
+           delivery_address=$4,
+           delivery_reference=$5,
+           updated_at=NOW()
+       WHERE id=$2`,
+      [totalMinor, pedidoId, nuevoFulfillment, nuevaDireccion, nuevaReferencia]
     );
 
     await conexion.query('COMMIT');
