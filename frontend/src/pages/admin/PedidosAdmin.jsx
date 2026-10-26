@@ -89,6 +89,8 @@ export default function PedidosAdmin() {
   const [busquedaCatalogo, setBusquedaCatalogo] = useState('');
   const [mostrarCatalogo, setMostrarCatalogo] = useState(false);
   const [mensajeEdicion, setMensajeEdicion] = useState('');
+  const [direccionEdicion, setDireccionEdicion] = useState('');
+  const [referenciaEdicion, setReferenciaEdicion] = useState('');
 
   const cargarPedidos = useCallback(async ({ silencioso = false } = {}) => {
     if (!silencioso) setCargando(true);
@@ -147,6 +149,8 @@ export default function PedidosAdmin() {
     setError('');
     setModoEdicion(iniciarEnEdicion);
     setMensajeEdicion('');
+    setDireccionEdicion(pedido.direccion_entrega || '');
+    setReferenciaEdicion(pedido.referencia_entrega || '');
     setBusquedaCatalogo('');
     setMostrarCatalogo(false);
 
@@ -174,6 +178,8 @@ export default function PedidosAdmin() {
           ? (completo.cliente.referencia || completo.referencia_entrega || pedido.referencia_entrega || '')
           : (completo.referencia_entrega || pedido.referencia_entrega || '');
 
+        setDireccionEdicion(dirEntrega || '');
+        setReferenciaEdicion(refEntrega || '');
         setSeleccion((prev) => (prev && prev.id === pedido.id ? {
           ...prev,
           ...completo,
@@ -230,6 +236,10 @@ export default function PedidosAdmin() {
   const iniciarEdicion = async () => {
     setModoEdicion(true);
     setMensajeEdicion('');
+    if (seleccion) {
+      setDireccionEdicion(seleccion.direccion_entrega || '');
+      setReferenciaEdicion(seleccion.referencia_entrega || '');
+    }
     cargarCatalogo();
     if (!itemsEditados.length && seleccion) {
       setCargandoItems(true);
@@ -244,6 +254,8 @@ export default function PedidosAdmin() {
               cantidad: Number(it.cantidad || 1),
               precioUnitario: Number(it.precioUnitario || 0),
               subtotal: Number(it.subtotal || 0),
+              tipo_entrega: it.tipo_entrega || it.tipoEntrega || 'store_pickup',
+              tipoEntrega: it.tipo_entrega || it.tipoEntrega || 'store_pickup',
             }))
           );
         }
@@ -324,6 +336,7 @@ export default function PedidosAdmin() {
         return copia;
       }
       const precio = Number(prod.precio || 0);
+      const defaultTipo = prev.length > 0 && prev.every((it) => (it.tipo_entrega || it.tipoEntrega) === 'home_delivery') ? 'home_delivery' : 'store_pickup';
       return [
         ...prev,
         {
@@ -333,6 +346,8 @@ export default function PedidosAdmin() {
           cantidad: 1,
           precioUnitario: precio,
           subtotal: precio,
+          tipo_entrega: defaultTipo,
+          tipoEntrega: defaultTipo,
         },
       ];
     });
@@ -355,27 +370,68 @@ export default function PedidosAdmin() {
     ).slice(0, 8);
   }, [catalogoProductos, busquedaCatalogo]);
 
+  const cantEnvioEditados = useMemo(() => {
+    return itemsEditados.filter((it) => (it.tipo_entrega || it.tipoEntrega) === 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0);
+  }, [itemsEditados]);
+
+  const cantLlevadoEditados = useMemo(() => {
+    return itemsEditados.filter((it) => (it.tipo_entrega || it.tipoEntrega) !== 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0);
+  }, [itemsEditados]);
+
+  const marcarTodosComoLlevado = () => {
+    setItemsEditados((prev) => prev.map((it) => ({
+      ...it,
+      tipo_entrega: 'store_pickup',
+      tipoEntrega: 'store_pickup',
+    })));
+  };
+
+  const marcarTodosComoEnvio = () => {
+    setItemsEditados((prev) => prev.map((it) => ({
+      ...it,
+      tipo_entrega: 'home_delivery',
+      tipoEntrega: 'home_delivery',
+    })));
+  };
+
   const guardarCambiosItems = async () => {
     if (!itemsEditados.length) {
       alert('El pedido debe contener al menos un producto.');
+      return;
+    }
+    if (cantEnvioEditados > 0 && !direccionEdicion.trim()) {
+      setError('Debes ingresar la dirección de entrega para los productos con envío.');
       return;
     }
     setGuardandoItems(true);
     setError('');
     setMensajeEdicion('');
     try {
-      const respuesta = await actualizarItemsPedido(seleccion.id, itemsEditados);
+      const dirFinal = cantEnvioEditados > 0 ? direccionEdicion.trim() : null;
+      const refFinal = cantEnvioEditados > 0 ? referenciaEdicion.trim() : null;
+      const respuesta = await actualizarItemsPedido(seleccion.id, itemsEditados, {
+        direccion: dirFinal,
+        referencia: refFinal,
+      });
       const pedidoActualizado = respuesta.data || respuesta;
 
-      const nuevoTotal = Number(pedidoActualizado.total || 0);
+      const nuevoTotal = Number(pedidoActualizado.total || (pedidoActualizado.total_minor ? pedidoActualizado.total_minor / 100 : 0) || totalItemsEditados);
       const itemsCadena = Array.isArray(pedidoActualizado.items)
         ? pedidoActualizado.items.map((it) => `${it.cantidad}x ${it.nombre}`).join(', ')
         : itemsEditados.map((it) => `${it.cantidad}x ${it.nombre}`).join(', ');
+
+      const nuevaCantEnvio = itemsEditados.filter((it) => (it.tipo_entrega || it.tipoEntrega) === 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0);
+      const nuevaCantLlevado = itemsEditados.filter((it) => (it.tipo_entrega || it.tipoEntrega) !== 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0);
 
       setSeleccion((prev) => ({
         ...prev,
         total: nuevoTotal,
         items: itemsCadena,
+        items_detalle: Array.isArray(pedidoActualizado.items) ? pedidoActualizado.items : itemsEditados,
+        cant_envio: nuevaCantEnvio,
+        cant_llevado: nuevaCantLlevado,
+        direccion_entrega: dirFinal || '',
+        referencia_entrega: refFinal || '',
       }));
 
       if (Array.isArray(pedidoActualizado.items)) {
@@ -387,12 +443,11 @@ export default function PedidosAdmin() {
             cantidad: Number(it.cantidad || 1),
             precioUnitario: Number(it.precioUnitario || 0),
             subtotal: Number(it.subtotal || 0),
+            tipo_entrega: it.tipo_entrega || it.tipoEntrega || 'store_pickup',
+            tipoEntrega: it.tipo_entrega || it.tipoEntrega || 'store_pickup',
           }))
         );
       }
-
-      const nuevaCantEnvio = itemsEditados.filter((it) => (it.tipo_entrega || it.tipoEntrega) === 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0);
-      const nuevaCantLlevado = itemsEditados.filter((it) => (it.tipo_entrega || it.tipoEntrega) !== 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0);
 
       setPedidos((lista) =>
         lista.map((p) =>
@@ -403,13 +458,15 @@ export default function PedidosAdmin() {
                 items: itemsCadena,
                 cant_envio: nuevaCantEnvio,
                 cant_llevado: nuevaCantLlevado,
+                direccion_entrega: dirFinal || '',
+                referencia_entrega: refFinal || '',
               }
             : p
         )
       );
 
       setModoEdicion(false);
-      setMensajeEdicion('¡Productos y total del pedido actualizados con éxito!');
+      setMensajeEdicion('¡Productos y modalidad de entrega actualizados con éxito!');
       setTimeout(() => setMensajeEdicion(''), 4000);
     } catch (err) {
       setError(err.message || 'Error al actualizar los productos del pedido.');
@@ -719,6 +776,65 @@ export default function PedidosAdmin() {
               <p className="orders-items-loading">Cargando productos del pedido...</p>
             ) : (
               <>
+                <div className="orders-edit-delivery-box">
+                  <div className="orders-edit-delivery-head">
+                    <div className="orders-edit-delivery-title">
+                      <Truck size={17} />
+                      <span>Modalidad de entrega del cliente</span>
+                    </div>
+                    <div className="orders-edit-delivery-quick-btns">
+                      <button
+                        type="button"
+                        className={`orders-quick-mode-btn ${cantEnvioEditados === 0 && cantLlevadoEditados > 0 ? 'is-active-pickup' : ''}`}
+                        onClick={marcarTodosComoLlevado}
+                        title="Marcar todos los productos como retiro en tienda"
+                      >
+                        <Store size={14} /> Llevárselo a mano (Todo)
+                      </button>
+                      <button
+                        type="button"
+                        className={`orders-quick-mode-btn ${cantEnvioEditados > 0 && cantLlevadoEditados === 0 ? 'is-active-delivery' : ''}`}
+                        onClick={marcarTodosComoEnvio}
+                        title="Marcar todos los productos para envío a domicilio"
+                      >
+                        <Truck size={14} /> Envío a domicilio (Todo)
+                      </button>
+                    </div>
+                  </div>
+                  <p className="orders-edit-delivery-desc">
+                    {cantEnvioEditados > 0 && cantLlevadoEditados > 0 ? (
+                      <><b>Modalidad Mixta:</b> {cantLlevadoEditados} producto(s) para llevar en mano y {cantEnvioEditados} para despacho a domicilio. Puedes cambiar cada producto con su botón a la derecha.</>
+                    ) : cantEnvioEditados > 0 ? (
+                      <><b>100% Envío a domicilio:</b> Todos los productos se enviarán a la dirección del cliente.</>
+                    ) : (
+                      <><b>100% Retiro en tienda:</b> El cliente se lleva todos los productos en mano en el mostrador.</>
+                    )}
+                  </p>
+                  {cantEnvioEditados > 0 && (
+                    <div className="orders-edit-address-fields">
+                      <label>
+                        <span><MapPin size={13} /> Dirección de entrega *</span>
+                        <input
+                          type="text"
+                          placeholder="Ej: Calle Los Claveles #123, Equipetrol"
+                          value={direccionEdicion}
+                          onChange={(e) => setDireccionEdicion(e.target.value)}
+                          required
+                        />
+                      </label>
+                      <label>
+                        <span>Referencia (opcional)</span>
+                        <input
+                          type="text"
+                          placeholder="Ej: Portón blanco, frente al parque"
+                          value={referenciaEdicion}
+                          onChange={(e) => setReferenciaEdicion(e.target.value)}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+
                 <div className="orders-items-list">
                   {itemsEditados.map((item, idx) => (
                     <div key={item.productoId || idx} className="orders-item-row">
@@ -745,16 +861,18 @@ export default function PedidosAdmin() {
                       <div className="orders-item-subtotal">
                         {formatoMoneda(Number(item.precioUnitario || 0) * Number(item.cantidad || 1))}
                       </div>
-                      {seleccion.direccion_entrega && (
-                        <button
-                          type="button"
-                          className={`orders-item-delivery-toggle ${(item.tipo_entrega || item.tipoEntrega) === 'home_delivery' ? 'is-delivery' : 'is-pickup'}`}
-                          onClick={() => alternarTipoEntregaEditado(idx)}
-                          title="Cambiar modalidad de este producto"
-                        >
-                          {(item.tipo_entrega || item.tipoEntrega) === 'home_delivery' ? '🚚 Envío' : '🛍️ Llevado'}
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        className={`orders-item-delivery-toggle ${(item.tipo_entrega || item.tipoEntrega) === 'home_delivery' ? 'is-delivery' : 'is-pickup'}`}
+                        onClick={() => alternarTipoEntregaEditado(idx)}
+                        title="Alternar entre Llevado en mano y Envío a domicilio"
+                      >
+                        {(item.tipo_entrega || item.tipoEntrega) === 'home_delivery' ? (
+                          <><Truck size={13} /> Envío</>
+                        ) : (
+                          <><Store size={13} /> Llevado</>
+                        )}
+                      </button>
                       <button
                         type="button"
                         className="orders-item-remove"
