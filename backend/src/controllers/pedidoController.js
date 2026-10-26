@@ -395,13 +395,15 @@ export async function actualizarItemsPedido(req, res, next) {
   try {
     const id = String(req.params.id || '').trim();
     const items = req.body?.items;
+    const direccion = req.body?.direccion;
+    const referencia = req.body?.referencia;
     if (!id) {
       return res.status(400).json({ success: false, mensaje: 'ID de pedido inválido' });
     }
     if (!Array.isArray(items) || !items.length) {
       return res.status(400).json({ success: false, mensaje: 'Debes enviar al menos un producto para el pedido' });
     }
-    const pedido = await actualizarItemsPedidoBD(id, items);
+    const pedido = await actualizarItemsPedidoBD(id, items, { direccion, referencia });
     return res.json({ success: true, mensaje: 'Pedido actualizado correctamente', data: pedido });
   } catch (error) {
     next(error);

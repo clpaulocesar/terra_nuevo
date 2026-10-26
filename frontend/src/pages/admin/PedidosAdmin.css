@@ -692,3 +692,123 @@
   color: #004230;
   border-color: #ceead6;
 }
+
+/* Selector y editor de modalidad de entrega en el modal (Admin / Vendedor) */
+.orders-edit-delivery-box {
+  background: #fdfbf7;
+  border: 1px solid #fae8c8;
+  border-radius: .75rem;
+  padding: .85rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+
+.orders-edit-delivery-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .6rem;
+}
+
+.orders-edit-delivery-title {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .88rem;
+  font-weight: 800;
+  color: #1b1c1c;
+}
+
+.orders-edit-delivery-quick-btns {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.orders-quick-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .35rem .65rem;
+  border-radius: 999px;
+  border: 1px solid #e0dbd5;
+  background: #fff;
+  color: #56605c;
+  cursor: pointer;
+  transition: .15s ease;
+}
+
+.orders-quick-mode-btn:hover {
+  background: #f6f3f0;
+}
+
+.orders-quick-mode-btn.is-active-pickup {
+  background: #e6f4ea;
+  color: #004230;
+  border-color: #ceead6;
+  font-weight: 800;
+}
+
+.orders-quick-mode-btn.is-active-delivery {
+  background: #fdeeee;
+  color: #a6192e;
+  border-color: rgba(166, 25, 46, 0.25);
+  font-weight: 800;
+}
+
+.orders-edit-delivery-desc {
+  margin: 0;
+  font-size: .8rem;
+  color: #56605c;
+  line-height: 1.35;
+}
+
+.orders-edit-address-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  margin-top: .4rem;
+  padding-top: .6rem;
+  border-top: 1px dashed #fae8c8;
+}
+
+.orders-edit-address-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+
+.orders-edit-address-fields span {
+  font-size: .75rem;
+  font-weight: 700;
+  color: #404944;
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+}
+
+.orders-edit-address-fields input {
+  background: #fff;
+  border: 1px solid #cbd4cd;
+  border-radius: .45rem;
+  padding: .45rem .6rem;
+  font-size: .84rem;
+  color: #1b1c1c;
+  outline: none;
+}
+
+.orders-edit-address-fields input:focus {
+  border-color: #a6192e;
+  box-shadow: 0 0 0 2px rgba(166, 25, 46, 0.15);
+}
+
+@media (max-width: 600px) {
+  .orders-edit-address-fields {
+    grid-template-columns: 1fr;
+  }
+}
