@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
+import bcrypt from 'bcryptjs';
 import { crearTokenAdmin } from '../middlewares/authAdmin.js';
 import { buscarCuentaStaffBD } from '../models/personalModel.js';
-import { autenticarUsuarioSupabase } from '../services/supabaseAuth.js';
 
 function coincide(valor, esperado) {
   const a = Buffer.from(String(valor || ''));
@@ -43,7 +43,10 @@ export async function iniciarSesionAdmin(req, res, next) {
     }
 
     // 2. Personal administrativo registrado en base de datos (staff_accounts)
-    const personal = await buscarCuentaStaffBD(emailNormalizado).catch(() => null);
+    const personal = await buscarCuentaStaffBD(emailNormalizado).catch((error) => {
+      console.error('No se pudo consultar la cuenta de personal:', error.message);
+      return null;
+    });
 
     if (personal) {
       if (!personal.activo) {
@@ -54,8 +57,10 @@ export async function iniciarSesionAdmin(req, res, next) {
         return res.status(403).json({ success: false, mensaje: 'Esta cuenta no tiene un rol autorizado para ingresar al panel.' });
       }
 
-      const usuarioAuth = await autenticarUsuarioSupabase({ email: personal.email, password }).catch(() => null);
-      if (!usuarioAuth || (personal.auth_user_id && usuarioAuth.id !== personal.auth_user_id)) {
+      const passwordOk = personal.password_hash
+        ? await bcrypt.compare(String(password || ''), personal.password_hash).catch(() => false)
+        : false;
+      if (!passwordOk) {
         return res.status(401).json({ success: false, mensaje: 'Credenciales inválidas' });
       }
 
@@ -64,7 +69,6 @@ export async function iniciarSesionAdmin(req, res, next) {
         data: {
           token: crearTokenAdmin({
             id: personal.id,
-            authUserId: personal.auth_user_id,
             email: personal.email,
             nombre: personal.nombre,
             rol: personal.rol,

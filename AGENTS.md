@@ -21,7 +21,7 @@
 ## Variables de entorno (nunca edites ni hagas commit de un `.env`)
 - `frontend/.env` (copia de `frontend/.env.example`): `VITE_API_URL`, `VITE_MODO_DEMO` (modo demo solo si es exactamente `"true"`), `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_STORAGE_BUCKET`.
 - `frontend/public/config.js` (`window.TERRA_CONFIG`) se carga en tiempo de ejecución y tiene prioridad sobre `VITE_API_URL`; también define `N8N_CHAT_URL`, `WHATSAPP_COMPROBANTES` y `VOZ_DICTADO_CREDENCIALES`. Se puede editar después del despliegue sin recompilar.
-- `backend/.env`: `DATABASE_URL`, `PORT`, `FRONTEND_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_TOKEN_SECRET`, `SUPABASE_URL`, `SUPABASE_ANON_KEY` / `SUPABASE_PUBLISHABLE_KEY` (y la clave de servicio que usa `supabaseAuth.js`). Ejecuta el backend desde `backend/` para que el `.env` se resuelva. El origen CORS es `FRONTEND_URL`.
+- `backend/.env`: `DATABASE_URL`, `PORT`, `FRONTEND_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_TOKEN_SECRET`, `SUPABASE_URL`, `SUPABASE_ANON_KEY` / `SUPABASE_PUBLISHABLE_KEY` (y la clave de servicio que usa `supabaseAuth.js`). `DB_SSL=true/false` (opcional) fuerza TLS en la conexión PostgreSQL; si se omite, se deduce del host. Ejecuta el backend desde `backend/` para que el `.env` se resuelva. El origen CORS es `FRONTEND_URL`.
 
 ## Reglas de negocio y detalles a tener en cuenta
 - Pedidos (`backend/src/models/pedidoModel.js`, `crearPedidoBD`): los precios y totales se recalculan desde la base dentro de una transacción; nunca se confía en los totales del cliente. Los errores de validación llevan código HTTP: stock insuficiente → 409; cantidad bajo el mínimo mayorista → 400; ambos con mensaje claro. Crear un pedido NO descuenta stock.

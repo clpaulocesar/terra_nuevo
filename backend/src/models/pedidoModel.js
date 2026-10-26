@@ -46,7 +46,7 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
     await conexion.query('BEGIN');
     if (clienteId) {
       const cliente = await conexion.query('SELECT id FROM customers WHERE id=$1', [clienteId]);
-      if (!cliente.rowCount) throw new Error('El cliente no existe en Supabase');
+      if (!cliente.rowCount) throw new Error('El cliente no existe en la base de datos');
     }
     const detalles = []; let totalMinor = 0;
     for (const item of items) {
@@ -63,7 +63,7 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
                 CASE WHEN $2 THEN COALESCE((SELECT MIN(w.minimum_quantity) FROM wholesale_price_tiers w WHERE w.product_id=p.id), 1) ELSE 1 END AS minimum_order_quantity
          FROM products p
          WHERE p.id=$1 AND COALESCE(p.activo,p.is_active,TRUE)=TRUE LIMIT 1`, [item.productoId, precioMayorista, item.cantidad]);
-      if (!producto.rowCount) throw new Error('Producto no encontrado o inactivo en Supabase');
+      if (!producto.rowCount) throw new Error('Producto no encontrado o inactivo en la base de datos');
       const p = producto.rows[0];
       if (Number(p.stock_quantity || 0) < item.cantidad) throw errorPedido(409, `Stock insuficiente para ${p.name}. Disponible: ${Math.floor(Number(p.stock_quantity || 0))}.`);
       if (item.cantidad < Number(p.minimum_order_quantity || 1)) throw errorPedido(400, `La cantidad mínima mayorista para ${p.name} es ${p.minimum_order_quantity}.`);

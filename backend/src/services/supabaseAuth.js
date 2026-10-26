@@ -132,33 +132,3 @@ export async function eliminarUsuarioSupabase(id) {
   await eliminarUsuarioAuthBD({ id }).catch(() => {});
 }
 
-// Verifica correo y contraseña contra Supabase Auth.
-// Devuelve { ok: true } o { ok: false, mensaje } con el motivo real del rechazo.
-export async function autenticarUsuarioSupabase({ email, password }) {
-  if (!SUPABASE_URL) return null;
-  let keys = PUBLIC_KEYS;
-  try {
-    keys = [await obtenerClavePublica()];
-  } catch {
-    keys = [...new Set([PUBLIC_KEY, SERVICE_ROLE_KEY, ...PUBLIC_KEYS].filter(Boolean))];
-  }
-  for (const key of keys) {
-    const respuesta = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: {
-        apikey: key,
-        Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-    if (respuesta.ok) {
-      const data = await respuesta.json().catch(() => null);
-      return data?.user || null;
-    }
-    const detalle = await respuesta.text().catch(() => '');
-    if (!/Invalid API key/i.test(detalle)) return null;
-  }
-  return null;
-}
-

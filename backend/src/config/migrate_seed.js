@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { pool } from './database.js';
 
 export async function migrateAndSeed({ closePool = false } = {}) {
-  console.log('Iniciando migración y sincronización con Supabase / PostgreSQL...');
+  console.log('Iniciando migración y sincronización con PostgreSQL...');
 
   // 1. Crear tablas necesarias si no existen (cada una individualmente para compatibilidad con PgBouncer/Supabase)
   await pool.query(`
@@ -238,7 +238,7 @@ export async function migrateAndSeed({ closePool = false } = {}) {
     );
   }
 
-  // 4. Si la tabla products (catálogo importado Supabase) existe, sincronizarla también
+  // 4. Si la tabla products (catálogo importado) existe, sincronizarla también
   try {
     const productsRes = await pool.query(`
       SELECT EXISTS (

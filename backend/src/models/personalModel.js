@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { pool } from '../config/database.js';
 
 let tablaLista;
@@ -11,6 +12,7 @@ async function asegurarTablaPersonal() {
           auth_user_id UUID NOT NULL UNIQUE,
           name TEXT NOT NULL,
           email TEXT NOT NULL UNIQUE,
+          password_hash TEXT,
           role TEXT NOT NULL CHECK (role IN ('admin', 'vendedor', 'despacho')),
           is_active BOOLEAN NOT NULL DEFAULT TRUE,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -60,33 +62,38 @@ export async function obtenerPersonalBD(id) {
   return rows[0] || null;
 }
 
-export async function crearPersonalBD({ authUserId, nombre, email, rol, vehiculo = null, placa = null }) {
+export async function crearPersonalBD({ nombre, email, rol, passwordHash, vehiculo = null, placa = null }) {
   await asegurarTablaPersonal();
+  // `auth_user_id` es legado de cuando el personal se autenticaba con Supabase.
+  // La columna sigue siendo NOT NULL en bases existentes, así que se rellena con
+  // un UUID local que ya no se usa para autenticar.
+  const authUserId = randomUUID();
   const { rows } = await pool.query(`
-    INSERT INTO staff_accounts (auth_user_id, name, email, role, vehicle, plate)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    INSERT INTO staff_accounts (auth_user_id, name, email, password_hash, role, vehicle, plate)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING ${CAMPOS_PERSONAL}
-  `, [authUserId, nombre, email, rol, vehiculo, placa]);
+  `, [authUserId, nombre, email, passwordHash, rol, vehiculo, placa]);
   return rows[0];
 }
 
 // Actualiza los datos editables del reparto (nombre, vehículo, placa y estado).
-export async function actualizarPersonalBD(id, { nombre, vehiculo = null, placa = null, activo = null }) {
+// Si se recibe passwordHash, también cambia la contraseña de acceso.
+export async function actualizarPersonalBD(id, { nombre, vehiculo = null, placa = null, activo = null, passwordHash = null }) {
   await asegurarTablaPersonal();
   const { rows } = await pool.query(`
     UPDATE staff_accounts
        SET name = $2,
            vehicle = $3,
            plate = $4,
-           is_active = COALESCE($5, is_active)
+           is_active = COALESCE($5, is_active),
+           password_hash = COALESCE($6, password_hash)
      WHERE id = $1
      RETURNING ${CAMPOS_PERSONAL}
-  `, [id, nombre, vehiculo, placa, activo]);
+  `, [id, nombre, vehiculo, placa, activo, passwordHash]);
   return rows[0] || null;
 }
 
 // Elimina la cuenta operativa y libera los pedidos que todavía la tenían asignada.
-// El usuario de Supabase se borra después, desde el controlador.
 export async function eliminarPersonalBD(id) {
   await asegurarTablaPersonal();
   const conexion = await pool.connect();
@@ -95,7 +102,7 @@ export async function eliminarPersonalBD(id) {
     await conexion.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_driver_id UUID');
     await conexion.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_assigned_at TIMESTAMPTZ');
     const cuenta = await conexion.query(
-      'SELECT id, auth_user_id AS "authUserId" FROM staff_accounts WHERE id = $1 FOR UPDATE',
+      'SELECT id FROM staff_accounts WHERE id = $1 FOR UPDATE',
       [id],
     );
     if (!cuenta.rowCount) {
@@ -118,14 +125,15 @@ export async function eliminarPersonalBD(id) {
 }
 
 // Busca una cuenta del equipo (staff_accounts) por correo.
-// Si además existe en la tabla `users` (clientes), se toma el rol de staff.
+// Devuelve `password_hash` solo para validar el login; nunca se expone en las
+// respuestas de listado, que usan CAMPOS_PERSONAL.
 export async function buscarCuentaStaffBD(email) {
   await asegurarTablaPersonal();
   const correo = String(email || '').trim().toLowerCase();
   if (!correo) return null;
   const { rows } = await pool.query(`
-    SELECT id, auth_user_id, name AS nombre, email, role AS rol, is_active AS activo,
-           vehicle AS vehiculo, plate AS placa
+    SELECT id, name AS nombre, email, role AS rol, is_active AS activo,
+           vehicle AS vehiculo, plate AS placa, password_hash
     FROM staff_accounts
     WHERE lower(email) = $1
     LIMIT 1
