@@ -35,6 +35,7 @@ function asegurarColumnasEntrega() {
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_zone_name TEXT'),
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_fee_pending BOOLEAN NOT NULL DEFAULT FALSE'),
     pool.query('ALTER TABLE order_items ADD COLUMN IF NOT EXISTS delivery_type TEXT'),
+    pool.query('CREATE SCHEMA IF NOT EXISTS auth; CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid AS $$ SELECT null::uuid; $$ LANGUAGE sql STABLE;'),
   ]);
   return deliveryColumnsReady;
 }
