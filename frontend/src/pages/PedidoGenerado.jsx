@@ -153,7 +153,7 @@ export default function PedidoGenerado() {
           {pedido.zona_envio && (
             <div className="pedido-row">
               <span>Tarifa de envío</span>
-              <b>{pedido.zona_envio} · {formatoMoneda(pedido.costo_envio)}</b>
+              <b>{pedido.tarifa_envio_pendiente ? 'Por definir en caja' : `${pedido.zona_envio} · ${formatoMoneda(pedido.costo_envio)}`}</b>
             </div>
           )}
           <div className="pedido-row">

@@ -35,7 +35,7 @@ export default function Confirmacion() {
   const quiereEnvio = esFlujoMayorista ? Boolean(entregaDomicilio) : Boolean(cliente.entregaDomicilio);
 
   useEffect(() => {
-    if (!quiereEnvio) return undefined;
+    if (!esFlujoMayorista || !quiereEnvio) return undefined;
     let vigente = true;
     setCargandoTarifas(true);
     listarTarifasEnvio()
@@ -51,7 +51,7 @@ export default function Confirmacion() {
     return () => {
       vigente = false;
     };
-  }, [quiereEnvio]);
+  }, [esFlujoMayorista, quiereEnvio]);
 
   // Tiene prioridad sobre el carrito vacío luego de completar la compra.
   if (pedidoGenerado) return <Navigate to="/pedido" replace state={{ pedido: pedidoGenerado, cliente: clienteTicket, items: itemsTicket }} />;
@@ -74,7 +74,7 @@ export default function Confirmacion() {
       setError('Seleccioná un medio de pago para continuar.');
       return;
     }
-    if (quiereEnvio && !zonaEnvioId) {
+    if (esFlujoMayorista && quiereEnvio && !zonaEnvioId) {
       setError('Seleccioná la zona de entrega para calcular el envío.');
       return;
     }
@@ -118,7 +118,7 @@ export default function Confirmacion() {
         clienteId: id,
         token: esFlujoMayorista ? sesion?.token : null,
         entregaDomicilio: quiereEnvio,
-        zonaEnvioId: quiereEnvio ? zonaEnvioId : null,
+        zonaEnvioId: esFlujoMayorista && quiereEnvio ? zonaEnvioId : null,
         direccion: direccionEntrega,
         referencia: referenciaEntrega,
         metodoPago,
@@ -190,7 +190,7 @@ export default function Confirmacion() {
               </Link>
             </div>
           </div>
-          {quiereEnvio && (
+          {esFlujoMayorista && quiereEnvio && (
             <label className="confirm-delivery-rate">
               <span>Zona de entrega y tarifa</span>
               <select
@@ -242,7 +242,7 @@ export default function Confirmacion() {
           <h2>Liquidación final</h2>
           <div className="confirm-summary-box">
             <p><span>Subtotal de artículos</span><b>{formatoMoneda(subtotal)}</b></p>
-            {quiereEnvio && <p><span>Envío{tarifaSeleccionada ? ` · ${tarifaSeleccionada.nombre}` : ''}</span><b>{tarifaSeleccionada ? formatoMoneda(costoEnvio) : 'Seleccioná una zona'}</b></p>}
+            {quiereEnvio && <p><span>Envío{tarifaSeleccionada ? ` · ${tarifaSeleccionada.nombre}` : ''}</span><b>{esFlujoMayorista ? (tarifaSeleccionada ? formatoMoneda(costoEnvio) : 'Seleccioná una zona') : 'Por definir en caja'}</b></p>}
             <hr />
             <p className="confirm-total"><span>Total a pagar en caja</span><b>{formatoMoneda(totalConEnvio)}</b></p>
           </div>
@@ -301,7 +301,7 @@ export default function Confirmacion() {
           )}
           {error && <p className="confirm-error">{error}</p>}
           {!metodoPago && <p className="confirm-payment-help">Seleccioná un medio de pago para continuar.</p>}
-          <button className="confirm-submit" disabled={procesando || !metodoPago || (quiereEnvio && (!zonaEnvioId || cargandoTarifas))} onClick={confirmar} type="button"><CheckCircle2 size={23} />{procesando ? 'Generando ticket…' : 'Confirmar y generar pedido'}</button>
+          <button className="confirm-submit" disabled={procesando || !metodoPago || (esFlujoMayorista && quiereEnvio && (!zonaEnvioId || cargandoTarifas))} onClick={confirmar} type="button"><CheckCircle2 size={23} />{procesando ? 'Generando ticket…' : 'Confirmar y generar pedido'}</button>
           <Link className="confirm-edit" to="/carrito">Modificar carrito</Link>
           <small>Terminal seguro · Ticket inmediato en caja</small>
         </aside>
