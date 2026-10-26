@@ -43,9 +43,10 @@
   flex-wrap: wrap;
   gap: 1.25rem;
   justify-content: space-between;
-  overflow: hidden;
+  overflow: visible;
   padding: 1.5rem;
   position: relative;
+  z-index: 30;
 }
 
 .rep-hero__text {
@@ -86,6 +87,7 @@
   gap: .6rem;
   justify-content: flex-end;
   position: relative;
+  z-index: 35;
 }
 
 .rep-toast {
@@ -166,15 +168,6 @@
   transform: scale(.97);
 }
 
-.rep-caret {
-  transform: rotate(90deg);
-  transition: transform .2s ease;
-}
-
-.rep-caret.open {
-  transform: rotate(-90deg);
-}
-
 .rep-spin {
   animation: repSpin 1s linear infinite;
 }
@@ -182,6 +175,7 @@
 /* Menú de exportación profesional */
 .rep-dropdown {
   position: relative;
+  z-index: 40;
 }
 
 .rep-btn--export {
@@ -203,13 +197,13 @@
   background: #ffffff;
   border: 1px solid #e5dfd9;
   border-radius: .85rem;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18), 0 4px 12px rgba(0, 0, 0, 0.08);
   min-width: 18.5rem;
   padding: .45rem;
   position: absolute;
   right: 0;
   top: calc(100% + .45rem);
-  z-index: 50;
+  z-index: 100;
   animation: repMenuFadeIn .15s ease-out;
 }
 
