@@ -20,18 +20,22 @@ export async function registrarPagoPedido(req, res, next) {
     const id = String(req.params.id || '').trim();
     const metodoPago = String(req.body?.metodoPago || '').trim();
     const comprobanteUrl = String(req.body?.comprobanteUrl || '').trim() || null;
+    const costoEnvioCrudo = req.body?.costoEnvio;
+    const costoEnvio = costoEnvioCrudo === undefined || costoEnvioCrudo === null || costoEnvioCrudo === '' ? null : Number(costoEnvioCrudo);
     if (!id || !['efectivo', 'tarjeta'].includes(metodoPago)) {
       return res.status(400).json({ success: false, mensaje: 'Datos de pago inválidos.' });
     }
     if (comprobanteUrl && (comprobanteUrl.length > 2000 || !/^https:\/\//i.test(comprobanteUrl))) {
       return res.status(400).json({ success: false, mensaje: 'La URL del comprobante no es válida.' });
     }
+    if (costoEnvio !== null && (!Number.isFinite(costoEnvio) || costoEnvio < 0 || costoEnvio > 10000)) return res.status(400).json({ success: false, mensaje: 'Costo de envío inválido.' });
     const actual = await obtenerPedidoBD(id);
     if (!actual) return res.status(404).json({ success: false, mensaje: 'Pedido no encontrado.' });
     if (['cancelled', 'cancelado'].includes(String(actual.estado || '').toLowerCase())) {
       return res.status(409).json({ success: false, mensaje: 'No se puede cobrar un pedido anulado.' });
     }
-    const pedido = await registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl, fuente: 'manual' });
+    if (actual.tarifa_envio_pendiente && costoEnvio === null) return res.status(400).json({ success: false, mensaje: 'Ingresá el costo de envío antes de cobrar.' });
+    const pedido = await registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl, fuente: 'manual', costoEnvio });
     if (!pedido) return res.status(404).json({ success: false, mensaje: 'Pedido no encontrado.' });
     return res.json({ success: true, data: pedido });
   } catch (error) { next(error); }
@@ -289,7 +293,8 @@ export async function crearPedido(req, res, next) {
     let entrega = null;
     if (entregaDomicilio) {
       const zonaId = String(req.body?.zonaEnvioId || '').trim();
-      if (!zonaId || zonaId.length > 80) {
+      const tarifaPendiente = !mayorista;
+      if (!tarifaPendiente && (!zonaId || zonaId.length > 80)) {
         return res.status(400).json({ success: false, mensaje: 'Seleccioná una zona de envío válida.' });
       }
       const direccionDirecta = String(req.body?.direccion || req.body?.direccionEntrega || '').trim();
@@ -299,6 +304,7 @@ export async function crearPedido(req, res, next) {
         // Prioridad: dirección directa ingresada en el checkout (cliente minorista o mayorista con dirección explícita)
         entrega = {
           zonaId,
+          tarifaPendiente,
           direccion: direccionDirecta,
           referencia: referenciaDirecta || null,
           latitud: null,
@@ -310,6 +316,7 @@ export async function crearPedido(req, res, next) {
         }
         entrega = {
           zonaId,
+          tarifaPendiente: false,
           direccion: mayorista.direccion,
           referencia: mayorista.referencia || null,
           latitud: mayorista.latitud ?? null,

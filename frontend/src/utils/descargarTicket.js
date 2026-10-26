@@ -1,6 +1,16 @@
 import { toJpeg } from 'html-to-image';
 import { formatoMoneda } from './formatoMoneda.js';
 
+function escapar(valor) {
+  return String(valor ?? '').replace(/[&<>'"]/g, (caracter) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#039;',
+    '"': '&quot;',
+  })[caracter]);
+}
+
 // Genera el ticket del pedido como imagen JPG y lo descarga.
 // Mantiene la misma firma que la versión HTML para no tocar a los llamadores.
 export async function descargarTicket(pedido, cliente = {}, items = []) {
@@ -17,6 +27,32 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
   const nitCliente = cliente?.nit || pedido.cliente_nit || pedido.nit || '';
   const direccionEntrega = cliente?.direccion || pedido.direccion_entrega;
   const referenciaEntrega = cliente?.referencia || pedido.referencia_entrega;
+  const zonaEnvio = pedido.zona_envio || pedido.delivery_zone_name || cliente?.zona || pedido.zona || '';
+  const tarifaPendiente = Boolean(pedido.tarifa_envio_pendiente || pedido.delivery_fee_pending);
+
+  const esEnvio = Boolean(
+    direccionEntrega ||
+    pedido.tipo_entrega === 'home_delivery' ||
+    pedido.tipoEntrega === 'home_delivery' ||
+    pedido.fulfillment_type === 'home_delivery' ||
+    zonaEnvio ||
+    (Array.isArray(pedido.items) && pedido.items.some((i) => (i.tipoEntrega || i.tipo_entrega || i.delivery_type) === 'home_delivery'))
+  );
+
+  const costoEnvio = Number(
+    pedido.costo_envio ??
+    pedido.delivery_fee ??
+    (pedido.delivery_fee_minor !== undefined ? Number(pedido.delivery_fee_minor) / 100 : null) ??
+    0
+  );
+
+  const totalPedido = Number(pedido.total ?? (pedido.total_minor !== undefined ? Number(pedido.total_minor) / 100 : 0)) || 0;
+  const subtotalProductos = Number(
+    pedido.subtotal ??
+    (pedido.subtotal_minor !== undefined ? Number(pedido.subtotal_minor) / 100 : null) ??
+    (esEnvio && !tarifaPendiente ? Math.max(0, totalPedido - costoEnvio) : totalPedido)
+  );
+
   const metodoPago = pedido.metodo_pago || pedido.metodo_pago_solicitado;
   const estadoClave = String(pedido.estado || '').toLowerCase();
   const cobrado = ['completed', 'paid', 'pagado', 'delivered', 'entregado', 'shipped', 'ready_for_pickup', 'out_for_delivery'].includes(estadoClave);
@@ -46,8 +82,8 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
     .map(
       (item) => {
         const tipoEntrega = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
-        const etiquetaEntrega = direccionEntrega
-          ? (tipoEntrega === 'home_delivery'
+        const etiquetaEntrega = esEnvio
+          ? (tipoEntrega === 'home_delivery' || (!tipoEntrega && direccionEntrega)
             ? '<div style="margin-top: 3px;"><span style="display: inline-block; background: #fdeeee; color: #a6192e; border: 1px solid #fecdd3; border-radius: 4px; font-size: 10px; font-weight: 700; padding: 1px 6px;">🚚 Envío a domicilio</span></div>'
             : '<div style="margin-top: 3px;"><span style="display: inline-block; background: #e6f4ea; color: #004230; border: 1px solid #ceead6; border-radius: 4px; font-size: 10px; font-weight: 700; padding: 1px 6px;">🛍️ Llevado en tienda</span></div>')
           : '<div style="margin-top: 3px;"><span style="display: inline-block; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 10px; font-weight: 700; padding: 1px 6px;">🛍️ Llevado / Retiro en tienda</span></div>';
@@ -57,9 +93,9 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
         return `
       <tr>
         <td style="padding: 8px 0; border-bottom: 1px dashed #e2e8f0;">
-          <div style="font-weight: 600; color: #1e293b;">${item.nombre || item.product_name || 'Producto'}</div>
+          <div style="font-weight: 600; color: #1e293b;">${escapar(item.nombre || item.product_name || 'Producto')}</div>
           <div style="color: #64748b; font-size: 12px;">${cant} × ${formatoMoneda(precio)}</div>
-          ${item.color?.nombre || item.color ? `<div style="color: #64748b; font-size: 11px; margin-top: 2px;">Color: ${item.color?.nombre || item.color}</div>` : ''}
+          ${item.color?.nombre || item.color ? `<div style="color: #64748b; font-size: 11px; margin-top: 2px;">Color: ${escapar(item.color?.nombre || item.color)}</div>` : ''}
           ${etiquetaEntrega}
         </td>
         <td style="padding: 8px 0; text-align: right; border-bottom: 1px dashed #e2e8f0; vertical-align: bottom; font-weight: 700; color: #0f172a;">
@@ -81,18 +117,19 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
 
     <div style="background: #fff1f2; border: 2px dashed #a6192e; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 20px;">
       <div style="font-size: 11px; text-transform: uppercase; color: #8e1527; font-weight: 700; letter-spacing: 1.2px;">Código de Pago</div>
-      <div style="font-size: 20px; color: #a6192e; letter-spacing: 1.5px; margin-top: 6px; font-family: monospace; word-break: break-all; font-weight: 800;">${codigoCabecera}</div>
+      <div style="font-size: 20px; color: #a6192e; letter-spacing: 1.5px; margin-top: 6px; font-family: monospace; word-break: break-all; font-weight: 800;">${escapar(codigoCabecera)}</div>
     </div>
 
     <div style="font-size: 13px; margin-bottom: 20px; background: #f1f5f9; padding: 12px 14px; border-radius: 8px;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Fecha:</span> <b style="color: #1e293b;">${fecha}</b></div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Cliente:</span> <b style="color: #1e293b;">${nombreCliente}</b></div>
-      ${telefonoCliente ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Teléfono:</span> <b style="color: #1e293b;">${telefonoCliente}</b></div>` : ''}
-      ${nitCliente ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">NIT:</span> <b style="color: #1e293b;">${nitCliente}</b></div>` : ''}
-      ${direccionEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Envío:</span> <b style="color: #1e293b;">${direccionEntrega}</b></div>` : ''}
-      ${referenciaEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Referencia:</span> <b style="color: #1e293b;">${referenciaEntrega}</b></div>` : ''}
-      <div style="margin-bottom: 6px;"><span style="color: #64748b;">Modalidad:</span> <b style="color: #1e293b;">${textoEntrega}</b></div>
-      ${metodoPago ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Medio de pago:</span> <b style="color: #a6192e;">${metodoPago === 'qr' ? `QR Simple (Glosa: ${pedido.codigo || pedido.id})` : metodoPago.toUpperCase()}</b></div>` : ''}
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Fecha:</span> <b style="color: #1e293b;">${escapar(fecha)}</b></div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Cliente:</span> <b style="color: #1e293b;">${escapar(nombreCliente)}</b></div>
+      ${telefonoCliente ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Teléfono:</span> <b style="color: #1e293b;">${escapar(telefonoCliente)}</b></div>` : ''}
+      ${nitCliente ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">NIT/CI:</span> <b style="color: #1e293b;">${escapar(nitCliente)}</b></div>` : ''}
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Modalidad:</span> <b style="color: ${esEnvio ? '#a6192e' : '#146440'};">${escapar(textoEntrega)}</b></div>
+      ${esEnvio && zonaEnvio ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Zona de envío:</span> <b style="color: #1e293b;">${escapar(zonaEnvio)}</b></div>` : ''}
+      ${direccionEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Dirección:</span> <b style="color: #1e293b;">${escapar(direccionEntrega)}</b></div>` : ''}
+      ${referenciaEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Referencia:</span> <b style="color: #1e293b;">${escapar(referenciaEntrega)}</b></div>` : ''}
+      ${metodoPago ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Medio de pago:</span> <b style="color: #a6192e;">${escapar(metodoPago === 'qr' ? `QR Simple (Glosa: ${pedido.codigo || pedido.id})` : metodoPago.toUpperCase())}</b></div>` : ''}
       <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Estado:</span> <b style="color: ${anulado ? '#a6192e' : (cobrado ? '#146440' : '#9a6513')};">${estadoTexto}</b></div>
     </div>
 
@@ -106,13 +143,26 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
       <tbody>${filas}</tbody>
     </table>
 
+    ${esEnvio ? `
+    <div style="border-top: 1px dashed #cbd5e1; padding: 10px 0 6px; font-size: 13px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #64748b;">
+        <span>Subtotal artículos:</span>
+        <b style="color: #1e293b;">${formatoMoneda(subtotalProductos)}</b>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #a6192e;">
+        <span>Tarifa de envío ${zonaEnvio ? `(${escapar(zonaEnvio)})` : ''}:</span>
+        <b style="font-weight: 700;">${tarifaPendiente ? 'Por definir en caja' : (costoEnvio === 0 ? 'GRATIS (Bs 0.00)' : formatoMoneda(costoEnvio))}</b>
+      </div>
+    </div>
+    ` : ''}
+
     <div style="border-top: 2px solid #0f172a; padding-top: 14px; display: flex; justify-content: space-between; align-items: center; font-size: 17px; font-weight: 800;">
-      <span>${cobrado ? 'Total cobrado:' : 'Total a pagar:'}</span>
-      <span style="color: #a6192e; font-size: 20px;">${formatoMoneda(pedido.total)}</span>
+      <span>${anulado ? 'Total:' : (cobrado ? 'Total cobrado:' : 'Total a pagar:')}</span>
+      <span style="color: #a6192e; font-size: 20px;">${formatoMoneda(totalPedido)}</span>
     </div>
 
     <div style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 24px; border-top: 1px dashed #e2e8f0; padding-top: 14px; line-height: 1.5;">
-      ${cobrado ? 'Conserva este comprobante como constancia de tu compra.' : `Presenta este código en caja para pagar y ${direccionEntrega ? 'coordinar el envío a domicilio' : 'retirar tus productos'}.`}<br />
+      ${cobrado ? 'Conserva este comprobante como constancia de tu compra.' : `Presenta este código en caja para pagar y ${esEnvio ? 'coordinar el envío a domicilio' : 'retirar tus productos'}.`}<br />
       ¡Gracias por tu compra en TERRA!
     </div>
   </div>`;
@@ -128,16 +178,13 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
       quality: 0.92,
       pixelRatio: 2,
       backgroundColor: '#ffffff',
-      skipFonts: true,
     });
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = `ticket-${pedido.codigo || pedido.id}.jpg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  } catch (err) {
-    console.error('No se pudo generar el ticket en JPG:', err);
+    const enlace = document.createElement('a');
+    enlace.download = `ticket-${pedido.codigo || pedido.id || Date.now()}.jpg`;
+    enlace.href = dataUrl;
+    enlace.click();
+  } catch (error) {
+    console.error('Error al generar la imagen del ticket:', error);
   } finally {
     document.body.removeChild(contenedor);
   }

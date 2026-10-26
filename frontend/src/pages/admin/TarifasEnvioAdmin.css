@@ -1,32 +1,1027 @@
-.shipping-rates { color: var(--terra-text, var(--td-text)); }
-.shipping-rates__hero, .shipping-rates__summary, .shipping-rates__table { background: var(--terra-surface, var(--td-surface)); border: 1px solid var(--terra-border, var(--td-line)); border-radius: var(--terra-radius, 1rem); }
-.shipping-rates__hero { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.5rem; }
-.shipping-rates__hero span, .shipping-rates__place { display: inline-flex; align-items: center; gap: 0.5rem; }
-.shipping-rates__hero h1 { margin: 0.4rem 0; font-size: 1.75rem; }
-.shipping-rates__hero p, .shipping-rates__table p { margin: 0; color: var(--terra-muted, var(--td-muted)); }
-.shipping-rates__hero > button, .shipping-rates__modal footer button:last-child { min-height: 2.75rem; border: 0; border-radius: var(--terra-radius, 0.5rem); background: var(--terra-primary, var(--td-accent)); color: var(--terra-on-primary, var(--td-surface)); padding: 0.5rem 0.9rem; font-weight: 700; }
-.shipping-rates__summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 1rem 0; padding: 1rem; }
-.shipping-rates__summary article { display: flex; align-items: center; gap: 0.75rem; }
-.shipping-rates__summary small, .shipping-rates__summary b { display: block; }
-.shipping-rates__summary b { font-size: 1.5rem; }
-.shipping-rates__table header { padding: 1.25rem; }
-.shipping-rates__scroll { overflow-x: auto; }
-.shipping-rates table { width: 100%; border-collapse: collapse; min-width: 38rem; }
-.shipping-rates th, .shipping-rates td { border-top: 1px solid var(--terra-border, var(--td-line)); padding: 1rem 1.25rem; text-align: left; }
-.shipping-rates th { color: var(--terra-muted, var(--td-muted)); font-size: 0.8rem; text-transform: uppercase; }
-.shipping-rates__status { border-radius: 999px; background: var(--terra-muted-bg, var(--td-surface-2)); padding: 0.3rem 0.6rem; font-size: 0.8rem; font-weight: 700; }
-.shipping-rates__status.is-active { background: var(--terra-success-bg, var(--td-ok-bg)); color: var(--terra-success, var(--td-ok)); }
-.shipping-rates__actions { display: flex; gap: 0.5rem; }
-.shipping-rates__actions button { min-width: 2.75rem; min-height: 2.75rem; border: 1px solid var(--terra-border, var(--td-line)); border-radius: var(--terra-radius, 0.5rem); background: transparent; color: inherit; }
-.shipping-rates__state, .shipping-rates__error { padding: 1rem 1.25rem; }
-.shipping-rates__error { color: var(--terra-danger, var(--td-danger)); }
-.shipping-rates__modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: var(--terra-overlay, var(--td-surface-2)); padding: 1rem; }
-.shipping-rates__modal form { width: min(100%, 32rem); display: grid; gap: 1rem; background: var(--terra-surface, var(--td-surface)); border-radius: var(--terra-radius, 1rem); padding: 1.25rem; }
-.shipping-rates__modal header, .shipping-rates__modal footer { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-.shipping-rates__modal header div { display: flex; align-items: center; gap: 0.6rem; }
-.shipping-rates__modal h2 { margin: 0; font-size: 1.25rem; }
-.shipping-rates__modal label { display: grid; gap: 0.4rem; font-weight: 700; }
-.shipping-rates__modal input:not([type='checkbox']) { min-height: 2.75rem; border: 1px solid var(--terra-border, var(--td-line)); border-radius: var(--terra-radius, 0.5rem); background: var(--terra-surface, var(--td-surface)); color: inherit; padding: 0 0.7rem; }
-.shipping-rates__toggle { display: flex !important; align-items: center; grid-template-columns: auto 1fr; }
-.shipping-rates__modal footer button { min-height: 2.75rem; border: 0; border-radius: var(--terra-radius, 0.5rem); padding: 0.5rem 0.9rem; }
-@media (max-width: 48rem) { .shipping-rates__hero { align-items: stretch; flex-direction: column; } .shipping-rates__summary { grid-template-columns: 1fr; } }
+/* =====================================================================
+   TARIFAS DE ENVÍO — BACKOFFICE (ADMIN) DE TERRA AUTOSERVICIO
+   Diseño profesional que combina con la paleta vino de la marca
+   ===================================================================== */
+
+.shipping-rates {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 80rem;
+  margin: 0 auto;
+  color: var(--terra-text, var(--td-text, #231a16));
+  font-family: inherit;
+}
+
+/* Animación de rotación para recarga */
+@keyframes rotarIcono {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.is-spinning {
+  animation: rotarIcono 0.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-spinning {
+    animation: none;
+  }
+}
+
+/* =====================================================================
+   1. HERO / ENCABEZADO
+   ===================================================================== */
+
+.shipping-rates__hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  background: var(--terra-surface, var(--td-surface, #ffffff));
+  border: 1px solid var(--terra-border, var(--td-line, #eee5e6));
+  border-radius: var(--terra-radius, 1rem);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.shipping-rates__hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.shipping-rates__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: var(--terra-primary-bg, #fdeeee);
+  color: var(--terra-primary, var(--vino, #a6192e));
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.shipping-rates__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.shipping-rates__hero h1 {
+  margin: 0;
+  color: var(--terra-text, var(--td-text, #231a16));
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.shipping-rates__count-pill {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--terra-primary, var(--vino, #a6192e));
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.shipping-rates__hero-info p {
+  margin: 0;
+  color: var(--terra-muted, var(--td-muted, #707974));
+  font-size: 0.88rem;
+  max-width: 44rem;
+}
+
+.shipping-rates__hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.shipping-rates__btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--terra-radius, 0.65rem);
+  border: 1px solid var(--terra-border, var(--td-line, #dedada));
+  background: var(--terra-surface-2, var(--td-surface-2, #f5f3f2));
+  color: var(--terra-text, var(--td-text, #454b47));
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.shipping-rates__btn-refresh:hover {
+  background: var(--terra-border, var(--td-surface-3, #eae6e5));
+  color: var(--terra-primary, var(--vino, #a6192e));
+}
+
+.shipping-rates__btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.25rem;
+  border: 0;
+  border-radius: var(--terra-radius, 0.65rem);
+  background: var(--terra-primary, var(--vino, #a6192e));
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(166, 25, 46, 0.22);
+  transition: transform 0.1s ease, filter 0.15s ease;
+  white-space: nowrap;
+}
+
+.shipping-rates__btn-primary:hover:not(:disabled) {
+  filter: brightness(0.92);
+  transform: translateY(-1px);
+}
+
+.shipping-rates__btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.shipping-rates__btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.15rem;
+  border: 1px solid var(--terra-border, var(--td-line, #dedada));
+  border-radius: var(--terra-radius, 0.65rem);
+  background: var(--terra-surface-2, var(--td-surface-2, #f5f3f2));
+  color: var(--terra-text, var(--td-text, #454b47));
+  font-size: 0.88rem;
+  font-weight: 700;
+  transition: background 0.15s ease;
+}
+
+.shipping-rates__btn-secondary:hover {
+  background: var(--terra-border, var(--td-surface-3, #eae6e5));
+}
+
+/* =====================================================================
+   2. TARJETAS DE RESUMEN (KPIS)
+   ===================================================================== */
+
+.shipping-rates__summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.shipping-rates__kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem;
+  background: var(--terra-surface, var(--td-surface, #ffffff));
+  border: 1px solid var(--terra-border, var(--td-line, #eee5e6));
+  border-radius: var(--terra-radius, 1rem);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.shipping-rates__kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.shipping-rates__kpi-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: var(--terra-radius, 0.85rem);
+  flex-shrink: 0;
+}
+
+.shipping-rates__kpi-icon--burgundy {
+  background: var(--terra-primary-bg, #fdeeee);
+  color: var(--terra-primary, var(--vino, #a6192e));
+}
+
+.shipping-rates__kpi-icon--emerald {
+  background: var(--terra-success-bg, #eaf8ed);
+  color: var(--terra-success, var(--ok, #187949));
+}
+
+.shipping-rates__kpi-icon--amber {
+  background: #fef7e6;
+  color: #b45309;
+}
+
+.shipping-rates__kpi-icon--indigo {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.shipping-rates__kpi-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shipping-rates__kpi-content small {
+  color: var(--terra-muted, var(--td-muted, #707974));
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.shipping-rates__kpi-content b {
+  color: var(--terra-text, var(--td-text, #231a16));
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0.15rem 0;
+}
+
+.shipping-rates__kpi-content span {
+  color: var(--terra-muted, var(--td-muted, #858e89));
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =====================================================================
+   3. BARRA DE HERRAMIENTAS (BÚSQUEDA Y FILTROS)
+   ===================================================================== */
+
+.shipping-rates__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.15rem;
+  background: var(--terra-surface, var(--td-surface, #ffffff));
+  border: 1px solid var(--terra-border, var(--td-line, #eee5e6));
+  border-radius: var(--terra-radius, 1rem);
+  flex-wrap: wrap;
+}
+
+.shipping-rates__search-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.85rem;
+  min-height: 2.75rem;
+  border-radius: var(--terra-radius, 0.65rem);
+  background: var(--terra-surface-2, var(--td-surface-2, #f5f3f2));
+  border: 1px solid var(--terra-border, var(--td-line, #dedada));
+  color: var(--terra-muted, var(--td-muted, #707974));
+  flex: 1 1 18rem;
+  max-width: 28rem;
+}
+
+.shipping-rates__search-wrap input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--terra-text, var(--td-text, #231a16));
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.shipping-rates__search-clear {
+  border: 0;
+  background: transparent;
+  color: var(--terra-muted, var(--td-muted, #707974));
+  padding: 0.2rem;
+  border-radius: 999px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shipping-rates__search-clear:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.shipping-rates__pills {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.shipping-rates__pills button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--terra-border, var(--td-line, #dedada));
+  border-radius: 999px;
+  background: var(--terra-surface-2, var(--td-surface-2, #f5f3f2));
+  color: var(--terra-text, var(--td-text, #454b47));
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.shipping-rates__pills button em {
+  font-style: normal;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.shipping-rates__pills button:hover {
+  background: var(--terra-border, var(--td-surface-3, #eae6e5));
+}
+
+.shipping-rates__pills button.is-active {
+  background: var(--terra-primary, var(--vino, #a6192e));
+  border-color: var(--terra-primary, var(--vino, #a6192e));
+  color: #ffffff;
+}
+
+/* =====================================================================
+   4. ALERTA DE ERROR
+   ===================================================================== */
+
+.shipping-rates__error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1.25rem;
+  border-radius: var(--terra-radius, 0.75rem);
+  background: #fff0f1;
+  border: 1px solid #ffd5d8;
+  color: var(--terra-danger, #ba1a1a);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.shipping-rates__error button {
+  margin-left: auto;
+  border: 0;
+  background: #ba1a1a;
+  color: #ffffff;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* =====================================================================
+   5. TABLA Y LISTADO DE ZONAS
+   ===================================================================== */
+
+.shipping-rates__table-card {
+  background: var(--terra-surface, var(--td-surface, #ffffff));
+  border: 1px solid var(--terra-border, var(--td-line, #eee5e6));
+  border-radius: var(--terra-radius, 1rem);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.shipping-rates__table-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--terra-border, var(--td-line, #eee5e6));
+}
+
+.shipping-rates__table-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--terra-text, var(--td-text, #231a16));
+}
+
+.shipping-rates__table-header p {
+  margin: 0.25rem 0 0;
+  font-size: 0.82rem;
+  color: var(--terra-muted, var(--td-muted, #707974));
+}
+
+.shipping-rates__loading,
+.shipping-rates__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  color: var(--terra-muted, var(--td-muted, #707974));
+}
+
+.shipping-rates__loading p {
+  margin: 0.85rem 0 0;
+  font-weight: 700;
+}
+
+.shipping-rates__empty svg {
+  color: var(--terra-border, var(--td-muted, #dedada));
+  margin-bottom: 0.75rem;
+}
+
+.shipping-rates__empty h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--terra-text, var(--td-text, #231a16));
+}
+
+.shipping-rates__empty p {
+  margin: 0.35rem 0 1rem;
+  font-size: 0.85rem;
+  max-width: 24rem;
+}
+
+.shipping-rates__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shipping-rates__table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 44rem;
+  text-align: left;
+}
+
+.shipping-rates__table th {
+  padding: 0.85rem 1.25rem;
+  background: var(--terra-surface-2, var(--td-surface-2, #fbf9f8));
+  color: var(--terra-muted, var(--td-muted, #707974));
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--terra-border, var(--td-line, #eee5e6));
+}
+
+.shipping-rates__table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--terra-border, var(--td-line, #eee5e6));
+  font-size: 0.88rem;
+  vertical-align: middle;
+}
+
+.shipping-rates__table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.shipping-rates__table tbody tr:hover {
+  background: var(--terra-surface-2, var(--td-surface-2, #faf7f6));
+}
+
+.shipping-rates__table tbody tr.is-inactive-row {
+  opacity: 0.68;
+}
+
+.shipping-rates__table tbody tr.is-inactive-row:hover {
+  opacity: 0.9;
+}
+
+/* Columna: Nombre y Lugar */
+.shipping-rates__place {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.shipping-rates__pin-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: var(--terra-radius, 0.65rem);
+  background: var(--terra-primary-bg, #fdeeee);
+  color: var(--terra-primary, var(--vino, #a6192e));
+  flex-shrink: 0;
+}
+
+.shipping-rates__place-texts {
+  display: flex;
+  flex-direction: column;
+}
+
+.shipping-rates__place-texts b {
+  color: var(--terra-text, var(--td-text, #231a16));
+  font-size: 0.92rem;
+  font-weight: 750;
+}
+
+.shipping-rates__place-texts small {
+  color: var(--terra-muted, var(--td-muted, #707974));
+  font-size: 0.74rem;
+}
+
+/* Columna: Costo */
+.shipping-rates__price b {
+  color: var(--terra-primary, var(--vino, #a6192e));
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.shipping-rates__free-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: var(--terra-success-bg, #eaf8ed);
+  color: var(--terra-success, var(--ok, #187949));
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+/* Columna: Estado */
+.shipping-rates__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.shipping-rates__status i {
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+}
+
+.shipping-rates__status.is-active {
+  background: var(--terra-success-bg, #eaf8ed);
+  color: var(--terra-success, var(--ok, #187949));
+}
+
+.shipping-rates__status.is-active i {
+  background: var(--terra-success, var(--ok, #187949));
+}
+
+.shipping-rates__status.is-inactive {
+  background: var(--terra-surface-2, var(--td-surface-2, #f0eded));
+  color: var(--terra-muted, var(--td-muted, #707974));
+}
+
+.shipping-rates__status.is-inactive i {
+  background: var(--terra-muted, var(--td-muted, #707974));
+}
+
+/* Columna: Conmutador Rápido */
+.shipping-rates__toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--terra-border, var(--td-line, #dedada));
+  border-radius: 999px;
+  background: var(--terra-surface, var(--td-surface, #ffffff));
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shipping-rates__toggle-btn:hover:not(:disabled) {
+  border-color: var(--terra-primary, var(--vino, #a6192e));
+}
+
+.shipping-rates__toggle-switch {
+  display: inline-block;
+  width: 1.75rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: #dedada;
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.shipping-rates__toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 0.1rem;
+  left: 0.1rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  background: #ffffff;
+  transition: transform 0.2s ease;
+}
+
+.shipping-rates__toggle-btn.is-enabled .shipping-rates__toggle-switch {
+  background: var(--terra-success, var(--ok, #187949));
+}
+
+.shipping-rates__toggle-btn.is-enabled .shipping-rates__toggle-switch::after {
+  transform: translateX(0.75rem);
+}
+
+.shipping-rates__toggle-btn small {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--terra-text, var(--td-text, #231a16));
+}
+
+/* Columna: Acciones */
+.shipping-rates__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.shipping-rates__action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--terra-radius, 0.55rem);
+  border: 1px solid var(--terra-border, var(--td-line, #dedada));
+  background: var(--terra-surface-2, var(--td-surface-2, #f5f3f2));
+  color: var(--terra-text, var(--td-text, #454b47));
+  transition: all 0.15s ease;
+}
+
+.shipping-rates__action-btn:hover {
+  background: var(--terra-primary, var(--vino, #a6192e));
+  border-color: var(--terra-primary, var(--vino, #a6192e));
+  color: #ffffff;
+}
+
+.shipping-rates__action-btn.is-danger:hover {
+  background: #ba1a1a;
+  border-color: #ba1a1a;
+  color: #ffffff;
+}
+
+/* =====================================================================
+   6. MODAL PROFESIONAL DE EDICIÓN / REGISTRO
+   ===================================================================== */
+
+.shipping-rates__modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.shipping-rates__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: rgba(18, 14, 13, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.shipping-rates__modal-card {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 34rem);
+  background: var(--terra-surface, var(--td-surface, #ffffff));
+  border: 1px solid var(--terra-border, var(--td-line, #eee5e6));
+  border-radius: var(--terra-radius, 1.25rem);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  animation: entradaModal 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes entradaModal {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.shipping-rates__modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--terra-border, var(--td-line, #eee5e6));
+  background: var(--terra-surface-2, var(--td-surface-2, #faf7f6));
+}
+
+.shipping-rates__modal-badge-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.shipping-rates__modal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--terra-radius, 0.75rem);
+  background: var(--terra-primary-bg, #fdeeee);
+  color: var(--terra-primary, var(--vino, #a6192e));
+  flex-shrink: 0;
+}
+
+.shipping-rates__modal-badge-title h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--terra-text, var(--td-text, #231a16));
+}
+
+.shipping-rates__modal-badge-title p {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  color: var(--terra-muted, var(--td-muted, #707974));
+}
+
+.shipping-rates__modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--terra-radius, 0.55rem);
+  border: 0;
+  background: transparent;
+  color: var(--terra-muted, var(--td-muted, #707974));
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.shipping-rates__modal-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--terra-text, var(--td-text, #231a16));
+}
+
+.shipping-rates__modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1.5rem;
+}
+
+.shipping-rates__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.shipping-rates__field span {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--terra-text, var(--td-text, #3f4743));
+}
+
+.shipping-rates__field input {
+  min-height: 2.85rem;
+  padding: 0 0.85rem;
+  border-radius: var(--terra-radius, 0.65rem);
+  border: 1px solid var(--terra-border, var(--td-line, #dedada));
+  background: var(--terra-surface, var(--td-surface, #ffffff));
+  color: var(--terra-text, var(--td-text, #231a16));
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.shipping-rates__field input:focus {
+  border-color: var(--terra-primary, var(--vino, #a6192e));
+  box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.12);
+}
+
+.shipping-rates__field small {
+  color: var(--terra-muted, var(--td-muted, #707974));
+  font-size: 0.74rem;
+}
+
+.shipping-rates__input-prefix {
+  display: flex;
+  align-items: center;
+  border-radius: var(--terra-radius, 0.65rem);
+  border: 1px solid var(--terra-border, var(--td-line, #dedada));
+  background: var(--terra-surface, var(--td-surface, #ffffff));
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.shipping-rates__input-prefix:focus-within {
+  border-color: var(--terra-primary, var(--vino, #a6192e));
+  box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.12);
+}
+
+.shipping-rates__input-prefix span {
+  padding: 0 0.85rem;
+  font-weight: 800;
+  color: var(--terra-primary, var(--vino, #a6192e));
+  font-size: 0.9rem;
+  background: var(--terra-surface-2, var(--td-surface-2, #f5f3f2));
+  border-right: 1px solid var(--terra-border, var(--td-line, #dedada));
+  min-height: 2.85rem;
+  display: flex;
+  align-items: center;
+}
+
+.shipping-rates__input-prefix input {
+  flex: 1;
+  border: 0 !important;
+  box-shadow: none !important;
+  min-height: 2.85rem;
+  padding: 0 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.shipping-rates__field-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--terra-radius, 0.75rem);
+  background: var(--terra-surface-2, var(--td-surface-2, #faf7f6));
+  border: 1px solid var(--terra-border, var(--td-line, #eee5e6));
+  cursor: pointer;
+}
+
+.shipping-rates__field-toggle input[type='checkbox'] {
+  width: 1.35rem;
+  height: 1.35rem;
+  accent-color: var(--terra-primary, var(--vino, #a6192e));
+  margin-top: 0.15rem;
+  cursor: pointer;
+}
+
+.shipping-rates__field-toggle b {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--terra-text, var(--td-text, #231a16));
+}
+
+.shipping-rates__field-toggle p {
+  margin: 0.2rem 0 0;
+  font-size: 0.76rem;
+  color: var(--terra-muted, var(--td-muted, #707974));
+}
+
+.shipping-rates__modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--terra-border, var(--td-line, #eee5e6));
+}
+
+/* =====================================================================
+   7. MODO OSCURO (DARK MODE)
+   ===================================================================== */
+
+html[data-theme="dark"] .shipping-rates__hero,
+html[data-theme="dark"] .shipping-rates__kpi-card,
+html[data-theme="dark"] .shipping-rates__toolbar,
+html[data-theme="dark"] .shipping-rates__table-card,
+html[data-theme="dark"] .shipping-rates__modal-card {
+  background: var(--td-surface, #1e1917);
+  border-color: var(--td-line, #3d3330);
+}
+
+html[data-theme="dark"] .shipping-rates__hero h1,
+html[data-theme="dark"] .shipping-rates__kpi-content b,
+html[data-theme="dark"] .shipping-rates__table-header h2,
+html[data-theme="dark"] .shipping-rates__place-texts b,
+html[data-theme="dark"] .shipping-rates__toggle-btn small,
+html[data-theme="dark"] .shipping-rates__field span,
+html[data-theme="dark"] .shipping-rates__field input,
+html[data-theme="dark"] .shipping-rates__input-prefix input,
+html[data-theme="dark"] .shipping-rates__field-toggle b,
+html[data-theme="dark"] .shipping-rates__modal-badge-title h2 {
+  color: var(--td-text, #f4ede8);
+}
+
+html[data-theme="dark"] .shipping-rates__table th {
+  background: var(--td-surface-2, #282120);
+  border-color: var(--td-line, #3d3330);
+  color: var(--td-muted, #b5a79f);
+}
+
+html[data-theme="dark"] .shipping-rates__table td {
+  border-color: var(--td-line, #3d3330);
+}
+
+html[data-theme="dark"] .shipping-rates__table tbody tr:hover {
+  background: var(--td-surface-2, #282120);
+}
+
+html[data-theme="dark"] .shipping-rates__search-wrap,
+html[data-theme="dark"] .shipping-rates__pills button,
+html[data-theme="dark"] .shipping-rates__btn-secondary,
+html[data-theme="dark"] .shipping-rates__btn-refresh,
+html[data-theme="dark"] .shipping-rates__action-btn,
+html[data-theme="dark"] .shipping-rates__field input,
+html[data-theme="dark"] .shipping-rates__input-prefix,
+html[data-theme="dark"] .shipping-rates__field-toggle {
+  background: var(--td-surface-2, #282120);
+  border-color: var(--td-line, #3d3330);
+  color: var(--td-text, #f4ede8);
+}
+
+html[data-theme="dark"] .shipping-rates__modal-header {
+  background: var(--td-surface-2, #282120);
+  border-color: var(--td-line, #3d3330);
+}
+
+html[data-theme="dark"] .shipping-rates__input-prefix span {
+  background: var(--td-surface-3, #332a28);
+  border-color: var(--td-line, #3d3330);
+}
+
+html[data-theme="dark"] .shipping-rates__badge,
+html[data-theme="dark"] .shipping-rates__pin-badge,
+html[data-theme="dark"] .shipping-rates__kpi-icon--burgundy,
+html[data-theme="dark"] .shipping-rates__modal-icon {
+  background: #3a1a20;
+  color: #ffb3bd;
+}
+
+html[data-theme="dark"] .shipping-rates__price b {
+  color: #ffb3bd;
+}
+
+html[data-theme="dark"] .shipping-rates__kpi-icon--emerald,
+html[data-theme="dark"] .shipping-rates__status.is-active,
+html[data-theme="dark"] .shipping-rates__free-pill {
+  background: #16311f;
+  color: #58c986;
+}
+
+html[data-theme="dark"] .shipping-rates__kpi-icon--amber {
+  background: #332612;
+  color: #fcd34d;
+}
+
+html[data-theme="dark"] .shipping-rates__kpi-icon--indigo {
+  background: #1e293b;
+  color: #93c5fd;
+}
+
+/* =====================================================================
+   8. RESPONSIVIDAD (TABLETS Y MÓVILES)
+   ===================================================================== */
+
+@media (max-width: 64rem) {
+  .shipping-rates__summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 48rem) {
+  .shipping-rates__hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .shipping-rates__hero-actions {
+    justify-content: stretch;
+  }
+
+  .shipping-rates__hero-actions button {
+    flex: 1;
+  }
+
+  .shipping-rates__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .shipping-rates__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shipping-rates__search-wrap {
+    max-width: 100%;
+  }
+
+  .shipping-rates__pills {
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+  }
+}

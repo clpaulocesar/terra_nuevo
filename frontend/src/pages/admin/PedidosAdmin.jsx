@@ -480,10 +480,20 @@ export default function PedidosAdmin() {
   const registrarPago = async () => {
     if (!seleccion) return;
     if (esAnulado(seleccion.estado)) { setError('Este pedido fue anulado. No se puede cobrar ni guardar un comprobante.'); return; }
+    let costoEnvio = null;
+    if (seleccion.tarifa_envio_pendiente) {
+      const valor = window.prompt('Ingresá el costo de envío en bolivianos antes de cobrar:', '');
+      if (valor === null) return;
+      costoEnvio = Number(String(valor).replace(',', '.'));
+      if (!Number.isFinite(costoEnvio) || costoEnvio < 0) {
+        setError('Ingresá un costo de envío válido.');
+        return;
+      }
+    }
     setSubiendoPago(true); setError('');
     try {
       const comprobanteUrl = archivoComprobante ? await subirComprobantePago(archivoComprobante) : seleccion.comprobante_url || null;
-      const actualizado = await registrarPagoPedido(seleccion.id, { metodoPago: metodo, comprobanteUrl });
+      const actualizado = await registrarPagoPedido(seleccion.id, { metodoPago: metodo, comprobanteUrl, costoEnvio });
       const cambios = { estado: actualizado?.estado ?? 'completed', comprobante_url: actualizado?.comprobante_url ?? comprobanteUrl, metodo_pago: actualizado?.metodo_pago ?? metodo };
       setPedidos((lista) => lista.map((pedido) => pedido.id === seleccion.id ? { ...pedido, ...cambios } : pedido));
       setSeleccion(null); setArchivoComprobante(null);

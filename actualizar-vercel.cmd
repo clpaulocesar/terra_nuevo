@@ -4,7 +4,7 @@ cd /d "%~dp0"
 
 echo === Actualizando Vercel ===
 
-git add -u
+git add -A
 git commit -m "Actualizacion %DATE% %TIME%" --allow-empty
 if errorlevel 1 (
   echo.

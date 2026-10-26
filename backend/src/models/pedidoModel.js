@@ -33,7 +33,9 @@ function asegurarColumnasEntrega() {
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_assigned_at TIMESTAMPTZ'),
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_zone_id TEXT'),
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_zone_name TEXT'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_fee_pending BOOLEAN NOT NULL DEFAULT FALSE'),
     pool.query('ALTER TABLE order_items ADD COLUMN IF NOT EXISTS delivery_type TEXT'),
+    pool.query('CREATE SCHEMA IF NOT EXISTS auth; CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid AS $$ SELECT null::uuid; $$ LANGUAGE sql STABLE;'),
   ]);
   return deliveryColumnsReady;
 }
@@ -74,8 +76,8 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
       totalMinor += subtotalMinor;
       detalles.push({ variantId: p.variant_id, nombre: p.name, sku: p.sku, cantidad: item.cantidad, precioUnitario: aMonto(p.price_minor), subtotal: aMonto(subtotalMinor), tipoEntrega: item.tipoEntrega || (entrega ? 'home_delivery' : 'store_pickup') });
     }
-    const tarifa = entrega ? await obtenerTarifaEnvioBD(entrega.zonaId, conexion) : null;
-    if (entrega && !tarifa) throw errorPedido(400, 'Seleccioná una zona de envío válida.');
+    const tarifa = entrega && !entrega.tarifaPendiente ? await obtenerTarifaEnvioBD(entrega.zonaId, conexion) : null;
+    if (entrega && !entrega.tarifaPendiente && !tarifa) throw errorPedido(400, 'Seleccioná una zona de envío válida.');
     const costoEnvioMinor = Number(tarifa?.fee_minor || 0);
     const ticket = `TER-${randomUUID().slice(0, 8).toUpperCase()}`;
     const tipoEntrega = entrega?.direccion ? 'home_delivery' : 'store_pickup';
@@ -84,19 +86,19 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
          customer_id,status,fulfillment_type,subtotal_minor,discount_minor,
          delivery_fee_minor,total_minor,currency,ticket_number,
          delivery_address,delivery_reference,delivery_lat,delivery_lng,payment_requested_method,
-         delivery_zone_id,delivery_zone_name
-       ) VALUES ($1,'pending',$2,$3,0,$4,$5,'BOB',$6,$7,$8,$9,$10,$11,$12,$13)
+         delivery_zone_id,delivery_zone_name,delivery_fee_pending
+       ) VALUES ($1,'pending',$2,$3,0,$4,$5,'BOB',$6,$7,$8,$9,$10,$11,$12,$13,$14)
        RETURNING id, ticket_number AS codigo, customer_id AS cliente_id, total_minor,
                  status AS estado, created_at AS fecha, fulfillment_type AS tipo_entrega,
                  delivery_address AS direccion_entrega, delivery_reference AS referencia_entrega,
                  delivery_lat AS latitud_entrega, delivery_lng AS longitud_entrega,
                  delivery_fee_minor / 100.0 AS costo_envio, delivery_zone_id AS zona_envio_id,
-                 delivery_zone_name AS zona_envio`,
+                 delivery_zone_name AS zona_envio, delivery_fee_pending AS tarifa_envio_pendiente`,
       [
         clienteId, tipoEntrega, totalMinor, costoEnvioMinor, totalMinor + costoEnvioMinor, ticket,
         entrega?.direccion || null, entrega?.referencia || null,
         entrega?.latitud ?? null, entrega?.longitud ?? null, metodoPagoSolicitado,
-        tarifa?.id || null, tarifa?.nombre || null,
+        tarifa?.id || null, tarifa?.nombre || (entrega?.tarifaPendiente ? 'Por definir en caja' : null), Boolean(entrega?.tarifaPendiente),
       ]
     );
     for (const d of detalles) {
@@ -137,6 +139,7 @@ export async function obtenerPedidoBD(id) {
             p.delivery_fee_minor / 100.0 AS costo_envio,
             p.delivery_zone_id AS zona_envio_id,
             p.delivery_zone_name AS zona_envio,
+            p.delivery_fee_pending AS tarifa_envio_pendiente,
             COALESCE(c.name, c.contact_name, 'Compra como invitado') AS cliente_nombre,
             COALESCE(c.phone, '') AS cliente_telefono,
             COALESCE(c.nit, '') AS cliente_nit
@@ -237,6 +240,7 @@ export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', 
            p.delivery_fee_minor / 100.0 AS costo_envio,
            p.delivery_zone_id AS zona_envio_id,
            p.delivery_zone_name AS zona_envio,
+           p.delivery_fee_pending AS tarifa_envio_pendiente,
            p.delivery_status AS estado_entrega,
            p.delivery_started_at AS entrega_iniciada,
            p.delivered_at AS entrega_confirmada,
@@ -290,7 +294,7 @@ export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', 
              p.payment_receipt_url, p.payment_method, p.payment_requested_method,
              p.payment_confirmation_source, p.payment_confirmed_at,
              p.fulfillment_type, p.delivery_address, p.delivery_reference,
-             p.delivery_lat, p.delivery_lng, p.delivery_fee_minor, p.delivery_zone_id, p.delivery_zone_name,
+             p.delivery_lat, p.delivery_lng, p.delivery_fee_minor, p.delivery_zone_id, p.delivery_zone_name, p.delivery_fee_pending,
              p.delivery_status, p.delivery_started_at, p.delivered_at,
              p.delivery_driver_id, p.delivery_assigned_at,
              c.id, c.name, c.contact_name, c.phone, c.nit,
@@ -396,8 +400,17 @@ export async function listarPedidosPorClienteBD(clienteId, limite = 50) {
   return rows;
 }
 
-export async function registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl, fuente = 'manual' }) {
-  await asegurarColumnasPago();
+export async function registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl, fuente = 'manual', costoEnvio = null }) {
+  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega()]);
+  if (costoEnvio !== null) {
+    const costoMinor = Math.round(Number(costoEnvio) * 100);
+    const actualizado = await pool.query(
+      `UPDATE orders SET delivery_fee_minor=$1, total_minor=subtotal_minor+$1,
+       delivery_fee_pending=FALSE, updated_at=NOW() WHERE id=$2 RETURNING id`,
+      [costoMinor, id],
+    );
+    if (!actualizado.rowCount) return null;
+  }
   const { rows } = await pool.query(
     `UPDATE orders
      SET status='completed', payment_method=$1, payment_receipt_url=COALESCE($2, payment_receipt_url),

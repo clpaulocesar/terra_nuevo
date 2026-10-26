@@ -1007,3 +1007,4 @@ Al reportar un problema, indica: tu rol, la pantalla, el **código de pedido** s
 | 1.6 | 26/10/2026 | Equipo TERRA Autoservicio | Selección de zona de entrega al confirmar el pedido, cálculo seguro de la tarifa de transporte y registro de zona/costo en despacho. |
 | 1.7 | 26/10/2026 | Equipo TERRA Autoservicio | Clientes minoristas ven y seleccionan su tarifa de envío durante Identificación, antes de continuar a la confirmación. |
 | 1.8 | 26/10/2026 | Equipo TERRA Autoservicio | Nueva pantalla administrativa de Tarifas de envío: alta, edición, activación temporal y eliminación de zonas y barrios. |
+| 1.9 | 26/10/2026 | Equipo TERRA Autoservicio | Envíos minoristas con tarifa por definir: no se muestra el costo al cliente; caja debe registrarlo antes de cobrar. |

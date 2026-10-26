@@ -98,14 +98,14 @@ export async function asignarRepartidorPedido(id, repartidorId = null) {
     body: { repartidorId },
   });
 }
-export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = null }) {
+export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = null, costoEnvio = null }) {
   exigirConexionReal();
   const token = getAdminToken();
   if (!token) throw new Error('Inicia sesión como administrador o vendedor para registrar el cobro.');
   return apiRequest(`/pedidos/${id}/pago`, {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${token}` },
-    body: { metodoPago, comprobanteUrl },
+    body: { metodoPago, comprobanteUrl, costoEnvio },
   });
 }
 export async function actualizarItemsPedido(id, items, { direccion = undefined, referencia = undefined } = {}) {
