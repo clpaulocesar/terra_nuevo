@@ -28,7 +28,6 @@ export const DESTINOS = {
   adminPedidos:    { ruta: '/admin/pedidos',         nombre: 'Pedidos',                      acceso: ['admin', 'vendedor'], alias: ['pedidos', 'ordenes'] },
   adminVentas:     { ruta: '/admin/ventas-directas', nombre: 'Ventas directas',              acceso: ['admin', 'vendedor'],             alias: ['ventas directas', 'venta en mostrador', 'cobrar', 'ventas'] },
   adminProductos:  { ruta: '/admin/productos',       nombre: 'Productos',                    acceso: ['admin'],                         alias: ['productos', 'inventario de productos', 'catalogo'] },
-  adminSincronizacionErp: { ruta: '/admin/sincronizacion-erp', nombre: 'Sincronización ERP', acceso: ['admin'], alias: ['sincronizar erp', 'importar productos erp', 'actualizar desde erp'] },
   adminCategorias: { ruta: '/admin/categorias',      nombre: 'Categorías',                   acceso: ['admin'],                         alias: ['categorias'] },
   adminAlmacen:    { ruta: '/admin/almacen',         nombre: 'Almacén',                      acceso: ['admin'],                         alias: ['almacen', 'ingresar mercaderia', 'ingreso de stock', 'stock', 'deposito'] },
   adminClientes:   { ruta: '/admin/clientes',        nombre: 'Clientes',                     acceso: ['admin', 'vendedor'],             alias: ['clientes', 'directorio de clientes'] },

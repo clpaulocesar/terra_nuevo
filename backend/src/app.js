@@ -10,7 +10,6 @@ import adminRoutes from './routes/adminRoutes.js';
 import asistenteRoutes from './routes/asistenteRoutes.js';
 import personalRoutes from './routes/personalRoutes.js';
 import geocodificacionRoutes from './routes/geocodificacionRoutes.js';
-import erpRoutes from './routes/erpRoutes.js';
 
 import { verificarConexion } from './config/database.js';
 
@@ -48,7 +47,7 @@ app.get('/openapi', (req, res) => {
     info: {
       title: 'TERRA Centralized Products API',
       version: '1.0.0',
-      description: 'API centralizada de productos y autoservicio TERRA conectada a Supabase PostgreSQL.',
+      description: 'API centralizada de productos y autoservicio TERRA conectada a PostgreSQL.',
     },
     paths: {
       '/': {
@@ -77,11 +76,11 @@ app.get('/openapi', (req, res) => {
       },
       '/api/productos/seed': {
         get: {
-          summary: 'Sincronizar y sembrar catálogo TERRA en Supabase',
+          summary: 'Sincronizar y sembrar catálogo TERRA en la base de datos',
           responses: { 200: { description: 'Catálogo sincronizado' } },
         },
         post: {
-          summary: 'Sincronizar y sembrar catálogo TERRA en Supabase',
+          summary: 'Sincronizar y sembrar catálogo TERRA en la base de datos',
           responses: { 200: { description: 'Catálogo sincronizado' } },
         },
       },
@@ -100,7 +99,7 @@ app.get('/openapi', (req, res) => {
         post: { summary: 'Registrar o buscar cliente' },
       },
       '/api/health': {
-        get: { summary: 'Verificar salud y conexión a Supabase' },
+        get: { summary: 'Verificar salud y conexión a la base de datos' },
       },
     },
   });
@@ -136,13 +135,13 @@ app.get('/docs', (req, res) => {
 </html>`);
 });
 
-// Verificar conexión con Supabase / PostgreSQL.
+// Verificar conexión con PostgreSQL.
 app.get('/api/health', async (req, res, next) => {
   try {
     const conexion = await verificarConexion();
     res.json({
       success: true,
-      mensaje: 'Servidor y base de datos Supabase funcionando',
+      mensaje: 'Servidor y base de datos PostgreSQL funcionando',
       baseDeDatos: conexion.db,
       fecha: conexion.fecha,
     });
@@ -160,7 +159,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/asistente', asistenteRoutes);
 app.use('/api/personal', personalRoutes);
 app.use('/api/geocodificacion', geocodificacionRoutes);
-app.use('/api/erp', erpRoutes);
 
 // Manejo centralizado de errores.
 app.use(rutaNoEncontrada);

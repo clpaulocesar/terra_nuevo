@@ -12,7 +12,7 @@ export async function buscarProductosChat(req, res, next) {
     if (error.code === '42P01') {
       return res.status(503).json({
         success: false,
-        mensaje: 'No se encontró la tabla de productos en Supabase.',
+        mensaje: 'No se encontró la tabla de productos en la base de datos.',
       });
     }
     if (error.code === '42703') {

@@ -7,14 +7,18 @@ if (!process.env.DATABASE_URL) {
   throw new Error('Falta DATABASE_URL en el archivo .env');
 }
 
-const requiresSsl =
-  process.env.DATABASE_URL.includes('supabase') ||
-  process.env.DATABASE_URL.includes('pooler') ||
-  process.env.DATABASE_SSL === 'true';
+// DB_SSL=true|false fuerza el uso de TLS. Si no se define, se deduce del host:
+// Supabase y sus poolers exigen SSL; el resto de servidores, por defecto, no.
+function resolverSsl(url) {
+  const valor = String(process.env.DB_SSL ?? process.env.DATABASE_SSL ?? '').trim().toLowerCase();
+  if (valor === 'true') return { rejectUnauthorized: false };
+  if (valor === 'false') return undefined;
+  return /supabase|pooler/.test(url) ? { rejectUnauthorized: false } : undefined;
+}
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: requiresSsl ? { rejectUnauthorized: false } : undefined,
+  ssl: resolverSsl(process.env.DATABASE_URL),
   // En servidores con alta concurrencia se recomienda 20 a 50 conexiones.
   // Puede configurarse con DATABASE_POOL_MAX en .env.
   max: Number(process.env.DATABASE_POOL_MAX) || 20,

@@ -1,7 +1,7 @@
 import { pool } from '../config/database.js';
 
 // El asistente consulta directamente la tabla `products` (con su categoría).
-// No usamos la vista `public.v_productos_chat`: no existe en Supabase y no se crea.
+// No usamos la vista `public.v_productos_chat`: no existe en la base de datos y no se crea.
 // Expone `id` y `stock` para que el chatbot pueda armar pedidos (POST /api/asistente/pedidos).
 // Términos que significan "mostrame las ofertas": no buscan por nombre, filtran en_oferta.
 const TERMINOS_OFERTA = /^(en |las |los |con )?(ofertas?|promos?|promociones?|promocion|descuentos?|rebajas?|liquidacion)$/;

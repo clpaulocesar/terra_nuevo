@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle, Box, CheckCircle2, ChevronLeft, ChevronRight, Clock3, CreditCard,
-  Download, ExternalLink, Eye, Package, Percent, ReceiptText, RotateCcw, Search,
+  AlertTriangle, Box, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Clock3, CreditCard,
+  Download, ExternalLink, Eye, FileDown, FileSpreadsheet, FileText, Package, Percent, ReceiptText, RotateCcw, Search,
   ShoppingBag, SlidersHorizontal, Tags, TrendingUp, Users,
 } from 'lucide-react';
 import { listarPedidos } from '../../services/pedidoService.js';
@@ -474,70 +474,658 @@ export default function ReportesAdmin() {
   const inventarioTabla = useMemo(() => stockCritico
     .filter((producto) => !textoBusqueda || `${producto.nombre} ${producto.categoria}`.toLowerCase().includes(textoBusqueda)), [stockCritico, textoBusqueda]);
 
-  /* ---------------- Exportación ---------------- */
+  /* ---------------- Exportación Profesional ---------------- */
 
-  const filasExportables = () => {
+  const obtenerDatosExportacionTab = () => {
+    let titulo = 'Ventas y Pedidos';
+    let columnas = [];
+    let filas = [];
+    let pieTotales = [];
+
     if (tab === 'productos') {
-      return [['Producto', 'Categoría', 'Unidades', 'Facturación estimada (Bs)', 'Stock'],
-        ...porProducto.map((item) => [item.nombre, item.categoria, item.unidades, item.ingresos.toFixed(2), item.stock])];
+      titulo = 'Rendimiento y Salida de Productos';
+      columnas = [
+        { header: 'Producto', align: 'left', type: 'text' },
+        { header: 'Categoría', align: 'left', type: 'text' },
+        { header: 'Precio Unitario (Bs)', align: 'right', type: 'money' },
+        { header: 'Unidades Vendidas', align: 'center', type: 'number' },
+        { header: 'Facturación Estimada (Bs)', align: 'right', type: 'money' },
+        { header: 'Stock Showroom', align: 'center', type: 'number' },
+      ];
+      filas = porProducto.map((item) => [
+        item.nombre,
+        item.categoria,
+        Number(item.precio || 0),
+        Number(item.unidades || 0),
+        Number(item.ingresos || 0),
+        Number(item.stock || 0),
+      ]);
+      const totalUnidades = porProducto.reduce((s, it) => s + (it.unidades || 0), 0);
+      const totalIngresos = porProducto.reduce((s, it) => s + (it.ingresos || 0), 0);
+      pieTotales = ['TOTALES', `${porProducto.length} productos`, '', totalUnidades, totalIngresos, ''];
+    } else if (tab === 'pedidos') {
+      titulo = 'Resumen por Estado de Pedido';
+      columnas = [
+        { header: 'Estado del Pedido', align: 'left', type: 'badge' },
+        { header: 'Cantidad de Pedidos', align: 'center', type: 'number' },
+        { header: 'Facturación / Monto (Bs)', align: 'right', type: 'money' },
+      ];
+      filas = porEstado.map((item) => [
+        item.estado,
+        Number(item.cantidad || 0),
+        Number(item.monto || 0),
+      ]);
+      const totalPedidos = porEstado.reduce((s, it) => s + (it.cantidad || 0), 0);
+      const totalMonto = porEstado.reduce((s, it) => s + (it.monto || 0), 0);
+      pieTotales = ['TOTALES', totalPedidos, totalMonto];
+    } else if (tab === 'clientes') {
+      titulo = 'Directorio y Fidelización de Clientes';
+      columnas = [
+        { header: 'Cliente', align: 'left', type: 'text' },
+        { header: 'Teléfono', align: 'center', type: 'text' },
+        { header: 'NIT / CI', align: 'center', type: 'text' },
+        { header: 'Compras Realizadas', align: 'center', type: 'number' },
+        { header: 'Gasto Acumulado (Bs)', align: 'right', type: 'money' },
+      ];
+      filas = clientesOrdenados.map((c) => [
+        c.nombre,
+        c.telefono || '—',
+        c.nit || '—',
+        Number(c.compras || 0),
+        Number(c.gasto || 0),
+      ]);
+      const totalCompras = clientesOrdenados.reduce((s, c) => s + Number(c.compras || 0), 0);
+      const totalGasto = clientesOrdenados.reduce((s, c) => s + Number(c.gasto || 0), 0);
+      pieTotales = ['TOTALES', `${clientesOrdenados.length} clientes`, '', totalCompras, totalGasto];
+    } else if (tab === 'inventario') {
+      titulo = 'Inventario y Alertas de Stock Crítico';
+      columnas = [
+        { header: 'Producto', align: 'left', type: 'text' },
+        { header: 'Categoría', align: 'left', type: 'text' },
+        { header: 'Stock Actual (unidades)', align: 'center', type: 'number' },
+        { header: 'Precio Unitario (Bs)', align: 'right', type: 'money' },
+        { header: 'Nivel Alerta', align: 'center', type: 'badge' },
+      ];
+      filas = stockCritico.map((p) => [
+        p.nombre,
+        p.categoria,
+        Number(p.stock || 0),
+        Number(p.precio || 0),
+        Number(p.stock || 0) === 0 ? 'Agotado' : 'Crítico',
+      ]);
+      const totalStock = stockCritico.reduce((s, p) => s + Number(p.stock || 0), 0);
+      pieTotales = ['TOTALES', `${stockCritico.length} en alerta`, totalStock, '', ''];
+    } else {
+      titulo = 'Historial y Registro de Ventas';
+      columnas = [
+        { header: 'Fecha y Hora', align: 'center', type: 'text' },
+        { header: 'Código', align: 'center', type: 'text' },
+        { header: 'Cliente', align: 'left', type: 'text' },
+        { header: 'Método de Pago', align: 'center', type: 'badge' },
+        { header: 'Artículos', align: 'left', type: 'text' },
+        { header: 'Total (Bs)', align: 'right', type: 'money' },
+        { header: 'Estado', align: 'center', type: 'badge' },
+      ];
+      filas = pedidosTabla.map((p) => [
+        fechaHora(p.fecha),
+        `#${p.codigo}`,
+        p.cliente,
+        infoMetodo(metodoDe(p)).etiqueta,
+        p.items,
+        Number(p.total || 0),
+        ETIQUETA_ESTADO[p.estado] || p.estado,
+      ]);
+      const totalVentas = pedidosTabla.reduce((s, p) => s + Number(p.total || 0), 0);
+      pieTotales = ['TOTALES', `${pedidosTabla.length} pedidos`, '', '', '', totalVentas, ''];
     }
-    if (tab === 'pedidos') {
-      return [['Estado', 'Pedidos', 'Monto (Bs)'], ...porEstado.map((item) => [item.estado, item.cantidad, item.monto.toFixed(2)])];
-    }
-    if (tab === 'clientes') {
-      return [['Cliente', 'Teléfono', 'NIT', 'Compras', 'Gasto (Bs)'], ...clientesOrdenados.map((cliente) => [cliente.nombre, cliente.telefono || '', cliente.nit || '', cliente.compras || 0, Number(cliente.gasto || 0).toFixed(2)])];
-    }
-    if (tab === 'inventario') {
-      return [['Producto', 'Categoría', 'Stock', 'Precio (Bs)'], ...stockCritico.map((producto) => [producto.nombre, producto.categoria, producto.stock, Number(producto.precio || 0).toFixed(2)])];
-    }
-    return [['Fecha', 'Ticket', 'Cliente', 'Método de pago', 'Artículos', 'Importe (Bs)', 'Estado'],
-      ...pedidosTabla.map((pedido) => [fechaHora(pedido.fecha), `#${pedido.codigo}`, pedido.cliente, infoMetodo(metodoDe(pedido)).etiqueta, pedido.items, Number(pedido.total || 0).toFixed(2), ETIQUETA_ESTADO[pedido.estado] || pedido.estado])];
+
+    return { titulo, columnas, filas, pieTotales };
   };
 
   const exportarCSV = () => {
-    descargar(`reporte-${tab}-${aISO(periodo.inicio)}_${aISO(periodo.fin)}.csv`, `\uFEFF${csv(filasExportables())}`, 'text/csv;charset=utf-8;');
     setMenuExportAbierto(false);
-    setAviso('CSV del reporte generado.');
+    const { columnas, filas } = obtenerDatosExportacionTab();
+    const encabezados = columnas.map((c) => c.header);
+    const lineas = [
+      encabezados,
+      ...filas.map((fila) => fila.map((val) => (val === null || val === undefined ? '' : String(val)))),
+    ];
+    descargar(`TERRA_Reporte_${tab}_${aISO(periodo.inicio)}_${aISO(periodo.fin)}.csv`, `\uFEFF${csv(lineas)}`, 'text/csv;charset=utf-8;');
+    setAviso('Archivo CSV delimitado descargado con éxito.');
   };
 
   const exportarExcel = () => {
-    const filas = filasExportables();
-    const [encabezado, ...cuerpo] = filas;
-    const tabla = `<table border="1"><thead><tr>${encabezado.map((celda) => `<th>${celda}</th>`).join('')}</tr></thead><tbody>${cuerpo.map((fila) => `<tr>${fila.map((celda) => `<td>${celda}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-    descargar(`reporte-${tab}.xls`, `\uFEFF<html><head><meta charset="utf-8" /><style>@page{size:landscape;} table{border-collapse:collapse;font-size:11px;} th,td{border:1px solid #999;padding:4px 6px;white-space:nowrap;} th{background:#a6192e;color:#fff;font-weight:700;} tr:nth-child(even) td{background:#f6f3f2;}</style></head><body><h2 style="color:#a6192e;margin:0 0 8px;">TERRA Autoservicio · Reporte ${tab}</h2><p style="font-size:11px;color:#555;margin:0 0 10px;">Período: ${aISO(periodo.inicio)} a ${aISO(periodo.fin)} · ${filas.length - 1} filas · ${new Date().toLocaleString('es-BO')}</p>${tabla}</body></html>`, 'application/vnd.ms-excel');
     setMenuExportAbierto(false);
-    setAviso('Exportación Excel generada.');
+    const { titulo, columnas, filas, pieTotales } = obtenerDatosExportacionTab();
+    const cantColumnas = columnas.length;
+    const fechaEmision = new Date().toLocaleString('es-BO');
+    const periodoStr = `${aISO(periodo.inicio)} al ${aISO(periodo.fin)}`;
+
+    const kpisHtml = `
+      <tr>
+        <td colspan="${cantColumnas}" style="background:#fbf8f6;font-weight:bold;color:#8B1D34;padding:8px 6px;border:1px solid #dcd5ce;">RESUMEN EJECUTIVO DEL PERÍODO</td>
+      </tr>
+      <tr>
+        <td colspan="2" style="background:#ffffff;border:1px solid #dcd5ce;padding:6px;"><b>Ventas Cobradas:</b> Bs. ${numero(ventas, 2)}</td>
+        <td colspan="2" style="background:#ffffff;border:1px solid #dcd5ce;padding:6px;"><b>Pedidos Registrados:</b> ${numero(filtrados.length)} (${numero(cobrados.length)} cobrados)</td>
+        <td colspan="${Math.max(1, cantColumnas - 4)}" style="background:#ffffff;border:1px solid #dcd5ce;padding:6px;"><b>Ticket Promedio:</b> Bs. ${numero(ticketPromedio, 2)} · <b>Por Cobrar:</b> Bs. ${numero(montoPorCobrar, 2)}</td>
+      </tr>
+      <tr><td colspan="${cantColumnas}" style="height:12px;"></td></tr>
+    `;
+
+    const theadHtml = `
+      <tr style="background:#8B1D34;color:#ffffff;font-weight:bold;">
+        ${columnas.map((col) => `<th style="background:#8B1D34;color:#ffffff;padding:8px 6px;border:1px solid #73172B;text-align:${col.align};">${col.header}</th>`).join('')}
+      </tr>
+    `;
+
+    const tbodyHtml = filas.map((fila, idx) => {
+      const bg = idx % 2 === 0 ? '#ffffff' : '#faf7f5';
+      const celdas = fila.map((val, cIdx) => {
+        const col = columnas[cIdx] || { align: 'left', type: 'text' };
+        let msoFormat = '';
+        let displayVal = val;
+        if (col.type === 'money') {
+          msoFormat = 'mso-number-format:"\\0022Bs.\\0022\\ #\\,\\#\\#0\\.00";';
+          displayVal = typeof val === 'number' ? val.toFixed(2) : val;
+        } else if (col.type === 'number') {
+          msoFormat = 'mso-number-format:"\\#\\,\\#\\#0";';
+        }
+        return `<td style="background:${bg};padding:6px;border:1px solid #e2ddd8;text-align:${col.align};${msoFormat}">${displayVal ?? ''}</td>`;
+      }).join('');
+      return `<tr>${celdas}</tr>`;
+    }).join('');
+
+    const tfootHtml = pieTotales.length ? `
+      <tr style="background:#f4eee8;font-weight:bold;border-top:2px solid #8B1D34;border-bottom:3px double #8B1D34;">
+        ${pieTotales.map((val, cIdx) => {
+          const col = columnas[cIdx] || { align: 'left', type: 'text' };
+          const mso = col.type === 'money' ? 'mso-number-format:"\\0022Bs.\\0022\\ #\\,\\#\\#0\\.00";' : '';
+          const displayVal = typeof val === 'number' ? (col.type === 'money' ? val.toFixed(2) : val) : val;
+          return `<td style="padding:8px 6px;border:1px solid #8B1D34;text-align:${col.align};${mso}">${displayVal ?? ''}</td>`;
+        }).join('')}
+      </tr>
+    ` : '';
+
+    const xmlTemplate = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:x="urn:schemas-microsoft-com:office:excel"
+            xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8" />
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>${titulo.slice(0, 31)}</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayGridlines/>
+                  <x:Print><x:Orientation>Landscape</x:Orientation></x:Print>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <style>
+          body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; font-size: 10pt; color: #1b1c1c; }
+          table { border-collapse: collapse; width: 100%; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <tr>
+            <td colspan="${cantColumnas}" style="font-size:15pt;font-weight:bold;color:#8B1D34;padding:8px 0 2px 0;">GRUPO TERRA SRL · TERRA AUTOSERVICIO</td>
+          </tr>
+          <tr>
+            <td colspan="${cantColumnas}" style="font-size:12pt;font-weight:bold;color:#333333;padding:0 0 4px 0;">${titulo.toUpperCase()} — SUCURSAL EQUIPETROL</td>
+          </tr>
+          <tr>
+            <td colspan="${cantColumnas}" style="font-size:9pt;color:#666666;padding:0 0 10px 0;">Período: <b>${periodoStr}</b> · Generado: ${fechaEmision} · Registros: <b>${filas.length}</b> · Estado: ${estado ? (ETIQUETA_ESTADO[estado] || estado) : 'Todos'} · Método: ${infoMetodo(pago).etiqueta}</td>
+          </tr>
+          <tr><td colspan="${cantColumnas}" style="height:8px;"></td></tr>
+          ${kpisHtml}
+          <thead>
+            ${theadHtml}
+          </thead>
+          <tbody>
+            ${tbodyHtml}
+          </tbody>
+          <tfoot>
+            ${tfootHtml}
+          </tfoot>
+        </table>
+      </body>
+      </html>
+    `;
+
+    descargar(`TERRA_Reporte_${tab}_${aISO(periodo.inicio)}_${aISO(periodo.fin)}.xls`, `\uFEFF${xmlTemplate}`, 'application/vnd.ms-excel;charset=utf-8');
+    setAviso('Hoja de cálculo Excel profesional generada con éxito.');
   };
 
   const exportarPDF = () => {
     setMenuExportAbierto(false);
-    const filas = filasExportables();
-    const [encabezado, ...cuerpo] = filas;
-    const thead = encabezado.map((c) => `<th>${c}</th>`).join('');
-    const tbody = cuerpo.map((fila) => `<tr>${fila.map((celda) => `<td>${celda ?? ''}</td>`).join('')}</tr>`).join('');
-    const html = `<!doctype html><html lang="es"><head><meta charset="UTF-8"><title>Reporte TERRA</title><style>
-      @page { size: A4 landscape; margin: 12mm; }
-      * { box-sizing: border-box; }
-      body { font-family: 'Segoe UI', Arial, sans-serif; color: #1b1c1c; margin: 0; }
-      h1 { color: #a6192e; font-size: 18px; margin: 0 0 4px; }
-      .meta { font-size: 10px; color: #56605c; margin: 0 0 10px; }
-      table { width: 100%; border-collapse: collapse; font-size: 9px; }
-      th, td { border: 1px solid #d9d4d3; padding: 4px 6px; text-align: left; vertical-align: top; }
-      th { background: #a6192e; color: #fff; font-weight: 700; }
-      tr:nth-child(even) td { background: #f6f3f2; }
-      td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-      @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-    </style></head><body>
-      <h1>Reporte ${tab} · TERRA Autoservicio</h1>
-      <p class="meta">Período: ${aISO(periodo.inicio)} a ${aISO(periodo.fin)} · ${cuerpo.length} filas · ${new Date().toLocaleString('es-BO')}</p>
-      <table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>
-      <script>onload = () => { setTimeout(() => { window.print(); }, 250); };</script>
-    </body></html>`;
-    const ventana = window.open('', '_blank', 'width=1100,height=760');
-    if (!ventana) { setAviso('Permite las ventanas emergentes para generar el PDF.'); return; }
+    const { titulo, columnas, filas, pieTotales } = obtenerDatosExportacionTab();
+    const fechaEmision = new Date().toLocaleString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const periodoStr = `${aISO(periodo.inicio)} al ${aISO(periodo.fin)}`;
+    const filtroEstadoStr = estado ? (ETIQUETA_ESTADO[estado] || estado) : 'Todos los estados';
+    const filtroPagoStr = infoMetodo(pago).etiqueta;
+
+    const theadHtml = `
+      <tr>
+        ${columnas.map((col) => `<th style="text-align:${col.align};">${col.header}</th>`).join('')}
+      </tr>
+    `;
+
+    const tbodyHtml = filas.map((fila, idx) => {
+      const celdas = fila.map((val, cIdx) => {
+        const col = columnas[cIdx] || { align: 'left', type: 'text' };
+        let formatted = val;
+        let cellClass = `col-${col.align}`;
+        if (col.type === 'money') {
+          formatted = typeof val === 'number' ? formatoMoneda(val) : val;
+          cellClass += ' is-money';
+        } else if (col.type === 'badge') {
+          const tono = TONO_ESTADO[val] || (['QR', 'Efectivo', 'Tarjeta'].includes(val) ? 'info' : 'muted');
+          formatted = `<span class="badge badge--${tono}">${val}</span>`;
+        }
+        return `<td class="${cellClass}">${formatted ?? '—'}</td>`;
+      }).join('');
+      return `<tr class="${idx % 2 === 1 ? 'is-zebra' : ''}">${celdas}</tr>`;
+    }).join('');
+
+    const tfootHtml = pieTotales.length ? `
+      <tfoot>
+        <tr class="table-total-row">
+          ${pieTotales.map((val, cIdx) => {
+            const col = columnas[cIdx] || { align: 'left', type: 'text' };
+            const formatted = typeof val === 'number' ? (col.type === 'money' ? formatoMoneda(val) : numero(val)) : val;
+            return `<td style="text-align:${col.align};">${formatted ?? ''}</td>`;
+          }).join('')}
+        </tr>
+      </tfoot>
+    ` : '';
+
+    const html = `<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>TERRA · ${titulo} (${periodoStr})</title>
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 8mm 10mm 10mm 10mm;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #1a1a1a;
+      background: #464a4d;
+      margin: 0;
+      padding: 0;
+      font-size: 9.5pt;
+      line-height: 1.35;
+    }
+
+    .screen-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #1f2224;
+      color: #ffffff;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    }
+    .screen-toolbar-title {
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .screen-toolbar-badge {
+      background: #a6192e;
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .screen-toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-print {
+      background: #a6192e;
+      color: #ffffff;
+      border: 1px solid #800017;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease;
+    }
+    .btn-print:hover { background: #8e1426; }
+    .btn-close {
+      background: rgba(255,255,255,0.1);
+      color: #eee;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-close:hover { background: rgba(255,255,255,0.2); }
+
+    .sheet-wrapper {
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .report-sheet {
+      background: #ffffff;
+      width: 100%;
+      max-width: 1100px;
+      padding: 26px 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      border-radius: 4px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #a6192e;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo-pill {
+      background: #a6192e;
+      color: #ffffff;
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      padding: 6px 14px;
+      border-radius: 6px;
+    }
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #1a1a1a;
+      letter-spacing: -0.02em;
+    }
+    .brand-sub {
+      font-size: 10px;
+      color: #666;
+      font-weight: 500;
+    }
+    .report-meta-box {
+      text-align: right;
+    }
+    .report-code {
+      font-size: 9px;
+      font-weight: 700;
+      color: #a6192e;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .report-heading {
+      font-size: 16px;
+      font-weight: 800;
+      color: #a6192e;
+      margin: 2px 0;
+      letter-spacing: -0.01em;
+    }
+    .report-timestamp {
+      font-size: 10px;
+      color: #555;
+    }
+
+    .context-bar {
+      background: #fbf9f8;
+      border: 1px solid #ede8e4;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      font-size: 10px;
+      gap: 8px;
+    }
+    .context-item b {
+      color: #1a1a1a;
+    }
+    .context-item span {
+      color: #666;
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .kpi-card {
+      background: #ffffff;
+      border: 1px solid #e5dfd9;
+      border-top: 3px solid #a6192e;
+      border-radius: 6px;
+      padding: 8px 12px;
+    }
+    .kpi-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+    .kpi-num {
+      font-size: 15px;
+      font-weight: 800;
+      color: #a6192e;
+    }
+    .kpi-sub {
+      font-size: 9px;
+      color: #777;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9pt;
+      margin-top: 4px;
+    }
+    table.data-table th {
+      background: #a6192e;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 8.5pt;
+      padding: 6px 8px;
+      border: 1px solid #8e1426;
+      letter-spacing: 0.02em;
+    }
+    table.data-table td {
+      border: 1px solid #e5dfd9;
+      padding: 5px 8px;
+      vertical-align: middle;
+    }
+    table.data-table tr.is-zebra td {
+      background: #faf7f5;
+    }
+    .col-left { text-align: left; }
+    .col-center { text-align: center; }
+    .col-right { text-align: right; }
+    .is-money {
+      font-weight: 700;
+      color: #1a1a1a;
+      white-space: nowrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 8pt;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .badge--ok { background: #e6f4ea; color: #137333; }
+    .badge--warn { background: #fef7e0; color: #b06000; }
+    .badge--bad { background: #fce8e6; color: #c5221f; }
+    .badge--info { background: #e8f0fe; color: #1a73e8; }
+    .badge--muted { background: #f1f3f4; color: #5f6368; }
+
+    .table-total-row td {
+      background: #f4ece6 !important;
+      font-weight: 800;
+      font-size: 9.5pt;
+      border-top: 2px solid #a6192e !important;
+      border-bottom: 2px solid #a6192e !important;
+      padding: 8px !important;
+    }
+
+    .report-footer {
+      margin-top: 22px;
+      padding-top: 10px;
+      border-top: 1px dashed #d5cfc9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8.5pt;
+      color: #777;
+    }
+
+    @media print {
+      .screen-toolbar { display: none !important; }
+      body { background: #fff !important; }
+      .sheet-wrapper { padding: 0 !important; }
+      .report-sheet {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+      tr { page-break-inside: avoid; }
+      thead { display: table-header-group; }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen-toolbar">
+    <div class="screen-toolbar-title">
+      <span class="screen-toolbar-badge">Vista Previa PDF</span>
+      <span>${titulo} · TERRA Autoservicio</span>
+    </div>
+    <div class="screen-toolbar-actions">
+      <button type="button" class="btn-print" onclick="window.print()">
+        🖨️ Imprimir / Guardar como PDF
+      </button>
+      <button type="button" class="btn-close" onclick="window.close()">
+        ✕ Cerrar
+      </button>
+    </div>
+  </div>
+
+  <div class="sheet-wrapper">
+    <div class="report-sheet">
+      <div class="header">
+        <div class="brand-box">
+          <div class="brand-logo-pill">TERRA</div>
+          <div>
+            <div class="brand-title">TERRA AUTOSERVICIO</div>
+            <div class="brand-sub">Grupo Terra SRL · Sucursal Equipetrol, Santa Cruz de la Sierra</div>
+          </div>
+        </div>
+        <div class="report-meta-box">
+          <div class="report-code">DOCUMENTO OFICIAL DE GESTIÓN</div>
+          <div class="report-heading">${titulo.toUpperCase()}</div>
+          <div class="report-timestamp">Emisión: ${fechaEmision}</div>
+        </div>
+      </div>
+
+      <div class="context-bar">
+        <div class="context-item"><span>Período evaluado:</span> <b>${periodoStr}</b></div>
+        <div class="context-item"><span>Filtro de estado:</span> <b>${filtroEstadoStr}</b></div>
+        <div class="context-item"><span>Método de cobro:</span> <b>${filtroPagoStr}</b></div>
+        <div class="context-item"><span>Total registros:</span> <b>${filas.length} filas</b></div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-label">Ventas Cobradas</div>
+          <div class="kpi-num">${formatoMoneda(ventas)}</div>
+          <div class="kpi-sub">${numero(cobrados.length)} pedidos cobrados</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Volumen de Pedidos</div>
+          <div class="kpi-num">${numero(filtrados.length)} pedidos</div>
+          <div class="kpi-sub">${numero(porCobrar.length)} pendientes de cobro</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Ticket Promedio</div>
+          <div class="kpi-num">${formatoMoneda(ticketPromedio)}</div>
+          <div class="kpi-sub">Por venta concretada</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Unidades Vendidas</div>
+          <div class="kpi-num">${numero(itemsVendidos)} unidades</div>
+          <div class="kpi-sub">${numero(porProducto.length)} productos con movimiento</div>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          ${theadHtml}
+        </thead>
+        <tbody>
+          ${tbodyHtml}
+        </tbody>
+        ${tfootHtml}
+      </table>
+
+      <div class="report-footer">
+        <div>TERRA Autoservicio · Sucursal Equipetrol · Av. San Martín #155, Santa Cruz de la Sierra</div>
+        <div>Documento confidencial emitido para control gerencial y auditoría comercial</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        window.print();
+      }, 350);
+    });
+  </script>
+</body>
+</html>`;
+
+    const ventana = window.open('', '_blank', 'width=1180,height=820');
+    if (!ventana) {
+      setAviso('Permite las ventanas emergentes en tu navegador para ver y guardar el PDF.');
+      return;
+    }
     ventana.document.write(html);
     ventana.document.close();
-    setAviso('PDF preparado (usa "Guardar como PDF").');
+    setAviso('Informe PDF preparado. Se abrió el cuadro de impresión/guardado.');
   };
 
   /* ---------------- Render ---------------- */
@@ -617,15 +1205,51 @@ export default function ReportesAdmin() {
         </div>
         <div className="rep-actions">
           <div className="rep-dropdown" ref={menuExportRef}>
-            <button type="button" className="rep-btn rep-btn--ghost" onClick={() => setMenuExportAbierto((abierto) => !abierto)} aria-expanded={menuExportAbierto}>
-              <Download size={18} /> Exportar reporte <ChevronRight size={16} className={`rep-caret ${menuExportAbierto ? 'open' : ''}`} />
+            <button
+              type="button"
+              className="rep-btn rep-btn--ghost rep-btn--export"
+              onClick={() => setMenuExportAbierto((abierto) => !abierto)}
+              aria-expanded={menuExportAbierto}
+              aria-haspopup="true"
+              title="Exportar datos del reporte actual en PDF, Excel o CSV"
+            >
+              <Download size={18} />
+              <span>Exportar reportes</span>
+              <ChevronDown size={15} className={`rep-caret ${menuExportAbierto ? 'open' : ''}`} />
             </button>
             {menuExportAbierto && (
-              <div className="rep-menu">
-                <span className="rep-menu__title">Formatos de exportación</span>
-                <button type="button" onClick={exportarExcel}><Box size={18} /><span><b>Excel (.xls)</b><small>Hojas con la vista actual</small></span></button>
-                <button type="button" onClick={exportarPDF}><ReceiptText size={18} /><span><b>PDF ejecutivo</b><small>Resumen formateado</small></span></button>
-                <button type="button" onClick={exportarCSV}><Download size={18} /><span><b>CSV delimitado</b><small>Compatible con ERP y BI</small></span></button>
+              <div className="rep-menu rep-menu--pro" role="menu">
+                <div className="rep-menu__header">
+                  <span className="rep-menu__title">Exportar {tabs.find(([k]) => k === tab)?.[1] || 'Reporte'}</span>
+                  <small className="rep-menu__subtitle">Período: {fechaCorta(periodo.inicio)} — {fechaCorta(periodo.fin)}</small>
+                </div>
+                <button type="button" className="rep-menu__item" onClick={exportarPDF} role="menuitem">
+                  <span className="rep-menu__icon rep-menu__icon--pdf">
+                    <FileText size={18} />
+                  </span>
+                  <div className="rep-menu__info">
+                    <b>Informe PDF Profesional</b>
+                    <small>Documento ejecutivo con membrete, KPIs y tabla</small>
+                  </div>
+                </button>
+                <button type="button" className="rep-menu__item" onClick={exportarExcel} role="menuitem">
+                  <span className="rep-menu__icon rep-menu__icon--excel">
+                    <FileSpreadsheet size={18} />
+                  </span>
+                  <div className="rep-menu__info">
+                    <b>Hoja de Cálculo Excel (.xls)</b>
+                    <small>Formato contable, fórmulas de totales y celdas numéricas</small>
+                  </div>
+                </button>
+                <button type="button" className="rep-menu__item" onClick={exportarCSV} role="menuitem">
+                  <span className="rep-menu__icon rep-menu__icon--csv">
+                    <FileDown size={18} />
+                  </span>
+                  <div className="rep-menu__info">
+                    <b>Archivo CSV (.csv)</b>
+                    <small>Valores separados por punto y coma (UTF-8)</small>
+                  </div>
+                </button>
               </div>
             )}
           </div>

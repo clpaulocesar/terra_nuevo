@@ -37,7 +37,6 @@ const PersonalAdmin = lazy(() => import('../pages/admin/PersonalAdmin.jsx'));
 const CategoriasAdmin = lazy(() => import('../pages/admin/CategoriasAdmin.jsx'));
 const AlmacenAdmin = lazy(() => import('../pages/admin/AlmacenAdmin.jsx'));
 const ReportesAdmin = lazy(() => import('../pages/admin/ReportesAdmin.jsx'));
-const SincronizacionErpAdmin = lazy(() => import('../pages/admin/SincronizacionErpAdmin.jsx'));
 const LoginAdmin = lazy(() => import('../pages/admin/LoginAdmin.jsx'));
 const VendedorLayout = lazy(() => import('../components/vendedor/VendedorLayout.jsx'));
 const DashboardVendedor = lazy(() => import('../pages/vendedor/DashboardVendedor.jsx'));
@@ -262,7 +261,6 @@ export default function AppRoutes() {
           <Route path="clientes" element={<RutaAdmin roles={['admin', 'vendedor']}><ClientesAdmin /></RutaAdmin>} />
           <Route path="personal" element={<RutaAdmin roles={['admin']}><PersonalAdmin /></RutaAdmin>} />
           <Route path="reportes" element={<RutaAdmin roles={['admin']}><ReportesAdmin /></RutaAdmin>} />
-          <Route path="sincronizacion-erp" element={<RutaAdmin roles={['admin']}><SincronizacionErpAdmin /></RutaAdmin>} />
         </Route>
         <Route path="vendedor" element={<RutaAdmin roles={['vendedor', 'admin']}><VendedorLayout /></RutaAdmin>}>
           <Route index element={<DashboardVendedor />} />

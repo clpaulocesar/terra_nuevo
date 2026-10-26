@@ -8,6 +8,7 @@ build/
 
 # Variables de entorno (nunca versionar secretos)
 .env
+.env.example
 .env.local
 .env.*.local
 backend/.env
