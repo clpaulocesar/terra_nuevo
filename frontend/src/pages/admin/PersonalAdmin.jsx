@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BadgeCheck, BriefcaseBusiness, Pencil, Plus, ShieldCheck, Trash2, Truck, Users, X } from 'lucide-react';
+import { BadgeCheck, BriefcaseBusiness, CalendarDays, ChevronLeft, ChevronRight, Mail, Pencil, Plus, Search, ShieldCheck, SlidersHorizontal, Trash2, Truck, Users, X } from 'lucide-react';
 import { actualizarPersonal, crearPersonal, eliminarPersonal, listarPersonal } from '../../services/personalService.js';
 import './PersonalAdmin.css';
 
@@ -9,6 +9,7 @@ const ROLES = {
   despacho: { etiqueta: 'Despacho', descripcion: 'Prepara y entrega pedidos.', icono: Truck },
 };
 const vacio = { nombre: '', email: '', password: '', rol: 'vendedor', vehiculo: '', placa: '' };
+const iniciales = (nombre) => String(nombre || '?').split(' ').slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
 
 export default function PersonalAdmin() {
   const [personal, setPersonal] = useState([]);
@@ -18,6 +19,10 @@ export default function PersonalAdmin() {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
+  const [buscar, setBuscar] = useState('');
+  const [filtroRol, setFiltroRol] = useState('todos');
+  const [filtroEstado, setFiltroEstado] = useState('todos');
+  const [pagina, setPagina] = useState(1);
 
   useEffect(() => {
     listarPersonal().then(setPersonal).catch((e) => setError(e.message)).finally(() => setCargando(false));
@@ -32,6 +37,19 @@ export default function PersonalAdmin() {
   }, [modal, guardando]);
 
   const conteos = useMemo(() => Object.fromEntries(Object.keys(ROLES).map((rol) => [rol, personal.filter((persona) => persona.rol === rol).length])), [personal]);
+  const lista = useMemo(() => personal.filter((persona) => {
+    const texto = `${persona.nombre || ''} ${persona.email || ''} ${persona.rol || ''} ${persona.vehiculo || ''} ${persona.placa || ''}`.toLowerCase();
+    const coincideBusqueda = texto.includes(buscar.toLowerCase());
+    const coincideRol = filtroRol === 'todos' || persona.rol === filtroRol;
+    const coincideEstado = filtroEstado === 'todos' || (filtroEstado === 'activo' ? persona.activo !== false : persona.activo === false);
+    return coincideBusqueda && coincideRol && coincideEstado;
+  }), [personal, buscar, filtroRol, filtroEstado]);
+  const porPagina = 10;
+  const totalPaginas = Math.max(1, Math.ceil(lista.length / porPagina));
+  const paginaSegura = Math.min(pagina, totalPaginas);
+  const personalPagina = lista.slice((paginaSegura - 1) * porPagina, paginaSegura * porPagina);
+
+  useEffect(() => { setPagina(1); }, [buscar, filtroRol, filtroEstado]);
 
   const abrirRegistro = () => {
     setError('');
@@ -83,20 +101,23 @@ export default function PersonalAdmin() {
 
   return <main className="staff-admin">
     <header className="staff-heading">
-      <div><span>Administración interna</span><h1>Personal administrativo</h1><p>Registra las cuentas del equipo y su función operativa.</p></div>
+      <div className="staff-heading-copy"><div className="staff-heading-title"><span className="staff-heading-icon"><Users size={29} /></span><div><em>Administración interna</em><h1>Personal administrativo</h1></div></div><p>Registra las cuentas del equipo y su función operativa.</p></div>
       <button type="button" onClick={abrirRegistro}><Plus size={18} /> Registrar personal</button>
     </header>
     {error && <p className="staff-error" role="alert">{error}</p>}
     <section className="staff-kpis">
+      <article className="staff-kpi staff-kpi--total"><span className="staff-kpi-icon"><Users size={28} /></span><div><small>Total de personal</small><b>{personal.length}</b><span>Cuentas registradas</span></div><SlidersHorizontal className="staff-kpi-watermark" size={31} /></article>
       {Object.entries(ROLES).map(([rol, dato]) => {
         const Icono = dato.icono;
-        return <article key={rol}><Icono /><small>{dato.etiqueta}</small><b>{conteos[rol]}</b><span>{dato.descripcion}</span></article>;
+        const etiquetaKpi = rol === 'admin' ? 'Administradores' : rol === 'vendedor' ? 'Vendedores' : 'Despacho';
+        return <article key={rol} className={`staff-kpi staff-kpi--${rol}`}><span className="staff-kpi-icon"><Icono size={28} /></span><div><small>{etiquetaKpi}</small><b>{conteos[rol]}</b><span>{dato.descripcion}</span></div><SlidersHorizontal className="staff-kpi-watermark" size={31} /></article>;
       })}
     </section>
+    <section className="staff-filters"><label className="staff-search"><Search size={21} /><input value={buscar} onChange={(event) => setBuscar(event.target.value)} placeholder="Buscar por nombre, correo, rol, vehículo o placa..." aria-label="Buscar personal" /></label><label className="staff-select"><Users size={18} /><select value={filtroRol} onChange={(event) => setFiltroRol(event.target.value)} aria-label="Filtrar por rol"><option value="todos">Todos los roles</option>{Object.entries(ROLES).map(([rol, dato]) => <option key={rol} value={rol}>{dato.etiqueta}</option>)}</select></label><label className="staff-select"><SlidersHorizontal size={18} /><select value={filtroEstado} onChange={(event) => setFiltroEstado(event.target.value)} aria-label="Filtrar por estado"><option value="todos">Todos los estados</option><option value="activo">Activos</option><option value="inactivo">Inactivos</option></select></label><button type="button" onClick={() => { setBuscar(''); setFiltroRol('todos'); setFiltroEstado('todos'); }}><X size={17} /> Limpiar</button></section>
     <section className="staff-card">
-      <header><div><Users size={20} /><h2>Equipo registrado</h2></div><span>{personal.length} cuentas</span></header>
+      <header><div className="staff-card-title"><span><Users size={23} /></span><div><h2>Equipo registrado</h2><p>Mostrando {lista.length} cuentas · Página {paginaSegura} de {totalPaginas}</p></div></div><div className="staff-pagination"><button type="button" aria-label="Página anterior" onClick={() => setPagina((actual) => Math.max(1, actual - 1))} disabled={paginaSegura <= 1}><ChevronLeft size={18} /></button><span>{paginaSegura}</span><button type="button" aria-label="Página siguiente" onClick={() => setPagina((actual) => Math.min(totalPaginas, actual + 1))} disabled={paginaSegura >= totalPaginas}><ChevronRight size={18} /></button></div></header>
       {cargando ? <p>Cargando personal…</p> : <div className="staff-table-wrap"><table><thead><tr><th>Colaborador</th><th>Rol</th><th>Correo</th><th>Vehículo / placa</th><th>Estado</th><th>Registro</th><th>Acciones</th></tr></thead><tbody>
-        {personal.length ? personal.map((persona) => <tr key={persona.id}><td><b>{persona.nombre}</b></td><td><span className={`staff-role staff-role--${persona.rol}`}>{ROLES[persona.rol]?.etiqueta || persona.rol}</span></td><td>{persona.email}</td><td>{persona.rol === 'despacho' ? [persona.vehiculo, persona.placa].filter(Boolean).join(' · ') || 'Sin registrar' : '—'}</td><td><span className={persona.activo ? 'staff-active' : 'staff-inactive'}>{persona.activo ? 'Activo' : 'Inactivo'}</span></td><td>{new Date(persona.fecha_registro).toLocaleDateString('es-BO')}</td><td><div className="staff-actions"><button type="button" className="staff-cancel" onClick={() => abrirEdicion(persona)} disabled={guardando} aria-label={`Editar a ${persona.nombre}`}><Pencil size={15} aria-hidden="true" /> Editar</button><button type="button" className="staff-save" onClick={() => borrar(persona)} disabled={guardando} aria-label={`Eliminar a ${persona.nombre}`}><Trash2 size={15} aria-hidden="true" /> Eliminar</button></div></td></tr>) : <tr><td colSpan="7">Aún no hay personal registrado.</td></tr>}
+        {personalPagina.length ? personalPagina.map((persona) => <tr key={persona.id}><td><div className="staff-person"><i>{iniciales(persona.nombre)}</i><div><b>{persona.nombre}</b><small>ID: {persona.id}</small></div></div></td><td><span className={`staff-role staff-role--${persona.rol}`}>{ROLES[persona.rol]?.etiqueta || persona.rol}</span></td><td><span className="staff-email"><Mail size={16} />{persona.email}</span></td><td>{persona.rol === 'despacho' ? [persona.vehiculo, persona.placa].filter(Boolean).join(' · ') || '—' : '—'}</td><td><span className={persona.activo !== false ? 'staff-active' : 'staff-inactive'}>{persona.activo !== false ? 'Activo' : 'Inactivo'}</span></td><td><span className="staff-date"><CalendarDays size={16} />{new Date(persona.fecha_registro).toLocaleDateString('es-BO')}</span></td><td><div className="staff-actions"><button type="button" className="staff-cancel" onClick={() => abrirEdicion(persona)} disabled={guardando} aria-label={`Editar a ${persona.nombre}`}><Pencil size={16} aria-hidden="true" /></button><button type="button" className="staff-save" onClick={() => borrar(persona)} disabled={guardando} aria-label={`Eliminar a ${persona.nombre}`}><Trash2 size={16} aria-hidden="true" /></button></div></td></tr>) : <tr><td className="staff-empty" colSpan="7">No se encontró personal con estos filtros.</td></tr>}
       </tbody></table></div>}
     </section>
     {modal && <div className="staff-modal" role="dialog" aria-modal="true" aria-labelledby="staff-title"><form onSubmit={enviar}>

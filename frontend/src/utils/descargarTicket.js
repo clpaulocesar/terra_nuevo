@@ -59,7 +59,26 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
   const anulado = ['cancelled', 'cancelado'].includes(estadoClave);
   const estadoTexto = anulado ? 'Cancelado / Anulado' : (cobrado ? 'Cobrado' : 'Pendiente de pago');
 
-  const filas = (items.length > 0 ? items : (pedido.items || []))
+  const itemsTicket = Array.isArray(items) && items.length
+    ? items
+    : (Array.isArray(pedido.items) ? pedido.items : []);
+  const resumenEntrega = itemsTicket.reduce(
+    (resumen, item) => {
+      const tipoEntrega = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
+      const cantidad = Number(item.cantidad || item.quantity || 1);
+      if (tipoEntrega === 'home_delivery') resumen.envio += cantidad;
+      else resumen.retiro += cantidad;
+      return resumen;
+    },
+    { envio: 0, retiro: 0 }
+  );
+  const textoEntrega = resumenEntrega.envio && resumenEntrega.retiro
+    ? `Modalidad mixta: ${resumenEntrega.envio} para envío y ${resumenEntrega.retiro} para retiro en tienda`
+    : resumenEntrega.envio
+      ? `Envío a domicilio: ${resumenEntrega.envio} producto(s)`
+      : `Retiro en tienda: ${resumenEntrega.retiro} producto(s)`;
+
+  const filas = itemsTicket
     .map(
       (item) => {
         const tipoEntrega = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
@@ -106,7 +125,7 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
       <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Cliente:</span> <b style="color: #1e293b;">${escapar(nombreCliente)}</b></div>
       ${telefonoCliente ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Teléfono:</span> <b style="color: #1e293b;">${escapar(telefonoCliente)}</b></div>` : ''}
       ${nitCliente ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">NIT/CI:</span> <b style="color: #1e293b;">${escapar(nitCliente)}</b></div>` : ''}
-      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Modalidad:</span> <b style="color: ${esEnvio ? '#a6192e' : '#146440'};">${esEnvio ? '🚚 Envío a domicilio' : '🛍️ Retiro en tienda'}</b></div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Modalidad:</span> <b style="color: ${esEnvio ? '#a6192e' : '#146440'};">${escapar(textoEntrega)}</b></div>
       ${esEnvio && zonaEnvio ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Zona de envío:</span> <b style="color: #1e293b;">${escapar(zonaEnvio)}</b></div>` : ''}
       ${direccionEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Dirección:</span> <b style="color: #1e293b;">${escapar(direccionEntrega)}</b></div>` : ''}
       ${referenciaEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Referencia:</span> <b style="color: #1e293b;">${escapar(referenciaEntrega)}</b></div>` : ''}
