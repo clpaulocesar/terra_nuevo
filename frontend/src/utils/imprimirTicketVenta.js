@@ -21,6 +21,29 @@ export function imprimirTicketVenta({ venta, cliente, items = [], metodoPago = '
   const nombreVendedor = vendedor?.nombre || 'Vendedor Showroom';
   const total = Number(venta?.total || 0);
 
+  const direccionEntrega = venta?.direccion_entrega || cliente?.direccion || '';
+  const zonaEnvio = venta?.zona_envio || venta?.delivery_zone_name || cliente?.zona || '';
+  const esEnvio = Boolean(
+    direccionEntrega ||
+    zonaEnvio ||
+    venta?.tipo_entrega === 'home_delivery' ||
+    venta?.fulfillment_type === 'home_delivery' ||
+    items.some((i) => (i.tipoEntrega || i.tipo_entrega || i.delivery_type) === 'home_delivery')
+  );
+
+  const costoEnvio = Number(
+    venta?.costo_envio ??
+    venta?.delivery_fee ??
+    (venta?.delivery_fee_minor !== undefined ? Number(venta?.delivery_fee_minor) / 100 : null) ??
+    0
+  );
+  const tarifaPendiente = Boolean(venta?.tarifa_envio_pendiente || venta?.delivery_fee_pending);
+  const subtotalProductos = Number(
+    venta?.subtotal ??
+    (venta?.subtotal_minor !== undefined ? Number(venta?.subtotal_minor) / 100 : null) ??
+    (esEnvio && !tarifaPendiente ? Math.max(0, total - costoEnvio) : total)
+  );
+
   const metodoTexto = {
     efectivo: 'Efectivo',
     qr: 'QR Simple',
@@ -32,6 +55,13 @@ export function imprimirTicketVenta({ venta, cliente, items = [], metodoPago = '
       const cant = item.cantidad || 1;
       const pu = Number(item.precioUnitario ?? item.precio ?? 0);
       const sub = Number(item.subtotal ?? (pu * cant));
+      const tipo = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
+      const etiqueta = esEnvio
+        ? (tipo === 'home_delivery' || (!tipo && direccionEntrega)
+          ? '<small style="color:#a6192e;font-weight:700;display:block;">[🚚 Envío a domicilio]</small>'
+          : '<small style="color:#004230;font-weight:700;display:block;">[🛍️ Llevado en mano]</small>')
+        : '';
+
       return `
       <tr>
         <td class="col-cant">${cant}x</td>
@@ -39,6 +69,7 @@ export function imprimirTicketVenta({ venta, cliente, items = [], metodoPago = '
           <div class="prod-nombre">${item.nombre || 'Producto'}</div>
           ${item.sku ? `<small class="prod-sku">SKU: ${item.sku}</small>` : ''}
           ${item.medida ? `<small class="prod-sku">${item.medida}</small>` : ''}
+          ${etiqueta}
         </td>
         <td class="col-pu">${formatoMoneda(pu)}</td>
         <td class="col-sub">${formatoMoneda(sub)}</td>
@@ -226,6 +257,12 @@ export function imprimirTicketVenta({ venta, cliente, items = [], metodoPago = '
       <span>Forma de pago:</span>
       <strong>${metodoTexto}</strong>
     </div>
+    <div class="ticket-info-row">
+      <span>Modalidad:</span>
+      <strong>${esEnvio ? '🚚 Envío a domicilio' : '🛍️ Retiro en tienda'}</strong>
+    </div>
+    ${esEnvio && zonaEnvio ? `<div class="ticket-info-row"><span>Zona de envío:</span><strong>${zonaEnvio}</strong></div>` : ''}
+    ${direccionEntrega ? `<div class="ticket-info-row"><span>Dirección:</span><strong>${direccionEntrega}</strong></div>` : ''}
   </div>
 
   <div class="divider-double"></div>
@@ -245,6 +282,16 @@ export function imprimirTicketVenta({ venta, cliente, items = [], metodoPago = '
   </table>
 
   <div class="total-section">
+    ${esEnvio ? `
+    <div class="total-row">
+      <span>Subtotal artículos:</span>
+      <span>${formatoMoneda(subtotalProductos)}</span>
+    </div>
+    <div class="total-row" style="color: #a6192e; font-weight: 700;">
+      <span>Tarifa de envío ${zonaEnvio ? `(${zonaEnvio})` : ''}:</span>
+      <span>${tarifaPendiente ? 'Por definir en caja' : (costoEnvio === 0 ? 'GRATIS (Bs 0.00)' : formatoMoneda(costoEnvio))}</span>
+    </div>
+    ` : ''}
     <div class="total-row big">
       <span>TOTAL PAGADO:</span>
       <span>${formatoMoneda(total)}</span>
