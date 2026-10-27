@@ -274,13 +274,47 @@ export async function crearProductoBD(datos) {
   return obtenerProductoBD(rows[0].id);
 }
 
+
 export async function actualizarProductoBD(id, datos) {
   await asegurarEscalasMayoristasBD();
+
   const idStr = String(id || '').trim();
+
   const { rows } = await pool.query(
-    `UPDATE products 
-     SET name=COALESCE($1,name), description=COALESCE($2,description), public_price=COALESCE($3,public_price), stock_quantity=COALESCE($4,stock_quantity), imagen_url=COALESCE($5,imagen_url), image_urls=COALESCE($6,image_urls), activo=COALESCE($7,activo), is_active=COALESCE($7,is_active), codigo_terra=COALESCE($8,codigo_terra), internal_code=COALESCE($16,internal_code), precio_fabrica=COALESCE($17,precio_fabrica), precio_oferta=COALESCE($18,precio_oferta), en_oferta=COALESCE($19,en_oferta), size=COALESCE($9,size), color=COALESCE($10,color), video_url=COALESCE($11,video_url), colors=COALESCE($12,colors), precio_mayorista=COALESCE($13,precio_mayorista), category_id=COALESCE((SELECT id FROM categories WHERE LOWER(name)=LOWER($14) AND is_active=TRUE LIMIT 1),category_id), updated_at=NOW()
-     WHERE id::text = $15 OR slug = $15 OR COALESCE(codigo_terra, internal_code) = $15
+    `UPDATE products
+     SET name = COALESCE($1, name),
+         description = COALESCE($2, description),
+         public_price = COALESCE($3, public_price),
+         stock_quantity = COALESCE($4, stock_quantity),
+         imagen_url = COALESCE($5, imagen_url),
+         image_urls = COALESCE($6, image_urls),
+         activo = COALESCE($7, activo),
+         is_active = COALESCE($7, is_active),
+         codigo_terra = COALESCE($8, codigo_terra),
+         size = COALESCE($9, size),
+         color = COALESCE($10, color),
+         video_url = COALESCE($11, video_url),
+         colors = COALESCE($12, colors),
+         precio_mayorista = COALESCE($13, precio_mayorista),
+         category_id = COALESCE(
+           (
+             SELECT id
+             FROM categories
+             WHERE LOWER(name) = LOWER($14)
+               AND is_active = TRUE
+             LIMIT 1
+           ),
+           category_id
+         ),
+         internal_code = COALESCE($16, internal_code),
+         precio_fabrica = COALESCE($17, precio_fabrica),
+         precio_oferta = COALESCE($18, precio_oferta),
+         en_oferta = COALESCE($19, en_oferta),
+         marca = COALESCE($20, marca),
+         updated_at = NOW()
+     WHERE id::text = $15
+        OR slug = $15
+        OR COALESCE(codigo_terra, internal_code) = $15
      RETURNING id`,
     [
       datos.nombre ?? null,
@@ -295,18 +329,35 @@ export async function actualizarProductoBD(id, datos) {
       datos.detalle ?? null,
       datos.video_url !== undefined ? datos.video_url : null,
       Array.isArray(datos.colores) ? datos.colores : null,
-      datos.precioMayorista !== undefined ? datos.precioMayorista : null,
+      datos.precioMayorista !== undefined
+        ? datos.precioMayorista
+        : null,
       datos.categoria ?? null,
       idStr,
       datos.codigoInterno ?? null,
       precioOpcional(datos.precioFabrica),
       precioOpcional(datos.precioOferta),
-      datos.enOferta === undefined || datos.enOferta === null ? null : Boolean(datos.enOferta),
+      datos.enOferta === undefined || datos.enOferta === null
+        ? null
+        : Boolean(datos.enOferta),
       datos.marca ?? null,
     ]
   );
-  if (rows[0] && Array.isArray(datos.escalasMayorista)) await reemplazarEscalasMayoristas(rows[0].id, datos.escalasMayorista);
-  if (rows[0]) await guardarInstruccionesProductoBD(rows[0].id, datos.instrucciones);
+
+  if (rows[0] && Array.isArray(datos.escalasMayorista)) {
+    await reemplazarEscalasMayoristas(
+      rows[0].id,
+      datos.escalasMayorista
+    );
+  }
+
+  if (rows[0]) {
+    await guardarInstruccionesProductoBD(
+      rows[0].id,
+      datos.instrucciones
+    );
+  }
+
   return rows[0] ? obtenerProductoBD(rows[0].id) : null;
 }
 
