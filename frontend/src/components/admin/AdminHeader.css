@@ -384,3 +384,120 @@
 
 /* Aislamiento frente a los estilos de navegación del panel lateral. */
 .admin-shell .admin-header-bar nav.admin-breadcrumbs{display:flex;gap:0}.admin-shell .admin-header-bar nav.admin-breadcrumbs a{background:transparent;color:#636d67;margin:0;min-height:0;padding:0;width:auto}.admin-shell .admin-header-bar .admin-icon-btn,.admin-shell .admin-header-bar .admin-avatar-btn{margin:0;min-height:0;padding:0;width:auto}.admin-shell .admin-header-bar .admin-breadcrumbs .breadcrumb-root{color:#636d67}.admin-shell .admin-header-bar .admin-breadcrumbs .breadcrumb-current{color:#a6192e}
+
+.admin-header-controls-desktop {
+  align-items: center;
+  display: flex;
+  gap: .85rem;
+}
+
+.admin-header-controls-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .admin-header-controls-desktop {
+    display: none;
+  }
+
+  .admin-header-controls-mobile {
+    display: block;
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+  }
+
+  .admin-controls-menu-toggle {
+    align-items: center;
+    background: #f0eded;
+    border: 0;
+    border-radius: .7rem;
+    color: #404944;
+    cursor: pointer;
+    display: inline-flex;
+    height: 2.5rem;
+    justify-content: center;
+    width: 2.5rem;
+  }
+
+  .admin-controls-menu-toggle:hover,
+  .admin-controls-menu-toggle[aria-expanded="true"] {
+    background: #f8edef;
+    color: #a6192e;
+  }
+
+  .admin-controls-menu {
+    background: #fff;
+    border: 1px solid #e4e7e4;
+    border-radius: .8rem;
+    box-shadow: 0 .75rem 2rem #0000001f;
+    min-width: 15.5rem;
+    padding: .7rem;
+    position: absolute;
+    right: 0;
+    top: calc(100% + .5rem);
+    z-index: 50;
+  }
+
+  .admin-controls-menu > p {
+    color: #746d6b;
+    font-size: .7rem;
+    font-weight: 800;
+    margin: .1rem .35rem .65rem;
+    text-transform: uppercase;
+  }
+
+  .admin-controls-menu-section {
+    align-items: center;
+    border-top: 1px solid #f0eded;
+    display: flex;
+    gap: .55rem;
+    justify-content: space-between;
+    padding: .65rem .35rem;
+  }
+
+  .admin-controls-menu-section > span {
+    color: #555f59;
+    font-size: .76rem;
+    font-weight: 700;
+  }
+
+  .admin-controls-menu .terra-voz {
+    display: flex;
+    gap: .35rem;
+  }
+
+  .admin-controls-menu-section--theme,
+  .admin-controls-menu-section--orders {
+    justify-content: flex-end;
+  }
+
+  .admin-controls-menu .terra-theme-btn {
+    min-height: 2.5rem;
+  }
+
+  .admin-controls-menu .terra-theme-btn__label {
+    font-size: .76rem;
+    font-weight: 800;
+  }
+
+  .admin-controls-menu .timbre__btn {
+    height: 2.5rem;
+    width: 2.5rem;
+  }
+
+  .admin-header-right > .relative {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .admin-header-right > .relative .admin-avatar-btn {
+    height: 2.5rem;
+    width: 2.5rem;
+  }
+
+  .admin-header-right > .relative .admin-avatar-btn span {
+    display: none;
+  }
+}

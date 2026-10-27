@@ -64,7 +64,24 @@ export function imprimirTicketPedido(pedido, ventana = null) {
     timeZone: 'America/La_Paz',
   }).format(new Date(pedido.fecha || Date.now()));
 
-  const detalle = (Array.isArray(pedido.items) ? pedido.items : []).map((item) => {
+  const items = Array.isArray(pedido.items) ? pedido.items : [];
+  const resumenEntrega = items.reduce(
+    (resumen, item) => {
+      const tipo = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
+      const cantidad = Number(item.cantidad || item.quantity || 1);
+      if (tipo === 'home_delivery') resumen.envio += cantidad;
+      else resumen.retiro += cantidad;
+      return resumen;
+    },
+    { envio: 0, retiro: 0 }
+  );
+  const textoEntrega = resumenEntrega.envio && resumenEntrega.retiro
+    ? `Modalidad mixta: ${resumenEntrega.envio} para envío y ${resumenEntrega.retiro} para retiro en tienda`
+    : resumenEntrega.envio
+      ? `Envío a domicilio: ${resumenEntrega.envio} producto(s)`
+      : `Retiro en tienda: ${resumenEntrega.retiro} producto(s)`;
+
+  const detalle = items.map((item) => {
     const tipo = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
     const etiqueta = esEnvio
       ? (tipo === 'home_delivery' || (!tipo && direccionEntrega)
@@ -131,7 +148,7 @@ export function imprimirTicketPedido(pedido, ventana = null) {
       <b>Cliente:</b> ${escapar(nombreCliente)}
       ${telefonoCliente ? `<br><b>Teléfono:</b> ${escapar(telefonoCliente)}` : ''}
       ${nitCliente ? `<br><b>NIT/CI:</b> ${escapar(nitCliente)}` : ''}
-      <br><b>Entrega:</b> <span style="font-weight:bold;color:${esEnvio ? '#a6192e' : '#004230'};">${esEnvio ? '🚚 Envío a domicilio' : '🛍️ Retiro en tienda'}</span>
+      <br><b>Entrega:</b> <span style="font-weight:bold;color:${esEnvio ? '#a6192e' : '#004230'};">${escapar(textoEntrega)}</span>
       ${esEnvio && zonaEnvio ? `<br><b>Zona de envío:</b> ${escapar(zonaEnvio)}` : ''}
       ${direccionEntrega ? `<br><b>Dirección:</b> ${escapar(direccionEntrega)}` : ''}
       ${referenciaEntrega ? `<br><b>Referencia:</b> ${escapar(referenciaEntrega)}` : ''}
