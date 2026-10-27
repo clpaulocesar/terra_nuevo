@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LOGO_TERRA, SUCURSALES_DATA } from '../data/sucursalesData.js';
+import { useVoz } from '../context/VozContext.jsx';
 
 export default function Header({
   sucursalActiva,
@@ -18,6 +19,15 @@ export default function Header({
   onAbrirMiCuenta,
 }) {
   const [dropdownSucursales, setDropdownSucursales] = useState(false);
+  const {
+    vozActiva,
+    alternarVoz,
+    escuchando,
+    iniciarEscucha,
+    detenerEscucha,
+    textoEscuchado,
+    setModalTutorialAbierto,
+  } = useVoz();
   return (
     <header className="fixed top-0 left-0 right-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(30,20,15,0.06)]">
       <div className="h-44 w-full flex flex-col justify-between">
@@ -168,46 +178,76 @@ export default function Header({
               className="relative flex items-center"
             >
               <input
-                className="w-full h-11 pl-11 pr-24 rounded-full bg-surface-container-low text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full h-11 pl-11 pr-28 rounded-full bg-surface-container-low text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all"
                 placeholder="Buscar sofás reclinables, colchones King, poltronas, mesas..."
                 type="text"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
               />
               <span className="material-symbols-outlined text-on-surface-variant absolute left-3.5 text-[20px]">search</span>
-              <button
-                type="submit"
-                className="absolute right-2 px-3 py-1 bg-primary text-on-primary rounded-full font-label-interactive text-label-interactive text-[13px] hover:bg-primary-container transition-all cursor-pointer"
-              >
-                Buscar
-              </button>
+              <div className="absolute right-1.5 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={escuchando ? detenerEscucha : iniciarEscucha}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                    escuchando
+                      ? 'bg-red-600 text-white animate-pulse shadow-xs'
+                      : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-high'
+                  }`}
+                  title={escuchando ? 'Escuchando tu voz... Clic para detener' : 'Búsqueda por voz'}
+                  aria-label="Búsqueda por voz"
+                >
+                  <span className="material-symbols-outlined text-[19px]">mic</span>
+                </button>
+                <button
+                  type="submit"
+                  className="px-3 py-1 bg-primary text-on-primary rounded-full font-label-interactive text-label-interactive text-[13px] hover:bg-primary-container transition-all cursor-pointer"
+                >
+                  Buscar
+                </button>
+              </div>
             </form>
           </div>
 
           {/* Action Tools & Cart Button */}
-          <div className="flex items-center gap-space-sm">
-            <div className="hidden lg:flex items-center gap-1 bg-surface-container-low p-1 rounded-full mr-space-xs">
+          <div className="flex items-center gap-space-sm relative">
+            <div className="hidden md:flex items-center gap-1 bg-surface-container-low p-1 rounded-full mr-space-xs">
               <button
                 type="button"
-                className="w-9 h-9 rounded-full bg-surface-container-lowest text-on-surface hover:bg-surface-container-high hover:text-on-surface flex items-center justify-center transition-colors cursor-pointer"
-                title="Audio / Voz Guía"
-                onClick={() => alert('Voz Guía activada')}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                  vozActiva
+                    ? 'bg-primary text-on-primary shadow-sm hover:bg-primary-container'
+                    : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container-high'
+                }`}
+                title={vozActiva ? 'Audio / Voz Guía: Activada (Clic para apagar)' : 'Audio / Voz Guía: Desactivada (Clic para activar)'}
+                aria-label={vozActiva ? 'Desactivar audio y voz guía' : 'Activar audio y voz guía'}
+                aria-pressed={vozActiva}
+                onClick={alternarVoz}
               >
-                <span className="material-symbols-outlined text-[18px]">volume_up</span>
+                <span className="material-symbols-outlined text-[18px]">
+                  {vozActiva ? 'volume_up' : 'volume_off'}
+                </span>
               </button>
               <button
                 type="button"
-                className="w-9 h-9 rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface flex items-center justify-center transition-colors cursor-pointer"
-                title="Búsqueda por Voz"
-                onClick={() => alert('Escuchando consulta de producto...')}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                  escuchando
+                    ? 'bg-red-600 text-white animate-pulse shadow-sm'
+                    : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                }`}
+                title={escuchando ? 'Escuchando tu voz... Clic para detener' : 'Búsqueda por Voz (Clic para dictar)'}
+                aria-label="Búsqueda por voz"
+                aria-pressed={escuchando}
+                onClick={escuchando ? detenerEscucha : iniciarEscucha}
               >
                 <span className="material-symbols-outlined text-[18px]">mic</span>
               </button>
               <button
                 type="button"
                 className="w-9 h-9 rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface flex items-center justify-center transition-colors cursor-pointer"
-                title="Tutorial Interactivo de Sala"
-                onClick={() => alert('Iniciando tutorial interactivo de sala')}
+                title="Tutorial Interactivo y Comandos de Voz"
+                aria-label="Tutorial interactivo de sala"
+                onClick={() => setModalTutorialAbierto(true)}
               >
                 <span className="material-symbols-outlined text-[18px]">help_outline</span>
               </button>
@@ -324,6 +364,24 @@ export default function Header({
           </div>
         </div>
       </div>
+
+      {/* Floating Speech Recognition Feedback Banner */}
+      {escuchando && (
+        <div className="absolute top-[82px] left-1/2 -translate-x-1/2 z-50 bg-inverse-surface text-on-primary px-5 py-2.5 rounded-full shadow-2xl flex items-center gap-3 border border-outline-variant/40 pointer-events-auto max-w-[90vw]">
+          <span className="w-3 h-3 rounded-full bg-red-500 animate-ping shrink-0" />
+          <span className="text-body-sm font-semibold text-white truncate max-w-xs sm:max-w-md">
+            {textoEscuchado || 'Te escucho... Di un producto, "ofertas" o "ir al carrito"'}
+          </span>
+          <button
+            type="button"
+            onClick={detenerEscucha}
+            className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center text-xs cursor-pointer transition-colors shrink-0"
+            title="Detener escucha"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </header>
   );
 }
