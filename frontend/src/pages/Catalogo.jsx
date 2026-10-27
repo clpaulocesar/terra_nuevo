@@ -85,6 +85,7 @@ export default function Catalogo() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const contextoCatalogo = location.state?.catalogo;
   const { items, cantidadTotal, subtotal, agregarProducto, actualizarCantidad, quitarProducto } = useCarrito();
   const { esMayorista } = useContext(SesionClienteContext);
 
@@ -123,18 +124,22 @@ export default function Catalogo() {
   }, []);
 
   // `?buscar=` permite llegar con una búsqueda ya hecha (por ejemplo desde un comando de voz).
-  const [buscar, setBuscar] = useState(() => searchParams.get('buscar') || '');
+  const [buscar, setBuscar] = useState(
+    () => contextoCatalogo?.buscar ?? searchParams.get('buscar') ?? '',
+  );
   const [cantidadesMayorista, setCantidadesMayorista] = useState({});
   // La búsqueda se envía al backend con un pequeño retraso para no pedir una
   // página por cada tecla pulsada en el teclado táctil.
-  const [buscarAplicado, setBuscarAplicado] = useState(() => (searchParams.get('buscar') || '').trim());
+  const [buscarAplicado, setBuscarAplicado] = useState(
+    () => contextoCatalogo?.buscarAplicado ?? (searchParams.get('buscar') || '').trim(),
+  );
   useEffect(() => {
     const temporizador = setTimeout(() => setBuscarAplicado(separarOfertasDeBusqueda(buscar).termino), 300);
     return () => clearTimeout(temporizador);
   }, [buscar]);
 
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(() => {
-    const categoria = searchParams.get('categoria') || '';
+    const categoria = contextoCatalogo?.categoria ?? searchParams.get('categoria') ?? '';
     const equivalencias = {
       Dormitorio: 'Colchones',
       Living: 'Muebles',
@@ -142,15 +147,39 @@ export default function Catalogo() {
     };
     return equivalencias[categoria] || categoria;
   });
-  const [orden, setOrden] = useState('recomendados');
+  const [orden, setOrden] = useState(() => contextoCatalogo?.orden || 'recomendados');
   // Chip "Ofertas": limita el listado a products.en_oferta = true (se combina con categoría y búsqueda).
-  const [soloOfertas, setSoloOfertas] = useState(() => searchParams.get('ofertas') === '1');
+  const [soloOfertas, setSoloOfertas] = useState(
+    () => contextoCatalogo?.soloOfertas ?? searchParams.get('ofertas') === '1',
+  );
   const [menuOrdenAbierto, setMenuOrdenAbierto] = useState(false);
   const [menuCategoriasAbierto, setMenuCategoriasAbierto] = useState(false);
   const [pagina, setPagina] = useState(() => {
+    if (contextoCatalogo?.pagina) return contextoCatalogo.pagina;
     const n = Number(searchParams.get('pagina') || 1);
     return Number.isSafeInteger(n) && n > 0 ? n : 1;
   });
+
+  const estadoCatalogo = {
+    catalogo: {
+      buscar,
+      buscarAplicado,
+      categoria: categoriaSeleccionada,
+      orden,
+      soloOfertas,
+      pagina,
+    },
+  };
+  const abrirDetalle = (id) => {
+    navigate(`/productos/${id}`, {
+      state: {
+        catalogo: {
+          ...estadoCatalogo.catalogo,
+          posicionScroll: window.scrollY,
+        },
+      },
+    });
+  };
 
   // Cualquier cambio de filtro vuelve a la primera página.
   // Elegir una categoría arranca de cero: se borra lo escrito en el buscador para que
@@ -223,6 +252,17 @@ export default function Catalogo() {
     limite: LIMITE_CATALOGO,
     soloOfertas,
   });
+
+  const posicionScroll = Number(contextoCatalogo?.posicionScroll) || 0;
+  const scrollRestauradoRef = useRef(false);
+  useEffect(() => {
+    if (cargando || !posicionScroll || scrollRestauradoRef.current) return undefined;
+    const temporizador = window.setTimeout(() => {
+      window.scrollTo(0, posicionScroll);
+      scrollRestauradoRef.current = true;
+    }, 100);
+    return () => window.clearTimeout(temporizador);
+  }, [cargando, posicionScroll]);
 
   // Si el backend devuelve menos páginas de las que pide la URL, se corrige.
   useEffect(() => {
@@ -941,7 +981,7 @@ export default function Catalogo() {
                       aria-label={`${producto.nombre}, ${formatoMoneda(esMayorista && Number.isFinite(Number(producto.precioMayorista)) ? producto.precioMayorista : producto.precio)}, ${disponible ? 'disponible' : 'agotado'}. Enter para ver el detalle.`}
                       onKeyDown={(event) => {
                         if (event.target !== event.currentTarget) return;
-                        if (event.key === 'Enter') navigate(`/productos/${producto.id}`);
+                        if (event.key === 'Enter') abrirDetalle(producto.id);
                         if (event.key === ' ' && disponible) { event.preventDefault(); handleAgregar(producto); }
                       }}
                       onClick={(event) => {
@@ -959,7 +999,7 @@ export default function Catalogo() {
                           }
                           ultimaTarjetaLeidaRef.current = null;
                         }
-                        navigate(`/productos/${producto.id}`);
+                        abrirDetalle(producto.id);
                       }}
                     >
                       <div className="terra-card__media">
@@ -1025,6 +1065,18 @@ export default function Catalogo() {
 
                         <Link
                           to={`/productos/${producto.id}`}
+                          state={estadoCatalogo}
+                          onClick={(event) => {
+                            if (
+                              event.button !== 0 ||
+                              event.metaKey ||
+                              event.altKey ||
+                              event.ctrlKey ||
+                              event.shiftKey
+                            ) return;
+                            event.preventDefault();
+                            abrirDetalle(producto.id);
+                          }}
                           className="terra-card__title-link"
                         >
                           <h2 className="terra-card__title">

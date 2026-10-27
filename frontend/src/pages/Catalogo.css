@@ -770,7 +770,7 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 .terra-card:nth-child(7) { animation-delay: 0.28s; }
 .terra-card:nth-child(8) { animation-delay: 0.32s; }
 
-.terra-card--agotado { opacity: 0.62; pointer-events: none; }
+.terra-card--agotado { opacity: 0.62; }
 .terra-card--agregado { border-color: var(--vino); box-shadow: 0 0 0 4px rgba(166, 25, 46, 0.12); }
 
 /* --- Media --- */
@@ -1481,7 +1481,7 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   }
   .terra-card:active { transform: scale(0.98); }
 
-  .terra-card--agotado { opacity: 0.6; pointer-events: none; }
+  .terra-card--agotado { opacity: 0.6; }
   .terra-card--agregado { border-color: var(--vino); box-shadow: 0 0 0 4px rgba(166, 25, 46, 0.12); }
 
   .terra-card__media {

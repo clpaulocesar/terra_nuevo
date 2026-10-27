@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { useAccesibilidad } from "../context/AccesibilidadContext.jsx";
 import {
   ArrowLeft,
@@ -18,6 +18,7 @@ import {
   Tag,
   Truck,
   X,
+  ZoomIn,
 } from "lucide-react";
 import {
   obtenerProducto,
@@ -86,6 +87,7 @@ function valorDeColor(nombre) {
 
 export default function DetalleProducto() {
   const { id } = useParams();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const autoAgregar = searchParams.get("agregar") === "1";
   const { agregarProducto } = useCarrito();
@@ -96,6 +98,7 @@ export default function DetalleProducto() {
   const [foto, setFoto] = useState(0);
   const [cantidad, setCantidad] = useState(1);
   const [videoAmpliado, setVideoAmpliado] = useState(false);
+  const [imagenAmpliada, setImagenAmpliada] = useState(false);
   const [color, setColor] = useState(null);
   const [cuadrosAbiertos, setCuadrosAbiertos] = useState(false);
   const [descripcionAbajoAbierta, setDescripcionAbajoAbierta] = useState(false);
@@ -110,15 +113,18 @@ export default function DetalleProducto() {
   };
   const [agregado, setAgregado] = useState(false);
 
-  // Escape cierra el video ampliado (accesibilidad de teclado).
+  // Escape cierra la vista ampliada sin obligar a usar el puntero.
   useEffect(() => {
-    if (!videoAmpliado) return undefined;
+    if (!videoAmpliado && !imagenAmpliada) return undefined;
     const alEscape = (e) => {
-      if (e.key === "Escape") setVideoAmpliado(false);
+      if (e.key === "Escape") {
+        setVideoAmpliado(false);
+        setImagenAmpliada(false);
+      }
     };
     document.addEventListener("keydown", alEscape);
     return () => document.removeEventListener("keydown", alEscape);
-  }, [videoAmpliado]);
+  }, [videoAmpliado, imagenAmpliada]);
 
   useEffect(() => {
     let activo = true;
@@ -126,6 +132,7 @@ export default function DetalleProducto() {
     setError("");
     setFoto(0);
     setCantidad(1);
+    setImagenAmpliada(false);
     setDescripcionAbajoAbierta(false);
     setCuadrosAbiertos(false);
     obtenerProducto(id)
@@ -288,13 +295,19 @@ export default function DetalleProducto() {
 
   return (
     <main className="product-detail">
-      <Link className="product-detail__back" to="/catalogo">
+      <Link
+        className="product-detail__back"
+        to="/catalogo"
+        state={location.state}
+      >
         <ArrowLeft size={18} /> Volver al catálogo
       </Link>
       <nav className="product-detail__crumb">
         <Link to="/">Inicio</Link>
         <ChevronRight size={14} />
-        <Link to="/catalogo">Catálogo</Link>
+        <Link to="/catalogo" state={location.state}>
+          Catálogo
+        </Link>
         <ChevronRight size={14} />
         <span>{producto.nombre}</span>
       </nav>
@@ -304,16 +317,16 @@ export default function DetalleProducto() {
             <div className="product-gallery__main">
               {fotos[foto] ? (
                 <span className="tint-wrap">
-                    <img
-                      className={
-                        fotos[foto] === IMAGEN_PRODUCTO_FALLBACK
-                          ? "tint-base img-fallback"
-                          : "tint-base"
-                      }
-                      src={imagenDeProducto(fotos[foto])}
-                      alt={producto.nombre}
-                      onError={usarImagenFallback}
-                    />
+                  <img
+                    className={
+                      fotos[foto] === IMAGEN_PRODUCTO_FALLBACK
+                        ? "tint-base img-fallback"
+                        : "tint-base"
+                    }
+                    src={imagenDeProducto(fotos[foto])}
+                    alt={producto.nombre}
+                    onError={usarImagenFallback}
+                  />
                   {MOSTRAR_COLORES && color && (
                     <i
                       className="tint-overlay"
@@ -327,6 +340,16 @@ export default function DetalleProducto() {
                   )}
                 </span>
               ) : null}
+              {fotos[foto] !== IMAGEN_PRODUCTO_FALLBACK && (
+                <button
+                  type="button"
+                  className="product-gallery__zoom"
+                  onClick={() => setImagenAmpliada(true)}
+                  aria-label={`Ampliar imagen de ${producto.nombre}`}
+                >
+                  <ZoomIn size={20} />
+                </button>
+              )}
               {producto.esMasVendido && (
                 <b>
                   <Sparkles size={13} /> Más vendido
@@ -487,6 +510,36 @@ export default function DetalleProducto() {
                 </div>
               </div>
             )}
+            {imagenAmpliada && fotos[foto] !== IMAGEN_PRODUCTO_FALLBACK && (
+              <div className="product-image-zoom">
+                <button
+                  type="button"
+                  className="product-image-zoom__backdrop"
+                  onClick={() => setImagenAmpliada(false)}
+                  aria-label="Cerrar imagen ampliada"
+                />
+                <div
+                  className="product-image-zoom__content"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={`Imagen ampliada de ${producto.nombre}`}
+                >
+                  <button
+                    type="button"
+                    className="product-image-zoom__close"
+                    onClick={() => setImagenAmpliada(false)}
+                    aria-label="Cerrar imagen ampliada"
+                  >
+                    <X size={22} />
+                  </button>
+                  <img
+                    src={imagenDeProducto(fotos[foto])}
+                    alt={producto.nombre}
+                    onError={usarImagenFallback}
+                  />
+                </div>
+              </div>
+            )}
           </div>
           <section className="product-buy">
             {Boolean(producto.marca) && (
@@ -565,13 +618,17 @@ export default function DetalleProducto() {
                 </>
               )}
             </button>
-            <Link
-              className="product-buy__now"
-              to="/carrito"
-              onClick={() => agregarProducto(producto, cantidad, color ? { color } : {})}
-            >
-              Comprar ahora
-            </Link>
+            {disponible && (
+              <Link
+                className="product-buy__now"
+                to="/carrito"
+                onClick={() =>
+                  agregarProducto(producto, cantidad, color ? { color } : {})
+                }
+              >
+                Comprar ahora
+              </Link>
+            )}
             <div className="product-buy__guarantees">
               <span>
                 <ShieldCheck size={15} /> Garantía oficial TERRA
@@ -692,7 +749,11 @@ export default function DetalleProducto() {
           </header>
           <div>
             {relacionados.map((item) => (
-              <Link to={`/productos/${item.id}`} key={item.id}>
+              <Link
+                to={`/productos/${item.id}`}
+                state={location.state}
+                key={item.id}
+              >
                 <figure>
                   <img
                     className={item.imagen_url ? "" : "img-fallback"}

@@ -4,8 +4,8 @@
 |---|---|
 | **Sistema** | TERRA Autoservicio (kiosco digital, portal mayorista y backoffice) |
 | **Versión del sistema** | 2.0 |
-| **Versión del documento** | 2.0 |
-| **Fecha** | 26 de octubre de 2026 |
+| **Versión del documento** | 2.4 |
+| **Fecha** | 27 de octubre de 2026 |
 | **Organización** | TERRA Autoservicio · Grupo Terra SRL · Sucursal Equipetrol, Santa Cruz de la Sierra, Bolivia |
 | **Dirigido a** | Clientes en tienda, clientes mayoristas, administradores, vendedores y personal de despacho |
 
@@ -380,7 +380,7 @@ Cualquier persona que usa la tablet del showroom (o la tienda desde su celular).
 4. Toca **Ofertas** para ver solo productos con descuento.
 5. Toca **Orden:** para ordenar por "Recomendados", "En oferta", "Precio menor a mayor", "Precio mayor a menor" o "Nombre A-Z".
 6. Usa **Anterior** / **Siguiente** o los números para cambiar de página (12 productos por página).
-7. Resultado: la grilla muestra los productos con foto, medida, "● Disponible" u "○ Agotado", precio y el botón **Agregar al carrito**.
+7. Resultado: la grilla muestra los productos con foto, medida, "● Disponible" u "○ Agotado", precio y el botón **Agregar al carrito**. Puedes abrir la ficha de los productos agotados, pero no agregarlos al carrito.
 
 ![Catálogo con filtros](img/cliente-catalogo-paso3.png)
 
@@ -391,10 +391,10 @@ Cualquier persona que usa la tablet del showroom (o la tienda desde su celular).
 ### 9.4 Procedimiento: ver el detalle de un producto
 
 1. Toca la tarjeta del producto.
-2. Revisa las fotos originales cargadas del producto (hasta 4 vistas), el video si existe, el precio, la **Ficha técnica y dimensiones** y la **Descripción completa**.
+2. Revisa las fotos originales cargadas del producto (hasta 4 vistas); toca la **lupa** para ampliarlas. También encontrarás el video si existe, el precio, la **Ficha técnica y dimensiones** y la **Descripción completa**.
 3. Elige la **Cantidad** con **−** y **+** (hasta el stock disponible).
 4. Toca **Agregar al carrito**. El botón cambia a "Agregado al carrito".
-5. Resultado: el contador del carrito aumenta. **Volver al catálogo** te regresa a la lista.
+5. Resultado: el contador del carrito aumenta. **Volver al catálogo** te regresa a la misma página, filtros y posición de lectura donde estabas.
 
 💡 **Comprar ahora** agrega la cantidad elegida al carrito y te lleva directo a él. Si el producto ya estaba en el carrito, se suma a la línea existente sin superar el stock.
 
@@ -1009,3 +1009,7 @@ Al reportar un problema, indica: tu rol, la pantalla, el **código de pedido** s
 | 1.8 | 26/10/2026 | Equipo TERRA Autoservicio | Nueva pantalla administrativa de Tarifas de envío: alta, edición, activación temporal y eliminación de zonas y barrios. |
 | 1.9 | 26/10/2026 | Equipo TERRA Autoservicio | Envíos minoristas con tarifa por definir: no se muestra el costo al cliente; caja debe registrarlo antes de cobrar. |
 | 2.0 | 26/10/2026 | Equipo TERRA Autoservicio | Las fotos del detalle de producto se muestran en su formato original, sin recorte automático del fondo. |
+| 2.1 | 27/10/2026 | Equipo TERRA Autoservicio | Al volver desde el detalle, el catálogo conserva la página, búsqueda, categoría, orden y filtro de ofertas anteriores. |
+| 2.2 | 27/10/2026 | Equipo TERRA Autoservicio | Al volver desde el detalle, el catálogo también restaura la posición de desplazamiento de la lista. |
+| 2.3 | 27/10/2026 | Equipo TERRA Autoservicio | Los productos agotados permiten consultar su ficha, sin permitir agregarlos al carrito. |
+| 2.4 | 27/10/2026 | Equipo TERRA Autoservicio | La foto principal del detalle permite abrir una vista ampliada con el botón de lupa. |

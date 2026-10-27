@@ -76,8 +76,9 @@ function Layout() {
 
   useEffect(() => {
     setMenuMovilAbierto(false);
+    if (location.state?.catalogo?.posicionScroll) return;
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [location.pathname]);
+  }, [location.pathname, location.state]);
 
   const abrirAdminConLogo = (event) => {
     const ahora = Date.now();
