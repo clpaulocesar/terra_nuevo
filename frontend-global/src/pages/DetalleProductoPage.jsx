@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SUCURSALES_DATA, evaluarDisponibilidadSucursal } from '../data/sucursalesData.js';
+import { useVoz } from '../context/VozContext.jsx';
 
 const PRODUCTO_DETALLE_DEFAULT = {
   id: 1,
@@ -112,6 +113,7 @@ export default function DetalleProductoPage({
   const [descOpen, setDescOpen] = useState(true);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [agregando, setAgregando] = useState(false);
+  const { vozActiva, hablar, anunciar } = useVoz();
 
   const productoActivo = {
     ...PRODUCTO_DETALLE_DEFAULT,
@@ -140,6 +142,12 @@ export default function DetalleProductoPage({
       activo: esActiva,
     };
   });
+
+  useEffect(() => {
+    if (vozActiva) {
+      anunciar(`${productoActivo.nombre}. Precio ${formatBs(productoActivo.precio)}`);
+    }
+  }, [productoActivo.nombre, productoActivo.precio, vozActiva, anunciar]);
 
   const handleAgregar = () => {
     setAgregando(true);
@@ -379,9 +387,20 @@ export default function DetalleProductoPage({
                   Ref: {productoActivo.ref}
                 </span>
               </div>
-              <h1 className="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight mb-2">
-                {productoActivo.nombre}
-              </h1>
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <h1 className="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">
+                  {productoActivo.nombre}
+                </h1>
+                <button
+                  type="button"
+                  onClick={() => hablar(`${productoActivo.nombre}. Precio ${formatBs(productoActivo.precio)}. ${productoActivo.descripcionCorta || ''}`)}
+                  className="w-9 h-9 rounded-full bg-surface-container-low hover:bg-primary hover:text-white text-on-surface-variant flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                  title="Escuchar descripción en voz alta"
+                  aria-label="Escuchar descripción del producto"
+                >
+                  <span className="material-symbols-outlined text-[19px]">volume_up</span>
+                </button>
+              </div>
 
               {/* Rating */}
               <div className="flex items-center gap-space-sm mb-space-md pb-space-sm">
