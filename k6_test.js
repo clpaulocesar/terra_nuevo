@@ -22,7 +22,7 @@ export const options = {
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:3001/api';
+const BASE_URL = __ENV.BASE_URL || 'https://terratabletv2-0-k6zy.vercel.app/';
 
 export default function () {
   // 1. Simular carga inicial de catálogo
