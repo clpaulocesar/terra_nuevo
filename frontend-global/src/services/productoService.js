@@ -98,6 +98,8 @@ export async function listarProductos({
   limite = 50,
   promos = false,
   ofertas = false,
+  precioMin = null,
+  precioMax = null,
   signal,
 } = {}) {
   const query = new URLSearchParams();
@@ -108,6 +110,8 @@ export async function listarProductos({
   if (limite) query.set('limite', String(limite));
   if (promos) query.set('promos', 'true');
   if (ofertas) query.set('ofertas', 'true');
+  if (precioMin !== null && precioMin !== '' && Number.isFinite(Number(precioMin))) query.set('precioMin', String(precioMin));
+  if (precioMax !== null && precioMax !== '' && Number.isFinite(Number(precioMax))) query.set('precioMax', String(precioMax));
 
   try {
     const res = await apiRequest(`/productos?${query.toString()}`, { signal, raw: true });
@@ -130,6 +134,12 @@ export async function listarProductos({
   if (buscar) {
     const q = buscar.toLowerCase();
     filtrados = filtrados.filter((p) => p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q));
+  }
+  if (precioMin !== null && Number.isFinite(Number(precioMin))) {
+    filtrados = filtrados.filter((p) => Number(p.precio) >= Number(precioMin));
+  }
+  if (precioMax !== null && Number.isFinite(Number(precioMax))) {
+    filtrados = filtrados.filter((p) => Number(p.precio) <= Number(precioMax));
   }
   return {
     productos: filtrados.map(normalizarProducto),
