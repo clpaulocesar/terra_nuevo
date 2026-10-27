@@ -7,6 +7,8 @@ import { N8N_CHAT_URL } from './api.js';
 // Responde con { output: '...' } (o el JSON del último nodo del workflow).
 
 export const CHAT_HABILITADO = Boolean(N8N_CHAT_URL);
+// Permite abrir el asistente desde cualquier botón de ayuda de la interfaz.
+export const EVENTO_ABRIR_CHAT = 'terra:abrir-chat';
 
 export function crearSessionId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();

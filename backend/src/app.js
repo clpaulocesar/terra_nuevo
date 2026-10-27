@@ -11,6 +11,7 @@ import asistenteRoutes from './routes/asistenteRoutes.js';
 import personalRoutes from './routes/personalRoutes.js';
 import geocodificacionRoutes from './routes/geocodificacionRoutes.js';
 import envioRoutes from './routes/envioRoutes.js';
+import sucursalRoutes from './routes/sucursalRoutes.js';
 
 import { verificarConexion } from './config/database.js';
 
@@ -93,6 +94,9 @@ app.get('/openapi', (req, res) => {
       '/api/productos/{id}/stock': {
         patch: { summary: 'Actualizar stock (showroom y bodega)' },
       },
+      '/api/sucursales': {
+        get: { summary: 'Listar sucursales activas con productos y stock asociados' },
+      },
       '/api/pedidos': {
         post: { summary: 'Crear un nuevo pedido' },
       },
@@ -161,6 +165,7 @@ app.use('/api/asistente', asistenteRoutes);
 app.use('/api/personal', personalRoutes);
 app.use('/api/geocodificacion', geocodificacionRoutes);
 app.use('/api/envios', envioRoutes);
+app.use('/api/sucursales', sucursalRoutes);
 
 // Manejo centralizado de errores.
 app.use(rutaNoEncontrada);

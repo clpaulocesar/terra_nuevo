@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #d7d7d7; }
+    .marco { display: flex; gap: 20px; padding: 20px; align-items: flex-start; }
+    iframe { border: 0; display: block; background: #fff; }
+  </style>
+</head>
+<body>
+  <div class="marco">
+    <iframe id="movil" src="/cliente" width="390" height="8000" title="Vista móvil"></iframe>
+    <iframe id="tablet" src="/cliente" width="768" height="8000" title="Vista tablet"></iframe>
+  </div>
+  <script>
+    const preparar = (id) => {
+      const marco = document.getElementById(id);
+      marco.addEventListener('load', () => {
+        try {
+          marco.contentDocument.documentElement.setAttribute('data-theme', 'light');
+          marco.contentDocument.documentElement.style.colorScheme = 'light';
+          marco.contentWindow.scrollTo(0, 0);
+        } catch (error) {
+          console.error(error);
+        }
+      });
+    };
+    preparar('movil');
+    preparar('tablet');
+  </script>
+</body>
+</html>

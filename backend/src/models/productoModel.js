@@ -10,7 +10,17 @@ const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, 
   p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
   p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, pi.intrucciones AS instrucciones, pi.detalle_completo AS instrucciones_detalle, pi.videos_url AS instrucciones_video, COALESCE(p.activo, p.is_active, TRUE) AS activo, COALESCE(p.en_oferta, FALSE) AS en_oferta,
   COALESCE((SELECT json_agg(json_build_object('minCantidad', w.minimum_quantity, 'precio', w.unit_price) ORDER BY w.minimum_quantity)
-    FROM wholesale_price_tiers w WHERE w.product_id=p.id), '[]'::json) AS escalas_mayorista`;
+    FROM wholesale_price_tiers w WHERE w.product_id=p.id), '[]'::json) AS escalas_mayorista,
+  COALESCE((SELECT json_agg(json_build_object(
+    'id', s.id_sucursal,
+    'nombre', s.nombre,
+    'stock', ps.stock_disponible
+  ) ORDER BY s.nombre ASC)
+    FROM producto_sucursales ps
+    JOIN sucursales s ON s.id_sucursal = ps.sucursal_id
+    WHERE ps.product_id = p.id
+      AND ps.activo = TRUE
+      AND s.activo = TRUE), '[]'::json) AS sucursales`;
 
 export async function buscarCoincidenciasNombreProductoBD({ nombre, medida = '', color = '', excluirId = null }) {
   const nombreLimpio = String(nombre || '').trim().replace(/\s+/g, ' ');
