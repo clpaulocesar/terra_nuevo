@@ -1,4 +1,8 @@
 
+import dotenv from 'dotenv';
+import path from 'node:path';
+
+dotenv.config({ path: path.resolve(import.meta.dirname, '.env') });
 import app from './src/app.js';
 import { pool } from './src/config/database.js';
 

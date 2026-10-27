@@ -1,11 +1,13 @@
-import { Moon, Sun } from 'lucide-react';
+import { Contrast, Moon, Sun } from 'lucide-react';
 import { useTema } from '../../context/TemaContext.jsx';
 import './BotonTema.css';
 
 // Botón día / noche. Muestra el ícono del modo al que se cambiará al pulsarlo.
-export default function BotonTema({ className = '', conTexto = false }) {
+// `icono="contraste"` usa el símbolo de medio círculo del portal del cliente.
+export default function BotonTema({ className = '', conTexto = false, icono = 'tema' }) {
   const { esOscuro, alternarTema } = useTema();
   const etiqueta = esOscuro ? 'Cambiar a modo día' : 'Cambiar a modo noche';
+  const Icono = icono === 'contraste' ? Contrast : esOscuro ? Sun : Moon;
   return (
     <button
       type="button"
@@ -16,7 +18,7 @@ export default function BotonTema({ className = '', conTexto = false }) {
       aria-pressed={esOscuro}
     >
       <span className="terra-theme-btn__icon" aria-hidden="true">
-        {esOscuro ? <Sun size={18} /> : <Moon size={18} />}
+        <Icono size={18} />
       </span>
       {conTexto && <span className="terra-theme-btn__label">{esOscuro ? 'Modo día' : 'Modo noche'}</span>}
     </button>

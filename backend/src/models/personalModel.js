@@ -9,7 +9,7 @@ async function asegurarTablaPersonal() {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS staff_accounts (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          auth_user_id UUID NOT NULL UNIQUE,
+          auth_user_id UUID,
           name TEXT NOT NULL,
           email TEXT NOT NULL UNIQUE,
           password_hash TEXT,
@@ -18,13 +18,17 @@ async function asegurarTablaPersonal() {
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
       `);
-      // Datos del reparto (solo aplican al rol despacho). Se agregan aparte
-      // para no recrear la tabla en instalaciones que ya existen.
+      // Datos del reparto y columnas requeridas de forma idempotente
       await Promise.all([
+        pool.query('ALTER TABLE staff_accounts ADD COLUMN IF NOT EXISTS password_hash TEXT'),
         pool.query('ALTER TABLE staff_accounts ADD COLUMN IF NOT EXISTS vehicle TEXT'),
         pool.query('ALTER TABLE staff_accounts ADD COLUMN IF NOT EXISTS plate TEXT'),
+        pool.query('ALTER TABLE staff_accounts ALTER COLUMN auth_user_id DROP NOT NULL').catch(() => {}),
       ]);
-    })();
+    })().catch((error) => {
+      tablaLista = null;
+      throw error;
+    });
   }
   await tablaLista;
   return tablaLista;

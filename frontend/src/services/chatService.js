@@ -7,6 +7,8 @@ import { N8N_CHAT_URL } from './api.js';
 // Responde con { output: '...' } (o el JSON del último nodo del workflow).
 
 export const CHAT_HABILITADO = Boolean(N8N_CHAT_URL);
+// Permite abrir el asistente desde cualquier botón de ayuda de la interfaz.
+export const EVENTO_ABRIR_CHAT = 'terra:abrir-chat';
 
 export function crearSessionId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -25,7 +27,7 @@ function extraerTexto(datos) {
 
 async function llamarWebhook({ body, headers, signal }) {
   if (!CHAT_HABILITADO) {
-    throw new Error('El chat no está configurado. Define N8N_CHAT_URL en public/config.js.');
+    throw new Error('El chat no está configurado');
   }
 
   let respuesta;
@@ -33,7 +35,7 @@ async function llamarWebhook({ body, headers, signal }) {
     respuesta = await fetch(N8N_CHAT_URL, { method: 'POST', signal, headers, body });
   } catch (error) {
     if (error.name === 'AbortError') throw error;
-    throw new Error('No se pudo conectar con el asistente. Comprueba que n8n esté activo.');
+    throw new Error('No se pudo conectar con el asistente');
   }
 
   const texto = await respuesta.text();

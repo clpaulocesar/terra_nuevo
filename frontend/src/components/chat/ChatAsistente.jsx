@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { MessageCircle, Mic, Send, Square, X } from 'lucide-react';
 import {
   CHAT_HABILITADO,
+  EVENTO_ABRIR_CHAT,
   crearSessionId,
   enviarAudioChat,
   enviarMensajeChat,
 } from '../../services/chatService.js';
+import { useAccesibilidad } from '../../context/AccesibilidadContext.jsx';
 import MensajeMarkdown from './MensajeMarkdown.jsx';
 import { useNavegacion } from '../../navegacion/NavegacionContext.jsx';
 import { CLAVES_CHAT } from '../../navegacion/registroNavegacion.js';
@@ -50,6 +52,7 @@ export default function ChatAsistente() {
   const [abierto, setAbierto] = useState(false);
   const [mensajes, setMensajes] = useState([BIENVENIDA]);
   const { ejecutarIntencion } = useNavegacion();
+  const { vozActiva, hablar } = useAccesibilidad();
 
   // El agente (n8n) puede terminar su respuesta con [[NAVEGAR:clave]]. Se quita del
   // texto y, si la clave está en la lista blanca del chat, se navega. El backoffice
@@ -90,6 +93,13 @@ export default function ChatAsistente() {
     if (abierto) inputRef.current?.focus();
   }, [abierto]);
 
+  // La cabecera del portal abre el asistente sin duplicar su estado.
+  useEffect(() => {
+    const abrir = () => setAbierto(true);
+    window.addEventListener(EVENTO_ABRIR_CHAT, abrir);
+    return () => window.removeEventListener(EVENTO_ABRIR_CHAT, abrir);
+  }, []);
+
   // Limpieza al desmontar: petición en curso, micrófono y URLs de audio en memoria.
   useEffect(
     () => () => {
@@ -117,11 +127,14 @@ export default function ChatAsistente() {
     try {
       const respuesta = await peticion(abortRef.current.signal);
       const textoLimpio = procesarRespuesta(respuesta);
+      const textoFinal = textoLimpio || 'No recibí respuesta del asistente.';
       agregarMensaje({
         id: `a-${Date.now()}`,
         rol: 'asistente',
-        texto: textoLimpio || 'No recibí respuesta del asistente.',
+        texto: textoFinal,
       });
+      // Si la lectura por voz está activa, el altavoz de la cabecera también lee al asistente.
+      if (vozActiva) hablar(textoFinal);
     } catch (err) {
       if (err.name === 'AbortError') return;
       agregarError(err.message);
