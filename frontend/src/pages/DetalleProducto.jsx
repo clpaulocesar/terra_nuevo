@@ -25,7 +25,11 @@ import {
 } from "../services/productoService.js";
 import { useCarrito } from "../hooks/useCarrito.js";
 import { formatoMoneda } from "../utils/formatoMoneda.js";
-import { recortarFondoDeUrl } from "../utils/quitarFondo.js";
+import {
+  IMAGEN_PRODUCTO_FALLBACK,
+  imagenDeProducto,
+  usarImagenFallback,
+} from "../utils/imagenProducto.js";
 import "./DetalleProducto.css";
 import "./DetalleProductoBack.css";
 
@@ -49,9 +53,7 @@ const COLORES_CUADROS = [
   { nombre: "Mostaza", valor: "#cf8a2b" },
   { nombre: "Rosa empolvado", valor: "#d9a5a0" },
 ];
-const fallbackFotos = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuA_0IGZ5s0DjeFACULr5bK2zw8jNwY_4ygmGz_44Kd65Bb13xtjOAWf_fm_SD4sowQnCxMzCwU_ZD_DlXUGgV7nKlnEyI79XA31Ux46VzAsTssz8IaDziDvdlnriYJndVw-fukT_eKvBuoZjUQ7TIUvqEM4I4DJGnrYW6oGxCOdnHj9ITk2DfjrYEHNFCmMYaIS2C5r-2fvONkPGloLIafxeLD40KaqPvmWXpvg6uCzUefyXPRDfnq2",
-];
+const fallbackFotos = [IMAGEN_PRODUCTO_FALLBACK];
 
 // Los datos/selector de colores quedan OCULTOS a propósito (se trabaja solo con las imágenes).
 // El código de colores se conserva: pone true para volver a mostrarlo.
@@ -228,29 +230,6 @@ export default function DetalleProducto() {
     [producto],
   );
 
-  // Recorta el fondo de cada foto en el navegador (sin re-subir la imagen) y lo usa como máscara del color.
-  const [recortes, setRecortes] = useState({});
-  useEffect(() => {
-    let activo = true;
-    const urls = fotos.filter(Boolean);
-    if (!urls.length) return undefined;
-    Promise.all(
-      urls.map(async (url) => {
-        try {
-          return [url, await recortarFondoDeUrl(url)];
-        } catch {
-          return null;
-        }
-      }),
-    ).then((pares) => {
-      if (activo) setRecortes(Object.fromEntries(pares.filter(Boolean)));
-    });
-    return () => {
-      activo = false;
-    };
-  }, [fotos]);
-
-  const fuenteDe = (url) => recortes[url] || url;
   const agregar = () => {
     for (let indice = 0; indice < cantidad; indice += 1)
       agregarProducto(producto, 1, color ? { color } : {});
@@ -325,18 +304,23 @@ export default function DetalleProducto() {
             <div className="product-gallery__main">
               {fotos[foto] ? (
                 <span className="tint-wrap">
-                  <img
-                    className="tint-base"
-                    src={fuenteDe(fotos[foto])}
-                    alt={producto.nombre}
-                  />
-                  {color && (
+                    <img
+                      className={
+                        fotos[foto] === IMAGEN_PRODUCTO_FALLBACK
+                          ? "tint-base img-fallback"
+                          : "tint-base"
+                      }
+                      src={imagenDeProducto(fotos[foto])}
+                      alt={producto.nombre}
+                      onError={usarImagenFallback}
+                    />
+                  {MOSTRAR_COLORES && color && (
                     <i
                       className="tint-overlay"
                       style={{
                         backgroundColor: color.valor,
-                        WebkitMaskImage: `url("${fuenteDe(fotos[foto])}")`,
-                        maskImage: `url("${fuenteDe(fotos[foto])}")`,
+                        WebkitMaskImage: `url("${fotos[foto]}")`,
+                        maskImage: `url("${fotos[foto]}")`,
                       }}
                       aria-hidden="true"
                     />
@@ -445,16 +429,17 @@ export default function DetalleProducto() {
                   <span className="tint-wrap tint-thumb">
                     <img
                       className="tint-base"
-                      src={fuenteDe(src)}
+                      src={imagenDeProducto(src)}
                       alt={`Vista ${indice + 1}`}
+                      onError={usarImagenFallback}
                     />
-                    {color && (
+                    {MOSTRAR_COLORES && color && (
                       <i
                         className="tint-overlay"
                         style={{
                           backgroundColor: color.valor,
-                          WebkitMaskImage: `url("${fuenteDe(src)}")`,
-                          maskImage: `url("${fuenteDe(src)}")`,
+                          WebkitMaskImage: `url("${src}")`,
+                          maskImage: `url("${src}")`,
                         }}
                         aria-hidden="true"
                       />
@@ -709,9 +694,12 @@ export default function DetalleProducto() {
             {relacionados.map((item) => (
               <Link to={`/productos/${item.id}`} key={item.id}>
                 <figure>
-                  {item.imagen_url && (
-                    <img src={item.imagen_url} alt={item.nombre} />
-                  )}
+                  <img
+                    className={item.imagen_url ? "" : "img-fallback"}
+                    src={imagenDeProducto(item.imagen_url)}
+                    alt={item.nombre}
+                    onError={usarImagenFallback}
+                  />
                 </figure>
                 <h3>{item.nombre}</h3>
                 <p>{item.descripcion || item.categoria}</p>

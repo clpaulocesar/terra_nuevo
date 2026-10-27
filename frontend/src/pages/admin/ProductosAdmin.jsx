@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Box, CheckCircle2, ChevronLeft, ChevronRight, Download, Edit3, Eye, EyeOff, ImagePlus, Link2, PackagePlus, Palette, Play, Plus, Printer, QrCode, Search, SlidersHorizontal, Star, Store, Tag, Trash2, Truck, X } from 'lucide-react';
+import { Armchair, BarChart3, BedDouble, Box, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, Download, Edit3, Eye, EyeOff, ImagePlus, LampDesk, Link2, PackagePlus, Palette, PanelTop, Play, Plus, Printer, QrCode, Search, SlidersHorizontal, Sofa, Star, Store, Tag, Trash2, Truck, X } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { listarProductosPaginado, listarCategorias, crearProducto, actualizarProducto, actualizarStock, eliminarProducto, cambiarVisibilidadProducto } from '../../services/productoService.js';
 import { mediaDeVideo } from '../../utils/videoEmbed.js';
@@ -363,6 +363,16 @@ function GaleriaProducto({ colores, setColores, imagenes, setImagenes, destino, 
       </div>
     </section>
   );
+}
+
+function IconoCategoria({ categoria }) {
+  const nombre = String(categoria || '').toLowerCase();
+  if (nombre.includes('colchon') || nombre.includes('somier')) return <BedDouble size={17} aria-hidden="true" />;
+  if (nombre.includes('sofa') || nombre.includes('sofá')) return <Sofa size={17} aria-hidden="true" />;
+  if (nombre.includes('espaldar') || nombre.includes('reclamier') || nombre.includes('recliner') || nombre.includes('poltrona') || nombre.includes('silla')) return <Armchair size={17} aria-hidden="true" />;
+  if (nombre.includes('alfombra') || nombre.includes('toalla')) return <PanelTop size={17} aria-hidden="true" />;
+  if (nombre.includes('lampara') || nombre.includes('lámpara')) return <LampDesk size={17} aria-hidden="true" />;
+  return <Tag size={17} aria-hidden="true" />;
 }
 
 export default function ProductosAdmin() {
@@ -837,121 +847,151 @@ export default function ProductosAdmin() {
       </section>}
 
       <header className="products-heading">
-        <div>
-          <div>
+        <div className="products-heading-copy">
+          <div className="products-heading-title">
+            <span className="products-heading-icon"><Box size={27} /></span>
             <h1>Catálogo de productos e inventario</h1>
             <b>{productos.length} productos registrados{cargando ? ` · cargando ${progresoCarga}...` : ''}</b>
           </div>
           <p>Gestión de catálogo digital, inventario multialmacén y visibilidad en kioscos.</p>
         </div>
         <div className="products-toolbar">
-          <button onClick={exportarExcelProductos}>
+          <button type="button" onClick={exportarExcelProductos}>
             <Download size={17} /> Excel
           </button>
-          <button onClick={exportarPDFProductos}>
+          <button type="button" onClick={exportarPDFProductos}>
             <Download size={17} /> PDF
           </button>
-          <button onClick={() => productos.length > 0 && setAjuste({ ...productos[0] })}>
+          <button type="button" onClick={() => productos.length > 0 && setAjuste({ ...productos[0] })}>
             <SlidersHorizontal size={18} /> Ajuste rápido
           </button>
-          <button className="primary" onClick={() => setNuevoProducto(true)}>
+          <button type="button" className="primary" onClick={() => setNuevoProducto(true)}>
             <Plus size={18} /> Nuevo producto
           </button>
         </div>
       </header>
 
       <section className="products-kpis">
-        <article>
-          <Store />
-          <div>
+        <article className="products-kpi products-kpi--showroom">
+          <span className="products-kpi-icon" aria-hidden="true"><Store size={29} /></span>
+          <div className="products-kpi-copy">
             <small>Showroom Equipetrol</small>
             <b>{totalShowroom} unid.</b>
             <span>Disponible en sala</span>
           </div>
+          <Store className="products-kpi-watermark" size={54} aria-hidden="true" />
         </article>
-        <article>
-          <Box />
-          <div>
+        <article className="products-kpi products-kpi--kiosk">
+          <span className="products-kpi-icon" aria-hidden="true"><Box size={29} /></span>
+          <div className="products-kpi-copy">
             <small>Activos en kioscos</small>
             <b>{totalModelosKiosco} modelos</b>
             <span>Sincronización continua</span>
           </div>
+          <Box className="products-kpi-watermark" size={54} aria-hidden="true" />
         </article>
-        <article>
-          <CheckCircle2 />
-          <div>
+        <article className="products-kpi products-kpi--inventory">
+          <span className="products-kpi-icon" aria-hidden="true"><CircleDollarSign size={29} /></span>
+          <div className="products-kpi-copy">
             <small>Valor inventario</small>
             <b>Bs {valorInventario}</b>
             <span>Costo total en tienda</span>
           </div>
+          <BarChart3 className="products-kpi-watermark" size={54} aria-hidden="true" />
         </article>
       </section>
 
       <section className="products-filters">
-        <label>
-          <Search size={19} />
-          <input
-            value={buscar}
-            onChange={e => setBuscar(e.target.value)}
-            placeholder="Buscar por SKU, modelo o acabado..."
-            aria-label="Buscar por SKU, modelo o acabado"
-          />
-        </label>
-        <label className="products-switch">
-          <span>Solo visibles en kiosco</span>
-          <input
-            checked={soloKiosco}
-            onChange={e => setSoloKiosco(e.target.checked)}
-            type="checkbox"
-          />
-        </label>
-        <button onClick={() => { setBuscar(''); setCategoria('Todos'); setSoloKiosco(false); }}>
-          <X size={17} /> Limpiar filtros
-        </button>
+        <div className="products-filters-top">
+          <label className="products-search">
+            <Search size={21} />
+            <input
+              value={buscar}
+              onChange={e => setBuscar(e.target.value)}
+              placeholder="Buscar por SKU, modelo, nombre o categoría..."
+              aria-label="Buscar por SKU, modelo, nombre o categoría"
+            />
+            {buscar && <button type="button" className="products-search-clear" onClick={() => setBuscar('')} aria-label="Borrar búsqueda"><X size={18} /></button>}
+          </label>
+          <label className="products-switch">
+            <input
+              checked={soloKiosco}
+              onChange={e => setSoloKiosco(e.target.checked)}
+              type="checkbox"
+            />
+            <span>Solo visibles en kiosco</span>
+          </label>
+          <button type="button" className="products-clear-filters" onClick={() => { setBuscar(''); setCategoria('Todos'); setSoloKiosco(false); }}>
+            <SlidersHorizontal size={20} /> Limpiar filtros <ChevronDown size={17} />
+          </button>
+        </div>
         <nav>
           {categorias.map(item => (
             <button
               key={item}
+              type="button"
               className={categoria === item ? 'active' : ''}
               onClick={() => setCategoria(item)}
             >
+              {item !== 'Todos' && <IconoCategoria categoria={item} />}
               {item}
             </button>
           ))}
+          <button type="button" className="products-categories-next" aria-label="Ver más categorías"><ChevronRight size={20} /></button>
         </nav>
       </section>
 
       <section className="products-table">
         <header>
-        <div>
-          <h2>Productos y stock por ubicación</h2>
-          <span>Mostrando {visiblesPagina.length} de {visiblesOrdenados.length} registros · Página {paginaSegura} de {totalPaginasTabla}</span>
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <label style={{ fontSize: 12, color: '#56605c' }}>Filas:
-            <select value={porPagina} onChange={(e) => setPorPagina(Number(e.target.value))} style={{ marginLeft: 6 }}>
-              {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </label>
-        </div>
+          <div className="products-table-title">
+            <span><Box size={23} /></span>
+            <div>
+              <h2>Productos y stock por ubicación</h2>
+              <p>Mostrando {visiblesPagina.length} de {visiblesOrdenados.length} registros</p>
+            </div>
+          </div>
+          <div className="products-table-controls">
+            <label className="products-rows-control">Filas:
+              <select value={porPagina} onChange={(e) => setPorPagina(Number(e.target.value))}>
+                {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </label>
+            <button type="button" aria-label="Página anterior" onClick={() => setPaginaTabla((p) => Math.max(1, p - 1))} disabled={paginaSegura <= 1}><ChevronLeft size={18} /></button>
+            <span className="page-pill">{paginaSegura}</span>
+            <button type="button" aria-label="Página siguiente" onClick={() => setPaginaTabla((p) => Math.min(totalPaginasTabla, p + 1))} disabled={paginaSegura >= totalPaginasTabla}><ChevronRight size={18} /></button>
+          </div>
         </header>
 
         <div className="products-scroll">
           <table>
             <thead>
               <tr>
-                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('nombre')} onKeyDown={teclaOrden('nombre')} onClick={() => alternarOrden('nombre')}>Producto{indicadorOrden('nombre')}</th>
-                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('categoria')} onKeyDown={teclaOrden('categoria')} onClick={() => alternarOrden('categoria')}>Categoría{indicadorOrden('categoria')}</th>
-                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('precio')} onKeyDown={teclaOrden('precio')} onClick={() => alternarOrden('precio')}>Precio{indicadorOrden('precio')}</th>
-                <th>Precio mayorista</th>
-                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('showroom')} onKeyDown={teclaOrden('showroom')} onClick={() => alternarOrden('showroom')}>Showroom{indicadorOrden('showroom')}</th>
-                <th style={{ cursor: 'pointer' }} tabIndex={0} aria-sort={ariaOrden('visible')} onKeyDown={teclaOrden('visible')} onClick={() => alternarOrden('visible')}>Kiosco{indicadorOrden('visible')}</th>
+                <th className="products-check-column"><input type="checkbox" aria-label="Seleccionar todos los productos" /></th>
+                <th className="products-sortable" tabIndex={0} aria-sort={ariaOrden('nombre')} onKeyDown={teclaOrden('nombre')} onClick={() => alternarOrden('nombre')}>Producto{indicadorOrden('nombre')}</th>
+                <th className="products-sortable" tabIndex={0} aria-sort={ariaOrden('categoria')} onKeyDown={teclaOrden('categoria')} onClick={() => alternarOrden('categoria')}>Categoría{indicadorOrden('categoria')}</th>
+                <th className="products-sortable" tabIndex={0} aria-sort={ariaOrden('precio')} onKeyDown={teclaOrden('precio')} onClick={() => alternarOrden('precio')}>Precio{indicadorOrden('precio')}</th>
+                <th>Stock total</th>
+                <th className="products-sortable" tabIndex={0} aria-sort={ariaOrden('showroom')} onKeyDown={teclaOrden('showroom')} onClick={() => alternarOrden('showroom')}>Showroom{indicadorOrden('showroom')}</th>
+                <th className="products-sortable" tabIndex={0} aria-sort={ariaOrden('visible')} onKeyDown={teclaOrden('visible')} onClick={() => alternarOrden('visible')}>Kiosco{indicadorOrden('visible')}</th>
+                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {visiblesPagina.map(p => (
+              {visiblesPagina.length === 0 ? (
+                <tr>
+                  <td colSpan="9">
+                    <div className="products-empty">
+                      <span><Box size={43} /></span>
+                      <h3>No se encontraron productos</h3>
+                      <p>Prueba con otros filtros o registra un producto para empezar.</p>
+                      <button type="button" onClick={() => setNuevoProducto(true)}><Plus size={17} /> Nuevo producto</button>
+                    </div>
+                  </td>
+                </tr>
+              ) : visiblesPagina.map(p => (
                 <tr key={p.id}>
+                  <td className="products-check-column"><input type="checkbox" aria-label={`Seleccionar ${p.nombre}`} /></td>
                   <td>
                     <div className="product-info">
                       <span className={`product-thumb ${p.tono || 'green'}`}>
@@ -969,7 +1009,7 @@ export default function ProductosAdmin() {
                   </td>
                   <td>{p.categoria}</td>
                   <td><strong>Bs {p.precio}</strong></td>
-                  <td><strong>{p.precioMayorista === null ? 'No definido' : `Bs ${p.precioMayorista.toLocaleString('es-BO')}`}</strong></td>
+                  <td><strong>{p.stock ?? p.showroom} un.</strong></td>
                   <td>
                     <span className={p.showroom < 2 ? 'stock low' : 'stock'}>
                       {p.showroom} un.
@@ -979,15 +1019,16 @@ export default function ProductosAdmin() {
                     <button
                       type="button"
                       className="kiosk-badge-btn"
+                      aria-label={p.visible ? `Ocultar ${p.nombre} del kiosco` : `Mostrar ${p.nombre} en el kiosco`}
                       title={p.visible ? 'Clic para ocultar este producto a los clientes' : 'Clic para mostrar este producto en catálogo'}
                       onClick={() => alternarVisibilidad(p)}
-                      style={{ cursor: 'pointer', border: 'none', background: 'transparent', padding: 0 }}
                     >
                       <span className={p.visible ? 'kiosk visible' : 'kiosk'}>
                         {p.visible ? 'Activo' : 'Oculto'}
                       </span>
                     </button>
                   </td>
+                  <td><span className={p.visible ? 'products-status products-status--active' : 'products-status'}>{p.visible ? 'Publicado' : 'Borrador'}</span></td>
                   <td>
                     <div className="product-actions">
                       <button
@@ -1026,14 +1067,9 @@ export default function ProductosAdmin() {
         <div className="products-pagination">
           <span className="info">Página {paginaSegura} de {totalPaginasTabla} · {visiblesOrdenados.length} registros</span>
           <div className="controls">
-            <label style={{ fontSize: 12, color: '#56605c', display: 'flex', alignItems: 'center', gap: 6 }}>Filas:
-              <select value={porPagina} onChange={(e) => setPorPagina(Number(e.target.value))}>
-                {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
-              </select>
-            </label>
-            <button type="button" onClick={() => setPaginaTabla((p) => Math.max(1, p - 1))} disabled={paginaSegura <= 1}>Anterior</button>
+            <button type="button" aria-label="Página anterior" onClick={() => setPaginaTabla((p) => Math.max(1, p - 1))} disabled={paginaSegura <= 1}><ChevronLeft size={18} /></button>
             <span className="page-pill">{paginaSegura}</span>
-            <button type="button" onClick={() => setPaginaTabla((p) => Math.min(totalPaginasTabla, p + 1))} disabled={paginaSegura >= totalPaginasTabla}>Siguiente</button>
+            <button type="button" aria-label="Página siguiente" onClick={() => setPaginaTabla((p) => Math.min(totalPaginasTabla, p + 1))} disabled={paginaSegura >= totalPaginasTabla}><ChevronRight size={18} /></button>
           </div>
         </div>
       </section>

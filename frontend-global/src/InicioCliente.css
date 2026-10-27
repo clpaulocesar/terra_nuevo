@@ -1,0 +1,156 @@
+/* ========================================================= */
+/* PALETA SEMÁNTICA TERRA: MODO DÍA & MODO NOCHE             */
+/* ========================================================= */
+:root {
+  color-scheme: light;
+  
+  /* Superficies Modo Día (Normal) */
+  --surface: #fbf9f5;
+  --surface-bright: #fbf9f5;
+  --surface-dim: #dbdad6;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f5f3ef;
+  --surface-container: #f0eeea;
+  --surface-container-high: #eae8e4;
+  --surface-container-highest: #e4e2de;
+  --surface-variant: #e4e2de;
+
+  /* Contraste de Texto Modo Día */
+  --on-surface: #1b1c1a;
+  --on-surface-variant: #5b403f;
+  --on-background: #1b1c1a;
+
+  /* Colores de Marca TERRA */
+  --primary: #8b001a;
+  --primary-container: #b31329;
+  --on-primary: #ffffff;
+  --primary-fixed: #ffdad8;
+  --primary-fixed-dim: #ffb3b1;
+
+  /* Acento Bronce / Madera */
+  --tertiary: #554000;
+  --tertiary-container: #725600;
+  --tertiary-fixed: #ffdf99;
+  --tertiary-fixed-dim: #ecc15a;
+  --on-tertiary-fixed: #251a00;
+
+  /* Bordes y Líneas */
+  --outline: #8f6f6e;
+  --outline-variant: #e3bebc;
+
+  /* Inversos y Secundarios */
+  --inverse-surface: #30312e;
+  --inverse-on-surface: #f2f0ec;
+  --secondary-container: #e2dfde;
+  --on-secondary-container: #636262;
+
+  /* Error */
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error: #ffffff;
+}
+
+html.dark {
+  color-scheme: dark;
+
+  /* Superficies Modo Noche */
+  --surface: #121311;
+  --surface-bright: #1c1d1a;
+  --surface-dim: #0d0e0c;
+  --surface-container-lowest: #191a17;
+  --surface-container-low: #1e1f1c;
+  --surface-container: #242522;
+  --surface-container-high: #2b2d29;
+  --surface-container-highest: #343631;
+  --surface-variant: #343631;
+
+  /* Contraste de Texto Modo Noche */
+  --on-surface: #edeae5;
+  --on-surface-variant: #b8b3ac;
+  --on-background: #edeae5;
+
+  /* Colores de Marca TERRA (Luminosidad calibrada para fondo oscuro) */
+  --primary: #d42b44;
+  --primary-container: #8b001a;
+  --on-primary: #ffffff;
+  --primary-fixed: #5c000e;
+  --primary-fixed-dim: #ffb3b1;
+
+  /* Acento Oro / Bronce Cálido */
+  --tertiary: #ffd27a;
+  --tertiary-container: #856200;
+  --tertiary-fixed: #ffdf99;
+  --tertiary-fixed-dim: #ecc15a;
+  --on-tertiary-fixed: #251a00;
+
+  /* Bordes y Líneas Noche */
+  --outline: #5a5451;
+  --outline-variant: #3a3433;
+
+  /* Inversos y Secundarios Noche */
+  --inverse-surface: #edeae5;
+  --inverse-on-surface: #121311;
+  --secondary-container: #2b2d29;
+  --on-secondary-container: #d8d4cf;
+
+  /* Error Noche */
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --on-error: #690005;
+}
+
+html.dark body {
+  background-color: var(--surface);
+  color: var(--on-surface);
+}
+
+html.dark header {
+  background-color: rgba(24, 25, 22, 0.94) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Transición suave entre día y noche */
+html,
+body,
+header,
+main,
+section,
+.product-item,
+button,
+input,
+aside {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease;
+}
+
+/* Estilos complementarios para TERRA Global Inicio */
+@keyframes fadeIn {
+  from {
+    opacity: 0.3;
+    transform: scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.35s ease-out forwards;
+}
+
+/* Ocultar barra de desplazamiento por defecto */
+::-webkit-scrollbar {
+  display: none;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  overscroll-behavior: none;
+}

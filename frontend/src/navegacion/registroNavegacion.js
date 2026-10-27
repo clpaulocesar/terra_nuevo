@@ -8,6 +8,7 @@
 
 export const DESTINOS = {
   inicio:          { ruta: '/',                      nombre: 'Inicio',                       acceso: 'publico',   alias: ['inicio', 'principal', 'portada', 'volver al inicio', 'pagina principal'] },
+  portalCliente:   { ruta: '/cliente',               nombre: 'Portal del cliente',           acceso: 'publico',   alias: ['portal cliente', 'portal del cliente', 'portal publico', 'sucursales', 'nuestras sucursales', 'red de sucursales', 'tienda principal'] },
   catalogo:        { ruta: '/catalogo',              nombre: 'Catálogo de productos',        acceso: 'publico',   alias: ['catalogo', 'productos', 'colchones', 'sommiers', 'somieres', 'camas', 'ver productos'] },
   ofertas:         { ruta: '/catalogo?ofertas=1',    nombre: 'Ofertas',                      acceso: 'publico',   alias: ['ofertas', 'promociones', 'en oferta', 'descuentos', 'ver ofertas', 'rebajas'] },
   categorias:      { ruta: '/categorias',            nombre: 'Líneas y categorías',          acceso: 'publico',   alias: ['categorias', 'lineas', 'lineas y categorias'] },
@@ -54,7 +55,7 @@ export const DESTINOS = {
 export const esAccionAccesibilidad = (clave) => String(DESTINOS[clave]?.accion || '').startsWith('a11y:');
 
 // Claves que el chatbot (n8n) tiene permitido disparar. Nunca el backoffice.
-export const CLAVES_CHAT = ['inicio', 'catalogo', 'ofertas', 'categorias', 'carrito', 'escanear', 'loginMayorista', 'miCuenta', 'misPedidos'];
+export const CLAVES_CHAT = ['inicio', 'portalCliente', 'catalogo', 'ofertas', 'categorias', 'carrito', 'escanear', 'loginMayorista', 'miCuenta', 'misPedidos'];
 
 // Zona de la app a la que pertenece cada destino (para desambiguar alias repetidos).
 export function zonaDeDestino(clave) {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Boxes, Camera, CameraOff, Check, ChevronDown, ChevronRight, Layers, PackagePlus, PackageSearch,
-  Plus, RefreshCw, ScanLine, Search, Warehouse, X,
+  BarChart3, Boxes, Camera, CameraOff, Check, ChevronDown, ChevronRight, Info, Layers, PackagePlus,
+  PackageSearch, Plus, QrCode, RefreshCw, ScanLine, Search, TriangleAlert, Warehouse, X,
 } from 'lucide-react';
 import { agregarStock, listarCategorias, listarProductosPaginado, obtenerProducto } from '../../services/productoService.js';
 import { avisoError, avisoExito } from '../../utils/alertas.js';
@@ -249,18 +249,18 @@ export default function AlmacenAdmin() {
 
   return <main className="warehouse-admin">
     <header className="warehouse-heading">
-      <div>
-        <div><h1><Warehouse size={24} /> Almacén</h1><b>{totales.unidades} unidades</b></div>
+      <div className="warehouse-heading-copy">
+        <div className="warehouse-heading-title"><span className="warehouse-heading-icon"><Warehouse size={25} aria-hidden="true" /></span><h1>Almacén</h1><b>{totales.unidades} unidades</b></div>
         <p>Registrá ingresos de mercadería escaneando el QR del producto y controlá el stock por categoría.</p>
       </div>
       <button type="button" className="warehouse-refresh" onClick={cargar} disabled={cargando}><RefreshCw size={16} /> Actualizar</button>
     </header>
 
     <section className="warehouse-kpis">
-      <article><Boxes /><div><small>Unidades en stock</small><b>{totales.unidades}</b><span>Sumando todo el catálogo</span></div></article>
-      <article><PackageSearch /><div><small>Productos</small><b>{totales.productos}</b><span>Incluye ocultos del catálogo</span></div></article>
-      <article><Layers /><div><small>Categorías con productos</small><b>{totales.categorias}</b><span>De {categorias.length} registradas</span></div></article>
-      <article className={totales.sinStock ? 'is-alert' : ''}><PackagePlus /><div><small>Sin stock</small><b>{totales.sinStock}</b><span>Productos en cero</span></div></article>
+      <article className="warehouse-kpi warehouse-kpi--stock"><span className="warehouse-kpi-icon" aria-hidden="true"><Boxes size={28} /></span><div><small>Unidades en stock</small><b>{totales.unidades}</b><span>Sumando todo el catálogo</span></div><BarChart3 className="warehouse-kpi-watermark" size={33} aria-hidden="true" /></article>
+      <article className="warehouse-kpi warehouse-kpi--products"><span className="warehouse-kpi-icon" aria-hidden="true"><PackageSearch size={28} /></span><div><small>Productos</small><b>{totales.productos}</b><span>Incluye ocultos del catálogo</span></div><PackageSearch className="warehouse-kpi-watermark" size={33} aria-hidden="true" /></article>
+      <article className="warehouse-kpi warehouse-kpi--categories"><span className="warehouse-kpi-icon" aria-hidden="true"><Layers size={28} /></span><div><small>Categorías con productos</small><b>{totales.categorias}</b><span>De {categorias.length} registradas</span></div><BarChart3 className="warehouse-kpi-watermark" size={33} aria-hidden="true" /></article>
+      <article className={`warehouse-kpi warehouse-kpi--empty${totales.sinStock ? ' is-alert' : ''}`}><span className="warehouse-kpi-icon" aria-hidden="true"><PackagePlus size={28} /></span><div><small>Sin stock</small><b>{totales.sinStock}</b><span>Productos en cero</span></div><TriangleAlert className="warehouse-kpi-watermark" size={33} aria-hidden="true" /></article>
     </section>
 
     {error && <p className="warehouse-state warehouse-state--error">{error}</p>}
@@ -283,15 +283,25 @@ export default function AlmacenAdmin() {
           </div>
         )}
 
-        <p className={`warehouse-status${errorCamara ? ' is-error' : ''}`} role="status" aria-live="polite">
-          {estadoCamara || (camaraAbierta ? 'La cámara se activará para leer el código.' : 'Abrí la cámara o escribí el código del producto.')}
-        </p>
+        {!camaraAbierta && !productoLeido && !errorCamara && (
+          <div className="warehouse-scanner-empty">
+            <span><QrCode size={70} aria-hidden="true" /></span>
+            <b>Escaneá el código QR del producto</b>
+            <p>También podés escribir el código manualmente.</p>
+          </div>
+        )}
+
+        {(camaraAbierta || productoLeido || errorCamara) && <p className={`warehouse-status${errorCamara ? ' is-error' : ''}`} role="status" aria-live="polite">{estadoCamara || 'La cámara se activará para leer el código.'}</p>}
 
         {!productoLeido && (
-          <form className="warehouse-manual" onSubmit={buscarManual}>
-            <label><Search size={17} /><input value={codigoManual} onChange={(e) => setCodigoManual(e.target.value)} placeholder="Código Terra, SKU o id del producto" aria-label="Código Terra, SKU o id del producto" maxLength="100" /></label>
-            <button type="submit" className="ghost" disabled={buscandoProducto || !texto(codigoManual)}>{buscandoProducto ? 'Buscando…' : 'Buscar'}</button>
-          </form>
+          <div className="warehouse-manual-area">
+            <b>O ingresá el código del producto</b>
+            <form className="warehouse-manual" onSubmit={buscarManual}>
+              <label><Search size={17} /><input value={codigoManual} onChange={(e) => setCodigoManual(e.target.value)} placeholder="Código Terra, SKU o id del producto" aria-label="Código Terra, SKU o id del producto" maxLength="100" /></label>
+              <button type="submit" className="ghost" disabled={buscandoProducto || !texto(codigoManual)}>{buscandoProducto ? 'Buscando…' : 'Buscar'}</button>
+            </form>
+            <p><Info size={18} aria-hidden="true" /> Después de buscar el producto podrás ingresar la cantidad que entra al almacén.</p>
+          </div>
         )}
 
         {productoLeido && (
@@ -339,13 +349,16 @@ export default function AlmacenAdmin() {
         {!cargando && !porCategoria.length && <p className="warehouse-state">No hay productos para mostrar.</p>}
 
         <ul className="warehouse-cat-list">
-          {porCategoria.map((g) => {
+          {porCategoria.map((g, indice) => {
             const abierta = categoriaAbierta === g.nombre;
+            const porcentaje = totales.unidades ? Math.round((g.unidades / totales.unidades) * 100) : 0;
             return <li key={g.nombre} className={abierta ? 'is-open' : ''}>
               <button type="button" className="warehouse-cat-row" aria-expanded={abierta} onClick={() => setCategoriaAbierta(abierta ? '' : g.nombre)}>
                 <span className="warehouse-cat-emoji">{g.emoji}</span>
                 <div><b>{g.nombre}</b><small>{g.productos.length} {g.productos.length === 1 ? 'producto' : 'productos'}{g.sinStock ? ` · ${g.sinStock} sin stock` : ''}</small></div>
                 <strong>{g.unidades} <em>unid.</em></strong>
+                <span className={`warehouse-cat-progress warehouse-cat-progress--${indice % 8}`} aria-label={`${porcentaje}% del stock total`}><i style={{ width: `${porcentaje}%` }} /></span>
+                <em className="warehouse-cat-percent">{porcentaje}%</em>
                 {abierta ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
               </button>
               {abierta && (

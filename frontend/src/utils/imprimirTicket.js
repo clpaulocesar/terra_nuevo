@@ -26,6 +26,32 @@ export function imprimirTicketPedido(pedido, ventana = null) {
   const nitCliente = cliente.nit || pedido.cliente_nit || pedido.nit || '';
   const direccionEntrega = pedido.direccion_entrega || cliente.direccion;
   const referenciaEntrega = pedido.referencia_entrega || cliente.referencia;
+  const zonaEnvio = pedido.zona_envio || pedido.delivery_zone_name || cliente.zona || pedido.zona || '';
+  const tarifaPendiente = Boolean(pedido.tarifa_envio_pendiente || pedido.delivery_fee_pending);
+
+  const esEnvio = Boolean(
+    direccionEntrega ||
+    pedido.tipo_entrega === 'home_delivery' ||
+    pedido.tipoEntrega === 'home_delivery' ||
+    pedido.fulfillment_type === 'home_delivery' ||
+    zonaEnvio ||
+    (Array.isArray(pedido.items) && pedido.items.some((i) => (i.tipoEntrega || i.tipo_entrega || i.delivery_type) === 'home_delivery'))
+  );
+
+  const costoEnvio = Number(
+    pedido.costo_envio ??
+    pedido.delivery_fee ??
+    (pedido.delivery_fee_minor !== undefined ? Number(pedido.delivery_fee_minor) / 100 : null) ??
+    0
+  );
+
+  const totalPedido = Number(pedido.total ?? (pedido.total_minor !== undefined ? Number(pedido.total_minor) / 100 : 0)) || 0;
+  const subtotalProductos = Number(
+    pedido.subtotal ??
+    (pedido.subtotal_minor !== undefined ? Number(pedido.subtotal_minor) / 100 : null) ??
+    (esEnvio && !tarifaPendiente ? Math.max(0, totalPedido - costoEnvio) : totalPedido)
+  );
+
   const metodoPago = pedido.metodo_pago || pedido.metodo_pago_solicitado;
   const estadoClave = String(pedido.estado || '').toLowerCase();
   const cobrado = ['completed', 'paid', 'pagado', 'delivered', 'entregado', 'shipped', 'ready_for_pickup', 'out_for_delivery'].includes(estadoClave);
@@ -38,10 +64,27 @@ export function imprimirTicketPedido(pedido, ventana = null) {
     timeZone: 'America/La_Paz',
   }).format(new Date(pedido.fecha || Date.now()));
 
-  const detalle = (Array.isArray(pedido.items) ? pedido.items : []).map((item) => {
+  const items = Array.isArray(pedido.items) ? pedido.items : [];
+  const resumenEntrega = items.reduce(
+    (resumen, item) => {
+      const tipo = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
+      const cantidad = Number(item.cantidad || item.quantity || 1);
+      if (tipo === 'home_delivery') resumen.envio += cantidad;
+      else resumen.retiro += cantidad;
+      return resumen;
+    },
+    { envio: 0, retiro: 0 }
+  );
+  const textoEntrega = resumenEntrega.envio && resumenEntrega.retiro
+    ? `Modalidad mixta: ${resumenEntrega.envio} para envío y ${resumenEntrega.retiro} para retiro en tienda`
+    : resumenEntrega.envio
+      ? `Envío a domicilio: ${resumenEntrega.envio} producto(s)`
+      : `Retiro en tienda: ${resumenEntrega.retiro} producto(s)`;
+
+  const detalle = items.map((item) => {
     const tipo = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
-    const etiqueta = direccionEntrega
-      ? (tipo === 'home_delivery'
+    const etiqueta = esEnvio
+      ? (tipo === 'home_delivery' || (!tipo && direccionEntrega)
         ? '<br><span style="color:#a6192e;font-weight:bold;font-size:10px;">[🚚 ENVÍO A DOMICILIO]</span>'
         : '<br><span style="color:#004230;font-weight:bold;font-size:10px;">[🛍️ LLEVADO EN TIENDA]</span>')
       : '<br><span style="color:#555;font-weight:bold;font-size:10px;">[🛍️ LLEVADO / RETIRO EN TIENDA]</span>';
@@ -77,7 +120,7 @@ export function imprimirTicketPedido(pedido, ventana = null) {
     header img { max-width: 190px; }
     h1 { font-size: 15px; margin: 9px 0 0; }
     .code { background: #fff1f3; border: 1px dashed #a6192e; border-radius: 7px; color: #a6192e; font: bold 17px monospace; letter-spacing: 1px; margin: 15px 0; padding: 10px; text-align: center; }
-    .meta { color: #4d5552; line-height: 1.6; margin: 10px 0; }
+    .meta { color: #4d5552; line-height: 1.6; margin: 10px 0; font-size: 12px; }
     table { border-collapse: collapse; width: 100%; margin-top: 15px; }
     td { border-bottom: 1px dashed #d6d6d6; padding: 9px 0; vertical-align: bottom; }
     td:last-child { text-align: right; font-weight: bold; }
@@ -104,18 +147,31 @@ export function imprimirTicketPedido(pedido, ventana = null) {
       <b>Fecha:</b> ${escapar(fecha)}<br>
       <b>Cliente:</b> ${escapar(nombreCliente)}
       ${telefonoCliente ? `<br><b>Teléfono:</b> ${escapar(telefonoCliente)}` : ''}
-      ${nitCliente ? `<br><b>NIT:</b> ${escapar(nitCliente)}` : ''}
-      ${direccionEntrega ? `<br><b>Envío:</b> ${escapar(direccionEntrega)}` : ''}
-      ${referenciaEntrega ? `<br><b>Ref:</b> ${escapar(referenciaEntrega)}` : ''}
+      ${nitCliente ? `<br><b>NIT/CI:</b> ${escapar(nitCliente)}` : ''}
+      <br><b>Entrega:</b> <span style="font-weight:bold;color:${esEnvio ? '#a6192e' : '#004230'};">${escapar(textoEntrega)}</span>
+      ${esEnvio && zonaEnvio ? `<br><b>Zona de envío:</b> ${escapar(zonaEnvio)}` : ''}
+      ${direccionEntrega ? `<br><b>Dirección:</b> ${escapar(direccionEntrega)}` : ''}
+      ${referenciaEntrega ? `<br><b>Referencia:</b> ${escapar(referenciaEntrega)}` : ''}
       ${metodoPago ? `<br><b>Medio de pago:</b> ${escapar(metodoPago === 'qr' ? 'QR Simple' : metodoPago.toUpperCase())}` : ''}
       <br><b>Estado:</b> <span style="font-weight:bold;color:${anulado ? '#a6192e' : (cobrado ? '#006633' : '#b45309')};">${estadoTexto}</span>
     </div>
     <table>${detalle}</table>
+    ${esEnvio ? `
+    <div style="border-top:1px dashed #d6d6d6;margin-top:12px;padding-top:8px;font-size:12px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#555;">
+        <span>Subtotal artículos:</span>
+        <span>${formatoMoneda(subtotalProductos)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#a6192e;font-weight:bold;">
+        <span>Tarifa de envío ${zonaEnvio ? `(${escapar(zonaEnvio)})` : ''}:</span>
+        <span>${tarifaPendiente ? 'Por definir en caja' : (costoEnvio === 0 ? 'GRATIS (Bs 0.00)' : formatoMoneda(costoEnvio))}</span>
+      </div>
+    </div>` : ''}
     <div class="total">
-      <span>Total</span>
-      <span>${formatoMoneda(pedido.total)}</span>
+      <span>${anulado ? 'Total' : (cobrado ? 'Total cobrado' : 'Total a pagar')}</span>
+      <span>${formatoMoneda(totalPedido)}</span>
     </div>
-    <footer>${anulado ? 'Pedido anulado · sin valor como comprobante de pago.' : 'Gracias por comprar en TERRA Autoservicio.'}</footer>
+    <footer>${anulado ? 'Pedido anulado · sin valor como comprobante de pago.' : (esEnvio ? 'Presenta este comprobante para coordinar tu envío a domicilio.' : 'Gracias por comprar en TERRA Autoservicio.')}</footer>
   </main>
   <script>
     window.onload = function() {
