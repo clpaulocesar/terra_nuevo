@@ -328,7 +328,9 @@ export default function CatalogoPage({
   const [filtroPlazas, setFiltroPlazas] = useState([]);
   const [filtroFirmeza, setFirmeza] = useState('Todas');
   const [filtroRetiro, setFiltroRetiro] = useState(false);
-  const [precioMaximo, setPrecioMaximo] = useState(15000);
+  const [precioMaximo, setPrecioMaximo] = useState(null);
+  const [precioMaximoDebounced, setPrecioMaximoDebounced] = useState(null);
+  const [limitesPrecio, setLimitesPrecio] = useState({ min: 10, max: 29000 });
   const [drawerFiltrosAbierto, setDrawerFiltrosAbierto] = useState(false);
   const [orden, setOrden] = useState('recomendados');
   const [pagina, setPagina] = useState(1);
@@ -337,6 +339,38 @@ export default function CatalogoPage({
   const [paginacion, setPaginacion] = useState({ total: 0, totalPaginas: 1 });
   const [cargando, setCargando] = useState(false);
   const [errorCarga, setErrorCarga] = useState('');
+
+  // Debounce del precio para no saturar peticiones mientras se arrastra el slider
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPrecioMaximoDebounced(precioMaximo);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [precioMaximo]);
+
+  // Actualizar tope máximo de precio sin encoger la barra al filtrar
+  useEffect(() => {
+    if (productosReales.length) {
+      const precios = productosReales.map((p) => Number(p.precio) || 0).filter((p) => p > 0);
+      if (precios.length) {
+        const minObs = Math.floor(Math.min(...precios));
+        const maxObs = Math.ceil(Math.max(...precios));
+        setLimitesPrecio((prev) => ({
+          min: Math.min(prev.min, minObs),
+          max: Math.max(prev.max, maxObs),
+        }));
+      }
+    }
+  }, [productosReales]);
+
+  const minPrecioCatalogo = limitesPrecio.min;
+  const maxPrecioCatalogo = limitesPrecio.max;
+  const precioMaximoActivo = precioMaximo !== null ? precioMaximo : maxPrecioCatalogo;
+
+  const cambiarPrecioMaximo = (nuevoPrecio) => {
+    setPrecioMaximo(nuevoPrecio);
+    setPagina(1);
+  };
 
   // Cargar categorías del backend
   useEffect(() => {
@@ -363,6 +397,11 @@ export default function CatalogoPage({
       setCargando(true);
       setErrorCarga('');
       try {
+        const precioFiltro =
+          precioMaximoDebounced !== null && precioMaximoDebounced < maxPrecioCatalogo
+            ? precioMaximoDebounced
+            : null;
+
         const resultado = await listarProductos({
           signal: controlador.signal,
           pagina,
@@ -371,6 +410,7 @@ export default function CatalogoPage({
           categoria: categoriaActiva !== 'ofertas' && categoriaActiva !== 'todas' ? categoriaActiva : '',
           orden,
           ofertas: filtroOfertas || categoriaActiva === 'ofertas',
+          precioMax: precioFiltro,
         });
         setProductosReales(resultado.productos);
         setPaginacion(resultado.paginacion);
@@ -387,7 +427,7 @@ export default function CatalogoPage({
 
     cargarProductos();
     return () => controlador.abort();
-  }, [busquedaLocal, categoriaActiva, filtroOfertas, orden, pagina, sucursalActiva]);
+  }, [busquedaLocal, categoriaActiva, filtroOfertas, orden, pagina, precioMaximoDebounced, sucursalActiva, maxPrecioCatalogo]);
 
   // Normalización con sucursal y atributos dinámicos
   const productosConDisponibilidad = useMemo(() => {
@@ -398,17 +438,6 @@ export default function CatalogoPage({
       firmezaNormalizada: normalizarFirmeza(prod),
     }));
   }, [productosReales, sucursalActiva]);
-
-  // Rango de precio dinámico desde los datos del catálogo
-  const { minPrecioCatalogo, maxPrecioCatalogo } = useMemo(() => {
-    if (!productosConDisponibilidad.length) return { minPrecioCatalogo: 20, maxPrecioCatalogo: 15000 };
-    const precios = productosConDisponibilidad.map((p) => Number(p.precio) || 0).filter((p) => p > 0);
-    if (!precios.length) return { minPrecioCatalogo: 20, maxPrecioCatalogo: 15000 };
-    return {
-      minPrecioCatalogo: Math.floor(Math.min(...precios)),
-      maxPrecioCatalogo: Math.ceil(Math.max(...precios)),
-    };
-  }, [productosConDisponibilidad]);
 
   // Conteos dinámicos en tiempo real para cada opción de filtro
   const conteoPlazas = useMemo(() => {
@@ -425,7 +454,7 @@ export default function CatalogoPage({
   }, [productosConDisponibilidad]);
 
   const conteoFirmezas = useMemo(() => {
-    const mapa = { Todas: productosConDisponibilidad.length };
+    const mapa = { Todas: paginacion.total || productosConDisponibilidad.length };
     FIRMEZAS_DISPONIBLES.slice(1).forEach((f) => { mapa[f] = 0; });
     productosConDisponibilidad.forEach((p) => {
       if (mapa[p.firmezaNormalizada] !== undefined) {
@@ -433,7 +462,7 @@ export default function CatalogoPage({
       }
     });
     return mapa;
-  }, [productosConDisponibilidad]);
+  }, [productosConDisponibilidad, paginacion.total]);
 
   const conteosEspeciales = useMemo(() => {
     let enSala = 0;
@@ -465,7 +494,7 @@ export default function CatalogoPage({
     setFiltroPlazas([]);
     setFirmeza('Todas');
     setFiltroRetiro(false);
-    setPrecioMaximo(maxPrecioCatalogo);
+    setPrecioMaximo(null);
     setBusquedaLocal('');
     setPagina(1);
   };
@@ -473,7 +502,7 @@ export default function CatalogoPage({
   // Cálculo de filtros activos
   const totalFiltrosActivos = useMemo(() => {
     let count = 0;
-    if (precioMaximo < maxPrecioCatalogo) count += 1;
+    if (precioMaximoActivo < maxPrecioCatalogo) count += 1;
     if (filtroPlazas.length > 0) count += filtroPlazas.length;
     if (filtroFirmeza !== 'Todas') count += 1;
     if (filtroRetiro) count += 1;
@@ -481,7 +510,7 @@ export default function CatalogoPage({
     if (filtroMasVendidos) count += 1;
     if (busquedaLocal.trim()) count += 1;
     return count;
-  }, [precioMaximo, maxPrecioCatalogo, filtroPlazas, filtroFirmeza, filtroRetiro, filtroOfertas, filtroMasVendidos, busquedaLocal]);
+  }, [precioMaximoActivo, maxPrecioCatalogo, filtroPlazas, filtroFirmeza, filtroRetiro, filtroOfertas, filtroMasVendidos, busquedaLocal]);
 
   // Filtrado reactivo en memoria con priorización dinámica
   const productosFiltrados = useMemo(() => {
@@ -511,7 +540,7 @@ export default function CatalogoPage({
         if (filtroMasVendidos && !prod.masVendido) return false;
 
         // Precio
-        if (prod.precio > precioMaximo) return false;
+        if (prod.precio > precioMaximoActivo) return false;
 
         // Plazas
         if (filtroPlazas.length > 0) {
@@ -551,7 +580,7 @@ export default function CatalogoPage({
     categoriaActiva,
     filtroOfertas,
     filtroMasVendidos,
-    precioMaximo,
+    precioMaximoActivo,
     filtroPlazas,
     filtroFirmeza,
     filtroRetiro,
@@ -662,7 +691,18 @@ export default function CatalogoPage({
           <div className="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-full text-on-surface">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
             <span className="font-label-interactive text-label-interactive text-on-surface">
-              <strong>{productosFiltrados.length} productos</strong> {totalFiltrosActivos > 0 ? '(filtrados)' : 'en catálogo'} · {sucursalActiva.nombre}
+              {cargando ? (
+                'Cargando catálogo…'
+              ) : (
+                <>
+                  <strong>{(paginacion.total || productosFiltrados.length).toLocaleString('es-BO')} productos</strong> {totalFiltrosActivos > 0 ? '(filtrados)' : 'en catálogo'} · {sucursalActiva.nombre}
+                  {paginacion.totalPaginas > 1 && (
+                    <span className="text-on-surface-variant font-normal ml-1">
+                      (Mostrando {productosFiltrados.length} en pág. {pagina} de {paginacion.totalPaginas})
+                    </span>
+                  )}
+                </>
+              )}
             </span>
           </div>
 
@@ -777,8 +817,8 @@ export default function CatalogoPage({
               <FiltrosAvanzadosContenido
                 minPrecioCatalogo={minPrecioCatalogo}
                 maxPrecioCatalogo={maxPrecioCatalogo}
-                precioMaximo={precioMaximo}
-                setPrecioMaximo={setPrecioMaximo}
+                precioMaximo={precioMaximoActivo}
+                setPrecioMaximo={cambiarPrecioMaximo}
                 filtroPlazas={filtroPlazas}
                 togglePlaza={togglePlaza}
                 conteoPlazas={conteoPlazas}
@@ -821,8 +861,8 @@ export default function CatalogoPage({
           <FiltrosAvanzadosContenido
             minPrecioCatalogo={minPrecioCatalogo}
             maxPrecioCatalogo={maxPrecioCatalogo}
-            precioMaximo={precioMaximo}
-            setPrecioMaximo={setPrecioMaximo}
+            precioMaximo={precioMaximoActivo}
+            setPrecioMaximo={cambiarPrecioMaximo}
             filtroPlazas={filtroPlazas}
             togglePlaza={togglePlaza}
             conteoPlazas={conteoPlazas}
@@ -872,10 +912,10 @@ export default function CatalogoPage({
                 </span>
               )}
 
-              {precioMaximo < maxPrecioCatalogo && (
+              {precioMaximoActivo < maxPrecioCatalogo && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-lowest text-[12px] font-medium text-on-surface shadow-xs border border-outline-variant/30">
-                  <span>Hasta {formatBs(precioMaximo)}</span>
-                  <button type="button" onClick={() => setPrecioMaximo(maxPrecioCatalogo)} className="hover:text-primary cursor-pointer">✕</button>
+                  <span>Hasta {formatBs(precioMaximoActivo)}</span>
+                  <button type="button" onClick={() => setPrecioMaximo(null)} className="hover:text-primary cursor-pointer">✕</button>
                 </span>
               )}
 
