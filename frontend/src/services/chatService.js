@@ -25,7 +25,7 @@ function extraerTexto(datos) {
 
 async function llamarWebhook({ body, headers, signal }) {
   if (!CHAT_HABILITADO) {
-    throw new Error('El chat no está configurado. Define N8N_CHAT_URL en public/config.js.');
+    throw new Error('El chat no está configurado');
   }
 
   let respuesta;
@@ -33,7 +33,7 @@ async function llamarWebhook({ body, headers, signal }) {
     respuesta = await fetch(N8N_CHAT_URL, { method: 'POST', signal, headers, body });
   } catch (error) {
     if (error.name === 'AbortError') throw error;
-    throw new Error('No se pudo conectar con el asistente. Comprueba que n8n esté activo.');
+    throw new Error('No se pudo conectar con el asistente');
   }
 
   const texto = await respuesta.text();
