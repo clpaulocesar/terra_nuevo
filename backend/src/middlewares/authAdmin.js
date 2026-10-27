@@ -1,7 +1,9 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
+const ADMIN_SECRET = process.env.ADMIN_TOKEN_SECRET || 'terra_admin_secret_token_key_dev';
+
 function firma(payload) {
-  return createHmac('sha256', process.env.ADMIN_TOKEN_SECRET).update(payload).digest('base64url');
+  return createHmac('sha256', ADMIN_SECRET).update(payload).digest('base64url');
 }
 
 export function crearTokenAdmin(datosAdicionales = {}) {
@@ -15,17 +17,17 @@ export function crearTokenAdmin(datosAdicionales = {}) {
 
 export function authAdmin(req, res, next) {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
-  if (!token || !process.env.ADMIN_TOKEN_SECRET) return res.status(401).json({ success: false, mensaje: 'Sesi├│n de administrador requerida' });
+  if (!token) return res.status(401).json({ success: false, mensaje: 'Sesión de administrador requerida' });
   const [payload, firmaRecibida] = token.split('.');
   const firmaEsperada = firma(payload || '');
   try {
     const datos = JSON.parse(Buffer.from(payload, 'base64url').toString());
     const valido = firmaRecibida && firmaRecibida.length === firmaEsperada.length && timingSafeEqual(Buffer.from(firmaRecibida), Buffer.from(firmaEsperada));
-    if (!valido || !['admin', 'vendedor', 'despacho'].includes(datos.rol) || datos.exp < Date.now()) throw new Error('Token inv├ílido');
+    if (!valido || !['admin', 'vendedor', 'despacho'].includes(datos.rol) || datos.exp < Date.now()) throw new Error('Token inválido');
     req.admin = datos;
     return next();
   } catch {
-    return res.status(401).json({ success: false, mensaje: 'Sesi├│n de administrador inv├ílida o vencida' });
+    return res.status(401).json({ success: false, mensaje: 'Sesión de administrador inválida o vencida' });
   }
 }
 

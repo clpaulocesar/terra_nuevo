@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowDownUp, ChevronLeft, ChevronRight, Crown, MessageCircle, Search, ShoppingCart, Trash2, UserPlus, Users, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { ArrowDownUp, ChevronLeft, ChevronRight, Crown, Eye, EyeOff, MessageCircle, Search, ShoppingCart, Trash2, UserPlus, Users, X } from 'lucide-react';
 import { crearUsuarioMayorista, eliminarCliente, listarClientes } from '../../services/clienteService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import { avisoEliminado, avisoError, confirmarEliminacion } from '../../utils/alertas.js';
@@ -20,6 +21,7 @@ export default function ClientesAdmin() {
   const [eliminando, setEliminando] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [verPassword, setVerPassword] = useState(false);
   const [formulario, setFormulario] = useState({ nombre: '', email: '', telefono: '', nit: '', password: '' });
 
   useEffect(() => {
@@ -129,19 +131,146 @@ export default function ClientesAdmin() {
           </tbody></table></div>
         </section>
       </section>
-      {mostrarFormulario && <div className="clients-modal" role="dialog" aria-modal="true" aria-labelledby="nuevo-mayorista-titulo">
-        <form onSubmit={crearMayorista}>
-          <header><div><h2 id="nuevo-mayorista-titulo">Crear usuario mayorista</h2><p>Se creará su acceso y su ficha de cliente en Supabase.</p></div><button type="button" aria-label="Cerrar" onClick={() => !guardando && setMostrarFormulario(false)}><X /></button></header>
-          <div className="clients-form-grid">
-            <label>Nombre completo<input name="nombre" value={formulario.nombre} onChange={actualizarCampo} required minLength="2" maxLength="120" autoComplete="name" /></label>
-            <label>Correo electrónico<input name="email" type="email" value={formulario.email} onChange={actualizarCampo} required maxLength="150" autoComplete="email" /></label>
-            <label>Celular <small>Opcional</small><input name="telefono" value={formulario.telefono} onChange={actualizarCampo} maxLength="30" autoComplete="tel" /></label>
-            <label>NIT <small>Opcional</small><input name="nit" value={formulario.nit} onChange={actualizarCampo} inputMode="numeric" pattern="[0-9]{5,20}" maxLength="20" /></label>
-            <label className="clients-form-wide">Contraseña temporal<input name="password" type="password" value={formulario.password} onChange={actualizarCampo} required minLength="8" maxLength="128" autoComplete="new-password" /><small>Mínimo 8 caracteres. Compártela de forma segura con el cliente.</small></label>
-          </div>
-          <footer><button type="button" onClick={() => setMostrarFormulario(false)} disabled={guardando}>Cancelar</button><button className="primary" disabled={guardando}>{guardando ? 'Creando cuenta…' : 'Crear usuario'}</button></footer>
-        </form>
-      </div>}
+      {mostrarFormulario && typeof document !== 'undefined' && createPortal(
+        <div className="clients-modal" role="dialog" aria-modal="true" aria-labelledby="nuevo-mayorista-titulo">
+          <div className="clients-modal-backdrop" onClick={() => !guardando && setMostrarFormulario(false)} />
+          <form onSubmit={crearMayorista} className="clients-modal-card">
+            <header className="clients-modal-header">
+              <div className="clients-modal-header-info">
+                <span className="clients-modal-badge">
+                  <Crown size={22} />
+                </span>
+                <div>
+                  <h2 id="nuevo-mayorista-titulo">Crear usuario mayorista</h2>
+                  <p>Registra un nuevo cliente comercial con acceso a precios por volumen y cotizaciones.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="clients-modal-close"
+                aria-label="Cerrar modal"
+                onClick={() => !guardando && setMostrarFormulario(false)}
+              >
+                <X size={20} />
+              </button>
+            </header>
+
+            <div className="clients-form-grid">
+              <label>
+                <span className="clients-label-title">
+                  Nombre completo / Razón Social <strong className="required">*</strong>
+                </span>
+                <input
+                  name="nombre"
+                  value={formulario.nombre}
+                  onChange={actualizarCampo}
+                  required
+                  minLength="2"
+                  maxLength="120"
+                  autoComplete="name"
+                  placeholder="Ej. Distribuidora Santa Cruz S.R.L."
+                />
+              </label>
+
+              <label>
+                <span className="clients-label-title">
+                  Correo electrónico <strong className="required">*</strong>
+                </span>
+                <input
+                  name="email"
+                  type="email"
+                  value={formulario.email}
+                  onChange={actualizarCampo}
+                  required
+                  maxLength="150"
+                  autoComplete="email"
+                  placeholder="comercial@empresa.com"
+                />
+              </label>
+
+              <label>
+                <span className="clients-label-title">
+                  Celular / WhatsApp <small className="optional">Opcional</small>
+                </span>
+                <input
+                  name="telefono"
+                  value={formulario.telefono}
+                  onChange={actualizarCampo}
+                  maxLength="30"
+                  autoComplete="tel"
+                  placeholder="70012345"
+                />
+              </label>
+
+              <label>
+                <span className="clients-label-title">
+                  NIT / CI <small className="optional">Opcional</small>
+                </span>
+                <input
+                  name="nit"
+                  value={formulario.nit}
+                  onChange={actualizarCampo}
+                  inputMode="numeric"
+                  pattern="[0-9]{5,20}"
+                  maxLength="20"
+                  placeholder="123456789"
+                />
+              </label>
+
+              <label className="clients-form-wide">
+                <span className="clients-label-title">
+                  Contraseña temporal <strong className="required">*</strong>
+                </span>
+                <div className="clients-password-wrapper">
+                  <input
+                    name="password"
+                    type={verPassword ? 'text' : 'password'}
+                    value={formulario.password}
+                    onChange={actualizarCampo}
+                    required
+                    minLength="8"
+                    maxLength="128"
+                    autoComplete="new-password"
+                    placeholder="Mínimo 8 caracteres"
+                  />
+                  <button
+                    type="button"
+                    className="clients-password-toggle"
+                    onClick={() => setVerPassword((v) => !v)}
+                    aria-label={verPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    title={verPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                  >
+                    {verPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                <small className="clients-field-hint">
+                  Mínimo 8 caracteres. Compártela de forma segura con el cliente para su primer ingreso.
+                </small>
+              </label>
+            </div>
+
+            <footer className="clients-modal-footer">
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={() => setMostrarFormulario(false)}
+                disabled={guardando}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={guardando}
+              >
+                <UserPlus size={18} />
+                <span>{guardando ? 'Creando cuenta…' : 'Crear usuario mayorista'}</span>
+              </button>
+            </footer>
+          </form>
+        </div>,
+        document.body
+      )}
     </main>
   );
 }
