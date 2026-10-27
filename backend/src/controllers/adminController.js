@@ -19,22 +19,24 @@ export async function iniciarSesionAdmin(req, res, next) {
     }
 
     // 1. Superadministrador configurado en variables de entorno (.env)
-    const tieneCredencialesEnv = Boolean(process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD);
+    const adminEmailEnv = String(process.env.ADMIN_EMAIL || '').trim();
+    const adminPassEnv = String(process.env.ADMIN_PASSWORD || '').trim();
+    const tieneCredencialesEnv = Boolean(adminEmailEnv && adminPassEnv);
     if (
       tieneCredencialesEnv &&
-      coincide(emailNormalizado, process.env.ADMIN_EMAIL.toLowerCase()) &&
-      coincide(password, process.env.ADMIN_PASSWORD)
+      coincide(emailNormalizado, adminEmailEnv.toLowerCase()) &&
+      coincide(String(password || '').trim(), adminPassEnv)
     ) {
       return res.json({
         success: true,
         data: {
           token: crearTokenAdmin({
-            email: process.env.ADMIN_EMAIL,
+            email: adminEmailEnv,
             rol: 'admin',
             nombre: 'Administrador Principal',
           }),
           usuario: {
-            email: process.env.ADMIN_EMAIL,
+            email: adminEmailEnv,
             rol: 'admin',
             nombre: 'Administrador Principal',
           },
