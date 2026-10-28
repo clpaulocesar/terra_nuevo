@@ -1,5 +1,5 @@
 import { apiRequest } from './api.js';
-import { PRODUCTOS_CATALOGO_FULL, CATEGORY_PILLS } from '../data/catalogoData.js';
+import { CATEGORY_PILLS } from '../data/catalogoData.js';
 
 export function normalizarProducto(producto) {
   if (!producto) return null;
@@ -17,7 +17,7 @@ export function normalizarProducto(producto) {
     producto.badge === 'MÁS VENDIDO SCZ'
   );
 
-  // Normalizar imágenes
+  // Normalizar imágenes reales
   let imagenes = [];
   if (Array.isArray(producto.imagenes) && producto.imagenes.length) {
     imagenes = producto.imagenes;
@@ -33,53 +33,55 @@ export function normalizarProducto(producto) {
 
   const imagenPrincipal = imagenes[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80';
 
-  // Normalizar sucursales
-  const sucursales = Array.isArray(producto.sucursales) ? producto.sucursales : [];
-
   // Normalizar colores
   let colores = [];
-  if (Array.isArray(producto.colores)) {
-    colores = producto.colores.map((c, idx) => {
+  if (Array.isArray(producto.colores) && producto.colores.length) {
+    colores = producto.colores.map((c, i) => {
       if (typeof c === 'string') {
-        try {
-          const parsed = JSON.parse(c);
-          return {
-            id: parsed.id || `col-${idx}`,
-            nombre: parsed.nombre || `Variante ${idx + 1}`,
-            valor: parsed.valor || '#8b001a',
-            imagenes: Array.isArray(parsed.imagenes) ? parsed.imagenes : [],
-          };
-        } catch {
-          return { id: `col-${idx}`, nombre: c, valor: '#8b001a', imagenes: [] };
-        }
+        return {
+          id: `c_${i}`,
+          nombre: c.startsWith('#') ? `Color ${i + 1}` : c,
+          valor: c.startsWith('#') ? c : '#c8b6a6',
+        };
       }
-      return c;
+      return {
+        id: c.id || `c_${i}`,
+        nombre: c.nombre || c.name || `Color ${i + 1}`,
+        valor: c.valor || c.hex || '#c8b6a6',
+      };
     });
   }
 
+  const stockReal = Number(producto.stock ?? producto.stock_quantity ?? 0);
+  const sucursales = Array.isArray(producto.sucursales) ? producto.sucursales : [];
+
   return {
-    ...producto,
     id: producto.id,
-    sku: producto.sku || producto.codigo_terra || producto.codigo_interno || `TER-${producto.id}`,
+    sku: producto.sku || producto.codigo_terra || producto.codigo_interno || producto.codigo || `TR-${producto.id}`,
+    codigoTerra: producto.codigo_terra || null,
+    codigoInterno: producto.codigo_interno || null,
     nombre: producto.nombre || producto.name || 'Producto TERRA',
-    subtitulo: producto.sublinea || producto.subtitulo || (producto.categoria ? `Línea ${producto.categoria}` : 'Confort & Calidad TERRA'),
-    categoria: producto.categoria || 'Muebles & Descanso',
-    categoriaKey: String(producto.categoriaKey || producto.categoria || 'sofas').toLowerCase().replace(/[^a-z0-9]/g, ''),
-    descripcion: producto.descripcion || producto.description || 'Producto certificado con garantía oficial TERRA de 1 año.',
+    descripcion: producto.descripcion || producto.description || '',
+    marca: producto.marca || 'TERRA Confort & Hogar',
+    categoria: producto.categoria || producto.category || 'Muebles & Descanso',
+    categoriaKey: (producto.categoria || producto.category || 'todas').toLowerCase().replace(/\s+/g, '-'),
+    sublinea: producto.sublinea || producto.linea || producto.marca || 'Línea Exclusiva TERRA',
     precio,
     precioLista,
     precioOriginal: tieneDescuento ? precioLista : null,
-    descuentoTag: tieneDescuento ? descuento : null,
     descuento,
     enOferta,
     masVendido,
-    stock: Number(producto.stock || producto.stock_quantity || 0),
+    stock: stockReal,
     sucursales,
-    disponible: producto.activo !== false && (producto.stock === undefined || Number(producto.stock) > 0),
+    disponible: stockReal > 0,
     disponibilidadTexto: producto.disponibilidadTexto || (sucursales.length ? `En ${sucursales.filter((s) => Number(s.stock) > 0).length || 3} Salas` : 'En 3 Salas'),
     imagenes: imagenes.length ? imagenes : [imagenPrincipal],
     imagen: imagenPrincipal,
     src: imagenPrincipal,
+    videoUrl: producto.video_url || producto.videoUrl || producto.video || null,
+    videos: [producto.video_url, ...(Array.isArray(producto.instrucciones_video) ? producto.instrucciones_video : [])].filter(Boolean),
+    imagenes360: Array.isArray(producto.imagenes_360) ? producto.imagenes_360 : (Array.isArray(producto.spin360) ? producto.spin360 : []),
     colores: colores.length ? colores : [{ id: 'c1', nombre: 'Arena', valor: '#d6c8b2' }, { id: 'c2', nombre: 'Gris', valor: '#54595f' }, { id: 'c3', nombre: 'Vino', valor: '#8b001a' }],
     plazas: producto.plazas || producto.medida || producto.size || 'Estándar',
     firmeza: producto.firmeza || 'Confort Certificado',
@@ -123,41 +125,26 @@ export async function listarProductos({
     }
   } catch (err) {
     if (err.name === 'AbortError') throw err;
-    console.warn('Backend /productos no disponible, usando reserva local:', err.message);
+    console.warn('Backend /productos no disponible:', err.message);
   }
 
-  // Fallback con filtrado local
-  let filtrados = [...PRODUCTOS_CATALOGO_FULL];
-  if (categoria && categoria !== 'todas') {
-    filtrados = filtrados.filter((p) => p.categoriaKey === categoria || p.categoria.toLowerCase().includes(categoria.toLowerCase()));
-  }
-  if (buscar) {
-    const q = buscar.toLowerCase();
-    filtrados = filtrados.filter((p) => p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q));
-  }
-  if (precioMin !== null && Number.isFinite(Number(precioMin))) {
-    filtrados = filtrados.filter((p) => Number(p.precio) >= Number(precioMin));
-  }
-  if (precioMax !== null && Number.isFinite(Number(precioMax))) {
-    filtrados = filtrados.filter((p) => Number(p.precio) <= Number(precioMax));
-  }
   return {
-    productos: filtrados.map(normalizarProducto),
-    paginacion: { total: filtrados.length, pagina: 1, totalPaginas: 1 },
+    productos: [],
+    paginacion: { total: 0, pagina: 1, totalPaginas: 1 },
   };
 }
 
 export async function listarProductosDestacados(signal) {
   try {
     const res = await apiRequest('/productos?limite=24&orden=recomendados', { signal, raw: true });
-    if (res?.success && Array.isArray(res?.data) && res.data.length > 0) {
+    if (res?.success && Array.isArray(res?.data)) {
       return res.data.map(normalizarProducto);
     }
   } catch (err) {
     if (err.name === 'AbortError') throw err;
-    console.warn('Backend /productos destacados no disponible, usando reserva:', err.message);
+    console.warn('Backend /productos destacados no disponible:', err.message);
   }
-  return PRODUCTOS_CATALOGO_FULL.slice(0, 12).map(normalizarProducto);
+  return [];
 }
 
 export async function obtenerProducto(id, signal) {
@@ -166,10 +153,9 @@ export async function obtenerProducto(id, signal) {
     if (data) return normalizarProducto(data);
   } catch (err) {
     if (err.name === 'AbortError') throw err;
-    console.warn(`Backend /productos/${id} no disponible, buscando en datos locales:`, err.message);
+    console.warn(`Backend /productos/${id} no disponible:`, err.message);
   }
-  const encontrado = PRODUCTOS_CATALOGO_FULL.find((p) => String(p.id) === String(id));
-  return encontrado ? normalizarProducto(encontrado) : null;
+  return null;
 }
 
 export async function obtenerCategorias(signal) {
@@ -179,9 +165,9 @@ export async function obtenerCategorias(signal) {
       return [
         { id: 'todas', nombre: 'Ver Todo', key: 'todas', icono: 'apps', total: 0 },
         ...res.map((cat) => ({
-          id: cat.nombre?.toLowerCase().replace(/[^a-z0-9]/g, '') || cat.id,
+          id: cat.nombre || cat.name || cat.id,
           nombre: cat.nombre || cat.name,
-          key: cat.nombre?.toLowerCase().replace(/[^a-z0-9]/g, ''),
+          key: cat.nombre || cat.name || String(cat.id),
           total: Number(cat.total || cat.total_productos || 0),
           icono: cat.icon || 'category',
         })),
@@ -191,5 +177,11 @@ export async function obtenerCategorias(signal) {
     if (err.name === 'AbortError') throw err;
     console.warn('Backend /categorias no disponible, usando reserva:', err.message);
   }
-  return CATEGORY_PILLS;
+  return CATEGORY_PILLS.map((c) => ({
+    id: c.id,
+    nombre: c.label,
+    key: c.id,
+    icono: c.icon,
+    total: 0,
+  }));
 }

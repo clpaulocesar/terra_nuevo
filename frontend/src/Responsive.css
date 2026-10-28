@@ -4,7 +4,6 @@
 img{max-width:100%}
 
 @media(max-width:1024px){
-  .site-header.terra-header{padding-inline:1rem}
   .site-header.terra-header nav{gap:.25rem}
   .site-header.terra-header nav a{font-size:.88rem;padding:.55rem .7rem}
   .admin-content{padding:1rem!important}
@@ -13,9 +12,7 @@ img{max-width:100%}
 
 @media(max-width:768px){
   /* Cliente: navegación horizontal, disponible sin que los enlaces se corten. */
-  .site-header.terra-header{align-items:center;gap:.5rem;min-height:60px;overflow:hidden;padding:.5rem .75rem}
   .site-header.terra-header .terra-logo{flex:0 0 auto}
-  .site-header.terra-header .terra-logo img{height:34px!important}
   .site-header.terra-header .desktop-nav{display:flex;flex:0 1 auto;gap:.2rem;justify-content:flex-start;min-width:0;overflow:visible;white-space:nowrap}
   .site-header.terra-header .desktop-nav::-webkit-scrollbar{display:none}
   .site-header.terra-header .desktop-nav a{flex:0 0 auto;font-size:.72rem;padding:.48rem .55rem}
@@ -23,7 +20,6 @@ img{max-width:100%}
   .site-header.terra-header .terra-header-right{flex:0 0 auto;gap:.35rem}
   .site-header.terra-header .terra-header-right .terra-cart-link{font-size:.72rem;padding:.48rem .55rem}
   .site-header.terra-header .terra-header-right .terra-home-btn{width:2.1rem;height:2.1rem}
-  .page-content{padding:1rem .75rem calc(var(--floating-cart-bottom, 4.5rem) + 4rem)!important}
 
   /* Admin: Drawer deslizante fluido + Bottom nav para celular */
   .admin-shell {
@@ -56,22 +52,18 @@ img{max-width:100%}
     white-space: nowrap;
   }
 
-  .catalogo-hero,.category-hero,.welcome-hero,.products-heading,.clients-heading,.orders-hero{align-items:flex-start!important;flex-direction:column!important}
-  .catalogo-toolbar,.products-toolbar,.clients-heading>div:last-child{max-width:100%;width:100%}
-  .catalogo-toolbar button,.products-toolbar button,.clients-heading>div:last-child button{flex:1}
-  .catalogo-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .welcome-hero,.products-heading,.clients-heading,.orders-hero{align-items:flex-start!important;flex-direction:column!important}
+  .products-toolbar,.clients-heading>div:last-child{max-width:100%;width:100%}
+  .products-toolbar button,.clients-heading>div:last-child button{flex:1}
   .orders-list>header{align-items:flex-start!important;flex-direction:column!important;gap:.75rem}
   .orders-list>header label{width:100%}
 }
 
 @media(max-width:520px){
-  .site-header.terra-header{gap:.35rem;padding:.5rem .5rem}
   .site-header.terra-header .desktop-nav{display:none}
   .site-header.terra-header .terra-header-right{margin-left:auto}
-  .page-content{padding:.75rem .6rem calc(var(--floating-cart-bottom, 5.2rem) + 4rem)!important}
   h1{overflow-wrap:anywhere}
-  .catalogo-grid{grid-template-columns:1fr!important}
-  .catalogo-filters,.products-filters,.clients-filters{padding:.7rem!important}
+  .products-filters,.clients-filters{padding:.7rem!important}
   .confirm-layout,.ident-layout,.cart-layout,.detalle-layout{gap:1rem!important}
   .confirm-card,.confirm-summary,.cart-list-card,.cart-summary,.detalle-info{padding:1rem!important}
   .pedido-row{align-items:flex-start;flex-direction:column;gap:.25rem}
@@ -107,13 +99,6 @@ img{max-width:100%}
   .welcome-spot{bottom:.6rem!important;padding:.55rem .75rem!important;right:.6rem!important}
   .welcome-spot>b{font-size:.82rem!important}
   .welcome-trust{margin-top:1.5rem!important}
-
-  /* FABs en teléfono: apilados QR (arriba), carrito (medio) y asistente (abajo). */
-  .chat-widget{bottom:var(--floating-cart-bottom)!important;gap:.6rem!important;right:.6rem!important}
-  .chat-fab{padding:.75rem!important}
-  .cart-widget{bottom:calc(var(--floating-cart-bottom) + 3rem + var(--floating-controls-gap))!important}
-  .cart-fab{height:3rem!important;margin-right:.6rem!important;width:3rem!important}
-  .catalog-qr-fab{right:.6rem!important;bottom:calc(var(--floating-cart-bottom) + 3rem + var(--floating-cart-size) + var(--floating-controls-gap) * 2)!important}
 }
 
 /* En teléfono la navegación inferior sustituye por completo a la superior. */

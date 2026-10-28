@@ -22,7 +22,7 @@ export default function AdminHeader({ onToggleDrawer }) {
   const [menuControlesAbierto, setMenuControlesAbierto] = useState(false);
   const userMenuRef = useRef(null);
   const controlesMenuRef = useRef(null);
-  const usuario = getAdminUser() || { nombre: 'Administrador TERRA', email: 'admin@terra.local', rol: 'admin' };
+  const usuario = getAdminUser() || { nombre: 'Administrador TERRA', email: '', rol: 'admin' };
   const etiquetaRol = usuario.rol === 'vendedor' ? 'Vendedor' : usuario.rol === 'despacho' ? 'Despacho' : 'Administrador';
   const nombrePaginaActual = TITULOS_RUTAS[location.pathname] || 'Panel Principal';
 

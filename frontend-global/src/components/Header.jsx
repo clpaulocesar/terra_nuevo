@@ -1,17 +1,31 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { LOGO_TERRA, SUCURSALES_DATA } from '../data/sucursalesData.js';
 import { useVoz } from '../context/VozContext.jsx';
+import MenuCategorias from './MenuCategorias.jsx';
+
+function claveCategoria(valor) {
+  return String(valor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/(es|s)$/, '');
+}
 
 export default function Header({
   sucursalActiva,
   setSucursalActiva,
   onCambiarSucursalClick,
   paginaActual,
+  categoriaActiva,
+  categorias = [],
   onNavegar,
   totalArticulos,
   onAbrirCarrito,
   onToggleAccesibilidad,
   modoOscuro,
+  temporada,
+  festivoActual = 'halloween',
   onToggleModoOscuro,
   busqueda,
   setBusqueda,
@@ -19,6 +33,8 @@ export default function Header({
   onAbrirMiCuenta,
 }) {
   const [dropdownSucursales, setDropdownSucursales] = useState(false);
+  const [busquedaMovilAbierta, setBusquedaMovilAbierta] = useState(false);
+  const arrastreCategorias = useRef({ activo: false, inicioX: 0, scrollInicial: 0, movido: false });
   const {
     vozActiva,
     alternarVoz,
@@ -28,27 +44,99 @@ export default function Header({
     textoEscuchado,
     setModalTutorialAbierto,
   } = useVoz();
+
+  const iniciarArrastreCategorias = (evento) => {
+    // Solo iniciar arrastre si es con el botón principal del mouse; en táctiles el scroll es nativo
+    if (evento.pointerType !== 'mouse' || evento.button !== 0) return;
+    arrastreCategorias.current = {
+      activo: true,
+      inicioX: evento.clientX,
+      scrollInicial: evento.currentTarget.scrollLeft,
+      movido: false,
+    };
+  };
+
+  const moverCategorias = (evento) => {
+    const arrastre = arrastreCategorias.current;
+    if (!arrastre.activo) return;
+    const distancia = evento.clientX - arrastre.inicioX;
+    if (Math.abs(distancia) > 8) {
+      arrastre.movido = true;
+      if (!evento.currentTarget.hasPointerCapture(evento.pointerId)) {
+        try {
+          evento.currentTarget.setPointerCapture(evento.pointerId);
+        } catch {}
+      }
+      evento.currentTarget.scrollLeft = arrastre.scrollInicial - distancia;
+    }
+  };
+
+  const terminarArrastreCategorias = (evento) => {
+    arrastreCategorias.current.activo = false;
+    if (evento.currentTarget.hasPointerCapture(evento.pointerId)) {
+      try {
+        evento.currentTarget.releasePointerCapture(evento.pointerId);
+      } catch {}
+    }
+  };
+
+  const evitarClickTrasArrastre = (evento) => {
+    if (arrastreCategorias.current.movido) {
+      evento.preventDefault();
+      evento.stopPropagation();
+      arrastreCategorias.current.movido = false;
+    }
+  };
+
+  const desplazarCategoriasConRueda = (evento) => {
+    if (Math.abs(evento.deltaY) <= Math.abs(evento.deltaX)) return;
+    const contenedor = evento.currentTarget;
+    if (contenedor.scrollWidth <= contenedor.clientWidth) return;
+    contenedor.scrollLeft += evento.deltaY;
+    evento.preventDefault();
+  };
+
+  const navegarCategoria = (categoriaSolicitada, queryOpcional) => {
+    if (queryOpcional && onEjecutarBusqueda) {
+      onEjecutarBusqueda(queryOpcional);
+      return;
+    }
+
+    if (categoriaSolicitada === 'todas' || categoriaSolicitada === 'ofertas') {
+      onNavegar('catalogo', categoriaSolicitada);
+      return;
+    }
+
+    const claveSolicitada = claveCategoria(categoriaSolicitada);
+    const categoriaReal = categorias.find((categoria) => {
+      const claveReal = claveCategoria(categoria.id || categoria.label);
+      return claveReal === claveSolicitada || claveReal.includes(claveSolicitada) || claveSolicitada.includes(claveReal);
+    });
+
+    onNavegar('catalogo', categoriaReal?.id || categoriaSolicitada);
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(30,20,15,0.06)]">
-      <div className="h-44 w-full flex flex-col justify-between">
+      <div className="w-full flex flex-col justify-between">
         {/* Top Info Bar */}
-        <div className="h-10 bg-surface-container-high px-margin flex items-center justify-between font-label-subtle text-label-subtle">
-          <div className="flex items-center gap-space-sm">
-            <span className="material-symbols-outlined text-[16px] text-primary">storefront</span>
-            <span className="text-on-surface font-semibold">Red de Sucursales Santa Cruz:</span>
-            <span className="text-on-surface-variant hidden md:inline">
+        <div className="min-h-[34px] sm:h-10 py-1 sm:py-0 bg-surface-container-high px-2 sm:px-margin flex items-center justify-between font-label-subtle text-label-subtle text-[11px] sm:text-[12px] overflow-hidden">
+          <div className="flex items-center gap-1.5 sm:gap-space-sm truncate">
+            <span className="material-symbols-outlined text-[15px] sm:text-[16px] text-primary shrink-0">storefront</span>
+            <span className="text-on-surface font-semibold truncate">Red Sucursales SCZ:</span>
+            <span className="text-on-surface-variant hidden lg:inline truncate">
               Central (Barrio Lindo) · Norte (Alemana / 2 de Agosto) · Sur (Radial 10)
             </span>
             <button
               type="button"
-              className="ml-space-xs text-primary font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+              className="ml-1 text-primary font-semibold hover:underline flex items-center gap-0.5 cursor-pointer shrink-0"
               onClick={onCambiarSucursalClick}
             >
               <span className="material-symbols-outlined text-[14px]">arrow_drop_down</span>Ver horarios
             </button>
           </div>
-          <div className="flex items-center gap-space-md">
-            <a className="flex items-center gap-1 text-on-surface-variant hover:text-on-surface" href="tel:+59133445500">
+          <div className="flex items-center gap-2 sm:gap-space-md shrink-0">
+            <a className="hidden md:flex items-center gap-1 text-on-surface-variant hover:text-on-surface" href="tel:+59133445500">
               <span className="material-symbols-outlined text-[15px] text-tertiary">call</span>
               <span>(3) 344-5500</span>
             </a>
@@ -59,11 +147,11 @@ export default function Header({
               rel="noreferrer"
             >
               <span className="material-symbols-outlined text-[15px] text-primary">chat</span>
-              <span>WhatsApp Showroom</span>
+              <span className="hidden sm:inline">WhatsApp Showroom</span>
             </a>
             <button
               type="button"
-              className="w-6 h-6 rounded-full bg-secondary-container text-on-secondary-container hover:bg-surface-container-highest hover:text-on-surface flex items-center justify-center cursor-pointer"
+              className="w-6 h-6 rounded-full bg-secondary-container text-on-secondary-container hover:bg-surface-container-highest hover:text-on-surface flex items-center justify-center cursor-pointer shrink-0"
               title="Modo Accesibilidad / Kiosco"
               onClick={onToggleAccesibilidad}
               aria-label="Modo accesibilidad"
@@ -74,30 +162,35 @@ export default function Header({
         </div>
 
         {/* Main Bar: Logo, Active Branch Pill, Search, Actions */}
-        <div className="h-20 px-margin flex items-center justify-between gap-space-lg">
-          <div className="flex items-center gap-space-lg">
+        <div className="h-16 sm:h-20 px-2 sm:px-margin flex items-center justify-between gap-1 sm:gap-space-lg">
+          <div className="flex items-center gap-1.5 sm:gap-space-lg shrink-0 min-w-0">
             <button
               type="button"
-              className="flex flex-col select-none cursor-pointer bg-transparent border-0 p-0 text-left"
+              className="flex select-none cursor-pointer bg-transparent border-0 p-0 text-left shrink-0 min-w-[70px] sm:min-w-[100px]"
               onClick={() => onNavegar('inicio')}
               title="Ir a Inicio"
             >
-              <img alt="TERRA Muebles &amp; Colchones" className="h-12 w-auto object-contain" src={LOGO_TERRA} />
+              <img
+                alt="TERRA Muebles &amp; Colchones"
+                className="h-8 sm:h-12 w-auto object-contain shrink-0 max-w-[85px] sm:max-w-none"
+                src={LOGO_TERRA}
+              />
             </button>
 
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 type="button"
-                className="flex items-center gap-space-sm bg-surface-container-low hover:bg-surface-container hover:text-on-surface py-2 px-space-md rounded-full text-left transition-all cursor-pointer"
+                className="flex items-center gap-1 sm:gap-space-sm bg-surface-container-low hover:bg-surface-container hover:text-on-surface py-1 sm:py-2 px-1.5 sm:px-space-md rounded-full text-left transition-all cursor-pointer max-w-[100px] xs:max-w-[140px] sm:max-w-none"
                 onClick={() => setDropdownSucursales((prev) => !prev)}
                 title="Cambiar sucursal activa en Santa Cruz"
               >
-                <span className="material-symbols-outlined text-primary text-[20px]">location_on</span>
-                <div className="leading-tight">
-                  <p className="font-label-subtle text-label-subtle text-on-surface-variant text-[11px]">Estás comprando en:</p>
-                  <p className="font-label-interactive text-label-interactive text-on-surface flex items-center gap-1">
-                    {sucursalActiva.nombre} <span className="text-primary text-[12px] font-normal">(Cambiar)</span>
-                    <span className="material-symbols-outlined text-[16px] text-on-surface-variant">
+                <span className="material-symbols-outlined text-primary text-[17px] sm:text-[20px] shrink-0">location_on</span>
+                <div className="leading-tight truncate">
+                  <p className="font-label-subtle text-label-subtle text-on-surface-variant text-[10px] hidden sm:block">Estás comprando en:</p>
+                  <p className="font-label-interactive text-label-interactive text-on-surface text-[11px] sm:text-[13px] flex items-center gap-0.5 sm:gap-1 truncate">
+                    <span className="truncate">{sucursalActiva.nombre}</span>
+                    <span className="text-primary text-[11px] font-normal hidden sm:inline">(Cambiar)</span>
+                    <span className="material-symbols-outlined text-[13px] sm:text-[16px] text-on-surface-variant shrink-0">
                       {dropdownSucursales ? 'expand_less' : 'expand_more'}
                     </span>
                   </p>
@@ -210,7 +303,19 @@ export default function Header({
           </div>
 
           {/* Action Tools & Cart Button */}
-          <div className="flex items-center gap-space-sm relative">
+          <div className="flex items-center gap-1 sm:gap-space-sm relative shrink-0">
+            {/* Search Toggle Button on Mobile */}
+            <button
+              type="button"
+              className="md:hidden w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors cursor-pointer shrink-0"
+              title="Buscar productos"
+              aria-label="Buscar productos"
+              onClick={() => setBusquedaMovilAbierta((v) => !v)}
+            >
+              <span className="material-symbols-outlined text-[20px]">search</span>
+            </button>
+
+            {/* Desktop Voice Controls */}
             <div className="hidden md:flex items-center gap-1 bg-surface-container-low p-1 rounded-full mr-space-xs">
               <button
                 type="button"
@@ -251,48 +356,78 @@ export default function Header({
               >
                 <span className="material-symbols-outlined text-[18px]">help_outline</span>
               </button>
-              <button
-                type="button"
-                className={`h-9 px-2.5 sm:px-3 rounded-full flex items-center gap-1.5 transition-all cursor-pointer font-label-interactive text-[12px] font-semibold border ${
-                  modoOscuro
-                    ? 'bg-surface-container-high border-outline-variant/60 text-amber-300 shadow-sm'
-                    : 'bg-surface-container-lowest border-outline-variant/30 text-on-surface hover:bg-surface-container-high shadow-xs'
-                }`}
-                title={modoOscuro ? 'Cambiar a Modo Día (Normal)' : 'Cambiar a Modo Noche'}
-                onClick={onToggleModoOscuro}
-                aria-label={modoOscuro ? 'Cambiar a modo día normal' : 'Cambiar a modo noche'}
-              >
-                <span className={`material-symbols-outlined text-[17px] ${modoOscuro ? 'text-amber-300' : 'text-primary'}`}>
-                  {modoOscuro ? 'light_mode' : 'dark_mode'}
-                </span>
-                <span className="hidden sm:inline">
-                  {modoOscuro ? 'Modo Día' : 'Modo Noche'}
-                </span>
-              </button>
             </div>
 
+            {/* THEME SWITCHER (MODO DÍA / HALLOWEEN) - VISIBLE ON ALL SCREENS */}
             <button
               type="button"
-              className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-surface-container-low transition-colors cursor-pointer"
+              className={`h-8 sm:h-9 px-2 sm:px-3 rounded-full flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer font-label-interactive text-[11px] sm:text-[12px] font-semibold border shrink-0 ${
+                temporada === 'halloween'
+                  ? 'bg-purple-950/60 border-amber-500/50 text-amber-400 shadow-sm'
+                  : temporada === 'navidad'
+                  ? 'bg-emerald-950/60 border-amber-400/50 text-amber-300 shadow-sm'
+                  : 'bg-surface-container-lowest border-outline-variant/30 text-on-surface hover:bg-surface-container-high shadow-xs'
+              }`}
+              title={
+                temporada !== 'normal'
+                  ? `Modo Noche (${temporada === 'halloween' ? 'Halloween' : 'Festivo'}) activo. Clic para cambiar a Modo Día (Diseño normal).`
+                  : `Modo Día activo. Clic para activar Modo Noche (${festivoActual === 'halloween' ? 'Halloween' : 'Festivo'}).`
+              }
+              onClick={onToggleModoOscuro}
+              aria-label={
+                temporada !== 'normal'
+                  ? 'Cambiar a Modo Día normal'
+                  : 'Cambiar a Modo Noche festivo'
+              }
+            >
+              <span
+                className={`material-symbols-outlined text-[16px] sm:text-[17px] shrink-0 ${
+                  temporada === 'halloween'
+                    ? 'text-amber-400'
+                    : temporada === 'navidad'
+                    ? 'text-amber-300'
+                    : 'text-primary'
+                }`}
+              >
+                {temporada === 'halloween'
+                  ? 'dark_mode'
+                  : temporada === 'navidad'
+                  ? 'celebration'
+                  : 'wb_sunny'}
+              </span>
+              <span className="hidden xs:inline">
+                {temporada === 'halloween'
+                  ? 'Halloween'
+                  : temporada === 'navidad'
+                  ? 'Navidad'
+                  : 'Modo Día'}
+              </span>
+            </button>
+
+            {/* Mi Cuenta Button */}
+            <button
+              type="button"
+              className="flex items-center gap-1.5 p-1 sm:px-2.5 sm:py-1.5 rounded-full hover:bg-surface-container-low transition-colors cursor-pointer shrink-0"
               onClick={onAbrirMiCuenta}
               title="Mi Cuenta · Iniciar sesión o registrarse"
             >
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <span className="material-symbols-outlined text-on-primary text-[18px]">person</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-on-primary text-[15px] sm:text-[18px]">person</span>
               </div>
-              <span className="font-label-interactive text-label-interactive text-on-surface hidden sm:inline">Mi Cuenta</span>
+              <span className="font-label-interactive text-label-interactive text-on-surface hidden xl:inline">Mi Cuenta</span>
             </button>
 
+            {/* Cart Button */}
             <button
               type="button"
-              className="relative flex items-center gap-2 bg-primary text-on-primary hover:bg-primary-container px-space-md py-2.5 rounded-full transition-all shadow-[0_4px_14px_-2px_rgba(179,19,41,0.35)] cursor-pointer"
+              className="relative flex items-center gap-1 sm:gap-2 bg-primary text-on-primary hover:bg-primary-container px-2.5 sm:px-space-md py-1.5 sm:py-2.5 rounded-full transition-all shadow-[0_4px_14px_-2px_rgba(179,19,41,0.35)] cursor-pointer shrink-0"
               onClick={onAbrirCarrito}
               title="Abrir Carrito"
             >
-              <span className="material-symbols-outlined text-[20px]">shopping_bag</span>
+              <span className="material-symbols-outlined text-[18px] sm:text-[20px]">shopping_bag</span>
               <span className="font-label-interactive text-label-interactive hidden sm:inline">Carrito</span>
               <span
-                className="w-5 h-5 rounded-full bg-surface-container-lowest text-primary font-bold text-[11px] flex items-center justify-center"
+                className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-surface-container-lowest text-primary font-bold text-[10px] sm:text-[11px] flex items-center justify-center"
                 id="header-cart-count"
               >
                 {totalArticulos}
@@ -301,12 +436,55 @@ export default function Header({
           </div>
         </div>
 
+        {/* Mobile Search Dropdown Bar */}
+        {busquedaMovilAbierta && (
+          <div className="px-3 py-2 bg-surface-container-lowest border-t border-surface-container-high md:hidden animate-fadeIn">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                onEjecutarBusqueda(busqueda);
+                setBusquedaMovilAbierta(false);
+              }}
+              className="relative flex items-center"
+            >
+              <input
+                className="w-full h-10 pl-9 pr-20 rounded-full bg-surface-container-low text-on-surface placeholder:text-on-surface-variant font-body-sm text-[13px] outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="Buscar sofás, colchones, poltronas..."
+                type="text"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                autoFocus
+              />
+              <span className="material-symbols-outlined text-on-surface-variant absolute left-3 text-[18px]">search</span>
+              <div className="absolute right-1 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={escuchando ? detenerEscucha : iniciarEscucha}
+                  className={`w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                    escuchando ? 'bg-red-600 text-white animate-pulse' : 'text-on-surface-variant'
+                  }`}
+                  aria-label="Búsqueda por voz"
+                >
+                  <span className="material-symbols-outlined text-[16px]">mic</span>
+                </button>
+                <button
+                  type="submit"
+                  className="px-2.5 py-1 bg-primary text-on-primary rounded-full text-[12px] font-bold"
+                >
+                  Buscar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
         {/* Sub Navigation Bar */}
-        <div className="h-14 px-margin bg-surface-container-lowest flex items-center justify-between overflow-x-auto">
-          <nav className="flex items-center gap-space-lg shrink-0">
+        <div className="h-11 sm:h-14 px-2 sm:px-margin bg-surface-container-lowest flex items-center overflow-hidden">
+          <nav className="flex w-full min-w-0 items-center gap-2 sm:gap-4 text-[12px] sm:text-[14px]">
+            <MenuCategorias onSeleccionar={navegarCategoria} categorias={categorias} />
             <button
               type="button"
-              className={`font-label-interactive text-label-interactive transition-colors py-2 cursor-pointer ${
+              className={`shrink-0 font-label-interactive transition-colors py-1.5 sm:py-2 cursor-pointer ${
                 paginaActual === 'inicio' ? 'text-primary font-bold' : 'text-on-surface-variant hover:text-on-surface'
               }`}
               onClick={() => onNavegar('inicio')}
@@ -315,53 +493,51 @@ export default function Header({
             </button>
             <button
               type="button"
-              className={`font-label-interactive text-label-interactive transition-colors py-2 cursor-pointer ${
+              className={`shrink-0 font-label-interactive transition-colors py-1.5 sm:py-2 cursor-pointer ${
                 paginaActual === 'catalogo' ? 'text-primary font-bold' : 'text-on-surface-variant hover:text-on-surface'
               }`}
               onClick={() => onNavegar('catalogo', 'todas')}
             >
-              Catálogo Completo
+              Catálogo
             </button>
-            <button
-              type="button"
-              className="font-label-interactive text-label-interactive text-on-surface-variant hover:text-on-surface transition-colors py-2 cursor-pointer"
-              onClick={() => onNavegar('catalogo', 'sofas')}
+            <div
+              className="flex min-w-0 flex-1 touch-pan-x select-none items-center gap-2 overflow-x-auto overscroll-x-contain px-1 scroll-smooth cursor-grab active:cursor-grabbing no-scrollbar"
+              onPointerDown={iniciarArrastreCategorias}
+              onPointerMove={moverCategorias}
+              onPointerUp={terminarArrastreCategorias}
+              onPointerCancel={terminarArrastreCategorias}
+              onClickCapture={evitarClickTrasArrastre}
+              onWheel={desplazarCategoriasConRueda}
+              onDragStart={(evento) => evento.preventDefault()}
+              aria-label="Categorías desplazables"
             >
-              Poltronas &amp; Sofás
-            </button>
+              {categorias.map((categoria) => {
+                const activa = paginaActual === 'catalogo' && categoriaActiva === categoria.id;
+                return (
+                  <button
+                    key={categoria.id}
+                    type="button"
+                    className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 font-label-interactive transition-colors cursor-pointer ${
+                      activa
+                        ? 'bg-inverse-surface text-inverse-on-surface font-bold'
+                        : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
+                    }`}
+                    onClick={() => onNavegar('catalogo', categoria.id)}
+                  >
+                    <span className="material-symbols-outlined text-[17px]">{categoria.icon}</span>
+                    <span>{categoria.label}</span>
+                  </button>
+                );
+              })}
+            </div>
             <button
               type="button"
-              className="font-label-interactive text-label-interactive text-on-surface-variant hover:text-on-surface transition-colors py-2 cursor-pointer"
-              onClick={() => onNavegar('catalogo', 'colchones')}
-            >
-              Dormitorio &amp; Colchones
-            </button>
-            <button
-              type="button"
-              className="font-label-interactive text-label-interactive text-on-surface-variant hover:text-on-surface transition-colors py-2 cursor-pointer"
-              onClick={() => onNavegar('catalogo', 'comedores')}
-            >
-              Comedores
-            </button>
-            <button
-              type="button"
-              className="font-label-interactive text-label-interactive text-on-surface-variant hover:text-on-surface transition-colors py-2 cursor-pointer"
-              onClick={() => onNavegar('catalogo', 'almohadas')}
-            >
-              Accesorios &amp; Almohadas
-            </button>
-            <button
-              type="button"
-              className="font-label-interactive text-label-interactive text-primary font-bold hover:text-primary transition-colors py-2 flex items-center gap-1 cursor-pointer"
+              className="shrink-0 font-label-interactive text-primary font-bold hover:text-primary transition-colors py-1.5 sm:py-2 flex items-center gap-1 cursor-pointer"
               onClick={() => onNavegar('catalogo', 'ofertas')}
             >
-              <span className="material-symbols-outlined text-[16px]">local_offer</span>Promociones Autoservicio
+              <span className="material-symbols-outlined text-[15px] sm:text-[16px]">local_offer</span>Promociones
             </button>
           </nav>
-          <div className="hidden lg:flex items-center gap-space-sm font-label-subtle text-label-subtle text-on-surface-variant shrink-0">
-            <span className="material-symbols-outlined text-primary text-[18px]">verified</span>
-            <span>Entrega express en 24h dentro de 4to Anillo SCZ</span>
-          </div>
         </div>
       </div>
 

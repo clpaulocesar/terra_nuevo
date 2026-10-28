@@ -118,6 +118,7 @@ export async function descargarTicket(pedido, cliente = {}, items = []) {
     <div style="background: #fff1f2; border: 2px dashed #a6192e; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 20px;">
       <div style="font-size: 11px; text-transform: uppercase; color: #8e1527; font-weight: 700; letter-spacing: 1.2px;">Código de Pago</div>
       <div style="font-size: 20px; color: #a6192e; letter-spacing: 1.5px; margin-top: 6px; font-family: monospace; word-break: break-all; font-weight: 800;">${escapar(codigoCabecera)}</div>
+      ${pedido.erp_cotizacion_numero ? `<div style="font-size: 13px; color: #64748b; margin-top: 4px; font-weight: 700;">Cotización TERRA Nº ${escapar(String(pedido.erp_cotizacion_numero))}</div>` : ''}
     </div>
 
     <div style="font-size: 13px; margin-bottom: 20px; background: #f1f5f9; padding: 12px 14px; border-radius: 8px;">

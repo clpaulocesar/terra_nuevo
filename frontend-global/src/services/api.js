@@ -4,6 +4,15 @@ export const API_URL = String(
   'http://localhost:3001/api'
 ).trim().replace(/\/$/, '');
 
+// Webhook del nodo "When chat message received" de n8n
+export const N8N_CHAT_URL = String(
+  (typeof window !== 'undefined' && window.TERRA_CONFIG?.N8N_CHAT_URL) || ''
+).trim().replace(/\/$/, '');
+
+export const WHATSAPP_COMPROBANTES = String(
+  (typeof window !== 'undefined' && window.TERRA_CONFIG?.WHATSAPP_COMPROBANTES) || '59175335697'
+).replace(/\D/g, '');
+
 export async function apiRequest(ruta, { method = 'GET', body, signal, headers = {}, raw = false } = {}) {
   const url = ruta.startsWith('http') ? ruta : `${API_URL}${ruta.startsWith('/') ? ruta : `/${ruta}`}`;
   let respuesta;

@@ -1,134 +1,241 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { SUCURSALES_DATA, evaluarDisponibilidadSucursal } from '../data/sucursalesData.js';
 import { useVoz } from '../context/VozContext.jsx';
-
-const PRODUCTO_DETALLE_DEFAULT = {
-  id: 1,
-  nombre: 'CONFORT LYA',
-  subtitulo: 'Línea Descanso & Almohadas TERRA',
-  ref: 'ALMO00094',
-  sku: 'TER-SCZ-LYA',
-  precio: 20,
-  precioOriginal: 32,
-  descuento: '-37% AUTOSERVICIO',
-  enOferta: true,
-  masVendido: true,
-  calificacion: '5.0',
-  opiniones: 128,
-  descripcionCorta:
-    'Confort LYA, diseñada para brindar firmeza, comodidad y ayudar a mantener el cuello alineado durante el descanso. Características: Suave y confortable. Diseño de soporte ergonómico para el cuello. Relleno de fibra 100% siliconada virgen hipoalergénica...',
-  descripcionLarga:
-    'La almohada CONFORT LYA ha sido diseñada bajo estrictos estándares ergonómicos para maximizar el descanso reparador en hogares cruceños. Gracias a su microfibra siliconada virgen con tratamiento antialérgico y antiácaros, esta pieza disipa eficazmente la acumulación térmica y brinda una sustentación precisa en la zona cervical, impidiendo contracturas matutinas y manteniendo alineada la columna sin importar si duermes de costado o de espaldas.',
-  imagenes: [
-    {
-      tipo: 'image',
-      src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAXiQ6yJlZs-IOwGE_72hPGxPY0DnPCClt7MU6FGu_wr2-pWGHAvCWKDyPQTUY5x9Z25hLTVPGYFXky0CFOCFblQDkIr0RhxJHHJLn161WIPmmXSkiPKdt6BjVM-i1ooQkW4VQPkviYt8A70UtYhm9jyDpEqbOqrdCPAbNV3JtGstGKVxDcwn6Y79evf_sxrSTF5O_ag1VNmSB7njRBpggeRPFnEvhSPydr4G__HTtY',
-      thumb:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCRzWDN1rPWAAcwRmolQanYrNIfnvbFu3zGDOaKSADTpSE2qWvDzUfsxZNKpuTqqFu2UkSVaKagz6vFjA2Rll2w6AB0sD71yoYb9ZPhilzp_ctI_0-fZYN1uIM2fbw0gI8tDSAnAUO9c8-I46-Pt434yfpB0qBNCevwL8WY6S5q-Q6wlylVdk3qiF4NmSqUIAlLF9xc7FoptDBE9gIyH06-sIg0z-lwrDPMHMtuaRFS',
-      alt: 'Vista frontal empaque CONFORT LYA TERRA',
-    },
-    {
-      tipo: 'image',
-      src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCKGpqvD2WT55SSrIVzvdUhx1GXlDWHnBCaPnYktnstcw_UU9oM29vUxPNZg8iPDCwPAGztpGph6RTZbCBY70ZuUZH8mnA9GscYy1Am8_OcnfiGCJbonz2VOcjz4O7fdSqvaOVseMEPs2ROPLqtqcoh_bJA1sJD8EBjCoXfQhbix_Z_hSLbBX_LlbGk83sjtELEjK7YmdJU_NKELoLqx5PZURdFHINqGVBRcLWhL3tb',
-      thumb:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuCKGpqvD2WT55SSrIVzvdUhx1GXlDWHnBCaPnYktnstcw_UU9oM29vUxPNZg8iPDCwPAGztpGph6RTZbCBY70ZuUZH8mnA9GscYy1Am8_OcnfiGCJbonz2VOcjz4O7fdSqvaOVseMEPs2ROPLqtqcoh_bJA1sJD8EBjCoXfQhbix_Z_hSLbBX_LlbGk83sjtELEjK7YmdJU_NKELoLqx5PZURdFHINqGVBRcLWhL3tb',
-      alt: 'Perfil y espesor de la almohada CONFORT LYA',
-    },
-    {
-      tipo: 'image',
-      src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB8gjkUu2ned0TgG3NCGvS0V7SaL3_k-9UB7gE5arvSX0-Gfb2_6J5DBU4WxiyuZdZTYjyzIAdhUmQw6bwgqB7pI-1n8B3m51bhldGSMXxG1eJRY2xo6XPVuuz4Bij1vD3T7JDOW1Xw47hMdM-2ca54xP2kqCWVltwuqnGqzWo0RHl0AjM-75eJ70NKcZccKzXGUz79ofCWzWyEBpPYVhiTd_WpMfz6cnK5iHBelctG',
-      thumb:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuB8gjkUu2ned0TgG3NCGvS0V7SaL3_k-9UB7gE5arvSX0-Gfb2_6J5DBU4WxiyuZdZTYjyzIAdhUmQw6bwgqB7pI-1n8B3m51bhldGSMXxG1eJRY2xo6XPVuuz4Bij1vD3T7JDOW1Xw47hMdM-2ca54xP2kqCWVltwuqnGqzWo0RHl0AjM-75eJ70NKcZccKzXGUz79ofCWzWyEBpPYVhiTd_WpMfz6cnK5iHBelctG',
-      alt: 'Detalle de etiqueta y composición técnica',
-    },
-  ],
-  especificaciones: [
-    { label: 'Modelo', val: 'CONFORT LYA (Línea PARE)' },
-    { label: 'Categoría', val: 'Almohada ergonómica hipoalergénica' },
-    { label: 'Medidas Estándar', val: '50 cm x 70 cm' },
-    { label: 'Nivel de Firmeza', val: 'Intermedia Firme (Resorteo Rápido)' },
-    { label: 'Relleno Interior', val: '100% Fibra Siliconada Virgen Movelpro' },
-    { label: 'Funda Exterior', val: 'Microfibra poliéster con acabado suave al tacto' },
-    { label: 'Garantía TERRA', val: '1 Año contra pérdida de volumen', isPrimary: true },
-  ],
-  stockSalas: [
-    { nombre: 'Sucursal Central (Barrio Lindo)', disp: '18 disp. (Pruébalo hoy)', activo: true },
-    { nombre: 'Sucursal Norte (SEARPI)', disp: '12 disp.', activo: false },
-    { nombre: 'Sucursal Sur (Radial 10)', disp: '8 disp.', activo: false },
-  ],
-};
-
-const RECOMENDADOS = [
-  {
-    id: 201,
-    nombre: 'Protector Almohada Impermeable',
-    categoria: 'Fundas & Protectores',
-    precio: 45,
-    precioOriginal: 60,
-    tag: 'Impermeable',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCFSUCuNUxzdxNVf5KuEQYcS2Eechgux8DiYIolor3p4HxLwDkTD3K6Q7bDLeQz43VIfdSz5Ac9xRm3gwti6_aNk-nFgVho5OIFnuirYsXgUAX-XhEcsJqHdJxy84bGnC2JxtMFX6HzB7WNl9JPggBSLrc_AO1DWk3_7iJxt2uSRI-NdOBNohBerpfQbPFVPdEljuQpIzxdoSHCvWfoDXHzdrmM3wo9AsybrTa8SM0v',
-  },
-  {
-    id: 202,
-    nombre: 'Almohada PARE Fibra Color',
-    categoria: 'Línea Confort',
-    precio: 25,
-    tag: 'Top Ventas',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCN9A5nGqrYFyCtP6bQwkzt14FnGlPhYCf5WpxIDL2-ozyZi47DaJhrAg8hoy6z3YyTPmlKiX0mvXhKyUBcpjVi7I8_Gz3wVJfEEJ6GD9hoh3pM1FrEBtdFvSAdcL2xTbHW7Nn0DH93QOroPVJ_x5sY9YJGarkdMDWQsghMf6AuIOb68iyFQAdLqmp6yCGupw4UMEoK1eXCuqShtLfQCJHzrkyWUmiI0rx2Z7sLlKY0',
-  },
-  {
-    id: 203,
-    nombre: 'Colchón 2 Plazas Bio-Gel Fresh',
-    categoria: 'Colchones Premium',
-    precio: 1890,
-    tag: '1 Año Garantía',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBiNjtIt58ow2XJ_lhdGor84_upBEh1LLGT9E6HLBwptD3IIVd6ykzJR28UUpTzpnv-CIbLXQzIatARXhFzGu1Xlwd8oVi_r1dRvoyKGAC0NhyVCTtEQ8KcQqlW15Eu37S8NXPdvmOMuL3McibnFxo4e2D98W3VdpBil_dkGKlNa5aoyB1dm9TTP7u4J-fJrITObQW7_rbTALn1JZK9I1OHty_mMC_hczqGIkuIkdS4',
-  },
-  {
-    id: 204,
-    nombre: 'Pack 2x Almohadas CONFORT LYA',
-    categoria: 'Pack Dúo Matrimonial',
-    precio: 36,
-    precioOriginal: 40,
-    tag: 'Pack Ahorro',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDYqOsrCqQLGYgp4gYj82NJ0AWsgG50uXOue9HcIWAtx_9yqlHDV3a6FmlAP_bBQpDgd9rPVxHLirVZJ69m3mOJA2305LmuZBNZdL3gPkadeomn31gwJRelZ-DW2fkvLyM9R3M6X4FdblxMMz90L23aBLH8Xkkisk5mGgyq54l8p6wpy7CMrONeqDc6SJqY82HcUAOkc7ul2Yt98yXUlZcVZcKpv02IfUp228ylpZVw',
-  },
-];
+import { listarProductos } from '../services/api.js';
+import { mediaDeVideo } from '../utils/videoEmbed.js';
 
 function formatBs(val) {
   return 'Bs ' + Number(val || 0).toLocaleString('es-BO', { minimumFractionDigits: 2 });
 }
 
 export default function DetalleProductoPage({
-  producto = PRODUCTO_DETALLE_DEFAULT,
+  producto,
   sucursalActiva,
   setSucursalActiva,
   onNavegar,
   onAgregarAlCarrito,
   onAbrirSucursales,
+  onVerDetalle,
 }) {
+  const [modoMedia, setModoMedia] = useState('foto'); // 'foto' | 'video' | '360'
   const [selectedMediaIdx, setSelectedMediaIdx] = useState(0);
-  const [showVideoStage, setShowVideoStage] = useState(false);
+  const [indice360, setIndice360] = useState(0);
+  const [autoRotar360, setAutoRotar360] = useState(false);
+  const [zoomModalAbierto, setZoomModalAbierto] = useState(false);
   const [cantidad, setCantidad] = useState(1);
   const [descOpen, setDescOpen] = useState(true);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [agregando, setAgregando] = useState(false);
+  const [productosRelacionados, setProductosRelacionados] = useState([]);
+  const arrastre360Ref = useRef({ startX: 0, startIndice: 0, activo: false });
   const { vozActiva, hablar, anunciar } = useVoz();
 
-  const productoActivo = {
-    ...PRODUCTO_DETALLE_DEFAULT,
-    ...producto,
-    nombre: producto.nombre || producto.titulo || PRODUCTO_DETALLE_DEFAULT.nombre,
-    precio: producto.precio || PRODUCTO_DETALLE_DEFAULT.precio,
-    descripcionCorta: producto.descripcion || producto.descripcionCorta || PRODUCTO_DETALLE_DEFAULT.descripcionCorta,
-    descripcionLarga: producto.descripcion || producto.descripcionLarga || PRODUCTO_DETALLE_DEFAULT.descripcionLarga,
+  const productoActivo = useMemo(() => {
+    if (!producto) return null;
+    return {
+      id: producto.id,
+      sku: producto.sku || producto.codigoTerra || producto.codigoInterno || `TR-${producto.id}`,
+      nombre: producto.nombre || producto.titulo || 'Producto TERRA',
+      subtitulo: producto.sublinea || producto.categoria || 'Línea Confort & Descanso',
+      descripcionCorta:
+        producto.descripcion ||
+        'Producto exclusivo TERRA Santa Cruz con garantía de fábrica y materiales certificados.',
+      descripcionLarga:
+        producto.descripcion ||
+        'Este producto ha sido diseñado bajo estrictos estándares ergonómicos y de durabilidad, con materiales certificados para garantizar confort y resistencia en hogares cruceños.',
+      categoria: producto.categoria || 'Catálogo General',
+      marca: producto.marca || 'TERRA Confort & Hogar',
+      precio: Number(producto.precio || 0),
+      precioOriginal:
+        producto.precioOriginal ||
+        (producto.enOferta && Number(producto.precioLista || 0) > Number(producto.precio || 0)
+          ? Number(producto.precioLista)
+          : null),
+      descuento: producto.descuento || null,
+      enOferta: Boolean(producto.enOferta),
+      masVendido: Boolean(producto.masVendido),
+      stock: Number(producto.stock ?? producto.stock_quantity ?? 0),
+      sucursales: Array.isArray(producto.sucursales) ? producto.sucursales : [],
+      plazas: producto.plazas || producto.medida || null,
+      firmeza: producto.firmeza || producto.detalle || null,
+      calificacion: producto.calidad ? producto.calidad.replace(/[^\d.]/g, '') || '5.0' : '4.9',
+      opiniones: 84,
+      videoUrl: producto.videoUrl || producto.video_url || null,
+      videos: Array.isArray(producto.videos) ? producto.videos : (producto.videoUrl ? [producto.videoUrl] : []),
+      imagenes360: Array.isArray(producto.imagenes360) ? producto.imagenes360 : (Array.isArray(producto.imagenes_360) ? producto.imagenes_360 : []),
+      imagenes: Array.isArray(producto.imagenes) && producto.imagenes.length ? producto.imagenes : [producto.imagen || producto.src].filter(Boolean),
+      imagen: producto.imagen || producto.src || null,
+    };
+  }, [producto]);
+
+  const imagenesNormalizadas = useMemo(() => {
+    if (!productoActivo) return [];
+    let list = [];
+    if (Array.isArray(productoActivo.imagenes) && productoActivo.imagenes.length > 0) {
+      list = productoActivo.imagenes;
+    } else if (productoActivo.imagen) {
+      list = [productoActivo.imagen];
+    } else {
+      list = ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80'];
+    }
+
+    return list.map((img, idx) => ({
+      tipo: 'image',
+      src: typeof img === 'string' ? img : (img.src || img.thumb || img.url || ''),
+      thumb: typeof img === 'string' ? img : (img.thumb || img.src || img.url || ''),
+      alt: `${productoActivo.nombre} - Ángulo ${idx + 1}`,
+    }));
+  }, [productoActivo]);
+
+  // Cuadros para la rotación 360°
+  const frames360 = useMemo(() => {
+    if (Array.isArray(productoActivo?.imagenes360) && productoActivo.imagenes360.length > 1) {
+      return productoActivo.imagenes360.map((src, i) => ({
+        src,
+        alt: `${productoActivo.nombre} 360° - Cuadro ${i + 1}`,
+      }));
+    }
+    // Si hay 2 o más fotos del producto, se usan como ángulos del giro 360°
+    if (imagenesNormalizadas.length > 1) {
+      return imagenesNormalizadas;
+    }
+    return imagenesNormalizadas;
+  }, [productoActivo?.imagenes360, imagenesNormalizadas]);
+
+  const grados360 = useMemo(() => {
+    if (frames360.length <= 1) return 0;
+    return Math.round((indice360 / frames360.length) * 360);
+  }, [frames360.length, indice360]);
+
+  // Giro automático 360°
+  useEffect(() => {
+    if (!autoRotar360 || modoMedia !== '360' || frames360.length <= 1) return undefined;
+    const intervalo = setInterval(() => {
+      setIndice360((prev) => (prev + 1) % frames360.length);
+    }, 240);
+    return () => clearInterval(intervalo);
+  }, [autoRotar360, modoMedia, frames360.length]);
+
+  // Arrastre con dedo/mouse para rotar 360°
+  const onPointerDown360 = (e) => {
+    setAutoRotar360(false);
+    arrastre360Ref.current = {
+      startX: e.clientX,
+      startIndice: indice360,
+      activo: true,
+    };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
   };
 
-  const disponibilidadActual = evaluarDisponibilidadSucursal(productoActivo, sucursalActiva);
+  const onPointerMove360 = (e) => {
+    if (!arrastre360Ref.current.activo || frames360.length <= 1) return;
+    const deltaX = e.clientX - arrastre360Ref.current.startX;
+    const pxPorFrame = 16;
+    const paso = Math.floor(deltaX / pxPorFrame);
+    const nuevo = (arrastre360Ref.current.startIndice + paso) % frames360.length;
+    setIndice360(nuevo < 0 ? nuevo + frames360.length : nuevo);
+  };
 
-  const currentMedia = productoActivo.imagenes?.[selectedMediaIdx] || productoActivo.imagen || PRODUCTO_DETALLE_DEFAULT.imagenes[0];
-  const currentMediaSrc = typeof currentMedia === 'string' ? currentMedia : (currentMedia?.src || productoActivo.imagen || productoActivo.src);
-  const currentMediaAlt = typeof currentMedia === 'object' ? (currentMedia?.alt || productoActivo.nombre) : productoActivo.nombre;
+  const onPointerUp360 = (e) => {
+    arrastre360Ref.current.activo = false;
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
+  };
+
+  // Video embed o archivo
+  const infoVideo = useMemo(() => {
+    const url = productoActivo?.videoUrl || productoActivo?.videos?.[0];
+    return mediaDeVideo(url);
+  }, [productoActivo?.videoUrl, productoActivo?.videos]);
+
+  // Si el producto no tiene video y el visor estaba en video, volver a foto automáticamente
+  useEffect(() => {
+    if (modoMedia === 'video' && !infoVideo) {
+      setModoMedia('foto');
+    }
+  }, [infoVideo, modoMedia]);
+
+  const especificaciones = useMemo(() => {
+    if (!productoActivo) return [];
+    const lista = [];
+    lista.push({ label: 'Modelo', val: productoActivo.nombre });
+    lista.push({ label: 'Categoría', val: productoActivo.categoria });
+    if (productoActivo.sku) {
+      lista.push({ label: 'Código SKU / Terra', val: productoActivo.sku });
+    }
+    if (productoActivo.plazas) {
+      lista.push({ label: 'Medidas / Tamaño', val: productoActivo.plazas });
+    }
+    if (productoActivo.firmeza) {
+      lista.push({ label: 'Nivel de Firmeza / Confort', val: productoActivo.firmeza });
+    }
+    lista.push({
+      label: 'Disponibilidad en Almacén',
+      val: productoActivo.stock > 0 ? `${productoActivo.stock} unidades en stock` : 'A pedido / Consultar',
+    });
+    lista.push({
+      label: 'Garantía Oficial',
+      val: 'Garantía oficial TERRA Bolivia',
+      isPrimary: true,
+    });
+    return lista;
+  }, [productoActivo]);
+
+  // Carga de productos relacionados reales del backend
+  useEffect(() => {
+    if (!productoActivo) return;
+    const controlador = new AbortController();
+    listarProductos({
+      signal: controlador.signal,
+      categoria: productoActivo.categoria !== 'Catálogo General' ? productoActivo.categoria : '',
+      limite: 8,
+    })
+      .then((res) => {
+        const otros = (res?.productos || []).filter((p) => String(p.id) !== String(productoActivo.id));
+        setProductosRelacionados(otros.slice(0, 4));
+      })
+      .catch(() => {});
+    return () => controlador.abort();
+  }, [productoActivo]);
+
+  if (!productoActivo) {
+    return (
+      <div className="max-w-[1360px] mx-auto px-margin py-24 text-center">
+        <span className="material-symbols-outlined text-[64px] text-on-surface-variant mb-4 block">
+          inventory_2
+        </span>
+        <h2 className="text-[22px] sm:text-[26px] font-bold text-on-surface mb-2">
+          No se ha seleccionado ningún producto
+        </h2>
+        <p className="text-[14px] text-on-surface-variant mb-6 max-w-md mx-auto">
+          Explora nuestro catálogo para descubrir colchones, sommiers, sofás y accesorios en tiempo real.
+        </p>
+        <button
+          type="button"
+          onClick={() => onNavegar('catalogo')}
+          className="px-6 py-2.5 rounded-full bg-primary text-on-primary font-bold shadow-md hover:bg-primary-container transition-all cursor-pointer inline-flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined text-[18px]">storefront</span>
+          <span>Explorar Catálogo</span>
+        </button>
+      </div>
+    );
+  }
+
+  const disponibilidadActual = evaluarDisponibilidadSucursal(productoActivo, sucursalActiva);
+  const currentMedia = imagenesNormalizadas[selectedMediaIdx] || imagenesNormalizadas[0];
+  const currentMediaSrc = currentMedia?.src || '';
+  const currentMediaAlt = currentMedia?.alt || productoActivo.nombre;
+
+  const irFotoAnterior = () => {
+    setModoMedia('foto');
+    setSelectedMediaIdx((prev) => (prev > 0 ? prev - 1 : imagenesNormalizadas.length - 1));
+  };
+
+  const irFotoSiguiente = () => {
+    setModoMedia('foto');
+    setSelectedMediaIdx((prev) => (prev < imagenesNormalizadas.length - 1 ? prev + 1 : 0));
+  };
 
   const salasAMostrar = SUCURSALES_DATA.map((s) => {
     const disp = evaluarDisponibilidadSucursal(productoActivo, s);
@@ -204,7 +311,7 @@ export default function DetalleProductoPage({
                 Catálogo
               </button>
               <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-              <span>Almohadas &amp; Descanso</span>
+              <span>{productoActivo.categoria}</span>
               <span className="material-symbols-outlined text-[14px]">chevron_right</span>
               <span className="font-title-sm text-on-surface font-semibold">{productoActivo.nombre}</span>
             </nav>
@@ -239,8 +346,64 @@ export default function DetalleProductoPage({
           <div className="p-space-lg lg:p-space-xl grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
             {/* Left: Product Media Gallery */}
             <div className="lg:col-span-6 flex flex-col gap-space-md">
-              <div className="relative bg-surface-container-low/70 rounded-xl overflow-hidden aspect-[4/3] flex items-center justify-center group shadow-inner">
-                {/* Dynamic Badges idénticos a la referencia */}
+              {/* Selector de modo: Fotos / Video / 360° */}
+              <div className="flex items-center justify-between pb-1">
+                <div className="flex items-center gap-1.5 p-1 bg-surface-container-low rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setModoMedia('foto')}
+                    className={`px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      modoMedia === 'foto'
+                        ? 'bg-surface-container-lowest text-primary shadow-sm'
+                        : 'text-on-surface-variant hover:text-on-surface'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[17px]">photo_library</span>
+                    <span>Fotos ({imagenesNormalizadas.length})</span>
+                  </button>
+
+                  {Boolean(infoVideo) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModoMedia('video');
+                        setAutoRotar360(false);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        modoMedia === 'video'
+                          ? 'bg-surface-container-lowest text-primary shadow-sm'
+                          : 'text-on-surface-variant hover:text-on-surface'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[17px]">play_circle</span>
+                      <span>Video</span>
+                    </button>
+                  )}
+
+                  {frames360.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setModoMedia('360')}
+                      className={`px-3 py-1.5 rounded-lg text-[13px] font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        modoMedia === '360'
+                          ? 'bg-primary text-on-primary shadow-sm'
+                          : 'text-on-surface-variant hover:text-on-surface'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[17px]">360</span>
+                      <span>Giro 360°</span>
+                    </button>
+                  )}
+                </div>
+
+                <span className="text-[11px] font-semibold text-on-surface-variant hidden sm:inline">
+                  SKU: {productoActivo.sku}
+                </span>
+              </div>
+
+              {/* Main Stage */}
+              <div className="relative bg-surface-container-low/70 rounded-xl overflow-hidden aspect-[4/3] flex items-center justify-center group shadow-inner select-none">
+                {/* Dynamic Badges */}
                 <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 items-start pointer-events-none">
                   {productoActivo.enOferta && (
                     <span className="inline-flex items-center gap-1.5 bg-[#b31329] text-white px-3.5 py-1.5 rounded-full font-label-caps text-label-caps text-[12px] font-bold tracking-wide shadow-md">
@@ -256,124 +419,239 @@ export default function DetalleProductoPage({
                   )}
                 </div>
 
+                {/* Botón Zoom Pantalla Completa */}
                 <div className="absolute top-4 right-4 z-20">
                   <button
                     type="button"
                     className="w-10 h-10 rounded-full bg-surface-container-lowest/90 text-on-surface hover:text-primary hover:bg-surface-container-lowest shadow-md flex items-center justify-center transition-all cursor-pointer"
-                    title="Ver en pantalla completa"
-                    onClick={() => alert('Vista ampliada en alta resolución')}
+                    title="Ver en pantalla completa con zoom"
+                    onClick={() => setZoomModalAbierto(true)}
                   >
                     <span className="material-symbols-outlined text-[20px]">zoom_in</span>
                   </button>
                 </div>
 
-                {/* Media Container 1: Image Stage */}
-                {!showVideoStage ? (
-                  <div className="w-full h-full flex items-center justify-center p-6 transition-all duration-300">
+                {/* ESCENARIO 1: FOTOS / ÁNGULOS */}
+                {modoMedia === 'foto' && (
+                  <div className="relative w-full h-full flex items-center justify-center p-6">
                     <img
                       className="max-h-full max-w-full object-contain filter drop-shadow-md transition-transform duration-500 group-hover:scale-105"
                       src={currentMediaSrc}
                       alt={currentMediaAlt}
                     />
-                  </div>
-                ) : (
-                  /* Media Container 2: Video Stage */
-                  <div className="absolute inset-0 w-full h-full bg-inverse-surface/95 flex flex-col items-center justify-center text-on-primary p-6 text-center animate-fadeIn">
-                    <button
-                      type="button"
-                      className="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center mb-3 shadow-[0_0_30px_rgba(179,19,41,0.6)] cursor-pointer hover:scale-110 transition-transform"
-                      onClick={() => setVideoPlaying((p) => !p)}
-                    >
-                      <span className="material-symbols-outlined text-[32px] ml-1">
-                        {videoPlaying ? 'pause' : 'play_arrow'}
-                      </span>
-                    </button>
-                    <p className="font-title-sm text-title-sm text-on-primary font-bold">
-                      Test de Firmeza &amp; Densidad {productoActivo.nombre}
-                    </p>
-                    <p className="font-body-sm text-body-sm text-inverse-on-surface/80 max-w-md mt-1">
-                      Demostración en laboratorio TERRA Santa Cruz: Recuperación elástica inmediata de fibra siliconada y
-                      soporte cervical ergonómico.
-                    </p>
-                    <span className="mt-3 px-3 py-1 rounded-full bg-surface-container-lowest/20 text-on-primary text-label-subtle font-label-subtle flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[14px]">videocam</span>
-                      Video 4K Showroom · Duración: 1:15 min
-                    </span>
+
+                    {/* Navegación anterior / siguiente entre ángulos */}
+                    {imagenesNormalizadas.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={irFotoAnterior}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-surface-container-lowest/80 hover:bg-surface-container-lowest text-on-surface hover:text-primary flex items-center justify-center shadow-md transition-all cursor-pointer opacity-90 hover:opacity-100"
+                          aria-label="Ver ángulo anterior"
+                        >
+                          <span className="material-symbols-outlined text-[22px]">chevron_left</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={irFotoSiguiente}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-surface-container-lowest/80 hover:bg-surface-container-lowest text-on-surface hover:text-primary flex items-center justify-center shadow-md transition-all cursor-pointer opacity-90 hover:opacity-100"
+                          aria-label="Ver siguiente ángulo"
+                        >
+                          <span className="material-symbols-outlined text-[22px]">chevron_right</span>
+                        </button>
+
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-surface-container-lowest/85 backdrop-blur-sm text-on-surface font-label-subtle text-[11px] font-bold shadow-sm">
+                          Ángulo {selectedMediaIdx + 1} de {imagenesNormalizadas.length}
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
-                {/* Video Prompt Overlay Button */}
-                <button
-                  type="button"
-                  className="absolute bottom-4 right-4 z-20 bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface px-3 py-1.5 rounded-full font-label-subtle text-label-subtle shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
-                  onClick={() => setShowVideoStage((v) => !v)}
-                >
-                  <span className="material-symbols-outlined text-primary text-[18px]">
-                    {showVideoStage ? 'image' : 'smart_display'}
-                  </span>
-                  <span>{showVideoStage ? 'Ver Fotos' : 'Ver Test en Video'}</span>
-                </button>
-              </div>
+                {/* ESCENARIO 2: REPRODUCTOR DE VIDEO REAL (solo si tiene video) */}
+                {modoMedia === 'video' && infoVideo && (
+                  <div className="w-full h-full bg-black flex items-center justify-center animate-fadeIn">
+                    {infoVideo.tipo === 'embed' ? (
+                      <iframe
+                        src={infoVideo.src}
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={`Video demostrativo de ${productoActivo.nombre}`}
+                      />
+                    ) : (
+                      <video
+                        src={infoVideo.src}
+                        controls
+                        autoPlay
+                        playsInline
+                        poster={currentMediaSrc}
+                        className="w-full h-full object-contain"
+                      >
+                        <track kind="captions" />
+                        Tu navegador no soporta reproducción de video HTML5.
+                      </video>
+                    )}
+                  </div>
+                )}
 
-              {/* Thumbnails Strip */}
-              <div className="flex items-center gap-space-sm overflow-x-auto pb-1">
-                {productoActivo.imagenes.map((img, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    className={`thumb-btn flex-shrink-0 w-20 h-20 rounded-lg p-1 bg-surface-container-low transition-all shadow-sm cursor-pointer ${
-                      !showVideoStage && selectedMediaIdx === idx
-                        ? 'ring-2 ring-primary'
-                        : 'opacity-80 hover:opacity-100'
-                    }`}
-                    onClick={() => {
-                      setShowVideoStage(false);
-                      setSelectedMediaIdx(idx);
-                    }}
+                {/* ESCENARIO 3: VISOR INTERACTIVO 360° */}
+                {modoMedia === '360' && (
+                  <div
+                    className="relative w-full h-full flex flex-col items-center justify-center p-4 cursor-grab active:cursor-grabbing touch-pan-y"
+                    onPointerDown={onPointerDown360}
+                    onPointerMove={onPointerMove360}
+                    onPointerUp={onPointerUp360}
+                    onPointerCancel={onPointerUp360}
                   >
                     <img
-                      className="w-full h-full object-contain rounded"
-                      src={typeof img === 'string' ? img : (img.thumb || img.src || img.imagen_url || '')}
-                      alt={typeof img === 'object' ? (img.alt || productoActivo.nombre) : productoActivo.nombre}
+                      className="max-h-[82%] max-w-full object-contain filter drop-shadow-md pointer-events-none transition-transform duration-75"
+                      src={frames360[indice360]?.src || currentMediaSrc}
+                      alt={frames360[indice360]?.alt || `${productoActivo.nombre} vista 360`}
                     />
-                  </button>
-                ))}
 
-                {/* Thumb: Video Demo */}
-                <button
-                  type="button"
-                  className={`thumb-btn flex-shrink-0 w-24 h-20 rounded-lg p-1.5 bg-inverse-surface text-on-primary flex flex-col items-center justify-center text-center hover:bg-inverse-surface/90 transition-all shadow-sm relative overflow-hidden cursor-pointer ${
-                    showVideoStage ? 'ring-2 ring-primary' : 'opacity-80 hover:opacity-100'
-                  }`}
-                  onClick={() => setShowVideoStage(true)}
-                >
-                  <span className="material-symbols-outlined text-[24px] text-primary-fixed mb-0.5">smart_display</span>
-                  <span className="font-label-subtle text-label-subtle text-[11px] leading-tight text-white font-bold">
-                    VIDEO DEMO
-                  </span>
-                  <span className="text-[10px] text-primary-fixed/80">Test de Uso</span>
-                </button>
+                    {/* Indicador de Grados y Giro */}
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-sm shadow-md text-on-surface font-label-subtle text-[12px] font-bold">
+                      <span className="material-symbols-outlined text-primary text-[18px] animate-spin">
+                        sync
+                      </span>
+                      <span>Giro 360° · {grados360}°</span>
+                    </div>
 
-                {/* Thumb: 360° Sala */}
-                <button
-                  type="button"
-                  className="thumb-btn flex-shrink-0 w-20 h-20 rounded-lg p-1.5 bg-surface-container-low hover:bg-surface-container flex flex-col items-center justify-center text-center transition-all opacity-85 hover:opacity-100 cursor-pointer"
-                  onClick={() => alert('Tour 360° disponible en pantalla táctil de sala')}
-                >
-                  <span className="material-symbols-outlined text-[22px] text-tertiary mb-0.5">view_in_ar</span>
-                  <span className="font-label-subtle text-label-subtle text-[11px] leading-tight text-on-surface">
-                    360° Sala
-                  </span>
-                </button>
+                    {/* Barra de controles 360 */}
+                    <div className="absolute bottom-3 inset-x-4 flex items-center justify-between pointer-events-auto">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAutoRotar360((prev) => !prev);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-[12px] font-bold shadow-md transition-all flex items-center gap-1.5 cursor-pointer ${
+                          autoRotar360
+                            ? 'bg-primary text-on-primary'
+                            : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[16px]">
+                          {autoRotar360 ? 'pause' : 'autorenew'}
+                        </span>
+                        <span>{autoRotar360 ? 'Pausar' : 'Auto Rotar'}</span>
+                      </button>
+
+                      <span className="text-[11px] font-semibold text-on-surface-variant bg-surface-container-lowest/80 px-2.5 py-1 rounded-full shadow-sm hidden sm:inline">
+                        Arrastra con el dedo o mouse para girar
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAutoRotar360(false);
+                          setIndice360(0);
+                        }}
+                        className="px-3 py-1.5 rounded-full bg-surface-container-lowest hover:bg-surface-container text-on-surface text-[12px] font-bold shadow-md transition-all flex items-center gap-1 cursor-pointer"
+                        title="Volver a vista frontal (0°)"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                        <span>0° Frente</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Quick Notice pill */}
+              {/* Tira de Miniaturas (Ángulos + Video + 360°) */}
+              <div className="flex items-center gap-space-sm overflow-x-auto pb-1 no-scrollbar">
+                {/* Botón miniatura de cada ángulo disponible */}
+                {imagenesNormalizadas.map((img, idx) => {
+                  const activa = modoMedia === 'foto' && selectedMediaIdx === idx;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      className={`thumb-btn relative flex-shrink-0 w-20 h-20 rounded-lg p-1 bg-surface-container-low transition-all shadow-sm cursor-pointer ${
+                        activa ? 'ring-2 ring-primary scale-105' : 'opacity-80 hover:opacity-100'
+                      }`}
+                      onClick={() => {
+                        setModoMedia('foto');
+                        setSelectedMediaIdx(idx);
+                        setAutoRotar360(false);
+                      }}
+                    >
+                      <img
+                        className="w-full h-full object-contain rounded"
+                        src={img.thumb || img.src}
+                        alt={img.alt}
+                      />
+                      <span className="absolute bottom-0.5 inset-x-0.5 text-center bg-black/60 text-white text-[9px] font-bold rounded-b py-0.5">
+                        Ángulo {idx + 1}
+                      </span>
+                    </button>
+                  );
+                })}
+
+                {/* Botón Miniatura: VIDEO (solo si el producto tiene video real) */}
+                {Boolean(infoVideo) && (
+                  <button
+                    type="button"
+                    className={`thumb-btn flex-shrink-0 w-22 h-20 rounded-lg p-1.5 bg-inverse-surface text-on-primary flex flex-col items-center justify-center text-center transition-all shadow-sm cursor-pointer ${
+                      modoMedia === 'video' ? 'ring-2 ring-primary scale-105' : 'opacity-85 hover:opacity-100'
+                    }`}
+                    onClick={() => {
+                      setModoMedia('video');
+                      setAutoRotar360(false);
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-[24px] text-primary-fixed mb-0.5">
+                      smart_display
+                    </span>
+                    <span className="font-label-subtle text-[11px] leading-tight text-white font-bold">
+                      VIDEO
+                    </span>
+                    <span className="text-[9px] text-primary-fixed/80">
+                      HD Demo
+                    </span>
+                  </button>
+                )}
+
+                {/* Botón Miniatura: GIRO 360° (solo si tiene más de 1 imagen / ángulos) */}
+                {frames360.length > 1 && (
+                  <button
+                    type="button"
+                    className={`thumb-btn flex-shrink-0 w-22 h-20 rounded-lg p-1.5 bg-surface-container-low hover:bg-surface-container flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
+                      modoMedia === '360' ? 'ring-2 ring-primary scale-105 bg-primary/10' : 'opacity-85 hover:opacity-100'
+                    }`}
+                    onClick={() => {
+                      setModoMedia('360');
+                      setAutoRotar360(true);
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-[24px] text-primary mb-0.5 animate-spin">
+                      360
+                    </span>
+                    <span className="font-label-subtle text-[11px] leading-tight text-on-surface font-bold">
+                      GIRO 360°
+                    </span>
+                    <span className="text-[9px] text-tertiary font-semibold">
+                      Interactivo
+                    </span>
+                  </button>
+                )}
+              </div>
+
+              {/* Guía rápida de interacción táctil */}
               <div className="bg-surface-container-low p-space-sm rounded-lg flex items-center justify-between font-label-subtle text-label-subtle text-on-surface-variant">
                 <span className="flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-primary text-[16px]">touch_app</span>
-                  Toca o haz clic en las miniaturas para alternar vista y video demostrativo.
+                  <span>
+                    {modoMedia === '360'
+                      ? 'Arrastra horizontalmente para rotar el producto en 360°.'
+                      : modoMedia === 'video'
+                      ? 'Reproduce la demostración de confort y materiales del producto.'
+                      : `Explora los ${imagenesNormalizadas.length} ángulos de alta resolución con las flechas o miniaturas.`}
+                  </span>
                 </span>
-                <span className="text-tertiary font-bold hidden sm:inline">Código: {productoActivo.sku}</span>
+                <span className="text-tertiary font-bold hidden sm:inline">{productoActivo.marca}</span>
               </div>
             </div>
 
@@ -675,7 +953,7 @@ export default function DetalleProductoPage({
                 <h2 className="font-title-sm text-title-sm text-on-surface font-semibold">Ficha técnica y dimensiones</h2>
               </div>
               <div className="space-y-space-sm font-body-sm text-body-sm">
-                {productoActivo.especificaciones.map((esp, i) => (
+                {especificaciones.map((esp, i) => (
                   <div
                     key={i}
                     className={`flex justify-between py-2.5 px-3 rounded ${
@@ -692,7 +970,7 @@ export default function DetalleProductoPage({
             </div>
             <div className="mt-space-md pt-space-sm flex items-center gap-2 text-on-surface-variant font-label-subtle text-label-subtle border-t border-surface-container-low">
               <span className="material-symbols-outlined text-[16px] text-tertiary">check_circle</span>
-              <span>Aprobado por el departamento de descanso ergonómico de TERRA Santa Cruz.</span>
+              <span>Calidad e inspección técnica verificada en planta TERRA Santa Cruz.</span>
             </div>
           </div>
 
@@ -706,8 +984,8 @@ export default function DetalleProductoPage({
                 <h2 className="font-title-sm text-title-sm text-on-surface font-semibold">Pruébalo en nuestro showroom</h2>
               </div>
               <p className="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
-                Visita nuestro espacio de descanso para testear la almohada en combinación con nuestros colchones y recibir
-                asesoría personalizada en Santa Cruz.
+                Visita cualquiera de nuestros 3 showrooms en Santa Cruz para probar este producto y recibir asesoría
+                personalizada inmediata.
               </p>
 
               {/* Branch Stock Selector Radios */}
@@ -830,67 +1108,75 @@ export default function DetalleProductoPage({
         {/* ========================================================= */}
         {/* LOWER SECTION 4: RECOMMENDATIONS                          */}
         {/* ========================================================= */}
-        <div className="pt-space-md">
-          <div className="flex items-center justify-between mb-space-md">
-            <div>
-              <span className="font-label-caps text-label-caps text-primary uppercase font-bold">
-                Completa tu equipo de descanso
-              </span>
-              <h2 className="font-headline-lg text-headline-lg text-on-surface font-bold">
-                Recomendados para combinar con {productoActivo.nombre}
-              </h2>
-            </div>
-            <button
-              type="button"
-              className="font-label-interactive text-label-interactive text-primary hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0"
-              onClick={() => onNavegar('catalogo')}
-            >
-              <span>Ver catálogo completo</span>
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
-            {RECOMENDADOS.map((rec) => (
-              <div
-                key={rec.id}
-                className="bg-surface-container-lowest rounded-xl p-space-md shadow-[0_4px_14px_-2px_rgba(30,20,15,0.05)] hover:shadow-[0_12px_28px_-4px_rgba(30,20,15,0.09)] transition-all flex flex-col justify-between group"
+        {productosRelacionados.length > 0 && (
+          <div className="pt-space-md">
+            <div className="flex items-center justify-between mb-space-md">
+              <div>
+                <span className="font-label-caps text-label-caps text-primary uppercase font-bold">
+                  Completa tu ambiente TERRA
+                </span>
+                <h2 className="font-headline-lg text-headline-lg text-on-surface font-bold">
+                  Recomendados para combinar con {productoActivo.nombre}
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="font-label-interactive text-label-interactive text-primary hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0"
+                onClick={() => onNavegar('catalogo')}
               >
-                <div className="relative bg-surface-container-low rounded-lg aspect-square mb-space-sm overflow-hidden flex items-center justify-center p-4">
-                  <span className="absolute top-2 left-2 bg-surface-container-lowest text-on-surface font-label-subtle text-label-subtle px-2 py-0.5 rounded-full shadow-sm">
-                    {rec.tag}
-                  </span>
-                  <img
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                    src={rec.src}
-                    alt={rec.nombre}
-                    loading="lazy"
-                  />
-                </div>
-                <div>
-                  <p className="font-label-subtle text-label-subtle text-on-surface-variant">{rec.categoria}</p>
-                  <h4 className="font-title-sm text-title-sm text-on-surface font-semibold mb-1">{rec.nombre}</h4>
-                  <div className="flex items-baseline gap-2 mb-3">
-                    <span className="font-title-sm text-title-sm text-primary font-bold">{formatBs(rec.precio)}</span>
-                    {rec.precioOriginal && (
-                      <span className="font-body-sm text-body-sm text-on-surface-variant line-through">
-                        {formatBs(rec.precioOriginal)}
+                <span>Ver catálogo completo</span>
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+              {productosRelacionados.map((rec) => (
+                <div
+                  key={rec.id}
+                  className="bg-surface-container-lowest rounded-xl p-space-md shadow-[0_4px_14px_-2px_rgba(30,20,15,0.05)] hover:shadow-[0_12px_28px_-4px_rgba(30,20,15,0.09)] transition-all flex flex-col justify-between group cursor-pointer"
+                  onClick={() => (onVerDetalle ? onVerDetalle(rec) : onNavegar('detalle', 'todas', rec))}
+                >
+                  <div className="relative bg-surface-container-low rounded-lg aspect-square mb-space-sm overflow-hidden flex items-center justify-center p-4">
+                    {rec.enOferta && (
+                      <span className="absolute top-2 left-2 bg-primary text-on-primary font-label-subtle text-label-subtle px-2 py-0.5 rounded-full shadow-sm font-bold">
+                        Oferta
                       </span>
                     )}
+                    <img
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                      src={rec.imagen || rec.src}
+                      alt={rec.nombre}
+                      loading="lazy"
+                    />
                   </div>
+                  <div>
+                    <p className="font-label-subtle text-label-subtle text-on-surface-variant">{rec.categoria}</p>
+                    <h4 className="font-title-sm text-title-sm text-on-surface font-semibold mb-1 truncate">{rec.nombre}</h4>
+                    <div className="flex items-baseline gap-2 mb-3">
+                      <span className="font-title-sm text-title-sm text-primary font-bold">{formatBs(rec.precio)}</span>
+                      {rec.precioOriginal && (
+                        <span className="font-body-sm text-body-sm text-on-surface-variant line-through">
+                          {formatBs(rec.precioOriginal)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="w-full py-2 bg-surface-container-low hover:bg-primary hover:text-on-primary text-on-surface font-label-interactive text-label-interactive rounded-full transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAgregarAlCarrito(rec);
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                    <span>Agregar</span>
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  className="w-full py-2 bg-surface-container-low hover:bg-primary hover:text-on-primary text-on-surface font-label-interactive text-label-interactive rounded-full transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                  onClick={() => onAgregarAlCarrito(rec)}
-                >
-                  <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
-                  <span>Agregar</span>
-                </button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Terminal Kiosk Footer Note */}
         <div className="fixed bottom-6 left-6 z-40 hidden md:flex items-center gap-2 pointer-events-auto">
@@ -900,6 +1186,82 @@ export default function DetalleProductoPage({
           </div>
         </div>
       </div>
+
+      {/* Modal Zoom Pantalla Completa */}
+      {zoomModalAbierto &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[999] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-fadeIn select-none"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Vista ampliada de producto"
+          >
+            {/* Barra superior con título y botón cerrar */}
+            <div className="absolute top-4 inset-x-6 flex items-center justify-between text-white z-20">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[16px]">{productoActivo.nombre}</span>
+                <span className="text-white/60 text-[13px]">
+                  (Ángulo {selectedMediaIdx + 1} de {imagenesNormalizadas.length})
+                </span>
+              </div>
+              <button
+                type="button"
+                className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
+                onClick={() => setZoomModalAbierto(false)}
+                aria-label="Cerrar vista ampliada"
+              >
+                <span className="material-symbols-outlined text-[24px]">close</span>
+              </button>
+            </div>
+
+            {/* Imagen Principal en Zoom */}
+            <div className="relative max-w-5xl max-h-[82vh] w-full h-full flex items-center justify-center p-4">
+              <img
+                src={currentMediaSrc}
+                alt={currentMediaAlt}
+                className="max-h-full max-w-full object-contain filter drop-shadow-2xl"
+              />
+
+              {imagenesNormalizadas.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={irFotoAnterior}
+                    className="absolute left-2 w-12 h-12 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors cursor-pointer"
+                    aria-label="Ángulo anterior"
+                  >
+                    <span className="material-symbols-outlined text-[28px]">chevron_left</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={irFotoSiguiente}
+                    className="absolute right-2 w-12 h-12 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-colors cursor-pointer"
+                    aria-label="Siguiente ángulo"
+                  >
+                    <span className="material-symbols-outlined text-[28px]">chevron_right</span>
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Tira inferior en modal de zoom */}
+            <div className="absolute bottom-4 inset-x-4 flex items-center justify-center gap-2 overflow-x-auto pb-1">
+              {imagenesNormalizadas.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setSelectedMediaIdx(idx)}
+                  className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all p-0.5 bg-black/40 cursor-pointer ${
+                    selectedMediaIdx === idx ? 'border-primary scale-110' : 'border-white/30 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img.thumb || img.src} alt={img.alt} className="w-full h-full object-contain" />
+                </button>
+              ))}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
