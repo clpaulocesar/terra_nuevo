@@ -1,9 +1,7 @@
 /* Widget flotante del asistente (n8n chat) */
+/* Su posición (right y bottom) se define solo en routes/FloatingActions.css. */
 .chat-widget {
   position: fixed;
-  right: 1rem;
-  /* Se apila sobre el carrito usando las mismas medidas responsivas. */
-  bottom: var(--floating-cart-bottom, 4.5rem);
   z-index: 70;
   display: flex;
   flex-direction: column;
@@ -12,17 +10,19 @@
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Círculo del mismo tamaño que el carrito y el QR: la columna de flotantes tiene un
+   solo ancho y no tapa las tarjetas del catálogo. El nombre accesible va en aria-label. */
 .chat-fab {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.8rem 1.1rem;
+  justify-content: center;
+  width: var(--floating-cart-size, 3.4rem);
+  height: var(--floating-cart-size, 3.4rem);
+  padding: 0;
   border: none;
   border-radius: 999px;
   background: #a6192e;
   color: #fff;
-  font-weight: 700;
-  font-size: 0.95rem;
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(166, 25, 46, 0.35);
   transition: transform 0.15s ease, background 0.15s ease;
@@ -152,16 +152,11 @@
 
 /* En movil dejamos espacio a la barra de carrito y la navegacion inferior */
 @media (max-width: 639px) {
-  .chat-widget { right: 0.75rem; }
-  .chat-fab span { display: none; }
-  .chat-fab { padding: 0.9rem; }
   .chat-panel { height: min(520px, calc(100vh - 11rem)); }
 }
 
-/* Tableta: píldora compacta y panel algo más angosto */
+/* Tableta: panel algo más angosto */
 @media (min-width: 640px) and (max-width: 1023.98px) {
-  .chat-fab { font-size: 0.85rem; padding: 0.7rem 0.95rem; }
-  .chat-fab svg { width: 20px; height: 20px; }
   .chat-panel { width: min(340px, calc(100vw - 2rem)); }
 }
 
