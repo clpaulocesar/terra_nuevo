@@ -11,12 +11,12 @@ const garantias = [
 ];
 
 const fotosPoltronas = [
-  { src: '/images/inicio/poltrona1.jpeg', alt: 'Poltrona TERRA modelo 1' },
-  { src: '/images/inicio/poltrona2.jpeg', alt: 'Poltrona TERRA modelo 2' },
-  { src: '/images/inicio/poltrona3.jpeg', alt: 'Poltrona TERRA modelo 3' },
-  { src: '/images/inicio/sofacama1.jpeg', alt: 'Sofá cama TERRA modelo 1' },
-  { src: '/images/inicio/sofacama2.jpeg', alt: 'Sofá cama TERRA modelo 2' },
-  { src: '/images/inicio/sofacama3.jpeg', alt: 'Sofá cama TERRA modelo 3' },
+  { src: '/images/inicio/poltrona1.webp', alt: 'Poltrona TERRA modelo 1' },
+  { src: '/images/inicio/poltrona2.webp', alt: 'Poltrona TERRA modelo 2' },
+  { src: '/images/inicio/poltrona3.webp', alt: 'Poltrona TERRA modelo 3' },
+  { src: '/images/inicio/sofacama1.webp', alt: 'Sofá cama TERRA modelo 1' },
+  { src: '/images/inicio/sofacama2.webp', alt: 'Sofá cama TERRA modelo 2' },
+  { src: '/images/inicio/sofacama3.webp', alt: 'Sofá cama TERRA modelo 3' },
 ];
 
 export default function Bienvenida() {
