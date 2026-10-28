@@ -778,7 +778,7 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   position: relative;
   width: 100%;
   height: 210px;
-  background: #faf7f5;
+  background: var(--terra-fondo-imagen-producto);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -798,7 +798,7 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   object-fit: contain;
   padding: 18%;
   box-sizing: border-box;
-  background: var(--crema);
+  background: var(--terra-fondo-imagen-producto);
   opacity: 0.9;
 }
 .terra-card:hover .terra-card__img.img-fallback { transform: none; }
@@ -1488,7 +1488,6 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
     position: relative;
     width: 100%;
     height: 175px;
-    background: #faf7f5;
     overflow: hidden;
     display: flex;
     align-items: center;

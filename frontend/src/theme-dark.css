@@ -195,9 +195,7 @@ html[data-theme="dark"] .terra-key--clear,
 html[data-theme="dark"] .terra-key--mode { background: var(--td-accent-soft); color: #ffb3bd; }
 html[data-theme="dark"] .terra-card { background: var(--td-surface); border-color: var(--td-line); }
 html[data-theme="dark"] .terra-card:hover { border-color: #5a4a45; }
-html[data-theme="dark"] .terra-card__media,
 html[data-theme="dark"] .terra-card__footer { background: var(--td-surface-2); }
-html[data-theme="dark"] .terra-card__img.img-fallback { background: var(--td-surface-2); opacity: 0.95; }
 html[data-theme="dark"] .terra-card__measure { background: rgba(30, 25, 23, 0.92); color: var(--td-text); }
 html[data-theme="dark"] .terra-card__stock--no { background: #3a1a1c; color: #ff9a92; }
 html[data-theme="dark"] .terra-card--oferta { border-color: var(--td-accent); box-shadow: 0 0 0 3px rgba(224, 48, 74, 0.18); }
@@ -321,7 +319,6 @@ html[data-theme="dark"] .product-detail__bottom aside a { background: var(--td-s
 html[data-theme="dark"] .product-related h2 { color: var(--td-text); }
 html[data-theme="dark"] .product-related header a { color: #ffb3bd; }
 html[data-theme="dark"] .product-related > div > a { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .product-related figure { background: var(--td-surface-2); }
 html[data-theme="dark"] .product-related h3,
 html[data-theme="dark"] .product-related strong { color: var(--td-text); }
 html[data-theme="dark"] .product-related p { color: var(--td-muted); }
@@ -854,7 +851,6 @@ html[data-theme="dark"] .terra-login-bg { filter: blur(14px) brightness(0.35); }
    La caligrafía "Terra" es oscura y se pierde sobre fondo negro: en modo noche
    se dibuja una placa clara exactamente alrededor del logo (background-clip
    content-box pinta sólo dentro del padding). */
-html[data-theme="dark"] .terra-card__img.img-fallback,
 html[data-theme="dark"] .product-gallery__main img.img-fallback,
 html[data-theme="dark"] .product-related-card figure img.img-fallback {
   background: #faf5ef;
@@ -862,7 +858,6 @@ html[data-theme="dark"] .product-related-card figure img.img-fallback {
   border-radius: 24px;
   opacity: 1;
 }
-html[data-theme="dark"] .terra-card__img.img-fallback { padding: 22%; }
 html[data-theme="dark"] .product-gallery__main img.img-fallback { padding: 20%; }
 html[data-theme="dark"] .product-related-card figure img.img-fallback { padding: 24%; }
 html[data-theme="dark"] .terra-header .terra-logo img,

@@ -23,6 +23,10 @@
   background: #f6f8f5;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+
+  /* Las fotos de producto tienen fondo blanco: el contenedor también, en todos los temas,
+     para que object-fit: contain no deje franjas de otro color a los costados. */
+  --terra-fondo-imagen-producto: #ffffff;
 }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
