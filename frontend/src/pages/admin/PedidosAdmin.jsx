@@ -28,8 +28,13 @@ import {
   listarPedidos,
   obtenerPedido,
   registrarPagoPedido,
+  verificarPedidoErp,
+  confirmarErpManual,
+  reintentarErp,
 } from '../../services/pedidoService.js';
 import { listarProductos } from '../../services/productoService.js';
+import AvisoErp from '../../components/admin/AvisoErp.jsx';
+import { etiquetaEstadoErp } from '../../utils/erpCambios.js';
 import { getAdminUser } from '../../services/adminService.js';
 import { subirComprobantePago } from '../../services/storageService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
@@ -80,6 +85,14 @@ export default function PedidosAdmin() {
   const [imprimiendoId, setImprimiendoId] = useState(null);
   const [mostrarQrModal, setMostrarQrModal] = useState(false);
 
+  // Verificación contra el ERP de TERRA al abrir el modal de cobro (§5 de la integración).
+  const [verificandoErp, setVerificandoErp] = useState(false);
+  const [cambiosErp, setCambiosErp] = useState([]);
+  const [avisoErp, setAvisoErp] = useState('');
+  const [erpListo, setErpListo] = useState(false);
+  const [bloqueadoErp, setBloqueadoErp] = useState(false);
+  const [procesandoErp, setProcesandoErp] = useState(false);
+
   // Estados para edición y adición de productos si el cliente cambia de opinión
   const [modoEdicion, setModoEdicion] = useState(false);
   const [cargandoItems, setCargandoItems] = useState(false);
@@ -128,6 +141,7 @@ export default function PedidosAdmin() {
     ];
     if (!esVendedor) {
       base.push(['shipped', 'En despacho']);
+      base.push(['erp_verificar', 'Verificar ERP']);
     }
     base.push(['cancelled', 'Anulados']);
     return base;
@@ -138,6 +152,7 @@ export default function PedidosAdmin() {
     if (tab === 'pending') return POR_COBRAR.includes(pedido.estado);
     if (tab === 'shipped') return EN_DESPACHO.includes(pedido.estado);
     if (tab === 'cancelled') return ['cancelled', 'cancelado'].includes(String(pedido.estado || '').toLowerCase());
+    if (tab === 'erp_verificar') return pedido.erp_estado === 'verificar';
     return pedido.estado === tab;
   }), [pedidos, tab]);
   const pendientes = pedidos.filter((pedido) => POR_COBRAR.includes(pedido.estado)).length;
@@ -216,6 +231,10 @@ export default function PedidosAdmin() {
       if (iniciarEnEdicion) {
         setCargandoItems(false);
       }
+    }
+    // Antes de cobrar, el ERP de TERRA valida stock y precio de cada ítem.
+    if (POR_COBRAR.includes(pedido.estado) && !iniciarEnEdicion && pedido.erp_estado !== 'verificar') {
+      await verificarConErp(pedido.id);
     }
   };
 
@@ -477,9 +496,88 @@ export default function PedidosAdmin() {
 
   const actualizar = () => { setActualizando(true); cargarPedidos({ silencioso: true }); };
 
+  // Mezcla el pedido que devuelve el ERP (ítems y total ajustados) en el modal y en la lista.
+  const fusionarPedidoErp = (pedidoErp) => {
+    if (!pedidoErp?.id) return;
+    const items = Array.isArray(pedidoErp.items) ? pedidoErp.items : null;
+    const datos = {
+      estado: pedidoErp.estado,
+      total: Number(pedidoErp.total ?? 0),
+      erp_estado: pedidoErp.erp_estado ?? null,
+      erp_cotizacion_numero: pedidoErp.erp_cotizacion_numero ?? null,
+      ...(items ? {
+        items: items.map((it) => `${it.cantidad}x ${it.nombre}`).join(', '),
+        items_detalle: items,
+        cant_envio: items.filter((it) => (it.tipo_entrega || it.tipoEntrega) === 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0),
+        cant_llevado: items.filter((it) => (it.tipo_entrega || it.tipoEntrega) !== 'home_delivery').reduce((acc, it) => acc + Number(it.cantidad || 1), 0),
+      } : {}),
+    };
+    setSeleccion((prev) => (prev && prev.id === pedidoErp.id ? { ...prev, ...datos } : prev));
+    setPedidos((lista) => lista.map((p) => (p.id === pedidoErp.id ? { ...p, ...datos } : p)));
+  };
+
+  const verificarConErp = async (pedidoId) => {
+    setVerificandoErp(true);
+    setAvisoErp('');
+    setCambiosErp([]);
+    setErpListo(false);
+    setBloqueadoErp(false);
+    try {
+      const resultado = await verificarPedidoErp(pedidoId);
+      fusionarPedidoErp(resultado?.pedido);
+      setCambiosErp(Array.isArray(resultado?.cambios) ? resultado.cambios : []);
+      setBloqueadoErp(Boolean(resultado?.bloqueado));
+      if (resultado?.erpDeshabilitado) setAvisoErp('Integración con el ERP desactivada: el cobro no se registrará en TERRA.');
+      else if (!resultado?.yaCobrado && !resultado?.pedido?.items?.length) setAvisoErp('Ningún producto del pedido tiene stock en TERRA. Anulá el pedido o agregá otros productos.');
+      setErpListo(true);
+    } catch (err) {
+      if (err.codigo === 'pedido_en_proceso') fusionarPedidoErp(err.datos?.pedido);
+      setAvisoErp(err.message || 'No se pudo verificar con TERRA.');
+    } finally {
+      setVerificandoErp(false);
+    }
+  };
+
+  // Estado `verificar`: la cotización pudo quedar registrada en TERRA. Solo el administrador concilia.
+  const registrarCotizacionManual = async (pedido) => {
+    const valor = window.prompt('Número de cotización registrado en TERRA para este pedido:', '');
+    if (valor === null) return;
+    const numero = Number(String(valor).trim());
+    if (!Number.isSafeInteger(numero) || numero < 1) { setError('Ingresá un número de cotización válido.'); return; }
+    setProcesandoErp(true);
+    setError('');
+    try {
+      const actualizado = await confirmarErpManual(pedido.id, { numero, metodoPago: metodo === 'qr' ? 'efectivo' : metodo });
+      fusionarPedidoErp(actualizado);
+      setSeleccion(null);
+    } catch (err) {
+      setError(err.message || 'No se pudo registrar la cotización.');
+    } finally {
+      setProcesandoErp(false);
+    }
+  };
+
+  const habilitarRecobro = async (pedido) => {
+    if (!window.confirm('¿Confirmás que la cotización NO existe en el ERP de TERRA? El pedido quedará habilitado para cobrarse de nuevo.')) return;
+    setProcesandoErp(true);
+    setError('');
+    try {
+      const actualizado = await reintentarErp(pedido.id);
+      fusionarPedidoErp(actualizado);
+      await verificarConErp(pedido.id);
+    } catch (err) {
+      setError(err.message || 'No se pudo habilitar el cobro.');
+    } finally {
+      setProcesandoErp(false);
+    }
+  };
+
   const registrarPago = async () => {
     if (!seleccion) return;
     if (esAnulado(seleccion.estado)) { setError('Este pedido fue anulado. No se puede cobrar ni guardar un comprobante.'); return; }
+    if (verificandoErp) return;
+    if (!erpListo) { setError('Primero hay que verificar el pedido con TERRA.'); return; }
+    if (bloqueadoErp) { setError('Hay productos sin código TERRA. Completá el código en Productos antes de cobrar.'); return; }
     let costoEnvio = null;
     if (seleccion.tarifa_envio_pendiente) {
       const valor = window.prompt('Ingresá el costo de envío en bolivianos antes de cobrar:', '');
@@ -494,10 +592,32 @@ export default function PedidosAdmin() {
     try {
       const comprobanteUrl = archivoComprobante ? await subirComprobantePago(archivoComprobante) : seleccion.comprobante_url || null;
       const actualizado = await registrarPagoPedido(seleccion.id, { metodoPago: metodo, comprobanteUrl, costoEnvio });
-      const cambios = { estado: actualizado?.estado ?? 'completed', comprobante_url: actualizado?.comprobante_url ?? comprobanteUrl, metodo_pago: actualizado?.metodo_pago ?? metodo };
+      const cambios = {
+        estado: actualizado?.estado ?? 'completed',
+        comprobante_url: actualizado?.comprobante_url ?? comprobanteUrl,
+        metodo_pago: actualizado?.metodo_pago ?? metodo,
+        erp_estado: actualizado?.erp_estado ?? null,
+        erp_cotizacion_numero: actualizado?.erp_cotizacion_numero ?? null,
+        total: Number(actualizado?.total ?? seleccion.total),
+      };
       setPedidos((lista) => lista.map((pedido) => pedido.id === seleccion.id ? { ...pedido, ...cambios } : pedido));
       setSeleccion(null); setArchivoComprobante(null);
     } catch (err) {
+      // El ERP ajustó stock o precio entre la verificación y el cobro: se muestra el nuevo
+      // total y el cajero vuelve a confirmar (la segunda vez no habrá cambios).
+      if (err.codigo === 'pedido_ajustado' || err.codigo === 'pedido_bloqueado') {
+        fusionarPedidoErp(err.datos?.pedido);
+        setCambiosErp(Array.isArray(err.datos?.cambios) ? err.datos.cambios : []);
+        setBloqueadoErp(err.codigo === 'pedido_bloqueado');
+        setErpListo(true);
+        setError(err.message);
+        return;
+      }
+      if (['cotizacion_rechazada', 'erp_resultado_desconocido', 'pedido_en_proceso', 'cierre_local_fallido'].includes(err.codigo)) {
+        if (err.datos?.pedido) fusionarPedidoErp(err.datos.pedido);
+        else cargarPedidos({ silencioso: true });
+        setErpListo(false);
+      }
       setError(err.message || 'No se pudo registrar el pago.');
       // El backend rechaza cobrar un pedido anulado: si esta lista estaba desactualizada
       // (lo anularon desde otra pantalla o dispositivo), traer el estado real.
@@ -676,7 +796,7 @@ export default function PedidosAdmin() {
               </div>
             </div>
             <strong>{formatoMoneda(pedido.total)}</strong>
-            <i className={pedido.estado}>{etiquetas[pedido.estado] || pedido.estado}</i>
+            <i className={pedido.estado}>{etiquetas[pedido.estado] || pedido.estado}{etiquetaEstadoErp(pedido) && <span className={`badge-erp badge-erp--${pedido.erp_estado}`}>{etiquetaEstadoErp(pedido)}</span>}</i>
         <div className="order-actions">
           <button type="button" className="order-icon-btn" onClick={() => imprimirTicket(pedido)} disabled={imprimiendoId === pedido.id} title="Imprimir ticket térmico" aria-label={`Imprimir ticket del pedido ${pedido.numero || pedido.codigo || ''}`}>
             {imprimiendoId === pedido.id ? <RefreshCw size={15} className="is-spinning" /> : <Printer size={15} />}
@@ -691,7 +811,7 @@ export default function PedidosAdmin() {
               {anulandoId === pedido.id ? <RefreshCw size={15} className="is-spinning" /> : <><X size={15} /> Anular</>}
             </button>
           )}
-          <button type="button" className="order-primary-action" onClick={() => abrirPedido(pedido)} title={POR_COBRAR.includes(pedido.estado) ? 'Registrar el pago del pedido' : 'Consultar el detalle del pedido'}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={18} /> Cobrar</> : 'Ver detalle'}</button>
+          <button type="button" className="order-primary-action" onClick={() => abrirPedido(pedido)} disabled={pedido.erp_estado === 'enviando'} title={pedido.erp_estado === 'enviando' ? 'Cobro en curso con el ERP' : POR_COBRAR.includes(pedido.estado) ? 'Registrar el pago del pedido' : 'Consultar el detalle del pedido'}>{POR_COBRAR.includes(pedido.estado) ? <><CreditCard size={18} /> {pedido.erp_estado === 'verificar' ? 'Conciliar' : 'Cobrar'}</> : 'Ver detalle'}</button>
         </div>
       </article>
     );})}
@@ -740,6 +860,33 @@ export default function PedidosAdmin() {
           </div>
         )}
         <div className="orders-total"><span>{anulado ? 'Pedido anulado' : 'Monto a liquidar'}</span><b>{formatoMoneda(seleccion.total)}</b></div>{anulado && <p className="orders-alert is-error" role="status"><X size={15} /> Esta venta fue anulada. No se puede cobrar ni guardar un comprobante.</p>}
+        {seleccion.erp_estado === 'ok' && seleccion.erp_cotizacion_numero && (
+          <p className="badge-erp badge-erp--ok">Cotización TERRA Nº {seleccion.erp_cotizacion_numero}</p>
+        )}
+        {pendiente && seleccion.erp_estado === 'verificar' && (
+          <section className="aviso-erp">
+            <p className="aviso-erp__estado aviso-erp__estado--error">
+              <X size={15} aria-hidden="true" />
+              <span>Falta confirmar en TERRA si la cotización quedó registrada. Revisalo en el ERP antes de reintentar.</span>
+            </p>
+            {usuario?.rol === 'admin' && (
+              <div className="aviso-erp__acciones">
+                <button type="button" onClick={() => registrarCotizacionManual(seleccion)} disabled={procesandoErp}>Sí existe: registrar Nº de cotización</button>
+                <button type="button" onClick={() => habilitarRecobro(seleccion)} disabled={procesandoErp}>No existe: habilitar cobro de nuevo</button>
+              </div>
+            )}
+          </section>
+        )}
+        {pendiente && !modoEdicion && seleccion.erp_estado !== 'verificar' && (
+          <AvisoErp
+            verificando={verificandoErp}
+            aviso={avisoErp}
+            listo={erpListo}
+            cambios={cambiosErp}
+            total={cambiosErp.length ? seleccion.total : undefined}
+            onReintentar={() => verificarConErp(seleccion.id)}
+          />
+        )}
       <div className="orders-items-section">
         <div className="orders-items-head">
           <h3>Artículos del pedido</h3>
@@ -1011,7 +1158,7 @@ export default function PedidosAdmin() {
         {metodo === 'tarjeta' && <p className="orders-hint">Procesá la tarjeta en el POS y registrá el cobro.</p>}
       </>}
       <section className="orders-receipt"><div className="orders-receipt-head"><div><b><ImagePlus size={17} /> Comprobante de pago</b><span>Opcional · JPG, PNG o WEBP · máximo 8 MB</span></div>{comprobanteActual && <a href={comprobanteActual} target="_blank" rel="noreferrer" aria-label="Ver comprobante en una pestaña nueva"><ExternalLink size={17} /></a>}</div><label className="orders-receipt-btn"><ImagePlus size={17} /> {archivoComprobante ? 'Cambiar imagen' : comprobanteActual ? 'Reemplazar imagen' : 'Cargar comprobante'}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setArchivoComprobante(event.target.files?.[0] || null)} /></label>{comprobanteActual ? <div className="orders-receipt-preview"><img src={comprobanteActual} alt="Comprobante de pago" /><div><p>{archivoComprobante ? archivoComprobante.name : 'Comprobante guardado en Supabase'}</p>{archivoComprobante && <button type="button" className="orders-receipt-remove" onClick={() => setArchivoComprobante(null)}><Trash2 size={14} /> Quitar cambio</button>}</div></div> : <span className="orders-receipt-empty">Aún no se adjuntó una imagen.</span>}</section>
-      {error && <p className="orders-alert is-error">{error}</p>}<footer><button onClick={() => setSeleccion(null)}>Cerrar</button><button type="button" className="orders-modal-ticket-btn" onClick={() => imprimirTicket(seleccion)} disabled={imprimiendoId === seleccion.id} title="Imprimir ticket para impresora térmica POS">{imprimiendoId === seleccion.id ? 'Generando…' : <><Printer size={16} /> Imprimir ticket</>}</button><button type="button" className="orders-modal-ticket-btn" onClick={() => descargarTicketJpg(seleccion)} disabled={imprimiendoId === seleccion.id} title="Descargar ticket en formato imagen JPG" style={{ background: '#fff', border: '1px solid #dcdcdc', color: '#202020' }}>{imprimiendoId === seleccion.id ? 'Generando…' : <><Download size={16} /> Descargar JPG</>}</button>{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={iniciarEdicion}><Edit3 size={15} /> Editar / Agregar</button>)}{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={() => anularPedido(seleccion)} disabled={anulandoId === seleccion.id}>{anulandoId === seleccion.id ? 'Anulando…' : <><X size={15} /> Anular venta</>}</button>)}{pendiente && !modoEdicion && <button onClick={registrarPago} disabled={subiendoPago}>{subiendoPago ? 'Guardando…' : <><CheckCircle2 /> Confirmar cobro manual</>}</button>}</footer></section></div>);})()}
+      {error && <p className="orders-alert is-error">{error}</p>}<footer><button onClick={() => setSeleccion(null)}>Cerrar</button><button type="button" className="orders-modal-ticket-btn" onClick={() => imprimirTicket(seleccion)} disabled={imprimiendoId === seleccion.id} title="Imprimir ticket para impresora térmica POS">{imprimiendoId === seleccion.id ? 'Generando…' : <><Printer size={16} /> Imprimir ticket</>}</button><button type="button" className="orders-modal-ticket-btn" onClick={() => descargarTicketJpg(seleccion)} disabled={imprimiendoId === seleccion.id} title="Descargar ticket en formato imagen JPG" style={{ background: '#fff', border: '1px solid #dcdcdc', color: '#202020' }}>{imprimiendoId === seleccion.id ? 'Generando…' : <><Download size={16} /> Descargar JPG</>}</button>{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={iniciarEdicion}><Edit3 size={15} /> Editar / Agregar</button>)}{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={() => anularPedido(seleccion)} disabled={anulandoId === seleccion.id}>{anulandoId === seleccion.id ? 'Anulando…' : <><X size={15} /> Anular venta</>}</button>)}{pendiente && !modoEdicion && <button onClick={registrarPago} disabled={subiendoPago || verificandoErp || !erpListo || bloqueadoErp || ['enviando', 'verificar'].includes(seleccion.erp_estado)} title={!erpListo ? 'Primero hay que verificar el pedido con TERRA' : bloqueadoErp ? 'Hay productos sin código TERRA' : undefined}>{subiendoPago ? 'Cobrando en TERRA…' : verificandoErp ? 'Verificando…' : <><CheckCircle2 /> Confirmar cobro manual</>}</button>}</footer></section></div>);})()}
     <ModalQrPago
       abierto={mostrarQrModal}
       onCerrar={() => setMostrarQrModal(false)}

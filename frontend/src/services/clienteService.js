@@ -6,6 +6,15 @@ export async function crearCliente(datos) { exigirConexionReal(); return apiRequ
 export async function obtenerCliente(id) { exigirConexionReal(); return apiRequest(`/clientes/${id}`); }
 export async function eliminarCliente(id) { exigirConexionReal(); return apiRequest(`/clientes/${id}`, { method: 'DELETE' }); }
 export async function listarClientes({ buscar = '', limite = 100 } = {}) { exigirConexionReal(); return apiRequest(`/clientes?buscar=${encodeURIComponent(buscar)}&limite=${limite}`); }
+// Asigna o resetea la clave de un cliente mayorista (solo administrador).
+export async function asignarClaveMayorista(id, password) {
+  exigirConexionReal();
+  const token = getAdminToken();
+  if (!token) throw new Error('Inicia sesión nuevamente como administrador.');
+  return apiRequest(`/clientes/${id}/clave`, {
+    method: 'PATCH', body: { password }, headers: { Authorization: `Bearer ${token}` }, raw: true,
+  });
+}
 export async function crearUsuarioMayorista(datos) {
   exigirConexionReal();
   const token = getAdminToken();

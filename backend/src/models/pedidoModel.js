@@ -1,8 +1,19 @@
 import { randomUUID } from 'node:crypto';
 import { pool } from '../config/database.js';
-import { asegurarEscalasMayoristasBD } from './productoModel.js';
+import {
+  asegurarEscalasMayoristasBD,
+  reescribirProductoDesdeErpBD,
+  marcarProductoNoEncontradoErpBD,
+  descontarStockBD,
+} from './productoModel.js';
 import { asegurarTablaPersonal } from './personalModel.js';
 import { asegurarTarifasEnvioBD, obtenerTarifaEnvioBD } from './envioModel.js';
+import {
+  asegurarTablasErpBD,
+  guardarSincronizacionProductoBD,
+  guardarStockAlmacenesBD,
+  actualizarIntentoCotizacionBD,
+} from './erpModel.js';
 
 const aMonto = (minor) => Number(minor || 0) / 100;
 let paymentColumnsReady;
@@ -35,17 +46,32 @@ function asegurarColumnasEntrega() {
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_zone_name TEXT'),
     pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_fee_pending BOOLEAN NOT NULL DEFAULT FALSE'),
     pool.query('ALTER TABLE order_items ADD COLUMN IF NOT EXISTS delivery_type TEXT'),
-    pool.query('CREATE SCHEMA IF NOT EXISTS auth; CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid AS $$ SELECT null::uuid; $$ LANGUAGE sql STABLE;'),
+    // Integración con el ERP de TERRA. En `orders` solo vive el candado del cobro y el
+    // número final; el detalle de cada intento está en `erp_quotations` (erpModel.js).
+    // erp_estado: null | enviando | ok | rechazado | verificar
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS erp_estado TEXT'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS erp_intentado_at TIMESTAMPTZ'),
+    pool.query('ALTER TABLE orders ADD COLUMN IF NOT EXISTS erp_cotizacion_numero BIGINT'),
+    pool.query('ALTER TABLE order_items ADD COLUMN IF NOT EXISTS product_id UUID'),
+    pool.query('ALTER TABLE order_items ADD COLUMN IF NOT EXISTS erp_codigo TEXT'),
   ]);
   return deliveryColumnsReady;
 }
+
+// Columnas del ERP que acompañan a cada pedido en las respuestas.
+const CAMPOS_ERP_PEDIDO = 'p.erp_estado, p.erp_intentado_at, p.erp_cotizacion_numero';
+const GROUP_ERP_PEDIDO = CAMPOS_ERP_PEDIDO;
+// Código interno del ERP del producto, si ya se sincronizó alguna vez.
+const SUBCONSULTA_CODIGO_ERP = '(SELECT s.erp_internal_code FROM erp_product_sync_state s WHERE s.product_id = p.id)';
+// Mientras el cobro está en curso o ya se registró en el ERP, el pedido no se edita ni se anula.
+export const ERP_ESTADOS_BLOQUEANTES = ['enviando', 'ok', 'verificar'];
 
 // Errores de validación del pedido: llevan código HTTP para que el cliente vea el motivo
 // en vez de un "Error interno del servidor".
 const errorPedido = (statusCode, mensaje) => Object.assign(new Error(mensaje), { statusCode });
 
 export async function crearPedidoBD(clienteId, items, { precioMayorista = false, entrega = null, metodoPagoSolicitado = null } = {}) {
-  await Promise.all([asegurarEscalasMayoristasBD(), asegurarColumnasEntrega(), asegurarColumnasPago(), asegurarTarifasEnvioBD()]);
+  await Promise.all([asegurarEscalasMayoristasBD(), asegurarColumnasEntrega(), asegurarColumnasPago(), asegurarTarifasEnvioBD(), asegurarTablasErpBD()]);
   const conexion = await pool.connect();
   try {
     await conexion.query('BEGIN');
@@ -58,7 +84,7 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
       const producto = await conexion.query(
         // El catálogo actual guarda el precio en products.public_price y no tiene
         // variantes activas. product_variant_id admite NULL en order_items.
-        `SELECT p.id AS product_id, p.name, p.stock_quantity, NULL::uuid AS variant_id,
+        `SELECT p.id AS product_id, p.name, p.stock_quantity, NULL::uuid AS variant_id, ${SUBCONSULTA_CODIGO_ERP} AS erp_codigo,
                 COALESCE(p.codigo_terra, p.internal_code, p.slug, p.id::text) AS sku,
                 ROUND(COALESCE(
                   CASE WHEN $2 THEN (SELECT w.unit_price FROM wholesale_price_tiers w WHERE w.product_id=p.id AND w.minimum_quantity <= $3 ORDER BY w.minimum_quantity DESC LIMIT 1) END,
@@ -74,7 +100,7 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
       if (item.cantidad < Number(p.minimum_order_quantity || 1)) throw errorPedido(400, `La cantidad mínima mayorista para ${p.name} es ${p.minimum_order_quantity}.`);
       const subtotalMinor = Number(p.price_minor) * item.cantidad;
       totalMinor += subtotalMinor;
-      detalles.push({ variantId: p.variant_id, nombre: p.name, sku: p.sku, cantidad: item.cantidad, precioUnitario: aMonto(p.price_minor), subtotal: aMonto(subtotalMinor), tipoEntrega: item.tipoEntrega || (entrega ? 'home_delivery' : 'store_pickup') });
+      detalles.push({ productoId: p.product_id, erpCodigo: p.erp_codigo || null, variantId: p.variant_id, nombre: p.name, sku: p.sku, cantidad: item.cantidad, precioUnitario: aMonto(p.price_minor), subtotal: aMonto(subtotalMinor), tipoEntrega: item.tipoEntrega || (entrega ? 'home_delivery' : 'store_pickup') });
     }
     const tarifa = entrega && !entrega.tarifaPendiente ? await obtenerTarifaEnvioBD(entrega.zonaId, conexion) : null;
     if (entrega && !entrega.tarifaPendiente && !tarifa) throw errorPedido(400, 'Seleccioná una zona de envío válida.');
@@ -102,7 +128,7 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
       ]
     );
     for (const d of detalles) {
-      await conexion.query(`INSERT INTO order_items (order_id,product_variant_id,product_name,sku,quantity,unit_price_minor,discount_minor,total_minor,currency,delivery_type) VALUES ($1,$2,$3,$4,$5,$6,0,$7,'BOB',$8)`, [nuevo.rows[0].id, d.variantId, d.nombre, d.sku, d.cantidad, Math.round(d.precioUnitario*100), Math.round(d.subtotal*100), d.tipoEntrega || 'store_pickup']);
+      await conexion.query(`INSERT INTO order_items (order_id,product_variant_id,product_id,erp_codigo,product_name,sku,quantity,unit_price_minor,discount_minor,total_minor,currency,delivery_type) VALUES ($1,$2,$9,$10,$3,$4,$5,$6,0,$7,'BOB',$8)`, [nuevo.rows[0].id, d.variantId, d.nombre, d.sku, d.cantidad, Math.round(d.precioUnitario*100), Math.round(d.subtotal*100), d.tipoEntrega || 'store_pickup', d.productoId, d.erpCodigo]);
     }
     const totalPedidos = await conexion.query('SELECT count(*)::integer AS total FROM orders');
     const numero = totalPedidos.rows[0]?.total || 1;
@@ -140,6 +166,7 @@ export async function obtenerPedidoBD(id) {
             p.delivery_zone_id AS zona_envio_id,
             p.delivery_zone_name AS zona_envio,
             p.delivery_fee_pending AS tarifa_envio_pendiente,
+            ${CAMPOS_ERP_PEDIDO},
             COALESCE(c.name, c.contact_name, 'Compra como invitado') AS cliente_nombre,
             COALESCE(c.phone, '') AS cliente_telefono,
             COALESCE(c.nit, '') AS cliente_nit
@@ -152,7 +179,8 @@ export async function obtenerPedidoBD(id) {
   const pedido = rows[0];
   const detalles = await pool.query(
     `SELECT i.id AS "itemId",
-            COALESCE(p.id::text, i.product_variant_id::text, i.id::text) AS "productoId",
+            COALESCE(i.product_id::text, p.id::text, i.product_variant_id::text, i.id::text) AS "productoId",
+            i.erp_codigo,
             i.product_name AS nombre,
             COALESCE(i.sku, p.codigo_terra, p.internal_code, '') AS sku,
             i.quantity AS cantidad,
@@ -164,8 +192,10 @@ export async function obtenerPedidoBD(id) {
      LEFT JOIN LATERAL (
        SELECT pr.id, pr.codigo_terra, pr.internal_code
        FROM products pr
-       WHERE pr.id::text = i.product_variant_id::text
+       WHERE pr.id = i.product_id
+          OR pr.id::text = i.product_variant_id::text
           OR (i.sku IS NOT NULL AND i.sku <> '' AND (pr.codigo_terra = i.sku OR pr.internal_code = i.sku))
+       ORDER BY (pr.id = i.product_id) DESC
        LIMIT 1
      ) p ON true
      WHERE i.order_id = $1
@@ -241,6 +271,7 @@ export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', 
            p.delivery_zone_id AS zona_envio_id,
            p.delivery_zone_name AS zona_envio,
            p.delivery_fee_pending AS tarifa_envio_pendiente,
+           ${CAMPOS_ERP_PEDIDO},
            p.delivery_status AS estado_entrega,
            p.delivery_started_at AS entrega_iniciada,
            p.delivered_at AS entrega_confirmada,
@@ -295,6 +326,7 @@ export async function listarPedidosBD({ buscar = '', estado = '', entrega = '', 
              p.payment_confirmation_source, p.payment_confirmed_at,
              p.fulfillment_type, p.delivery_address, p.delivery_reference,
              p.delivery_lat, p.delivery_lng, p.delivery_fee_minor, p.delivery_zone_id, p.delivery_zone_name, p.delivery_fee_pending,
+             ${GROUP_ERP_PEDIDO},
              p.delivery_status, p.delivery_started_at, p.delivered_at,
              p.delivery_driver_id, p.delivery_assigned_at,
              c.id, c.name, c.contact_name, c.phone, c.nit,
@@ -387,12 +419,13 @@ export async function listarPedidosPorClienteBD(clienteId, limite = 50) {
             p.payment_method AS metodo_pago,p.payment_requested_method AS metodo_pago_solicitado,
             p.fulfillment_type AS tipo_entrega,p.delivery_address AS direccion_entrega,
             p.delivery_reference AS referencia_entrega,
+            p.erp_cotizacion_numero,
             COALESCE(string_agg(i.quantity::text || 'x ' || i.product_name, ', '),'') AS items
      FROM pedidos_base p
      LEFT JOIN order_items i ON i.order_id=p.id
      WHERE p.customer_id=$1
      GROUP BY p.id, p.numero_pedido, p.ticket_number, p.total_minor, p.status, p.created_at, p.payment_method, p.payment_requested_method,
-              p.fulfillment_type, p.delivery_address, p.delivery_reference
+              p.fulfillment_type, p.delivery_address, p.delivery_reference, p.erp_cotizacion_numero
      ORDER BY p.created_at DESC
      LIMIT $2`,
     [clienteId, limite]
@@ -463,21 +496,195 @@ export async function asignarRepartidorBD(id, repartidorId) {
   return rows[0] ? obtenerPedidoBD(id) : null;
 }
 
+// ---- Integración con el ERP de TERRA ----
+
+// Ítems del pedido con el producto local que los respalda. Pedidos antiguos sin
+// product_id se resuelven por SKU (codigo_terra o internal_code).
+export async function obtenerItemsParaErpBD(pedidoId, conexion = pool) {
+  await Promise.all([asegurarColumnasEntrega(), asegurarEscalasMayoristasBD(), asegurarTablasErpBD()]);
+  const { rows } = await conexion.query(
+    `SELECT i.id AS item_id, i.product_name AS nombre, i.sku, i.quantity AS cantidad,
+            i.unit_price_minor, i.delivery_type,
+            p.id AS producto_id, s.erp_internal_code AS erp_codigo, p.codigo_terra, p.internal_code,
+            COALESCE(p.en_oferta, FALSE) AS en_oferta, p.precio_oferta, p.public_price, p.precio_mayorista,
+            (SELECT json_agg(json_build_object('minCantidad', w.minimum_quantity, 'precio', w.unit_price) ORDER BY w.minimum_quantity)
+               FROM wholesale_price_tiers w WHERE w.product_id = p.id) AS escalas
+     FROM order_items i
+     LEFT JOIN LATERAL (
+       SELECT pr.* FROM products pr
+       WHERE pr.id = i.product_id
+          OR (i.product_id IS NULL AND i.sku IS NOT NULL AND i.sku <> '' AND (pr.codigo_terra = i.sku OR pr.internal_code = i.sku))
+       ORDER BY (pr.id = i.product_id) DESC
+       LIMIT 1
+     ) p ON TRUE
+     LEFT JOIN erp_product_sync_state s ON s.product_id = p.id
+     WHERE i.order_id = $1
+     ORDER BY i.created_at ASC`,
+    [pedidoId]
+  );
+  return rows;
+}
+
+// Datos mínimos del pedido para decidir el cobro (sin ítems).
+export async function obtenerCabeceraPedidoBD(pedidoId, conexion = pool) {
+  await asegurarColumnasEntrega();
+  const { rows } = await conexion.query(
+    `SELECT o.id, o.status, o.customer_id, o.erp_estado, o.erp_cotizacion_numero, o.delivery_fee_minor, o.delivery_fee_pending,
+            (SELECT u.role FROM customers c LEFT JOIN users u ON u.auth_user_id = c.auth_user_id WHERE c.id = o.customer_id LIMIT 1) AS rol_cliente
+     FROM orders o WHERE o.id::text = $1 OR o.ticket_number = $1 LIMIT 1`,
+    [String(pedidoId || '').trim()]
+  );
+  return rows[0] || null;
+}
+
+// Reclamo atómico del pedido para cobrar: evita el doble clic y dos cajas a la vez.
+export async function reclamarPedidoParaCobroBD(pedidoId) {
+  await asegurarColumnasEntrega();
+  const { rowCount } = await pool.query(
+    `UPDATE orders SET erp_estado = 'enviando', erp_intentado_at = NOW(), updated_at = NOW()
+      WHERE id = $1 AND status = 'pending'
+        AND (erp_estado IS NULL OR erp_estado = 'rechazado')`,
+    [pedidoId]
+  );
+  return rowCount > 0;
+}
+
+// Cambia el estado ERP (y opcionalmente el número de cotización) sin tocar el cobro.
+export async function actualizarErpEstadoBD(pedidoId, { estado, numero = undefined, soloSiEstado = null }) {
+  await asegurarColumnasEntrega();
+  const valores = [pedidoId, estado];
+  const sets = ['erp_estado = $2', 'updated_at = NOW()'];
+  if (numero !== undefined) { valores.push(numero); sets.push(`erp_cotizacion_numero = $${valores.length}`); }
+  let where = 'id = $1';
+  if (soloSiEstado) { valores.push(soloSiEstado); where += ` AND erp_estado = $${valores.length}`; }
+  const { rowCount } = await pool.query(`UPDATE orders SET ${sets.join(', ')} WHERE ${where}`, valores);
+  return rowCount > 0;
+}
+
+// Aplica la verificación contra el ERP en UNA transacción: reescribe productos,
+// guarda su estado de sincronización y stock por almacén, ajusta ítems (quita,
+// reduce cantidad o actualiza precio) y recalcula totales.
+// `productos` = [{ productoId, erp | null, stockVenta, hash }];
+// `ajustes` = [{ itemId, eliminar?, cantidad?, precioUnitarioMinor?, erpCodigo? }].
+export async function aplicarVerificacionErpBD(pedidoId, { productos = [], ajustes = [] }) {
+  await Promise.all([asegurarColumnasEntrega(), asegurarEscalasMayoristasBD(), asegurarTablasErpBD()]);
+  const conexion = await pool.connect();
+  try {
+    await conexion.query('BEGIN');
+    await conexion.query('SELECT id FROM orders WHERE id = $1 FOR UPDATE', [pedidoId]);
+    for (const { productoId, erp, stockVenta, hash } of productos) {
+      if (!productoId) continue;
+      if (erp) {
+        await reescribirProductoDesdeErpBD(productoId, erp, stockVenta, conexion);
+        await guardarSincronizacionProductoBD(productoId, { erpInternalCode: erp.codigo, sourceHash: hash, error: null }, conexion);
+        await guardarStockAlmacenesBD(productoId, erp.almacenes, conexion);
+      } else {
+        await marcarProductoNoEncontradoErpBD(productoId, conexion);
+        await guardarSincronizacionProductoBD(productoId, { error: 'producto_no_encontrado' }, conexion);
+        await guardarStockAlmacenesBD(productoId, [], conexion);
+      }
+    }
+    for (const ajuste of ajustes) {
+      if (ajuste.eliminar) {
+        await conexion.query('DELETE FROM order_items WHERE id = $1 AND order_id = $2', [ajuste.itemId, pedidoId]);
+        continue;
+      }
+      await conexion.query(
+        `UPDATE order_items
+            SET quantity = COALESCE($3, quantity),
+                unit_price_minor = COALESCE($4, unit_price_minor),
+                total_minor = COALESCE($3, quantity) * COALESCE($4, unit_price_minor),
+                erp_codigo = COALESCE($5, erp_codigo)
+          WHERE id = $1 AND order_id = $2`,
+        [ajuste.itemId, pedidoId, ajuste.cantidad ?? null, ajuste.precioUnitarioMinor ?? null, ajuste.erpCodigo ?? null]
+      );
+    }
+    await conexion.query(
+      `UPDATE orders o
+          SET subtotal_minor = s.subtotal,
+              total_minor = s.subtotal + COALESCE(o.delivery_fee_minor, 0),
+              updated_at = NOW()
+         FROM (SELECT COALESCE(SUM(total_minor), 0)::bigint AS subtotal FROM order_items WHERE order_id = $1) s
+        WHERE o.id = $1`,
+      [pedidoId]
+    );
+    await conexion.query('COMMIT');
+  } catch (error) {
+    await conexion.query('ROLLBACK');
+    throw error;
+  } finally {
+    conexion.release();
+  }
+  return obtenerPedidoBD(pedidoId);
+}
+
+// Cierra el cobro con la cotización del ERP, marca el intento en `erp_quotations`
+// como `ok` y descuenta stock local, todo en una transacción. Solo avanza si el
+// pedido sigue en `estadoPrevio` (enviando | verificar).
+export async function completarPedidoConCotizacionBD(pedidoId, {
+  metodoPago, comprobanteUrl = null, fuente = 'manual', costoEnvio = null,
+  cotizacion, intentoId, estadoPrevio = 'enviando',
+}) {
+  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega(), asegurarTablasErpBD()]);
+  const conexion = await pool.connect();
+  try {
+    await conexion.query('BEGIN');
+    if (costoEnvio !== null) {
+      await conexion.query(
+        `UPDATE orders SET delivery_fee_minor=$1, total_minor=subtotal_minor+$1, delivery_fee_pending=FALSE, updated_at=NOW()
+          WHERE id=$2 AND erp_estado=$3`,
+        [Math.round(Number(costoEnvio) * 100), pedidoId, estadoPrevio]
+      );
+    }
+    const { rows } = await conexion.query(
+      `UPDATE orders
+          SET status='completed', payment_method=$1, payment_receipt_url=COALESCE($2, payment_receipt_url),
+              payment_confirmation_source=$3, payment_confirmed_at=NOW(),
+              erp_estado='ok', erp_cotizacion_numero=$5, updated_at=NOW()
+        WHERE id=$4 AND erp_estado=$6
+        RETURNING id`,
+      [metodoPago, comprobanteUrl || null, fuente, pedidoId, cotizacion.numero, estadoPrevio]
+    );
+    if (!rows[0]) {
+      await conexion.query('ROLLBACK');
+      return null;
+    }
+    if (intentoId) {
+      await actualizarIntentoCotizacionBD(intentoId, {
+        status: 'ok', erpNumber: cotizacion.numero, response: cotizacion.respuesta ?? cotizacion, errorMessage: null, completado: true,
+      }, conexion);
+    }
+    const items = await conexion.query('SELECT product_id, quantity FROM order_items WHERE order_id = $1 AND product_id IS NOT NULL', [pedidoId]);
+    for (const item of items.rows) await descontarStockBD(item.product_id, item.quantity, conexion);
+    await conexion.query('COMMIT');
+  } catch (error) {
+    await conexion.query('ROLLBACK');
+    throw error;
+  } finally {
+    conexion.release();
+  }
+  return obtenerPedidoBD(pedidoId);
+}
+
 export async function actualizarItemsPedidoBD(pedidoId, items, { direccion = undefined, referencia = undefined } = {}) {
   if (!Array.isArray(items) || !items.length) {
     throw new Error('El pedido debe tener al menos un producto.');
   }
+  await Promise.all([asegurarColumnasEntrega(), asegurarTablasErpBD()]);
   const conexion = await pool.connect();
   try {
     await conexion.query('BEGIN');
     const pedidoActual = await conexion.query(
-      `SELECT id, status, customer_id, fulfillment_type, delivery_address, delivery_reference FROM orders WHERE id=$1 FOR UPDATE`,
+      `SELECT id, status, customer_id, fulfillment_type, delivery_address, delivery_reference, erp_estado FROM orders WHERE id=$1 FOR UPDATE`,
       [pedidoId]
     );
-    if (!pedidoActual.rowCount) throw new Error('Pedido no encontrado.');
+    if (!pedidoActual.rowCount) throw errorPedido(404, 'Pedido no encontrado.');
     const pActual = pedidoActual.rows[0];
     if (['completed', 'cancelled', 'entregado'].includes(pActual.status)) {
-      throw new Error('No se pueden modificar productos de un pedido ya cobrado o cancelado.');
+      throw errorPedido(409, 'No se pueden modificar productos de un pedido ya cobrado o cancelado.');
+    }
+    if (ERP_ESTADOS_BLOQUEANTES.includes(String(pActual.erp_estado || ''))) {
+      throw errorPedido(409, 'El pedido está en proceso de cobro con el ERP de TERRA y no se puede modificar.');
     }
 
     let precioMayorista = false;
@@ -498,11 +705,12 @@ export async function actualizarItemsPedidoBD(pedidoId, items, { direccion = und
         throw new Error('Cantidad inválida.');
       }
       const prodRes = await conexion.query(
-        `SELECT p.id AS product_id, p.name, p.stock_quantity,
+        `SELECT p.id AS product_id, p.name, p.stock_quantity, ${SUBCONSULTA_CODIGO_ERP} AS erp_codigo,
                 COALESCE(p.codigo_terra, p.internal_code, p.slug, p.id::text) AS sku,
                 ROUND(COALESCE(
                   CASE WHEN $2 THEN (SELECT w.unit_price FROM wholesale_price_tiers w WHERE w.product_id=p.id AND w.minimum_quantity <= $3 ORDER BY w.minimum_quantity DESC LIMIT 1) END,
                   CASE WHEN $2 THEN NULLIF(BTRIM(p.precio_mayorista::text), '')::numeric END,
+                  CASE WHEN COALESCE(p.en_oferta, FALSE) AND COALESCE(p.precio_oferta, 0) > 0 THEN p.precio_oferta END,
                   p.public_price, 0) * 100)::bigint AS price_minor
          FROM products p
          WHERE (p.id::text=$1 OR p.codigo_terra=$4 OR p.internal_code=$4 OR p.name=$5)
@@ -515,6 +723,8 @@ export async function actualizarItemsPedidoBD(pedidoId, items, { direccion = und
       const subtotalMinor = Number(prod.price_minor) * cantidad;
       totalMinor += subtotalMinor;
       nuevosDetalles.push({
+        productoId: prod.product_id,
+        erpCodigo: prod.erp_codigo || null,
         nombre: prod.name,
         sku: prod.sku,
         cantidad,
@@ -528,9 +738,9 @@ export async function actualizarItemsPedidoBD(pedidoId, items, { direccion = und
     await conexion.query(`DELETE FROM order_items WHERE order_id=$1`, [pedidoId]);
     for (const d of nuevosDetalles) {
       await conexion.query(
-        `INSERT INTO order_items (order_id, product_variant_id, product_name, sku, quantity, unit_price_minor, discount_minor, total_minor, currency, delivery_type)
-         VALUES ($1, NULL, $2, $3, $4, $5, 0, $6, 'BOB', $7)`,
-        [pedidoId, d.nombre, d.sku, d.cantidad, d.unitPriceMinor, d.subtotalMinor, d.tipoEntrega]
+        `INSERT INTO order_items (order_id, product_variant_id, product_id, erp_codigo, product_name, sku, quantity, unit_price_minor, discount_minor, total_minor, currency, delivery_type)
+         VALUES ($1, NULL, $8, $9, $2, $3, $4, $5, 0, $6, 'BOB', $7)`,
+        [pedidoId, d.nombre, d.sku, d.cantidad, d.unitPriceMinor, d.subtotalMinor, d.tipoEntrega, d.productoId, d.erpCodigo]
       );
     }
 
@@ -553,7 +763,7 @@ export async function actualizarItemsPedidoBD(pedidoId, items, { direccion = und
     await conexion.query(
       `UPDATE orders
        SET subtotal_minor=$1,
-           total_minor=$1,
+           total_minor=$1 + COALESCE(delivery_fee_minor, 0),
            fulfillment_type=$3,
            delivery_address=$4,
            delivery_reference=$5,

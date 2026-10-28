@@ -22,7 +22,8 @@ import {
 } from 'lucide-react';
 import { listarCategorias, listarProductosPaginado, obtenerProducto } from '../../services/productoService.js';
 import { listarClientes } from '../../services/clienteService.js';
-import { crearVentaDirecta } from '../../services/pedidoService.js';
+import { crearVentaDirecta, registrarPagoPedido } from '../../services/pedidoService.js';
+import AvisoErp from '../../components/admin/AvisoErp.jsx';
 import { getAdminUser } from '../../services/adminService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import { imagenDeProducto, usarImagenFallback } from '../../utils/imagenProducto.js';
@@ -90,6 +91,8 @@ export default function VentasDirectasAdmin() {
   const [ultimaVenta, setUltimaVenta] = useState(null);
   const [guardando, setGuardando] = useState(false);
   const [mostrarQrModal, setMostrarQrModal] = useState(false);
+  // El ERP de TERRA ajustó la venta (stock o precio): queda `pending` hasta que la caja reconfirme.
+  const [ajusteErp, setAjusteErp] = useState(null);
 
   const [escanerAbierto, setEscanerAbierto] = useState(false);
   const [estadoEscaner, setEstadoEscaner] = useState('');
@@ -229,6 +232,47 @@ export default function VentasDirectasAdmin() {
     if (!item) setTipoNuevo('minorista');
   };
 
+  // Cierra la venta en pantalla: ticket, mensaje y limpieza del carrito.
+  const finalizarVenta = (venta, { itemsSnapshot, clienteSnapshot, vendedor, metodoPago: metodo }) => {
+    const datosTicket = {
+      venta,
+      cliente: clienteSnapshot,
+      items: itemsSnapshot,
+      metodoPago: metodo,
+      vendedor,
+    };
+    setUltimaVenta(datosTicket);
+    setExito(`Venta ${venta.codigo} registrada por ${formatoMoneda(venta.total)}${venta.erp_cotizacion_numero ? ` · Cotización TERRA Nº ${venta.erp_cotizacion_numero}` : ''}.`);
+    setAjusteErp(null);
+    setCarrito([]);
+    setClienteId('');
+    setTipoNuevo('minorista');
+    // Imprimir ticket de venta automáticamente al confirmar
+    imprimirTicketVenta(datosTicket);
+  };
+
+  // El ERP devolvió el pedido ajustado (o bloqueado por productos sin código TERRA):
+  // se muestra el detalle y, si corresponde, el nuevo total para reconfirmar.
+  const mostrarAjusteErp = (e, contexto) => {
+    const pedido = e.datos?.pedido;
+    if (!pedido?.id) return false;
+    const items = Array.isArray(pedido.items) ? pedido.items : [];
+    setAjusteErp({
+      pedido,
+      bloqueado: e.codigo === 'pedido_bloqueado',
+      cambios: Array.isArray(e.datos?.cambios) ? e.datos.cambios : [],
+      contexto: {
+        ...contexto,
+        itemsSnapshot: items.map((it) => ({
+          id: it.productoId, nombre: it.nombre, sku: it.sku, cantidad: Number(it.cantidad || 1),
+          precioUnitario: Number(it.precioUnitario || 0), subtotal: Number(it.subtotal || 0),
+        })),
+      },
+    });
+    setError(items.length ? e.message : 'Ningún producto de la venta tiene stock en TERRA. La venta quedó pendiente en Pedidos; anulala desde allí.');
+    return true;
+  };
+
   const guardar = async () => {
     if (!carrito.length) {
       setError('Agrega al menos un producto.');
@@ -237,46 +281,48 @@ export default function VentasDirectasAdmin() {
     setGuardando(true);
     setError('');
     setExito('');
+    setAjusteErp(null);
+    // Capturar copia de los datos antes de limpiar el carrito para imprimir el ticket
+    const itemsSnapshot = carrito.map((item) => ({
+      id: item.id,
+      nombre: item.nombre,
+      sku: item.sku,
+      medida: item.medida,
+      cantidad: item.cantidad,
+      precioUnitario: precio(item),
+      subtotal: precio(item) * item.cantidad,
+    }));
+    const clienteSnapshot = cliente
+      ? { ...cliente }
+      : (!clienteId && tipoNuevo === 'mayorista' ? { nombre: 'Cliente Mayorista (Mostrador)' } : null);
+    const vendedor = getAdminUser();
+    const contexto = { itemsSnapshot, clienteSnapshot, vendedor, metodoPago };
     try {
-      // Capturar copia de los datos antes de limpiar el carrito para imprimir el ticket
-      const itemsSnapshot = carrito.map((item) => ({
-        id: item.id,
-        nombre: item.nombre,
-        sku: item.sku,
-        medida: item.medida,
-        cantidad: item.cantidad,
-        precioUnitario: precio(item),
-        subtotal: precio(item) * item.cantidad,
-      }));
-      const clienteSnapshot = cliente
-        ? { ...cliente }
-        : (!clienteId && tipoNuevo === 'mayorista' ? { nombre: 'Cliente Mayorista (Mostrador)' } : null);
-      const vendedor = getAdminUser();
-
       const venta = await crearVentaDirecta({
         clienteId: clienteId || null,
         metodoPago,
         tipoMayoristaManual: !clienteId && tipoNuevo === 'mayorista',
         items: carrito.map((item) => ({ productoId: item.id, cantidad: item.cantidad })),
       });
-
-      const datosTicket = {
-        venta,
-        cliente: clienteSnapshot,
-        items: itemsSnapshot,
-        metodoPago,
-        vendedor,
-      };
-
-      setUltimaVenta(datosTicket);
-      setExito(`Venta ${venta.codigo} registrada por ${formatoMoneda(venta.total)}.`);
-      setCarrito([]);
-      setClienteId('');
-      setTipoNuevo('minorista');
-
-      // Imprimir ticket de venta automáticamente al confirmar
-      imprimirTicketVenta(datosTicket);
+      finalizarVenta(venta, contexto);
     } catch (e) {
+      if (['pedido_ajustado', 'pedido_bloqueado'].includes(e.codigo) && mostrarAjusteErp(e, contexto)) return;
+      setError(e.message);
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  // Segunda confirmación tras el ajuste del ERP: cobra el pedido `pending` ya creado.
+  const confirmarVentaAjustada = async () => {
+    if (!ajusteErp?.pedido?.id) return;
+    setGuardando(true);
+    setError('');
+    try {
+      const venta = await registrarPagoPedido(ajusteErp.pedido.id, { metodoPago: ajusteErp.contexto.metodoPago });
+      finalizarVenta(venta, ajusteErp.contexto);
+    } catch (e) {
+      if (['pedido_ajustado', 'pedido_bloqueado'].includes(e.codigo) && mostrarAjusteErp(e, ajusteErp.contexto)) return;
       setError(e.message);
     } finally {
       setGuardando(false);
@@ -708,6 +754,30 @@ export default function VentasDirectasAdmin() {
           </div>
 
           {error && <p className="error-box">{error}</p>}
+          {ajusteErp && (
+            <div className="direct-success-card">
+              <AvisoErp listo cambios={ajusteErp.cambios} total={ajusteErp.bloqueado ? undefined : ajusteErp.pedido.total} />
+              {!ajusteErp.bloqueado && ajusteErp.pedido.items?.length > 0 && (
+                <button
+                  type="button"
+                  className="direct-print-btn"
+                  onClick={confirmarVentaAjustada}
+                  disabled={guardando}
+                >
+                  {guardando ? 'Cobrando en TERRA…' : `Confirmar cobro por ${formatoMoneda(ajusteErp.pedido.total)}`}
+                </button>
+              )}
+              <button
+                type="button"
+                className="direct-print-btn"
+                onClick={() => setAjusteErp(null)}
+                disabled={guardando}
+                title="La venta queda pendiente de cobro en la pantalla de Pedidos"
+              >
+                Dejar pendiente en Pedidos
+              </button>
+            </div>
+          )}
           {exito && (
             <div className="direct-success-card">
               <p className="direct-success">{exito}</p>

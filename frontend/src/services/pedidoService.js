@@ -108,6 +108,28 @@ export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = nul
     body: { metodoPago, comprobanteUrl, costoEnvio },
   });
 }
+// Verificación previa contra el ERP de TERRA (al abrir el modal de cobro).
+// Devuelve { pedido, cambios, hayCambios }; no cobra.
+export async function verificarPedidoErp(id) {
+  exigirConexionReal();
+  const token = getAdminToken();
+  if (!token) throw new Error('Inicia sesión como administrador o vendedor para verificar el pedido.');
+  return apiRequest(`/pedidos/${id}/erp/verificar`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+}
+// La cotización sí quedó registrada en TERRA: cerrar el cobro con su número (solo admin).
+export async function confirmarErpManual(id, { numero, metodoPago = 'efectivo' }) {
+  exigirConexionReal();
+  const token = getAdminToken();
+  if (!token) throw new Error('Inicia sesión como administrador.');
+  return apiRequest(`/pedidos/${id}/erp/manual`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` }, body: { numero, metodoPago } });
+}
+// La cotización no existe en TERRA: habilitar el pedido para cobrarlo de nuevo (solo admin).
+export async function reintentarErp(id) {
+  exigirConexionReal();
+  const token = getAdminToken();
+  if (!token) throw new Error('Inicia sesión como administrador.');
+  return apiRequest(`/pedidos/${id}/erp/reintentar`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: { confirmoQueNoExiste: true } });
+}
 export async function actualizarItemsPedido(id, items, { direccion = undefined, referencia = undefined } = {}) {
   exigirConexionReal();
   const token = getAdminToken();
