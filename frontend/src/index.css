@@ -11,6 +11,16 @@
    ========================================================================== */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 @custom-variant contraste (&:where(.a11y-contraste, .a11y-contraste *));
+/* main.jsx pone iconos-listas en <html> cuando cargó la fuente de iconos: hasta
+   entonces se ocultan las ligaduras ("search", "expand_more") para que no se lean. */
+@custom-variant iconos-listas (&:where(.iconos-listas *));
+/* Estado de la tienda que afecta a los botones flotantes (LayoutCliente):
+   en el carrito se ocultan; con el asistente o el carrito abierto, los demás también. */
+@custom-variant en-carrito (&:where(.app-shell:has(.cart-page) *));
+@custom-variant con-asistente-abierto (&:where(.app-shell:has(.chat-widget.abierto) *));
+@custom-variant con-carrito-abierto (&:where(.app-shell:has(.cart-widget.abierto) *));
+/* Por debajo de 761 px el resumen de Confirmación es una barra fija (Confirmacion.css). */
+@custom-variant con-resumen-fijo (@media (width < 47.5625rem));
 
 @theme {
   --color-terra-50: #fdf2f4;
@@ -30,13 +40,90 @@
 
   /* Teléfono angosto: la grilla del catálogo pasa a 2 columnas desde 360 px. */
   --breakpoint-xs: 22.5rem;
+  /* Ancho máximo del contenido del catálogo (búsqueda, categorías y grilla). */
+  --container-terra: 77.5rem;
 
   --font-terra: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-iconos: "Material Symbols Outlined";
+
+  /* Escala de texto del proyecto (rem: crece con el modo accesible). Completa la de
+     Tailwind (text-xs 0.75, text-sm 0.875, text-base 1, text-xl 1.25, text-2xl 1.5). */
+  --text-terra-3xs: 0.6rem;
+  --text-terra-2xs: 0.7rem;
+  --text-terra-xs: 0.78rem;
+  --text-terra-sm: 0.85rem;
+  --text-terra-md: 0.92rem;
+  --text-terra-lg: 1.05rem;
+  --text-terra-xl: 1.15rem;
+  --text-terra-icono-lg: 1.375rem;
+  --tracking-terra-ajustado: -0.01em;
+  --leading-terra-boton: 1.15;
 
   /* En rem para que escalen con el texto al 125 % y 150 % del modo accesible. */
+  --radius-terra-chico: 0.625rem;
   --radius-terra-boton: 0.75rem;
+  --radius-terra-campo: 0.875rem;
   --radius-terra: 1rem;
   --radius-terra-tarjeta: 1.125rem;
+  --radius-terra-modal: 1.25rem;
+
+  --color-terra-estrella: #f5a623;
+  --color-terra-estrella-texto: #b8860b;
+  /* Ícono encendido sobre fondo vino (chip Ofertas activo, lectura de imagen QR). */
+  --color-terra-destello: #ffd08a;
+  /* Placa clara detrás del logo PNG en modo noche (la caligrafía es oscura). */
+  --color-terra-placa: #faf5ef;
+
+  --shadow-terra-control: 0 4px 10px rgba(0, 0, 0, 0.04);
+  --shadow-terra-chip: 0 4px 8px rgba(0, 0, 0, 0.05);
+  --shadow-terra-chip-activo: 0 4px 10px rgba(0, 0, 0, 0.10);
+  --shadow-terra-tarjeta: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --shadow-terra-tarjeta-hover: 0 20px 48px rgba(166, 25, 46, 0.14);
+  --shadow-terra-insignia: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-terra-flotante: 0 8px 24px rgba(166, 25, 46, 0.35);
+  /* Anillo de foco o de selección (campo de búsqueda, tarjeta recién agregada). */
+  --shadow-terra-anillo: 0 0 0 4px rgba(166, 25, 46, 0.12);
+
+  --animate-terra-aparecer: terra-aparecer 0.2s ease both;
+  --animate-terra-hoja: terra-subir 0.25s ease both;
+  --animate-terra-entrada: terra-entrada 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-terra-brillo: terra-brillo 1.3s ease-in-out infinite;
+  --animate-terra-latido: terra-latido 1.5s ease-in-out infinite;
+  --animate-terra-giro: terra-giro 0.8s linear infinite;
+  --animate-terra-halo: terra-halo 2.4s ease-out infinite;
+  --animate-terra-pulso: terra-pulso 1s ease-in-out infinite;
+
+  @keyframes terra-aparecer {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes terra-subir {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes terra-entrada {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes terra-brillo {
+    from { background-position: 120% 0; }
+    to { background-position: -120% 0; }
+  }
+  @keyframes terra-latido {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  @keyframes terra-giro {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes terra-halo {
+    0% { box-shadow: 0 8px 24px rgba(166, 25, 46, 0.35), 0 0 0 0 rgba(166, 25, 46, 0.34); }
+    70% { box-shadow: 0 8px 24px rgba(166, 25, 46, 0.35), 0 0 0 12px rgba(166, 25, 46, 0); }
+    100% { box-shadow: 0 8px 24px rgba(166, 25, 46, 0.35), 0 0 0 0 rgba(166, 25, 46, 0); }
+  }
+  @keyframes terra-pulso {
+    50% { transform: scale(1.14); }
+  }
 }
 
 /* Tokens que cambian con el tema: la utilidad usa directamente la variable de
@@ -58,14 +145,57 @@
   --color-terra-ok-fondo: var(--terra-ok-fondo);
   --color-terra-alerta: var(--terra-alerta);
   --color-terra-fondo-imagen: var(--terra-fondo-imagen-producto);
+  --color-terra-acento: var(--terra-acento);
+  --color-terra-oferta: var(--terra-oferta);
+  --color-terra-control: var(--terra-control);
+  --color-terra-control-hover: var(--terra-control-hover);
+  --color-terra-borde-control: var(--terra-borde-control);
+  --color-terra-texto-control: var(--terra-texto-control);
+  --color-terra-borde-suave: var(--terra-borde-suave);
+  --color-terra-borde-hover: var(--terra-borde-hover);
+  --color-terra-texto-tenue: var(--terra-texto-tenue);
+  --color-terra-esqueleto: var(--terra-esqueleto);
+  --color-terra-deshabilitado: var(--terra-deshabilitado);
+  --color-terra-encabezado: var(--terra-encabezado);
+  --color-terra-velo: var(--terra-velo);
+  --color-terra-aviso-fondo: var(--terra-aviso-fondo);
+  --color-terra-aviso-texto: var(--terra-aviso-texto);
+  --color-terra-oro-fondo: var(--terra-oro-fondo);
+  --color-terra-oro-texto: var(--terra-oro-texto);
 
   --shadow-terra: var(--terra-sombra);
   --shadow-terra-sm: var(--terra-sombra-sm);
 
-  /* Medidas de la columna de botones flotantes y de la barra inferior móvil
-     (definidas en .app-shell, routes/Layout.css). */
-  --spacing-terra-flotante: var(--floating-cart-size);
+  /* Botones flotantes (QR, carrito, asistente) y barra inferior móvil. */
+  --spacing-terra-flotante: var(--terra-flotante-tamano);
+  --spacing-terra-flotante-abajo: var(--terra-flotante-abajo);
+  --spacing-terra-flotante-derecha: var(--terra-flotantes-derecha);
+  --spacing-terra-flotante-separacion: var(--terra-flotante-separacion);
   --spacing-terra-barra-inferior: var(--terra-barra-inferior-alto);
+}
+
+@theme {
+  /* Zona de toque fija (no crece con el texto): la usan controles que deben entrar
+     en una fila aunque el texto esté al 150 %, como el paginador. */
+  --spacing-terra-toque: 44px;
+  --spacing-terra-hueco: 6px;
+}
+
+/* Borde de 1.5 px de campos, chips y botones del paginador (Tailwind v4 no tiene
+   un espacio de tema para anchos de borde). */
+@utility borde-medio {
+  border-width: 1.5px;
+}
+
+/* Esqueleto animado mientras una foto todavía no cargó (tarjeta del catálogo). */
+@utility fondo-cargando {
+  background-image: linear-gradient(100deg, var(--terra-esqueleto) 20%, var(--terra-superficie-2) 40%,
+    var(--terra-esqueleto) 60%);
+  background-size: 220% 100%;
+  animation: var(--animate-terra-brillo);
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 /* Valores en modo claro. Modo oscuro: html[data-theme="dark"] en theme-dark.css.
@@ -88,10 +218,50 @@
   --terra-alerta: #c0392b;
   --terra-sombra: 0 20px 48px rgba(166, 25, 46, 0.10);
   --terra-sombra-sm: 0 8px 24px rgba(166, 25, 46, 0.12);
+  /* Texto de acento sobre superficie (vino en claro, rosado en noche). */
+  --terra-acento: #a6192e;
+  --terra-oferta: #e0304a;
+  /* Botones y enlaces del encabezado. */
+  --terra-control: #f6f3f2;
+  --terra-control-hover: #f0eded;
+  --terra-borde-control: #dcd9d9;
+  --terra-texto-control: #404944;
+  --terra-borde-suave: #e7e5e4;
+  --terra-borde-hover: #e0cfc5;
+  --terra-texto-tenue: #cbb7ba;
+  --terra-esqueleto: #eae7e7;
+  --terra-deshabilitado: #c29297;
+  --terra-encabezado: rgba(255, 255, 255, 0.96);
+  --terra-velo: rgba(35, 26, 22, 0.55);
+  --terra-aviso-fondo: #ffdb9b;
+  --terra-aviso-texto: #5a4311;
+  --terra-oro-fondo: #fff7df;
+  --terra-oro-texto: #b27600;
 
   /* Las fotos de producto tienen fondo blanco: el contenedor también, en todos los temas,
      para que object-fit: contain no deje franjas de otro color a los costados. */
   --terra-fondo-imagen-producto: #ffffff;
+
+  /* Columna de botones flotantes (QR, carrito, asistente) a la derecha y botón de
+     accesibilidad a la izquierda. La zona segura inferior evita que la barra de
+     gestos del teléfono los corte. */
+  --terra-barra-inferior-alto: 60px;
+  --terra-flotante-tamano: 3.4rem;
+  --terra-flotante-separacion: 0.9rem;
+  --terra-flotantes-derecha: 1rem;
+  --terra-flotante-abajo: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  --terra-flotantes-alto: calc(var(--terra-flotante-tamano) * 3 + var(--terra-flotante-separacion) * 2);
+  /* Ancho que ocupan desde el borde de la pantalla (para reservarlo en la grilla). */
+  --terra-flotantes-reserva: calc(var(--terra-flotantes-derecha) + var(--terra-flotante-tamano) + 0.75rem);
+  --terra-a11y-reserva: calc(16px + 56px + 0.75rem);
+}
+@media (width < 40rem) {
+  :root {
+    --terra-flotante-tamano: 3rem;
+    --terra-flotante-separacion: 0.75rem;
+    --terra-flotantes-derecha: 0.75rem;
+    --terra-flotante-abajo: calc(var(--terra-barra-inferior-alto) + 1.25rem + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Reglas globales por etiqueta: en la capa base para que las utilidades de
@@ -113,9 +283,6 @@
   h1 { font-size: clamp(1.8rem, 3vw, 2.7rem); line-height: 1.15; }
 }
 
-.app-shell { min-height: 100vh; display: flex; flex-direction: column; }
-/* Cabecera, marca y nav son exclusivas de routes/Layout.css (.site-header.terra-header). */
-.demo-banner { text-align: center; padding: 10px; background: #fff0cd; color: #634718; font-weight: 650; }
 .hero-card { border-radius: 28px; background: linear-gradient(125deg,#0b593b,#18885b); color: white; padding: clamp(35px, 7vw, 85px); }
 .hero-card h1 { font-size: clamp(2.4rem, 6vw, 4.8rem); max-width: 660px; }
 .hero-card p { font-size: 1.2rem; max-width: 570px; margin-bottom: 28px; color: #e2f6e9; }
@@ -179,7 +346,6 @@
 .code-card strong { font-size: clamp(1.2rem, 3vw, 2.3rem); color: #125c3a; }
 @media (max-width: 1000px) { .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 750px) {
-  .site-header { flex-direction: column; padding: 15px; }
   .feature-grid { grid-template-columns: 1fr; }
   .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cart-row { flex-wrap: wrap; }

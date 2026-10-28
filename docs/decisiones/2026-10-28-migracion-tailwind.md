@@ -35,4 +35,13 @@ tags: [decision, frontend, css]
 - Al pasar las reglas globales a `@layer base`, el login del admin empezó a mostrar las clases de Tailwind que ya tenía y que esas reglas anulaban (título de 24 px, enlace en vino). Se aceptó ese diseño, con campos y botón en `text-base` (16 px) para evitar el zoom de iOS. En DetalleProducto se restauró el cursor del botón de cantidad deshabilitado.
 - Se quitó la carga de la fuente Fraunces de `index.html`: ningún estilo la usaba.
 
+## Fase 1 (catálogo y layout del cliente)
+- Código nuevo en `src/features/catalogo/` (página, componentes, hook del escáner QR y funciones puras con tests) y `src/features/layout-cliente/`.
+- Clases gancho sin estilos (`terra-card`, `terra-cat`, `page-content`, `site-header`...) se mantienen porque `accesibilidad.css` y pantallas no migradas las usan.
+- Iconos con `IconoMaterial` en lugar de la clase de Google, que fija 24 px fuera de capas. Se respetó el tamaño de 24 px que esa clase imponía en el catálogo.
+- El paginador usa medidas en px (`terra-toque`, 44 px) y pasa a la versión compacta por debajo de 40 rem: así entra en una fila con texto al 150 %.
+- Cortes del catálogo mayorista: 600, 800 y 1100 px pasaron a `sm`, `md` y `lg`. Entre 1024 y 1100 px ahora se ven 2 columnas con el resumen al costado, en vez de 3 columnas con precios partidos en dos líneas. El de 1350 px se conserva (`min-[84.375rem]`): llevarlo a `xl` (1280) dejaba 3 columnas demasiado angostas.
+- Desde 768 px la grilla reserva también el ancho del botón de accesibilidad a la izquierda. En Confirmación, por debajo de 761 px (variante `con-resumen-fijo:`), los flotantes y el botón de accesibilidad arrancan sobre la barra del resumen.
+- Desde 640 px las acciones del encabezado pasan a una segunda línea cuando no entran (texto al 150 %), en vez de recortar el logo y "Carrito".
+
 Relacionado: [[00-roadmap]] · [[2026-10-28-flotantes-y-catalogo-movil]]

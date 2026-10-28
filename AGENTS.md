@@ -67,7 +67,7 @@ Si una decisión registrada en `docs/decisiones/` contradice lo que pide la tare
       colores.js
   ```
 - Las piezas compartidas y sin dominio van en `src/components/ui/` (Button, Modal, Input, Toast) y `src/hooks/`.
-- El código actual está en `src/pages/`. Mueve una pantalla a `src/features/` solo cuando una tarea la refactorice; nunca muevas archivos en masa.
+- El código actual está en `src/pages/`. Mueve una pantalla a `src/features/` solo cuando una tarea la refactorice; nunca muevas archivos en masa. Ya migrados: `src/features/catalogo/` y `src/features/layout-cliente/`.
 
 ### Reglas de componentes
 - Página (`*Page.jsx`): obtiene los datos con hooks y compone componentes.
@@ -115,6 +115,13 @@ La migración de CSS a Tailwind va por fases y por pantalla (avance en `docs/00-
 - `dark:` → `[data-theme="dark"]` en `<html>`. TemaContext y el script de `index.html` siempre escriben el atributo, también al seguir `prefers-color-scheme`.
 - `contraste:` → clase `a11y-contraste` en `<html>` (ModoAccesibleContext; también con `prefers-contrast: more`). Con ambas activas gana `contraste:`.
 - Lo normal es no necesitar variantes: los tokens ya cambian con el tema. Úsalas solo para excepciones.
+- Otras variantes de `index.css`: `iconos-listas:` (la fuente de iconos cargó), `en-carrito:`, `con-asistente-abierto:` y `con-carrito-abierto:` (estado de la tienda que oculta los botones flotantes), y `con-resumen-fijo:` (< 761 px, cuando el resumen de Confirmación es una barra fija).
+- Utilidades propias (`@utility` en `index.css`): `borde-medio` (borde de 1.5 px) y `fondo-cargando` (esqueleto de una foto que no cargó).
+
+### Componentes compartidos
+- Iconos de Material Symbols con `components/ui/IconoMaterial.jsx` (tamaño siempre en `className`, por ejemplo `text-2xl`). No uses la clase `material-symbols-outlined`: la hoja de Google fija 24 px fuera de capas y anula las utilidades.
+- Carga: `components/ui/IndicadorCarga.jsx`. Botones flotantes: posiciones y estilo en `components/flotantes/estilosFlotantes.js` (única definición).
+- Clases gancho: algunas clases sin estilos propios se mantienen en el JSX porque otras hojas o el JS las usan (`app-shell`, `page-content`, `site-header`, `site-footer`, `cart-widget`, `chat-widget`, `menu-movil`, `terra-card`, `terra-cat`, `terra-btn-agregar`, `terra-paginador__btn`, `terra-grid`...). No les agregues estilos; desaparecen cuando se migran las hojas que las usan (sobre todo `accesibilidad.css`).
 
 ### Cascada: el CSS heredado gana a las utilidades
 - Las utilidades de Tailwind están en `@layer utilities`; todo el CSS de los `.css` del proyecto está fuera de capas y les gana aunque tenga menos especificidad. Al migrar un componente, borra sus reglas viejas en la misma tarea; si no, la clase de Tailwind no tiene efecto.

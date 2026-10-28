@@ -34,7 +34,7 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 | Fase | Pantallas | Estado |
 |---|---|---|
 | 0 | Base: tokens `@theme`, variantes `dark:` y `contraste:`, reglas globales en `@layer base` | Hecha el 2026-10-28 |
-| 1 | Catálogo, tarjeta, paginación, filtros, flotantes y Layout del cliente | En curso |
+| 1 | Catálogo, tarjeta, paginación, filtros, flotantes y Layout del cliente | Hecha el 2026-10-28. Código en `src/features/catalogo/` y `src/features/layout-cliente/`; se borraron `Catalogo.css`, `Layout.css`, `FloatingActions.css`, `NavigationFix.css` y `HeaderOptionsHidden.css` |
 | 2 | DetalleProducto | Pendiente |
 | 3 | Carrito, Identificación, Confirmación, PedidoGenerado | Pendiente |
 | 4 | Bienvenida, Categorías | Pendiente |
@@ -42,6 +42,7 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 | 6 | Admin | Pendiente |
 
 ### Otros
+- **Extraer hooks de `CatalogoPage.jsx`** (tarea aparte): supera las 300 líneas por la lógica de filtros, orden, paginación, voz y teclado. Pasarla a hooks en `src/features/catalogo/hooks/` sin cambiar comportamiento.
 - Subir los commits `f24bf3a` y `13f46df` **sin reescribir historia**: nada de force push sobre `812212d`, que ya está publicado.
 - Asignar clave a los 4 mayoristas existentes desde Clientes (botón de llave): hasta entonces no pueden entrar.
 
@@ -66,7 +67,7 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 
 ### Calidad y documentación
 - Revisión visual en modo claro, oscuro y alto contraste de Pedidos, Ventas directas y Clientes (cambios del 28/10 sin revisión en navegador).
-- Pendientes vistos al corregir el catálogo móvil: en Confirmación el botón del asistente tapa la barra "Total a pagar en caja"; el botón de accesibilidad tapa la primera columna del catálogo mientras se hace scroll; a 884 px y con texto al 150 % el enlace "Catálogo de Productos" del encabezado ocupa dos o tres líneas; el bloque móvil de `Catalogo.css` (`max-width: 639px`) todavía repite casi toda la tarjeta de escritorio.
+- Resueltos en la fase 1 de Tailwind: el asistente ya no tapa "Total a pagar en caja" en Confirmación; desde 768 px el botón de accesibilidad no pasa sobre la grilla; el enlace "Catálogo de Productos" queda en una línea (solo ícono entre 640 y 1023 px). Además, con texto al 150 % el encabezado ya no recorta el logo ni "Carrito" (pasa a dos líneas).
 - La guía de usuario `docs/GUIA_USUARIO_TERRA_AUTOSERVICIO.md` que cita `AGENTS.md` no existe.
 - Scripts de la raíz (`scripts/asignar-productos-central.mjs`, `scripts/reclasificar-categorias.mjs`, `scripts/importar-excel-supabase.mjs`) todavía mencionan Supabase o deducen TLS por el host.
 

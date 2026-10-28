@@ -1,9 +1,0 @@
-/* Navigation fix for TERRA brand palette */
-.site-header.terra-header .desktop-nav a.active {
-  background-color: #a6192e;
-  color: #ffffff;
-}
-.site-header.terra-header .desktop-nav a.active:hover {
-  background-color: #8e1527;
-  color: #ffffff;
-}

@@ -24,15 +24,16 @@ test('con pocas páginas se muestran todas', () => {
   assert.deepEqual(paginasVisibles(1, 0), []);
 });
 
-test('el ancho elige la versión: 360 px compacta, 768 px completa', () => {
+test('el ancho elige la versión: teléfono compacta, desde 640 px completa', () => {
   assert.equal(usarPaginadorCompacto(360), true);
   assert.equal(usarPaginadorCompacto(412), true);
-  assert.equal(usarPaginadorCompacto(480), false);
+  assert.equal(usarPaginadorCompacto(639), true);
+  assert.equal(usarPaginadorCompacto(640), false);
   assert.equal(usarPaginadorCompacto(768), false);
 });
 
-test('con texto al 150 % la versión compacta llega a anchos mayores', () => {
-  assert.equal(usarPaginadorCompacto(480, 24), true);
-  assert.equal(usarPaginadorCompacto(768, 24), false);
+test('con texto al 150 % la versión compacta llega a la tablet de 768 px', () => {
+  assert.equal(usarPaginadorCompacto(768, 24), true);
+  assert.equal(usarPaginadorCompacto(1024, 24), false);
   assert.equal(usarPaginadorCompacto(360, 0), true);
 });

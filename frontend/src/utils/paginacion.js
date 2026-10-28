@@ -4,7 +4,7 @@
 // Por debajo de este ancho, medido en rem de la raíz, la versión completa no entra
 // en una fila. Se mide en rem para que el modo accesible (texto al 125 % o 150 %)
 // pase antes a la versión compacta.
-export const ANCHO_PAGINADOR_COMPACTO_REM = 30;
+export const ANCHO_PAGINADOR_COMPACTO_REM = 40;
 
 export function usarPaginadorCompacto(anchoPx, fuenteRaizPx = 16) {
   const fuente = Number(fuenteRaizPx) > 0 ? Number(fuenteRaizPx) : 16;

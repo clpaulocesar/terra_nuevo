@@ -21,6 +21,7 @@ Verificación final de cada fase: `npm run build` y `npm run lint` (desde `front
 ## Fase 1 — Módulos de cliente
 
 - [x] **1.0 Catálogo móvil (2026-10-28).** Ancho completo con margen de 16 px, 2 columnas desde 360 px y 3 desde 768, imagen cuadrada (< 1024 px), nombre en 2 líneas, paginación en una fila (versión compacta en `utils/paginacion.js`), flotantes con una sola definición en `routes/FloatingActions.css` y zona segura (`viewport-fit=cover`), logo de 2.75rem y Tutorial solo ícono por debajo de 400 px. Decisión en `docs/decisiones/2026-10-28-flotantes-y-catalogo-movil.md`.
+- [x] **1.0b Catálogo y layout del cliente en Tailwind (fase 1, 2026-10-28).** Ver `docs/decisiones/2026-10-28-migracion-tailwind.md`. Cubre 1.1 (no hay doble encabezado: el catálogo usa el del layout) y 1.10.
 
 - [ ] **1.1 `/catálogo` — doble encabezado (bug visual).** La ruta vive dentro de `Layout` (que dibuja `site-header terra-header`) y `Catalogo.jsx` además dibuja su propio `<header className="fixed top-0 … h-20 …">` (línea 185). Se superponen. Decidir si el catálogo usa el header de Layout o el propio, y ajustar `padding-top` del `main`.
 - [ ] **1.2 Header propio del catálogo en móvil**: logo + nav de 3 botones + carrito + inicio + avatar sin clases responsivas → desborda en 360px. Ocultar nav en ≤520px o convertirlo en menú.

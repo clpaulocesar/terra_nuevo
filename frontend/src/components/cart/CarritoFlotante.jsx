@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react';
 import { useCarrito } from '../../hooks/useCarrito.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
+import {
+  BOTON_FLOTANTE, OCULTO_CON_ASISTENTE, OCULTO_EN_CARRITO, POSICION_CARRITO,
+} from '../flotantes/estilosFlotantes.js';
 import './CarritoFlotante.css';
 
 export default function CarritoFlotante() {
@@ -18,7 +21,10 @@ export default function CarritoFlotante() {
   }, [abierto]);
 
   return (
-    <div className={`cart-widget ${abierto ? 'abierto' : ''}`}>
+    <div
+      className={`cart-widget z-75 font-terra ${abierto ? 'abierto' : ''} ${POSICION_CARRITO} ${OCULTO_EN_CARRITO}
+        ${OCULTO_CON_ASISTENTE}`}
+    >
       {abierto && <button type="button" className="cart-overlay" onClick={() => setAbierto(false)} aria-label="Cerrar carrito" />}
 
       <aside className="cart-drawer" aria-hidden={!abierto} aria-label="Carrito de compra" role="dialog" aria-modal="true">
@@ -89,13 +95,18 @@ export default function CarritoFlotante() {
 
       <button
         type="button"
-        className="cart-fab"
+        className={`relative ${BOTON_FLOTANTE} ${abierto ? 'hidden' : 'inline-flex'}`}
         onClick={() => setAbierto((v) => !v)}
         aria-expanded={abierto}
         aria-label={abierto ? 'Cerrar carrito' : 'Abrir carrito'}
       >
         {abierto ? <X size={24} /> : <ShoppingCart size={24} />}
-        {!abierto && cantidadTotal > 0 && <b className="cart-fab-badge">{cantidadTotal}</b>}
+        {!abierto && cantidadTotal > 0 && <b
+            className="absolute -top-1.5 -right-1.5 inline-flex h-5.5 min-w-5.5 items-center justify-center rounded-full
+              bg-terra-texto px-1.25 text-xs font-extrabold text-terra-superficie"
+          >
+            {cantidadTotal}
+          </b>}
       </button>
     </div>
   );

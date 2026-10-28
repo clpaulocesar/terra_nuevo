@@ -6,12 +6,13 @@
    ===================================================================== */
 
 /* ---------- Botón flotante ♿ y panel ---------- */
-.a11y-flotante { position: fixed; left: 16px; bottom: 16px; z-index: 1300; }
+/* --terra-a11y-abajo: la define una pantalla que necesita subirlo (Confirmación, en LayoutCliente). */
+.a11y-flotante { position: fixed; left: 16px; bottom: var(--terra-a11y-abajo, 16px); z-index: 1300; }
 /* El teclado es un diálogo de pantalla completa: no debe quedar ningún FAB sobre sus teclas. */
 html:has(.tt-board) .a11y-flotante { pointer-events: none; visibility: hidden; }
 @media (max-width: 640px) {
   /* Se alinea con los controles flotantes, por encima de la navegación inferior. */
-  .a11y-flotante { bottom: var(--floating-cart-bottom, 5.2rem); }
+  .a11y-flotante { bottom: var(--terra-flotante-abajo); }
 }
 .a11y-boton {
   position: relative;
@@ -160,6 +161,11 @@ html.a11y-contraste {
   --terra-fondo: var(--td-bg); --terra-superficie: var(--td-surface); --terra-superficie-2: var(--td-surface-2);
   --terra-crema: #000; --terra-texto: #fff; --terra-texto-suave: #e6e6e6; --terra-borde: #fff;
   --terra-ok: #7cff9b; --terra-ok-fondo: #003314; --terra-alerta: #ff8c8c;
+  --terra-acento: #ffd400; --terra-oferta: #ffd400; --terra-control: #000; --terra-control-hover: #1f1f1f;
+  --terra-borde-control: #fff; --terra-texto-control: #fff; --terra-borde-suave: #fff; --terra-borde-hover: #fff;
+  --terra-texto-tenue: #e6e6e6; --terra-esqueleto: #1f1f1f; --terra-deshabilitado: #333; --terra-encabezado: #000;
+  --terra-velo: rgba(0, 0, 0, 0.85); --terra-aviso-fondo: #000; --terra-aviso-texto: #ffd400;
+  --terra-oro-fondo: #000; --terra-oro-texto: #ffd400;
   --td-bg: #000; --td-surface: #000; --td-surface-2: #111; --td-surface-3: #1f1f1f; --td-line: #fff; --td-line-soft: #bbb;
   --td-text: #fff; --td-muted: #e6e6e6; --td-accent: #ffd400; --td-accent-soft: #332b00; --td-ok: #7cff9b; --td-ok-bg: #003314;
   --terra-border: #fff; --terra-surface: #000; --terra-bg-soft: #111; --terra-text-dark: #fff; --terra-text-muted: #e6e6e6; --terra-wine: #ffd400; --terra-wine-light: #332b00;

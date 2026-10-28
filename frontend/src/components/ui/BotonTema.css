@@ -28,3 +28,9 @@ html[data-theme="dark"] .terra-theme-btn {
   color: #f4ede8;
 }
 html[data-theme="dark"] .terra-theme-btn:hover { background: #332a28; color: #ffb3bd; }
+
+/* Dentro del menú desplegable del teléfono (EncabezadoCliente, clase menu-movil),
+   el botón de tema y los de voz miden 42 px. */
+@media (width < 40rem) {
+  .menu-movil .terra-theme-btn { display: inline-flex; flex: 0 0 auto; width: 2.625rem; height: 2.625rem; }
+}
