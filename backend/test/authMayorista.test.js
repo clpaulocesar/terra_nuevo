@@ -110,6 +110,18 @@ describe('autenticación de mayoristas', { skip: SALTAR_SIN_BD }, () => {
     assert.equal(publico.status, 201);
     assert.equal(Number(publico.cuerpo.data.total), 100);
     assert.equal((await api('POST', '/api/pedidos', { token: 'basura.basura', body: { items, metodoPago: 'efectivo' } })).status, 403);
+
+    // Cobro por HTTP (ERP desactivado): QR sin referencia -> 400; con referencia -> una fila en payments.
+    const admin = await tokenAdmin();
+    const sinRef = await api('PATCH', `/api/pedidos/${publico.cuerpo.data.id}/pago`, { token: admin, body: { metodoPago: 'qr' } });
+    assert.equal(sinRef.status, 400);
+    assert.equal((await pool.query('SELECT COUNT(*)::int AS n FROM payments')).rows[0].n, 0);
+    const cobro = await api('PATCH', `/api/pedidos/${publico.cuerpo.data.id}/pago`, { token: admin, body: { metodoPago: 'qr', referencia: 'QR-123' } });
+    assert.equal(cobro.status, 200, JSON.stringify(cobro.cuerpo));
+    const { rows: filas } = await pool.query('SELECT provider, provider_transaction_id, status, amount_minor, registered_by FROM payments');
+    assert.equal(filas.length, 1);
+    assert.deepEqual({ ...filas[0], amount_minor: Number(filas[0].amount_minor) }, { provider: 'qr', provider_transaction_id: 'QR-123', status: 'approved', amount_minor: 10000, registered_by: filas[0].registered_by });
+    assert.ok(filas[0].registered_by);
   });
 
   test('5. el alta crea customers + users en una transacción; el duplicado no deja nada', async () => {

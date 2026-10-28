@@ -24,11 +24,11 @@ export async function crearPedido({ clienteId = null, items, token = null, entre
     },
   });
 }
-export async function crearVentaDirecta({ clienteId = null, items, metodoPago, tipoMayoristaManual = false }) {
+export async function crearVentaDirecta({ clienteId = null, items, metodoPago, referencia = null, tipoMayoristaManual = false }) {
   exigirConexionReal();
   const token = getAdminToken();
   if (!token) throw new Error('Inicia sesión nuevamente como administrador.');
-  return apiRequest('/pedidos/venta-directa', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: { clienteId, items, metodoPago, tipoMayoristaManual } });
+  return apiRequest('/pedidos/venta-directa', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: { clienteId, items, metodoPago, referencia, tipoMayoristaManual } });
 }
 export async function obtenerPedido(id) { exigirConexionReal(); return apiRequest(`/pedidos/${id}`); }
 export async function listarPedidos({ buscar = '', estado = '', entrega = '', limite = 100 } = {}) {
@@ -98,14 +98,15 @@ export async function asignarRepartidorPedido(id, repartidorId = null) {
     body: { repartidorId },
   });
 }
-export async function registrarPagoPedido(id, { metodoPago, comprobanteUrl = null, costoEnvio = null }) {
+// `referencia` = número de transacción o comprobante; el backend la exige para QR y tarjeta.
+export async function registrarPagoPedido(id, { metodoPago, referencia = null, costoEnvio = null }) {
   exigirConexionReal();
   const token = getAdminToken();
   if (!token) throw new Error('Inicia sesión como administrador o vendedor para registrar el cobro.');
   return apiRequest(`/pedidos/${id}/pago`, {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${token}` },
-    body: { metodoPago, comprobanteUrl, costoEnvio },
+    body: { metodoPago, referencia, costoEnvio },
   });
 }
 // Verificación previa contra el ERP de TERRA (al abrir el modal de cobro).

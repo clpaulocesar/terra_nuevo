@@ -6,8 +6,6 @@ import {
   CreditCard,
   Download,
   Edit3,
-  ExternalLink,
-  ImagePlus,
   MapPin,
   Minus,
   Package,
@@ -36,7 +34,6 @@ import { listarProductos } from '../../services/productoService.js';
 import AvisoErp from '../../components/admin/AvisoErp.jsx';
 import { etiquetaEstadoErp } from '../../utils/erpCambios.js';
 import { getAdminUser } from '../../services/adminService.js';
-import { subirComprobantePago } from '../../services/storageService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
 import { imprimirTicketPedido } from '../../utils/imprimirTicket.js';
 import { descargarTicket } from '../../utils/descargarTicket.js';
@@ -79,7 +76,8 @@ export default function PedidosAdmin() {
   const [actualizando, setActualizando] = useState(false);
   const [error, setError] = useState('');
   const [metodo, setMetodo] = useState('qr');
-  const [archivoComprobante, setArchivoComprobante] = useState(null);
+  // Número de transacción o comprobante del cobro: obligatorio para QR y tarjeta.
+  const [referenciaPago, setReferenciaPago] = useState('');
   const [subiendoPago, setSubiendoPago] = useState(false);
   const [anulandoId, setAnulandoId] = useState(null);
   const [imprimiendoId, setImprimiendoId] = useState(null);
@@ -159,8 +157,8 @@ export default function PedidosAdmin() {
 
   const abrirPedido = async (pedido, { iniciarEnEdicion = false } = {}) => {
     setSeleccion(pedido);
-    setMetodo(pedido.metodo_pago === 'tarjeta' ? 'tarjeta' : 'efectivo');
-    setArchivoComprobante(null);
+    setMetodo(['tarjeta', 'qr'].includes(pedido.metodo_pago_solicitado) ? pedido.metodo_pago_solicitado : 'efectivo');
+    setReferenciaPago('');
     setError('');
     setModoEdicion(iniciarEnEdicion);
     setMensajeEdicion('');
@@ -578,6 +576,8 @@ export default function PedidosAdmin() {
     if (verificandoErp) return;
     if (!erpListo) { setError('Primero hay que verificar el pedido con TERRA.'); return; }
     if (bloqueadoErp) { setError('Hay productos sin código TERRA. Completá el código en Productos antes de cobrar.'); return; }
+    const referencia = referenciaPago.trim();
+    if (metodo !== 'efectivo' && !referencia) { setError('Ingresá el número de transacción o referencia del cobro.'); return; }
     let costoEnvio = null;
     if (seleccion.tarifa_envio_pendiente) {
       const valor = window.prompt('Ingresá el costo de envío en bolivianos antes de cobrar:', '');
@@ -590,18 +590,17 @@ export default function PedidosAdmin() {
     }
     setSubiendoPago(true); setError('');
     try {
-      const comprobanteUrl = archivoComprobante ? await subirComprobantePago(archivoComprobante) : seleccion.comprobante_url || null;
-      const actualizado = await registrarPagoPedido(seleccion.id, { metodoPago: metodo, comprobanteUrl, costoEnvio });
+      const actualizado = await registrarPagoPedido(seleccion.id, { metodoPago: metodo, referencia: referencia || null, costoEnvio });
       const cambios = {
         estado: actualizado?.estado ?? 'completed',
-        comprobante_url: actualizado?.comprobante_url ?? comprobanteUrl,
         metodo_pago: actualizado?.metodo_pago ?? metodo,
+        pago_referencia: actualizado?.pago_referencia ?? referencia ?? null,
         erp_estado: actualizado?.erp_estado ?? null,
         erp_cotizacion_numero: actualizado?.erp_cotizacion_numero ?? null,
         total: Number(actualizado?.total ?? seleccion.total),
       };
       setPedidos((lista) => lista.map((pedido) => pedido.id === seleccion.id ? { ...pedido, ...cambios } : pedido));
-      setSeleccion(null); setArchivoComprobante(null);
+      setSeleccion(null); setReferenciaPago('');
     } catch (err) {
       // El ERP ajustó stock o precio entre la verificación y el cobro: se muestra el nuevo
       // total y el cajero vuelve a confirmar (la segunda vez no habrá cambios).
@@ -645,7 +644,7 @@ export default function PedidosAdmin() {
       setPedidos((lista) => lista.map((actual) => actual.id === pedido.id ? { ...actual, ...cambios } : actual));
       setSeleccion(null);
       setModoEdicion(false);
-      setArchivoComprobante(null);
+      setReferenciaPago('');
     } catch (err) {
       setError(err.message || 'No se pudo anular el pedido.');
     } finally {
@@ -720,7 +719,6 @@ export default function PedidosAdmin() {
   }, [pedidos]);
   const pedidosAnulados = pedidos.filter((pedido) => ['cancelado', 'cancelled'].includes(String(pedido.estado || '').toLowerCase())).length;
 
-  const comprobanteActual = archivoComprobante ? URL.createObjectURL(archivoComprobante) : seleccion?.comprobante_url;
   const pendiente = seleccion && POR_COBRAR.includes(seleccion.estado);
   const anulado = seleccion ? esAnulado(seleccion.estado) : false;
 
@@ -1137,10 +1135,25 @@ export default function PedidosAdmin() {
           >
             <CreditCard />Tarjeta
           </button>
-          <button type="button" disabled title="La confirmación QR llegará desde la entidad de pago">
-            <QrCode />QR automático
+          <button
+            className={metodo === 'qr' ? 'active' : ''}
+            type="button"
+            onClick={() => setMetodo('qr')}
+          >
+            <QrCode />QR
           </button>
         </div>
+        <label className="orders-reference">
+          <span>{metodo === 'efectivo' ? 'Referencia del cobro (opcional)' : 'Número de transacción o comprobante'}</span>
+          <input
+            type="text"
+            value={referenciaPago}
+            maxLength={80}
+            required={metodo !== 'efectivo'}
+            onChange={(event) => setReferenciaPago(event.target.value)}
+            placeholder={metodo === 'qr' ? 'Nº de operación del QR' : metodo === 'tarjeta' ? 'Nº de autorización del POS' : 'Nº de recibo (opcional)'}
+          />
+        </label>
         {(metodo === 'qr' || seleccion.metodo_pago_solicitado === 'qr') && (
           <div className="orders-hint" style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-start' }}>
             <p>Cobro por QR Bancario: muestra el QR oficial al cliente y verifica el abono en la banca móvil.</p>
@@ -1157,7 +1170,9 @@ export default function PedidosAdmin() {
         {metodo === 'efectivo' && <p className="orders-hint">Recibí el monto en efectivo y registrá el cobro.</p>}
         {metodo === 'tarjeta' && <p className="orders-hint">Procesá la tarjeta en el POS y registrá el cobro.</p>}
       </>}
-      <section className="orders-receipt"><div className="orders-receipt-head"><div><b><ImagePlus size={17} /> Comprobante de pago</b><span>Opcional · JPG, PNG o WEBP · máximo 8 MB</span></div>{comprobanteActual && <a href={comprobanteActual} target="_blank" rel="noreferrer" aria-label="Ver comprobante en una pestaña nueva"><ExternalLink size={17} /></a>}</div><label className="orders-receipt-btn"><ImagePlus size={17} /> {archivoComprobante ? 'Cambiar imagen' : comprobanteActual ? 'Reemplazar imagen' : 'Cargar comprobante'}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setArchivoComprobante(event.target.files?.[0] || null)} /></label>{comprobanteActual ? <div className="orders-receipt-preview"><img src={comprobanteActual} alt="Comprobante de pago" /><div><p>{archivoComprobante ? archivoComprobante.name : 'Comprobante guardado en Supabase'}</p>{archivoComprobante && <button type="button" className="orders-receipt-remove" onClick={() => setArchivoComprobante(null)}><Trash2 size={14} /> Quitar cambio</button>}</div></div> : <span className="orders-receipt-empty">Aún no se adjuntó una imagen.</span>}</section>
+      {!pendiente && seleccion.pago_referencia && (
+        <p className="orders-hint">Referencia del cobro: <b>{seleccion.pago_referencia}</b></p>
+      )}
       {error && <p className="orders-alert is-error">{error}</p>}<footer><button onClick={() => setSeleccion(null)}>Cerrar</button><button type="button" className="orders-modal-ticket-btn" onClick={() => imprimirTicket(seleccion)} disabled={imprimiendoId === seleccion.id} title="Imprimir ticket para impresora térmica POS">{imprimiendoId === seleccion.id ? 'Generando…' : <><Printer size={16} /> Imprimir ticket</>}</button><button type="button" className="orders-modal-ticket-btn" onClick={() => descargarTicketJpg(seleccion)} disabled={imprimiendoId === seleccion.id} title="Descargar ticket en formato imagen JPG" style={{ background: '#fff', border: '1px solid #dcdcdc', color: '#202020' }}>{imprimiendoId === seleccion.id ? 'Generando…' : <><Download size={16} /> Descargar JPG</>}</button>{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={iniciarEdicion}><Edit3 size={15} /> Editar / Agregar</button>)}{pendiente && !modoEdicion && (<button type="button" className="orders-modal-edit-btn" onClick={() => anularPedido(seleccion)} disabled={anulandoId === seleccion.id}>{anulandoId === seleccion.id ? 'Anulando…' : <><X size={15} /> Anular venta</>}</button>)}{pendiente && !modoEdicion && <button onClick={registrarPago} disabled={subiendoPago || verificandoErp || !erpListo || bloqueadoErp || ['enviando', 'verificar'].includes(seleccion.erp_estado)} title={!erpListo ? 'Primero hay que verificar el pedido con TERRA' : bloqueadoErp ? 'Hay productos sin código TERRA' : undefined}>{subiendoPago ? 'Cobrando en TERRA…' : verificandoErp ? 'Verificando…' : <><CheckCircle2 /> Confirmar cobro manual</>}</button>}</footer></section></div>);})()}
     <ModalQrPago
       abierto={mostrarQrModal}

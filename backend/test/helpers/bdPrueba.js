@@ -6,7 +6,7 @@ if (TEST_DB && /supabase|pooler|terracolchones/i.test(TEST_DB)) throw new Error(
 
 export const SALTAR_SIN_BD = TEST_DB ? false : 'Definí TEST_DATABASE_URL (Postgres local vacío) para correr estas pruebas.';
 
-const TABLAS = ['order_items', 'orders', 'products', 'customers', 'users', 'categories', 'wholesale_price_tiers', 'product_instructions',
+const TABLAS = ['payments', 'order_items', 'orders', 'products', 'customers', 'users', 'categories', 'wholesale_price_tiers', 'product_instructions',
   'erp_quotations', 'erp_product_sync_state', 'erp_warehouse_stocks', 'erp_sync_runs', 'delivery_zones', 'staff_accounts'];
 
 const DDL = `
@@ -30,6 +30,11 @@ const DDL = `
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), order_id UUID REFERENCES orders(id) ON DELETE CASCADE, product_variant_id UUID, product_name TEXT, sku TEXT,
     quantity INTEGER NOT NULL, unit_price_minor BIGINT NOT NULL, discount_minor BIGINT DEFAULT 0, total_minor BIGINT NOT NULL, currency TEXT DEFAULT 'BOB',
     created_at TIMESTAMPTZ DEFAULT NOW());
+  CREATE TABLE IF NOT EXISTS payments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), order_id UUID NOT NULL REFERENCES orders(id) ON DELETE RESTRICT, provider TEXT, provider_transaction_id TEXT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'refunded')),
+    amount_minor BIGINT NOT NULL CHECK (amount_minor >= 0), currency VARCHAR(3) NOT NULL DEFAULT 'BOB' CHECK (currency = 'BOB'),
+    paid_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
 `;
 
 // Recrea el esquema desde cero (base desechable) y devuelve el pool del proyecto.
@@ -43,9 +48,9 @@ export async function prepararBaseDePrueba() {
 }
 
 export async function vaciarTablas(pool) {
-  await pool.query('TRUNCATE order_items, orders, products, customers, users RESTART IDENTITY CASCADE');
+  await pool.query('TRUNCATE payments, order_items, orders, products, customers, users RESTART IDENTITY CASCADE');
   await pool.query("DO $$ BEGIN IF to_regclass('public.erp_quotations') IS NOT NULL THEN TRUNCATE erp_quotations, erp_product_sync_state, erp_warehouse_stocks; END IF; END $$");
-  await pool.query("DO $$ BEGIN IF to_regclass('public.staff_accounts') IS NOT NULL THEN TRUNCATE staff_accounts; END IF; END $$");
+  await pool.query("DO $$ BEGIN IF to_regclass('public.staff_accounts') IS NOT NULL THEN TRUNCATE staff_accounts CASCADE; END IF; END $$");
 }
 
 // Cuenta de personal con clave en bcrypt (el login ya no acepta credenciales del .env).

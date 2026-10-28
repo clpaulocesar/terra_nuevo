@@ -66,6 +66,55 @@ const SUBCONSULTA_CODIGO_ERP = '(SELECT s.erp_internal_code FROM erp_product_syn
 // Mientras el cobro está en curso o ya se registró en el ERP, el pedido no se edita ni se anula.
 export const ERP_ESTADOS_BLOQUEANTES = ['enviando', 'ok', 'verificar'];
 
+// Registro de cobros en `payments` (tabla preexistente; su CHECK de status admite
+// pending|approved|rejected|refunded, por eso un cobro confirmado queda `approved`).
+// `registered_by` apunta a la cuenta de staff_accounts que cobró.
+let pagosReady;
+function asegurarTablaPagosBD() {
+  if (!pagosReady) {
+    pagosReady = (async () => {
+      await asegurarTablaPersonal();
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS payments (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          order_id UUID NOT NULL REFERENCES orders(id) ON DELETE RESTRICT,
+          provider TEXT,
+          provider_transaction_id TEXT,
+          status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'refunded')),
+          amount_minor BIGINT NOT NULL CHECK (amount_minor >= 0),
+          currency VARCHAR(3) NOT NULL DEFAULT 'BOB' CHECK (currency = 'BOB'),
+          paid_at TIMESTAMPTZ,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `);
+      await pool.query('ALTER TABLE payments ADD COLUMN IF NOT EXISTS registered_by UUID');
+      await pool.query(`
+        DO $$ BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'payments_registered_by_fkey') THEN
+            ALTER TABLE payments ADD CONSTRAINT payments_registered_by_fkey
+              FOREIGN KEY (registered_by) REFERENCES staff_accounts(id) ON DELETE SET NULL;
+          END IF;
+        END $$
+      `);
+      await pool.query('CREATE INDEX IF NOT EXISTS payments_order_id_idx ON payments (order_id)');
+    })().catch((error) => { pagosReady = null; throw error; });
+  }
+  return pagosReady;
+}
+
+// Inserta el cobro dentro de la transacción del cierre del pedido.
+async function insertarPagoBD(conexion, { orderId, provider, transactionId = null, amountMinor, registeredBy = null }) {
+  await conexion.query(
+    `INSERT INTO payments (order_id, provider, provider_transaction_id, status, amount_minor, currency, paid_at, registered_by)
+     VALUES ($1, $2, $3, 'approved', $4, 'BOB', NOW(), $5)`,
+    [orderId, provider, transactionId || null, Math.max(0, Number(amountMinor) || 0), registeredBy || null]
+  );
+}
+
+// Referencia del último cobro aprobado, para tickets y listados.
+const SUBCONSULTA_REFERENCIA_PAGO = `(SELECT pg.provider_transaction_id FROM payments pg
+            WHERE pg.order_id = p.id AND pg.status = 'approved' ORDER BY pg.paid_at DESC NULLS LAST LIMIT 1) AS pago_referencia`;
+
 // Errores de validación del pedido: llevan código HTTP para que el cliente vea el motivo
 // en vez de un "Error interno del servidor".
 const errorPedido = (statusCode, mensaje) => Object.assign(new Error(mensaje), { statusCode });
@@ -138,7 +187,7 @@ export async function crearPedidoBD(clienteId, items, { precioMayorista = false,
 }
 
 export async function obtenerPedidoBD(id) {
-  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega()]);
+  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega(), asegurarTablaPagosBD()]);
   const idLimpio = String(id || '').trim();
   const { rows } = await pool.query(
     `WITH pedidos_base AS (
@@ -167,6 +216,7 @@ export async function obtenerPedidoBD(id) {
             p.delivery_zone_name AS zona_envio,
             p.delivery_fee_pending AS tarifa_envio_pendiente,
             ${CAMPOS_ERP_PEDIDO},
+            ${SUBCONSULTA_REFERENCIA_PAGO},
             COALESCE(c.name, c.contact_name, 'Compra como invitado') AS cliente_nombre,
             COALESCE(c.phone, '') AS cliente_telefono,
             COALESCE(c.nit, '') AS cliente_nit
@@ -433,26 +483,39 @@ export async function listarPedidosPorClienteBD(clienteId, limite = 50) {
   return rows;
 }
 
-export async function registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl, fuente = 'manual', costoEnvio = null }) {
-  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega()]);
-  if (costoEnvio !== null) {
-    const costoMinor = Math.round(Number(costoEnvio) * 100);
-    const actualizado = await pool.query(
-      `UPDATE orders SET delivery_fee_minor=$1, total_minor=subtotal_minor+$1,
-       delivery_fee_pending=FALSE, updated_at=NOW() WHERE id=$2 RETURNING id`,
-      [costoMinor, id],
+// Cobro sin ERP (TERRA_ERP_HABILITADO=false, solo desarrollo): completa el pedido y
+// registra el pago en `payments` en una transacción.
+export async function registrarPagoPedidoBD(id, { metodoPago, referenciaPago = null, registradoPor = null, fuente = 'manual', costoEnvio = null }) {
+  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega(), asegurarTablaPagosBD()]);
+  const conexion = await pool.connect();
+  try {
+    await conexion.query('BEGIN');
+    if (costoEnvio !== null) {
+      await conexion.query(
+        `UPDATE orders SET delivery_fee_minor=$1, total_minor=subtotal_minor+$1, delivery_fee_pending=FALSE, updated_at=NOW() WHERE id=$2`,
+        [Math.round(Number(costoEnvio) * 100), id],
+      );
+    }
+    const { rows } = await conexion.query(
+      `UPDATE orders
+       SET status='completed', payment_method=$1, payment_confirmation_source=$2, payment_confirmed_at=NOW(), updated_at=NOW()
+       WHERE id=$3
+       RETURNING id, total_minor`,
+      [metodoPago, fuente, id]
     );
-    if (!actualizado.rowCount) return null;
+    if (!rows[0]) {
+      await conexion.query('ROLLBACK');
+      return null;
+    }
+    await insertarPagoBD(conexion, { orderId: id, provider: metodoPago, transactionId: referenciaPago, amountMinor: rows[0].total_minor, registeredBy: registradoPor });
+    await conexion.query('COMMIT');
+  } catch (error) {
+    await conexion.query('ROLLBACK');
+    throw error;
+  } finally {
+    conexion.release();
   }
-  const { rows } = await pool.query(
-    `UPDATE orders
-     SET status='completed', payment_method=$1, payment_receipt_url=COALESCE($2, payment_receipt_url),
-         payment_confirmation_source=$3, payment_confirmed_at=NOW(), updated_at=NOW()
-     WHERE id=$4
-     RETURNING id`,
-    [metodoPago, comprobanteUrl || null, fuente, id]
-  );
-  return rows[0] ? obtenerPedidoBD(id) : null;
+  return obtenerPedidoBD(id);
 }
 
 export async function actualizarEstadoPedidoBD(id, estado) {
@@ -619,13 +682,13 @@ export async function aplicarVerificacionErpBD(pedidoId, { productos = [], ajust
 }
 
 // Cierra el cobro con la cotización del ERP, marca el intento en `erp_quotations`
-// como `ok` y descuenta stock local, todo en una transacción. Solo avanza si el
-// pedido sigue en `estadoPrevio` (enviando | verificar).
+// como `ok`, registra el pago en `payments` y descuenta stock local, todo en una
+// transacción. Solo avanza si el pedido sigue en `estadoPrevio` (enviando | verificar).
 export async function completarPedidoConCotizacionBD(pedidoId, {
-  metodoPago, comprobanteUrl = null, fuente = 'manual', costoEnvio = null,
+  metodoPago, referenciaPago = null, registradoPor = null, fuente = 'manual', costoEnvio = null,
   cotizacion, intentoId, estadoPrevio = 'enviando',
 }) {
-  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega(), asegurarTablasErpBD()]);
+  await Promise.all([asegurarColumnasPago(), asegurarColumnasEntrega(), asegurarTablasErpBD(), asegurarTablaPagosBD()]);
   const conexion = await pool.connect();
   try {
     await conexion.query('BEGIN');
@@ -638,17 +701,17 @@ export async function completarPedidoConCotizacionBD(pedidoId, {
     }
     const { rows } = await conexion.query(
       `UPDATE orders
-          SET status='completed', payment_method=$1, payment_receipt_url=COALESCE($2, payment_receipt_url),
-              payment_confirmation_source=$3, payment_confirmed_at=NOW(),
-              erp_estado='ok', erp_cotizacion_numero=$5, updated_at=NOW()
-        WHERE id=$4 AND erp_estado=$6
-        RETURNING id`,
-      [metodoPago, comprobanteUrl || null, fuente, pedidoId, cotizacion.numero, estadoPrevio]
+          SET status='completed', payment_method=$1, payment_confirmation_source=$2, payment_confirmed_at=NOW(),
+              erp_estado='ok', erp_cotizacion_numero=$4, updated_at=NOW()
+        WHERE id=$3 AND erp_estado=$5
+        RETURNING id, total_minor`,
+      [metodoPago, fuente, pedidoId, cotizacion.numero, estadoPrevio]
     );
     if (!rows[0]) {
       await conexion.query('ROLLBACK');
       return null;
     }
+    await insertarPagoBD(conexion, { orderId: pedidoId, provider: metodoPago, transactionId: referenciaPago, amountMinor: rows[0].total_minor, registeredBy: registradoPor });
     if (intentoId) {
       await actualizarIntentoCotizacionBD(intentoId, {
         status: 'ok', erpNumber: cotizacion.numero, response: cotizacion.respuesta ?? cotizacion, errorMessage: null, completado: true,

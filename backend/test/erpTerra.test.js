@@ -211,6 +211,7 @@ describe('verificación y cobro con ERP', { skip: SALTAR_SIN_BD }, () => {
   const leerStocks = async (id) => (await pool.query('SELECT warehouse_name, quantity FROM erp_warehouse_stocks WHERE product_id=$1 ORDER BY warehouse_name', [id])).rows;
   const leerPedido = async (id) => (await pool.query('SELECT status, erp_estado, erp_cotizacion_numero, total_minor FROM orders WHERE id=$1', [id])).rows[0];
   const intentos = (id) => erpModel.listarIntentosCotizacionBD(id);
+  const pagos = async (id) => (await pool.query('SELECT provider, provider_transaction_id, status, amount_minor, currency, paid_at, registered_by FROM payments WHERE order_id=$1 ORDER BY created_at', [id])).rows;
 
   test('1. precio distinto en ERP: reescribe public_price y actualiza el ítem', async () => {
     const id = await crearProductoLocal({ precio: 90 });
@@ -282,6 +283,7 @@ describe('verificación y cobro con ERP', { skip: SALTAR_SIN_BD }, () => {
     await assert.rejects(() => verificacion.confirmarPagoConErp(pedido.id, { metodoPago: 'efectivo' }), (e) => e.statusCode === 409 && e.extra.codigo === 'pedido_ajustado' && e.extra.cambios.length === 1);
     assert.equal(erp.registro.cotizaciones.length, 0);
     assert.equal((await intentos(pedido.id)).length, 0);
+    assert.equal((await pagos(pedido.id)).length, 0);
     assert.equal((await leerPedido(pedido.id)).erp_estado, null);
     const { pedido: cobrado } = await verificacion.confirmarPagoConErp(pedido.id, { metodoPago: 'efectivo' });
     assert.equal(cobrado.estado, 'completed');
@@ -290,17 +292,29 @@ describe('verificación y cobro con ERP', { skip: SALTAR_SIN_BD }, () => {
     assert.equal(filas.length, 1);
     assert.equal(filas[0].status, 'ok');
     assert.equal(filas[0].idempotency_key, `${pedido.id}:1`);
+    assert.equal((await pagos(pedido.id)).length, 1);
   });
 
-  test('7. cobro OK: completed, número guardado, intento ok y stock descontado una vez', async () => {
+  test('7. cobro OK: completed, número guardado, intento ok, un solo pago y stock descontado una vez', async () => {
     const id = await crearProductoLocal({ precio: 100, stock: 10 });
     erp.productos['2'] = producto('2', { precioPublico: 100 });
+    const { rows: [cajero] } = await pool.query("INSERT INTO staff_accounts (auth_user_id, name, email, role) VALUES (gen_random_uuid(), 'Caja', 'caja@prueba.local', 'vendedor') RETURNING id");
     const pedido = await pedidoModel.crearPedidoBD(null, [{ productoId: id, cantidad: 3 }], {});
-    const { pedido: cobrado, cotizacion } = await verificacion.confirmarPagoConErp(pedido.id, { metodoPago: 'tarjeta' });
+    const { pedido: cobrado, cotizacion } = await verificacion.confirmarPagoConErp(pedido.id, { metodoPago: 'tarjeta', referenciaPago: 'POS-778', registradoPor: cajero.id });
     assert.equal(cobrado.estado, 'completed');
     assert.equal(cobrado.erp_estado, 'ok');
     assert.equal(Number(cobrado.erp_cotizacion_numero), 1001);
+    assert.equal(cobrado.pago_referencia, 'POS-778');
     assert.equal(cotizacion.numero, 1001);
+    const filasPago = await pagos(pedido.id);
+    assert.equal(filasPago.length, 1);
+    assert.equal(filasPago[0].provider, 'tarjeta');
+    assert.equal(filasPago[0].provider_transaction_id, 'POS-778');
+    assert.equal(filasPago[0].status, 'approved');
+    assert.equal(Number(filasPago[0].amount_minor), 30000);
+    assert.equal(filasPago[0].currency, 'BOB');
+    assert.ok(filasPago[0].paid_at);
+    assert.equal(filasPago[0].registered_by, cajero.id);
     assert.equal(Number((await leerProducto(id)).stock_quantity), 7);
     assert.deepEqual(erp.registro.cotizaciones, [{ productos: [{ codigo: '2', cantidad: 3 }] }]);
     const [intento] = await intentos(pedido.id);
@@ -311,6 +325,7 @@ describe('verificación y cobro con ERP', { skip: SALTAR_SIN_BD }, () => {
     assert.ok(intento.completed_at);
     await assert.rejects(() => verificacion.confirmarPagoConErp(pedido.id, { metodoPago: 'tarjeta' }), (e) => e.statusCode === 409);
     assert.equal(Number((await leerProducto(id)).stock_quantity), 7);
+    assert.equal((await pagos(pedido.id)).length, 1);
   });
 
   test('8. 422 en cotización: intento rechazado, pedido editable y stock intacto', async () => {
@@ -326,6 +341,7 @@ describe('verificación y cobro con ERP', { skip: SALTAR_SIN_BD }, () => {
     const [intento] = await intentos(pedido.id);
     assert.equal(intento.status, 'rechazado');
     assert.match(intento.error_message, /Stock insuficiente/);
+    assert.equal((await pagos(pedido.id)).length, 0);
     const editado = await pedidoModel.actualizarItemsPedidoBD(pedido.id, [{ productoId: id, cantidad: 2 }]);
     assert.equal(Number(editado.items[0].cantidad), 2);
   });
@@ -341,10 +357,16 @@ describe('verificación y cobro con ERP', { skip: SALTAR_SIN_BD }, () => {
     await assert.rejects(() => verificacion.confirmarPagoConErp(pedido.id, { metodoPago: 'efectivo' }), (e) => e.extra.codigo === 'pedido_en_proceso');
     await assert.rejects(() => pedidoModel.actualizarItemsPedidoBD(pedido.id, [{ productoId: id, cantidad: 2 }]), (e) => e.statusCode === 409);
     assert.equal(erp.registro.cotizaciones.length, 1);
-    const cerrado = await verificacion.confirmarCotizacionManual(pedido.id, { numero: 555, metodoPago: 'efectivo', registradoPor: 'admin@prueba' });
+    assert.equal((await pagos(pedido.id)).length, 0);
+    const cerrado = await verificacion.confirmarCotizacionManual(pedido.id, { numero: 555, metodoPago: 'qr', referenciaPago: 'QR-0099', registradoPorEmail: 'admin@prueba' });
     assert.equal(cerrado.estado, 'completed');
     assert.equal(Number(cerrado.erp_cotizacion_numero), 555);
     assert.equal(Number((await leerProducto(id)).stock_quantity), 9);
+    const pagosManual = await pagos(pedido.id);
+    assert.equal(pagosManual.length, 1);
+    assert.equal(pagosManual[0].provider, 'qr');
+    assert.equal(pagosManual[0].provider_transaction_id, 'QR-0099');
+    assert.equal(Number(pagosManual[0].amount_minor), 10000);
     const filas = await intentos(pedido.id);
     assert.equal(filas.length, 1);
     assert.equal(filas[0].status, 'ok');
@@ -364,6 +386,7 @@ describe('verificación y cobro con ERP', { skip: SALTAR_SIN_BD }, () => {
     assert.equal(resultados.filter((r) => r.status === 'rejected' && r.reason.extra?.codigo === 'pedido_en_proceso').length, 1);
     assert.equal(erp.registro.cotizaciones.length, 1);
     assert.equal((await intentos(pedido.id)).length, 1);
+    assert.equal((await pagos(pedido.id)).length, 1);
     assert.equal(Number((await leerProducto(id)).stock_quantity), 9);
   });
 
@@ -412,6 +435,7 @@ describe('verificación y cobro con ERP', { skip: SALTAR_SIN_BD }, () => {
     assert.equal(erp.registro.consultas.length, 0);
     assert.equal(erp.registro.cotizaciones.length, 0);
     assert.equal((await intentos(pedido.id)).length, 0);
+    assert.equal((await pagos(pedido.id)).length, 0);
     assert.equal((await leerPedido(pedido.id)).erp_estado, null);
   });
 

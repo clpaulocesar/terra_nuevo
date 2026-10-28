@@ -86,6 +86,8 @@ export default function VentasDirectasAdmin() {
   const [tipoNuevo, setTipoNuevo] = useState('minorista');
   const [carrito, setCarrito] = useState([]);
   const [metodoPago, setMetodoPago] = useState('efectivo');
+  // Número de transacción o comprobante: obligatorio para QR y tarjeta.
+  const [referenciaPago, setReferenciaPago] = useState('');
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
   const [ultimaVenta, setUltimaVenta] = useState(null);
@@ -247,6 +249,7 @@ export default function VentasDirectasAdmin() {
     setCarrito([]);
     setClienteId('');
     setTipoNuevo('minorista');
+    setReferenciaPago('');
     // Imprimir ticket de venta automáticamente al confirmar
     imprimirTicketVenta(datosTicket);
   };
@@ -278,6 +281,11 @@ export default function VentasDirectasAdmin() {
       setError('Agrega al menos un producto.');
       return;
     }
+    const referencia = referenciaPago.trim() || null;
+    if (metodoPago !== 'efectivo' && !referencia) {
+      setError('Ingresá el número de transacción o referencia del cobro.');
+      return;
+    }
     setGuardando(true);
     setError('');
     setExito('');
@@ -296,11 +304,12 @@ export default function VentasDirectasAdmin() {
       ? { ...cliente }
       : (!clienteId && tipoNuevo === 'mayorista' ? { nombre: 'Cliente Mayorista (Mostrador)' } : null);
     const vendedor = getAdminUser();
-    const contexto = { itemsSnapshot, clienteSnapshot, vendedor, metodoPago };
+    const contexto = { itemsSnapshot, clienteSnapshot, vendedor, metodoPago, referencia };
     try {
       const venta = await crearVentaDirecta({
         clienteId: clienteId || null,
         metodoPago,
+        referencia,
         tipoMayoristaManual: !clienteId && tipoNuevo === 'mayorista',
         items: carrito.map((item) => ({ productoId: item.id, cantidad: item.cantidad })),
       });
@@ -319,7 +328,7 @@ export default function VentasDirectasAdmin() {
     setGuardando(true);
     setError('');
     try {
-      const venta = await registrarPagoPedido(ajusteErp.pedido.id, { metodoPago: ajusteErp.contexto.metodoPago });
+      const venta = await registrarPagoPedido(ajusteErp.pedido.id, { metodoPago: ajusteErp.contexto.metodoPago, referencia: ajusteErp.contexto.referencia });
       finalizarVenta(venta, ajusteErp.contexto);
     } catch (e) {
       if (['pedido_ajustado', 'pedido_bloqueado'].includes(e.codigo) && mostrarAjusteErp(e, ajusteErp.contexto)) return;
@@ -746,6 +755,22 @@ export default function VentasDirectasAdmin() {
               <option value="qr">QR</option>
               <option value="tarjeta">Tarjeta</option>
             </select>
+          </div>
+
+          <div className="direct-field">
+            <span className="direct-field__label">
+              <Tag size={15} /> {metodoPago === 'efectivo' ? 'Referencia del cobro (opcional)' : 'Número de transacción o comprobante'}
+            </span>
+            <input
+              className="direct-select"
+              type="text"
+              value={referenciaPago}
+              maxLength={80}
+              required={metodoPago !== 'efectivo'}
+              onChange={(e) => setReferenciaPago(e.target.value)}
+              placeholder={metodoPago === 'qr' ? 'Nº de operación del QR' : metodoPago === 'tarjeta' ? 'Nº de autorización del POS' : 'Nº de recibo (opcional)'}
+              aria-label="Referencia del cobro"
+            />
           </div>
 
           <div className="direct-total">

@@ -185,17 +185,17 @@ async function liberarReclamo(id) {
 
 // Flujo de cobro (§6): reclamo atómico → verificación → cotización → cierre.
 // Cada POST /api/cotizaciones queda registrado como una fila de `erp_quotations`.
-export async function confirmarPagoConErp(pedidoId, { metodoPago, comprobanteUrl = null, costoEnvio = null, fuente = 'manual' } = {}) {
+export async function confirmarPagoConErp(pedidoId, { metodoPago, referenciaPago = null, registradoPor = null, costoEnvio = null, fuente = 'manual' } = {}) {
   const cabecera = await obtenerCabeceraPedidoBD(pedidoId);
   if (!cabecera) throw new ErrorHttp(404, 'Pedido no encontrado.');
   if (['cancelled', 'cancelado'].includes(String(cabecera.status || '').toLowerCase())) throw new ErrorHttp(409, 'No se puede cobrar un pedido anulado.');
   const id = cabecera.id;
 
   if (!erpHabilitado()) {
-    // Modo sin ERP (solo desarrollo): se cobra como antes, sin cotización ni descuento de stock.
+    // Modo sin ERP (solo desarrollo): se cobra sin cotización ni descuento de stock, pero el pago sí se registra.
     if (!(await reclamarPedidoParaCobroBD(id))) throw new ErrorHttp(409, 'El pedido ya fue cobrado o se está procesando.', { codigo: 'pedido_en_proceso' });
     try {
-      const pedido = await registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl, fuente, costoEnvio });
+      const pedido = await registrarPagoPedidoBD(id, { metodoPago, referenciaPago, registradoPor, fuente, costoEnvio });
       return { pedido, erpDeshabilitado: true };
     } finally {
       await liberarReclamo(id);
@@ -243,7 +243,7 @@ export async function confirmarPagoConErp(pedidoId, { metodoPago, comprobanteUrl
     let pedido;
     try {
       pedido = await completarPedidoConCotizacionBD(id, {
-        metodoPago, comprobanteUrl, fuente, costoEnvio, cotizacion: resultado, intentoId: intento.id, estadoPrevio: 'enviando',
+        metodoPago, referenciaPago, registradoPor, fuente, costoEnvio, cotizacion: resultado, intentoId: intento.id, estadoPrevio: 'enviando',
       });
     } catch (error) {
       console.error(`[ERP] Cotización ${resultado.numero} creada pero no se pudo cerrar el pedido ${id}: ${error.message}`);
@@ -292,17 +292,17 @@ export async function confirmarPagoConErp(pedidoId, { metodoPago, comprobanteUrl
 
 // La cotización sí existe en TERRA (estado `verificar`): cerrar el cobro con su número.
 // Se completa el intento pendiente en lugar de crear otro.
-export async function confirmarCotizacionManual(pedidoId, { numero, metodoPago, comprobanteUrl = null, costoEnvio = null, registradoPor = null }) {
+export async function confirmarCotizacionManual(pedidoId, { numero, metodoPago, referenciaPago = null, costoEnvio = null, registradoPor = null, registradoPorEmail = null }) {
   const cabecera = await obtenerCabeceraPedidoBD(pedidoId);
   if (!cabecera) throw new ErrorHttp(404, 'Pedido no encontrado.');
   if (cabecera.erp_estado !== 'verificar') throw new ErrorHttp(409, 'Solo se puede registrar manualmente una cotización cuando el pedido está pendiente de verificar en el ERP.', { codigo: 'estado_erp_invalido' });
   const pendiente = await obtenerIntentoPendienteBD(cabecera.id);
   const intento = pendiente || await crearIntentoCotizacionBD(cabecera.id, agruparParaCotizacion(await obtenerItemsParaErpBD(cabecera.id)));
   const pedido = await completarPedidoConCotizacionBD(cabecera.id, {
-    metodoPago, comprobanteUrl, costoEnvio, fuente: 'manual',
+    metodoPago, referenciaPago, registradoPor, costoEnvio, fuente: 'manual',
     intentoId: intento.id,
     estadoPrevio: 'verificar',
-    cotizacion: { numero, respuesta: { manual: true, numero, registradoPor, fecha: new Date().toISOString() } },
+    cotizacion: { numero, respuesta: { manual: true, numero, registradoPor: registradoPorEmail || registradoPor, fecha: new Date().toISOString() } },
   });
   if (!pedido) throw new ErrorHttp(409, 'El pedido cambió de estado mientras se registraba la cotización.', { codigo: 'estado_erp_invalido' });
   return pedido;
