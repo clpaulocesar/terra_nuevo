@@ -17,6 +17,12 @@ frontend/.env
 # Vercel
 .vercel
 
+# Respaldos CSV de los scripts de datos (contienen datos reales)
+backend/scripts/respaldos/
+
+# Obsidian: el estado de la ventana es personal de cada usuario
+docs/.obsidian/workspace*.json
+
 # Logs
 *.log
 npm-debug.log*

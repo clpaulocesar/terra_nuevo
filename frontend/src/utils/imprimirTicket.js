@@ -143,6 +143,7 @@ export function imprimirTicketPedido(pedido, ventana = null) {
     </header>
     ${avisoAnulado}
     <div class="code">${escapar(codigoTicket)}</div>
+    ${pedido.erp_cotizacion_numero ? `<div class="code">Cotización TERRA Nº ${escapar(String(pedido.erp_cotizacion_numero))}</div>` : ''}
     <div class="meta">
       <b>Fecha:</b> ${escapar(fecha)}<br>
       <b>Cliente:</b> ${escapar(nombreCliente)}

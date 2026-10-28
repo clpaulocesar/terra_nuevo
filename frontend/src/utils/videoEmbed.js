@@ -23,7 +23,7 @@ export function mediaDeVideo(url) {
     return { tipo: 'embed', src: `https://player.vimeo.com/video/${vimeo[1]}` };
   }
 
-  // 4. Archivos directos de video (Cloudinary, Supabase, mp4, webm, ogg, mov, m4v)
+  // 4. Archivos directos de video (Cloudinary, servidor propio, mp4, webm, ogg, mov, m4v)
   const esArchivoVideo =
     /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(valor) ||
     /cloudinary\.com\/.*\/video\/upload\//i.test(valor) ||

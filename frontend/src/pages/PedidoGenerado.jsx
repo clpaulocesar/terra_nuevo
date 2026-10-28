@@ -126,6 +126,9 @@ export default function PedidoGenerado() {
           <div className="pedido-code">
             <span>Código de pedido</span>
             <strong>{pedido.codigo}</strong>
+            {pedido.erp_cotizacion_numero && (
+              <small>Cotización TERRA Nº {pedido.erp_cotizacion_numero}</small>
+            )}
             <QrCode size={100} />
           </div>
           <div className="pedido-row">

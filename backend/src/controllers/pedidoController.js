@@ -1,8 +1,8 @@
 
 import {
   crearPedidoBD,
-  registrarPagoPedidoBD,
   obtenerPedidoBD,
+  ERP_ESTADOS_BLOQUEANTES,
   listarPedidosBD,
   obtenerAnaliticaHorariaBD,
   obtenerResumenPeriodoBD,
@@ -14,20 +14,91 @@ import {
 import { obtenerPersonalBD } from '../models/personalModel.js';
 import { pool } from '../config/database.js';
 import { obtenerMayoristaDesdeToken } from '../services/sesionMayorista.js';
+import {
+  verificarPedidoConErp,
+  confirmarPagoConErp,
+  confirmarCotizacionManual,
+  liberarPedidoVerificar,
+  responderErrorHttp,
+} from '../services/verificacionErp.js';
+
+const UUID = /^[0-9a-f-]{36}$/i;
+const METODOS_PAGO = ['efectivo', 'tarjeta', 'qr'];
+
+// Referencia del cobro (número de transacción o comprobante): obligatoria para QR y tarjeta.
+function validarReferenciaPago(metodoPago, valor) {
+  const referencia = String(valor ?? '').trim();
+  if (referencia.length > 80) return { error: 'La referencia del cobro no puede superar los 80 caracteres.' };
+  if (!referencia && ['qr', 'tarjeta'].includes(metodoPago)) return { error: 'Ingresá el número de transacción o referencia del cobro.' };
+  return { referencia: referencia || null };
+}
+
+// Verificación previa contra el ERP de TERRA: la caja la pide al abrir el modal de cobro.
+export async function verificarPedidoErp(req, res, next) {
+  try {
+    const id = String(req.params.id || '').trim();
+    if (!id) return res.status(400).json({ success: false, mensaje: 'ID de pedido inválido.' });
+    const actual = await obtenerPedidoBD(id);
+    if (!actual) return res.status(404).json({ success: false, mensaje: 'Pedido no encontrado.' });
+    if (['cancelled', 'cancelado'].includes(String(actual.estado || '').toLowerCase())) {
+      return res.status(409).json({ success: false, mensaje: 'El pedido está anulado.' });
+    }
+    if (String(actual.estado || '') !== 'pending') {
+      return res.json({ success: true, data: { pedido: actual, cambios: [], hayCambios: false, yaCobrado: true } });
+    }
+    if (ERP_ESTADOS_BLOQUEANTES.includes(String(actual.erp_estado || ''))) {
+      return res.status(409).json({ success: false, mensaje: 'El pedido está en proceso de cobro con el ERP.', codigo: 'pedido_en_proceso', pedido: actual });
+    }
+    const resultado = await verificarPedidoConErp(actual.id);
+    return res.json({ success: true, data: resultado });
+  } catch (error) { return responderErrorHttp(res, next, error); }
+}
+
+// La cotización sí quedó en TERRA: el administrador cierra el cobro con su número.
+export async function confirmarErpManual(req, res, next) {
+  try {
+    const id = String(req.params.id || '').trim();
+    const numero = Number(req.body?.numero);
+    const metodoPago = String(req.body?.metodoPago || 'efectivo').trim();
+    if (!id) return res.status(400).json({ success: false, mensaje: 'ID de pedido inválido.' });
+    if (!Number.isSafeInteger(numero) || numero < 1) return res.status(400).json({ success: false, mensaje: 'Ingresá el número de cotización de TERRA.' });
+    if (!METODOS_PAGO.includes(metodoPago)) return res.status(400).json({ success: false, mensaje: 'Método de pago inválido.' });
+    const { referencia, error } = validarReferenciaPago(metodoPago, req.body?.referencia);
+    if (error) return res.status(400).json({ success: false, mensaje: error });
+    const pedido = await confirmarCotizacionManual(id, {
+      numero, metodoPago, referenciaPago: referencia, registradoPor: req.admin?.id || null, registradoPorEmail: req.admin?.email || null,
+    });
+    return res.json({ success: true, data: pedido, mensaje: `Cobro cerrado con la cotización TERRA Nº ${numero}.` });
+  } catch (error) {
+    if (error?.code === '23505') return res.status(409).json({ success: false, mensaje: 'Ese número de cotización ya está asociado a otro pedido.' });
+    return responderErrorHttp(res, next, error);
+  }
+}
+
+// La cotización NO quedó en TERRA: habilitar el pedido para cobrarlo otra vez.
+export async function reintentarErp(req, res, next) {
+  try {
+    const id = String(req.params.id || '').trim();
+    if (!id) return res.status(400).json({ success: false, mensaje: 'ID de pedido inválido.' });
+    if (req.body?.confirmoQueNoExiste !== true) {
+      return res.status(400).json({ success: false, mensaje: 'Confirmá que la cotización no existe en el ERP (confirmoQueNoExiste: true).' });
+    }
+    const pedido = await liberarPedidoVerificar(id);
+    return res.json({ success: true, data: pedido, mensaje: 'El pedido quedó habilitado para cobrarse de nuevo.' });
+  } catch (error) { return responderErrorHttp(res, next, error); }
+}
 
 export async function registrarPagoPedido(req, res, next) {
   try {
     const id = String(req.params.id || '').trim();
     const metodoPago = String(req.body?.metodoPago || '').trim();
-    const comprobanteUrl = String(req.body?.comprobanteUrl || '').trim() || null;
     const costoEnvioCrudo = req.body?.costoEnvio;
     const costoEnvio = costoEnvioCrudo === undefined || costoEnvioCrudo === null || costoEnvioCrudo === '' ? null : Number(costoEnvioCrudo);
-    if (!id || !['efectivo', 'tarjeta'].includes(metodoPago)) {
+    if (!id || !METODOS_PAGO.includes(metodoPago)) {
       return res.status(400).json({ success: false, mensaje: 'Datos de pago inválidos.' });
     }
-    if (comprobanteUrl && (comprobanteUrl.length > 2000 || !/^https:\/\//i.test(comprobanteUrl))) {
-      return res.status(400).json({ success: false, mensaje: 'La URL del comprobante no es válida.' });
-    }
+    const { referencia, error: errorReferencia } = validarReferenciaPago(metodoPago, req.body?.referencia);
+    if (errorReferencia) return res.status(400).json({ success: false, mensaje: errorReferencia });
     if (costoEnvio !== null && (!Number.isFinite(costoEnvio) || costoEnvio < 0 || costoEnvio > 10000)) return res.status(400).json({ success: false, mensaje: 'Costo de envío inválido.' });
     const actual = await obtenerPedidoBD(id);
     if (!actual) return res.status(404).json({ success: false, mensaje: 'Pedido no encontrado.' });
@@ -35,10 +106,12 @@ export async function registrarPagoPedido(req, res, next) {
       return res.status(409).json({ success: false, mensaje: 'No se puede cobrar un pedido anulado.' });
     }
     if (actual.tarifa_envio_pendiente && costoEnvio === null) return res.status(400).json({ success: false, mensaje: 'Ingresá el costo de envío antes de cobrar.' });
-    const pedido = await registrarPagoPedidoBD(id, { metodoPago, comprobanteUrl, fuente: 'manual', costoEnvio });
-    if (!pedido) return res.status(404).json({ success: false, mensaje: 'Pedido no encontrado.' });
-    return res.json({ success: true, data: pedido });
-  } catch (error) { next(error); }
+    // El cobro pasa por el ERP: verificación, cotización, pago y cierre (services/verificacionErp.js).
+    const { pedido, cotizacion } = await confirmarPagoConErp(actual.id, {
+      metodoPago, referenciaPago: referencia, registradoPor: req.admin?.id || null, fuente: 'manual', costoEnvio,
+    });
+    return res.json({ success: true, data: pedido, cotizacion: cotizacion || null });
+  } catch (error) { return responderErrorHttp(res, next, error); }
 }
 
 export async function actualizarEstadoPedido(req, res, next) {
@@ -52,6 +125,9 @@ export async function actualizarEstadoPedido(req, res, next) {
       const estadoActual = String(actual.estado || '').toLowerCase();
       if (['completed', 'paid', 'pagado', 'shipped', 'delivered', 'entregado'].includes(estadoActual)) {
         return res.status(409).json({ success: false, mensaje: 'No se puede anular un pedido ya cobrado o entregado.' });
+      }
+      if (ERP_ESTADOS_BLOQUEANTES.includes(String(actual.erp_estado || ''))) {
+        return res.status(409).json({ success: false, mensaje: 'El pedido está en proceso de cobro con el ERP de TERRA y no se puede anular.', codigo: 'pedido_en_proceso' });
       }
     }
     const pedido = await actualizarEstadoPedidoBD(id, estado);
@@ -352,7 +428,9 @@ export async function crearVentaDirecta(req, res, next) {
     const clienteId = req.body?.clienteId == null ? null : String(req.body.clienteId).trim();
     const metodoPago = String(req.body?.metodoPago || '').trim();
     const items = req.body?.items;
-    if (!['qr', 'efectivo', 'tarjeta'].includes(metodoPago)) return res.status(400).json({ success: false, mensaje: 'Selecciona un método de pago válido.' });
+    if (!METODOS_PAGO.includes(metodoPago)) return res.status(400).json({ success: false, mensaje: 'Selecciona un método de pago válido.' });
+    const { referencia, error: errorReferencia } = validarReferenciaPago(metodoPago, req.body?.referencia);
+    if (errorReferencia) return res.status(400).json({ success: false, mensaje: errorReferencia });
     if (!Array.isArray(items) || !items.length || items.length > 50) return res.status(400).json({ success: false, mensaje: 'Debes agregar entre 1 y 50 productos.' });
     const agrupados = new Map();
     for (const item of items) {
@@ -370,9 +448,13 @@ export async function crearVentaDirecta(req, res, next) {
       precioMayorista = cliente.rows[0].role === 'mayorista';
     }
     const pedido = await crearPedidoBD(clienteId, Array.from(agrupados, ([productoId, cantidad]) => ({ productoId, cantidad })), { precioMayorista });
-    const cobrado = await registrarPagoPedidoBD(pedido.id, { metodoPago, comprobanteUrl: null });
-    return res.status(201).json({ success: true, mensaje: 'Venta directa registrada.', data: { ...cobrado, tipoCliente: precioMayorista ? 'mayorista' : 'minorista' } });
-  } catch (error) { next(error); }
+    // Mismo flujo que la caja: verificar en el ERP, cotizar y cerrar. Si el ERP ajusta el
+    // pedido, queda `pending` y el frontend lo reconfirma con PATCH /pedidos/:id/pago.
+    const { pedido: cobrado, cotizacion } = await confirmarPagoConErp(pedido.id, {
+      metodoPago, referenciaPago: referencia, registradoPor: req.admin?.id || null, fuente: 'manual',
+    });
+    return res.status(201).json({ success: true, mensaje: 'Venta directa registrada.', cotizacion: cotizacion || null, data: { ...cobrado, tipoCliente: precioMayorista ? 'mayorista' : 'minorista' } });
+  } catch (error) { return responderErrorHttp(res, next, error); }
 }
 
 export async function obtenerPedido(req, res, next) {
@@ -419,6 +501,7 @@ export async function actualizarItemsPedido(req, res, next) {
     const pedido = await actualizarItemsPedidoBD(id, items, { direccion, referencia });
     return res.json({ success: true, mensaje: 'Pedido actualizado correctamente', data: pedido });
   } catch (error) {
+    if (error?.statusCode) return res.status(error.statusCode).json({ success: false, mensaje: error.message });
     next(error);
   }
 }

@@ -22,13 +22,15 @@ export const WHATSAPP_COMPROBANTES = String(
 ).replace(/\D/g, '');
 
 export async function apiRequest(ruta, { method = 'GET', body, signal, headers = {}, raw = false } = {}) {
+  // Con FormData (subida de archivos) el navegador fija el Content-Type con su boundary.
+  const esFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   let respuesta;
   try {
     respuesta = await fetch(`${API_URL}${ruta}`, {
       method,
       signal,
-      headers: { 'Content-Type': 'application/json', ...headers },
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      headers: esFormData ? headers : { 'Content-Type': 'application/json', ...headers },
+      ...(body !== undefined ? { body: esFormData ? body : JSON.stringify(body) } : {}),
     });
   } catch (error) {
     if (error.name === 'AbortError') throw error;
@@ -37,7 +39,13 @@ export async function apiRequest(ruta, { method = 'GET', body, signal, headers =
 
   const datos = await respuesta.json().catch(() => null);
   if (!respuesta.ok || datos?.success === false) {
-    throw new Error(datos?.mensaje || `Error HTTP ${respuesta.status}`);
+    const error = new Error(datos?.mensaje || `Error HTTP ${respuesta.status}`);
+    // El backend acompaña algunos errores con `codigo` y datos (p. ej. `pedido_ajustado`
+    // trae `cambios` y `pedido`): se conservan para que la pantalla pueda reaccionar.
+    error.status = respuesta.status;
+    error.codigo = datos?.codigo || null;
+    error.datos = datos || null;
+    throw error;
   }
   // `raw` devuelve el sobre completo (data + paginacion) en vez de solo `data`.
   return raw ? datos : (datos?.data ?? datos);

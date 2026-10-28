@@ -1,17 +1,14 @@
 import { apiRequest } from './api.js';
 
-const supabaseUrl = String(import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '');
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
-
+// Login mayorista contra el backend propio. Devuelve el perfil más `token` y
+// `expira` (ms), que "Recordar mi sesión" usa para respetar el vencimiento.
 export async function iniciarSesionCliente(email, password) {
-  if (!supabaseUrl || !supabaseKey) throw new Error('Falta configurar Supabase para iniciar sesión.');
-  const respuesta = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, { method: 'POST', headers: { apikey: supabaseKey, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
-  const data = await respuesta.json().catch(() => ({}));
-  if (!respuesta.ok || !data.access_token) throw new Error(data.error_description || 'Correo o contraseña incorrectos.');
-  const perfil = await apiRequest('/clientes/sesion', { headers: { Authorization: `Bearer ${data.access_token}` } });
-  // `expira` (ms) acompaña al token para que "Recordar mi sesión" respete su vencimiento.
-  const segundos = Number(data.expires_in) > 0 ? Number(data.expires_in) : 3600;
-  return { ...perfil, token: data.access_token, expira: Date.now() + segundos * 1000 };
+  const sesion = await apiRequest('/clientes/auth/login', {
+    method: 'POST',
+    body: { email: String(email || '').trim(), password: String(password || '') },
+  });
+  if (!sesion?.token) throw new Error('No se pudo iniciar sesión.');
+  return sesion;
 }
 
 export async function actualizarPerfilMayorista(token, datos) {

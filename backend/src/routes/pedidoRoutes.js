@@ -14,6 +14,9 @@ import {
   actualizarEntregaPedido,
   actualizarItemsPedido,
   asignarRepartidorPedido,
+  verificarPedidoErp,
+  confirmarErpManual,
+  reintentarErp,
 } from '../controllers/pedidoController.js';
 import { authAdmin, requiereRol } from '../middlewares/authAdmin.js';
 
@@ -32,6 +35,10 @@ router.patch('/:id/repartidor', authAdmin, requiereRol('admin', 'vendedor'), asi
 // El cobro manual altera el estado financiero del pedido. Nunca puede quedar
 // expuesto al navegador del cliente; QR se confirmará por webhook del proveedor.
 router.patch('/:id/pago', authAdmin, requiereRol('admin', 'vendedor'), registrarPagoPedido);
+// Integración con el ERP de TERRA: verificación previa y conciliación de cotizaciones.
+router.post('/:id/erp/verificar', authAdmin, requiereRol('admin', 'vendedor'), verificarPedidoErp);
+router.patch('/:id/erp/manual', authAdmin, requiereRol('admin'), confirmarErpManual);
+router.post('/:id/erp/reintentar', authAdmin, requiereRol('admin'), reintentarErp);
 router.get('/:id', obtenerPedido);
 
 export default router;
