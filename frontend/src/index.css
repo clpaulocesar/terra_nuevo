@@ -42,6 +42,10 @@
   --breakpoint-xs: 22.5rem;
   /* Ancho máximo del contenido del catálogo (búsqueda, categorías y grilla). */
   --container-terra: 77.5rem;
+  /* Ancho de la tarjeta de la ficha de producto desde el que galería y compra van en
+     dos columnas (@terra-ficha:). Es una consulta de contenedor: con texto al 150 %
+     se necesita una tarjeta más ancha y la ficha queda en una columna. */
+  --container-terra-ficha: 45rem;
 
   --font-terra: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-iconos: "Material Symbols Outlined";
@@ -73,6 +77,9 @@
   --color-terra-destello: #ffd08a;
   /* Placa clara detrás del logo PNG en modo noche (la caligrafía es oscura). */
   --color-terra-placa: #faf5ef;
+  /* Video del producto: fondo del reproductor y telón detrás del video ampliado. */
+  --color-terra-pantalla: #000000;
+  --color-terra-telon: rgba(0, 0, 0, 0.8);
 
   --shadow-terra-control: 0 4px 10px rgba(0, 0, 0, 0.04);
   --shadow-terra-chip: 0 4px 8px rgba(0, 0, 0, 0.05);

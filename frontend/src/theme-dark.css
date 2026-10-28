@@ -97,108 +97,6 @@ html[data-theme="dark"] .welcome-trust p { color: var(--td-text); }
 html[data-theme="dark"] .carousel-btn { background: rgba(30, 25, 23, 0.9); color: var(--td-text); }
 html[data-theme="dark"] .carousel-btn:hover { background: var(--td-surface-3); }
 
-/* ---------- Detalle de producto ---------- */
-html[data-theme="dark"] .product-detail {
-  --ink: #f4ede8;
-  --muted: #b5a79f;
-  --line: #3d3330;
-  --soft: #3a1a20;
-  color: var(--td-text);
-}
-html[data-theme="dark"] .product-detail__card { background: var(--td-surface); border-color: var(--td-line); }
-html[data-theme="dark"] .product-detail__crumb,
-html[data-theme="dark"] .product-detail__crumb a { color: var(--td-muted); }
-html[data-theme="dark"] .product-gallery__main { background: var(--td-surface-2); border-color: var(--td-line); }
-html[data-theme="dark"] .product-gallery__main img.img-fallback { background: var(--td-surface-2); }
-html[data-theme="dark"] .product-gallery__thumbs button { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-muted); }
-html[data-theme="dark"] .product-detail__specs { border-top-color: var(--td-line); }
-html[data-theme="dark"] .product-buy__color-label,
-html[data-theme="dark"] .product-buy__color-current strong,
-html[data-theme="dark"] .product-buy__color-choice-name,
-html[data-theme="dark"] .product-buy__color-more-trigger { color: var(--td-text); }
-html[data-theme="dark"] .product-buy__color-current,
-html[data-theme="dark"] .product-buy__color-choice-note,
-html[data-theme="dark"] .product-buy__color-more-icon,
-html[data-theme="dark"] .product-buy__color-empty { color: var(--td-muted); }
-html[data-theme="dark"] .product-buy__color-choice,
-html[data-theme="dark"] .product-buy__color-menu { background: var(--td-surface-2); border-color: var(--td-line); }
-html[data-theme="dark"] .product-buy__color-choice:hover { background: var(--td-surface-3); border-color: #5a4a45; }
-html[data-theme="dark"] .product-buy__color-choice.is-selected,
-html[data-theme="dark"] .product-buy__color-choice--menu.is-selected { background: var(--td-accent-soft); border-color: var(--td-accent); }
-html[data-theme="dark"] .product-buy__color-more-trigger { background: var(--td-surface-2); border-color: var(--td-line); }
-html[data-theme="dark"] .product-buy__color-more-trigger:hover,
-html[data-theme="dark"] .product-buy__color-selector.is-open .product-buy__color-more-trigger { background: var(--td-surface-3); border-color: #5a4a45; }
-html[data-theme="dark"] .product-related-card { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .product-related-card figure { background: var(--td-surface-2); }
-html[data-theme="dark"] .product-related-card p { color: var(--td-muted); }
-html[data-theme="dark"] .product-related-card__footer { border-top-color: var(--td-line); }
-
-/* Detalle: bloque de compra (controles con fondo blanco en la hoja clara) */
-html[data-theme="dark"] .product-buy h1 { color: var(--td-text); }
-html[data-theme="dark"] .product-buy__rating small,
-html[data-theme="dark"] .product-buy__choice small,
-html[data-theme="dark"] .product-buy__guarantees span,
-html[data-theme="dark"] .product-buy__extra { color: var(--td-muted); }
-html[data-theme="dark"] .product-buy__choice small strong { color: var(--td-text); }
-html[data-theme="dark"] .product-buy__price { border-bottom-color: var(--td-line); }
-html[data-theme="dark"] .product-buy__price small { color: var(--td-ok); }
-html[data-theme="dark"] .product-buy__quantity > div { border-color: var(--td-line); }
-html[data-theme="dark"] .product-buy__quantity button { background: var(--td-surface-2); color: var(--td-text); }
-html[data-theme="dark"] .product-buy__quantity span { border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .product-buy__now { border-color: var(--td-text); color: var(--td-text); }
-html[data-theme="dark"] .product-buy__now:hover { background: var(--td-text); color: var(--td-bg); }
-html[data-theme="dark"] .product-buy__add:disabled { background: #4a3f3b; color: var(--td-muted); }
-html[data-theme="dark"] .product-detail__specs summary { color: #ffb3bd; }
-html[data-theme="dark"] .product-detail__specs > div { border-left-color: var(--td-accent-soft); }
-html[data-theme="dark"] .product-detail__specs p { color: var(--td-muted); }
-
-/* Detalle: galería (badge de color, paleta lateral) */
-html[data-theme="dark"] .product-gallery__color-badge,
-html[data-theme="dark"] .product-gallery__colors,
-html[data-theme="dark"] .paleta-cuadros { background: rgba(30, 25, 23, 0.96); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .paleta-custom { background: var(--td-surface-2); }
-html[data-theme="dark"] .paleta-cuadros button { border-color: var(--td-line); }
-html[data-theme="dark"] .product-gallery__colors button.active,
-html[data-theme="dark"] .paleta-cuadros button.active,
-html[data-theme="dark"] .product-buy__choice button.active { box-shadow: 0 0 0 2px var(--td-surface), 0 0 0 4px var(--td-accent); }
-
-/* Detalle: destacados, acordeón de descripción, ficha técnica y showroom */
-html[data-theme="dark"] .product-highlights { border-top-color: var(--td-line); }
-html[data-theme="dark"] .product-highlights b { color: var(--td-text); }
-html[data-theme="dark"] .product-highlights small { color: var(--td-muted); }
-html[data-theme="dark"] .product-detail__accordion .accordion-item { background: var(--td-surface); border-color: var(--td-line); }
-html[data-theme="dark"] .product-detail__accordion .accordion-header { background: var(--td-surface); color: var(--td-text); }
-html[data-theme="dark"] .product-detail__accordion .accordion-header:hover { background: var(--td-surface-2); }
-html[data-theme="dark"] .product-detail__accordion .accordion-chevron { color: var(--td-muted); }
-html[data-theme="dark"] .product-detail__accordion .accordion-body { border-top-color: var(--td-line); }
-html[data-theme="dark"] .product-detail__accordion .accordion-body p { color: var(--td-muted); }
-html[data-theme="dark"] .product-detail__bottom > article,
-html[data-theme="dark"] .product-detail__bottom > aside { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .product-detail__bottom aside { background: var(--td-surface-2); }
-html[data-theme="dark"] .product-detail__bottom h2 { color: var(--td-text); }
-html[data-theme="dark"] .product-detail__bottom dt,
-html[data-theme="dark"] .product-detail__bottom dd { border-top-color: var(--td-line); }
-html[data-theme="dark"] .product-detail__bottom dt { color: var(--td-muted); }
-html[data-theme="dark"] .product-detail__bottom dd { color: var(--td-text); }
-html[data-theme="dark"] .product-detail__bottom aside > svg { background: var(--td-accent-soft); color: #ffb3bd; }
-html[data-theme="dark"] .product-detail__bottom aside p { color: var(--td-muted); }
-html[data-theme="dark"] .product-detail__bottom aside a { background: var(--td-surface); border-color: var(--td-line); color: #ffb3bd; }
-
-/* Detalle: "Otros modelos que te pueden interesar" */
-html[data-theme="dark"] .product-related h2 { color: var(--td-text); }
-html[data-theme="dark"] .product-related header a { color: #ffb3bd; }
-html[data-theme="dark"] .product-related > div > a { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .product-related h3,
-html[data-theme="dark"] .product-related strong { color: var(--td-text); }
-html[data-theme="dark"] .product-related p { color: var(--td-muted); }
-html[data-theme="dark"] .product-related-card h3 { color: var(--td-text); }
-html[data-theme="dark"] .product-related-card__category { color: #ffb3bd; }
-html[data-theme="dark"] .product-related-card__footer .in-stock { color: var(--td-ok); }
-html[data-theme="dark"] .product-related-card__footer > span { color: #ffb3bd; }
-html[data-theme="dark"] .product-related-card:hover { box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5); }
-html[data-theme="dark"] .detalle-status { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .detalle-status a { color: #ffb3bd; }
-
 /* ---------- Carrito (página) ---------- */
 html[data-theme="dark"] .cart-page { color: var(--td-text); }
 html[data-theme="dark"] .cart-heading p,
@@ -385,11 +283,6 @@ html[data-theme="dark"] .ident-card + aside svg { color: #ffb3bd; }
 html[data-theme="dark"] .keyboard-title b { background: var(--td-accent-soft); }
 
 /* ---------- Acentos rojos de ClienteTheme.css, Bienvenida y Categorías ---------- */
-html[data-theme="dark"] .detalle-back,
-html[data-theme="dark"] .detalle-cart-link,
-html[data-theme="dark"] .detalle-delivery > svg,
-html[data-theme="dark"] .detalle-price strong,
-html[data-theme="dark"] .in-stock,
 html[data-theme="dark"] .categoria-body strong,
 html[data-theme="dark"] .welcome-eyebrow,
 html[data-theme="dark"] .welcome-copy h1 span,
@@ -409,10 +302,6 @@ html[data-theme="dark"] .field-error { color: #ff9a92; }
 html[data-theme="dark"] .success-icon { color: var(--td-ok); }
 html[data-theme="dark"] .code-card { background: var(--td-surface); color: var(--td-text); }
 html[data-theme="dark"] .code-card strong { color: var(--td-ok); }
-
-/* ---------- Detalle de producto: paleta de colores ---------- */
-html[data-theme="dark"] .product-buy__choice .product-buy__palette button { background: var(--td-surface-2); color: var(--td-text); }
-html[data-theme="dark"] .product-buy__choice .product-buy__palette button.active { background: var(--td-accent-soft); }
 
 /* ---------- Carrito flotante y asistente: restos ---------- */
 html[data-theme="dark"] .cart-drawer-thumb,
@@ -686,15 +575,6 @@ html[data-theme="dark"] .terra-login-bg { filter: blur(14px) brightness(0.35); }
    La caligrafía "Terra" es oscura y se pierde sobre fondo negro: en modo noche
    se dibuja una placa clara exactamente alrededor del logo (background-clip
    content-box pinta sólo dentro del padding). */
-html[data-theme="dark"] .product-gallery__main img.img-fallback,
-html[data-theme="dark"] .product-related-card figure img.img-fallback {
-  background: #faf5ef;
-  background-clip: content-box;
-  border-radius: 24px;
-  opacity: 1;
-}
-html[data-theme="dark"] .product-gallery__main img.img-fallback { padding: 20%; }
-html[data-theme="dark"] .product-related-card figure img.img-fallback { padding: 24%; }
 html[data-theme="dark"] .admin-brand-logo,
 html[data-theme="dark"] .admin-login img,
 html[data-theme="dark"] .terra-login img {

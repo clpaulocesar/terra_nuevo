@@ -49,8 +49,8 @@
 @media(max-width:520px){
   h1{overflow-wrap:anywhere}
   .products-filters,.clients-filters{padding:.7rem!important}
-  .confirm-layout,.ident-layout,.cart-layout,.detalle-layout{gap:1rem!important}
-  .confirm-card,.confirm-summary,.cart-list-card,.cart-summary,.detalle-info{padding:1rem!important}
+  .confirm-layout,.ident-layout,.cart-layout{gap:1rem!important}
+  .confirm-card,.confirm-summary,.cart-list-card,.cart-summary{padding:1rem!important}
   .pedido-row{align-items:flex-start;flex-direction:column;gap:.25rem}
   .pedido-row b{overflow-wrap:anywhere}
   .products-modal,.orders-modal{padding:.5rem!important}

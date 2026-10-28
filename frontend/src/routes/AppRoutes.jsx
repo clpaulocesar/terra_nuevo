@@ -4,7 +4,7 @@ import { TutorialProvider } from '../context/TutorialContext.jsx';
 
 import Bienvenida from '../pages/Bienvenida.jsx';
 import Categorias from '../pages/Categorias.jsx';
-import DetalleProducto from '../pages/DetalleProducto.jsx';
+import DetalleProductoPage from '../features/detalle-producto/DetalleProductoPage.jsx';
 import CarritoPage from '../pages/CarritoPage.jsx';
 import IdentificacionPage from '../pages/Identificacion.jsx';
 import ConfirmacionPage from '../pages/Confirmacion.jsx';
@@ -84,7 +84,7 @@ export default function AppRoutes() {
           <Route index element={<Bienvenida />} />
           <Route path="categorias" element={<Categorias />} />
           <Route path="catalogo" element={<CatalogoPage />} />
-          <Route path="productos/:id" element={<DetalleProducto />} />
+          <Route path="productos/:id" element={<DetalleProductoPage />} />
           <Route path="carrito" element={<CarritoPage />} />
           <Route path="identificacion" element={<IdentificacionPage />} />
           <Route path="confirmacion" element={<ConfirmacionPage />} />

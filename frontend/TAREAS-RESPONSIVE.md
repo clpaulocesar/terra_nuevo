@@ -29,7 +29,7 @@ Verificación final de cada fase: `npm run build` y `npm run lint` (desde `front
 - [ ] **1.4 `Categorias.css`**: `.categorias-pills` usa `flex` + `white-space: nowrap` → desborde horizontal garantizado en pantallas chicas. Añadir `overflow-x: auto` con scroll o `flex-wrap` en ≤600px.
 - [ ] **1.5 `Bienvenida.css`**: `.welcome-hero` (7fr 5fr, min-height 490px) ya tiene 900/600. Verificar CTA e imagen a 320–360px.
 - [ ] **1.6 `CarritoPage.css`**: revisar fila de artículo (img + info + cantidad + precio) a 360px; **botones de cantidad de 2rem < 44px** → subir a ≥2.75rem en móvil.
-- [ ] **1.7 `DetalleProducto.css`**: galería 1fr 1fr ya colapsa (800/520). Verificar miniaturas y acciones sticky a 320px.
+- [x] **1.7 DetalleProducto (fase 2 de Tailwind, 2026-10-28).** Migrado a `src/features/detalle-producto/`; se borraron `DetalleProducto.css` y los cuatro archivos "fix". Ver `docs/decisiones/2026-10-28-migracion-tailwind.md`.
 - [ ] **1.8 `Identificacion.css`**: teclado en pantalla (850/520). Verificar que las teclas midan ≥44px y que en landscape no tape el formulario.
 - [ ] **1.9 `Confirmacion.css` y `PedidoGenerado.css`**: resumen/totales a 360px (grid 7fr/5fr ya colapsa). Estilos de impresión del pedido: comprobar siguen ok.
 - [ ] **1.10 Header cliente (`Layout.css` + `Responsive.css`)**: probar a 320px que logo + carrito + botón inicio quepan sin scroll (nav ya se oculta <520px) y que la barra inferior móvil no tape contenido.
