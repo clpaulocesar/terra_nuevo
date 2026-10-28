@@ -1,7 +1,10 @@
 import dotenv from 'dotenv';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-dotenv.config({ path: path.resolve(import.meta.dirname, '../../.env') });
+const __dirname = typeof import.meta.dirname === 'string' ? import.meta.dirname : path.dirname(fileURLToPath(import.meta.url));
+
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 // Secretos que firman los tokens de sesión. Son obligatorios y no tienen valor por
 // defecto: con un secreto conocido cualquiera podría forjar una sesión, así que el

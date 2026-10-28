@@ -40,7 +40,9 @@ export async function buscarInstruccionesChat(req, res, next) {
 }
 
 // URL pública del frontend, para armar el enlace del ticket que va dentro del QR.
-function urlFrontend() {
+function urlFrontend(req) {
+  const origin = req?.headers?.origin;
+  if (origin && /^https?:\/\//i.test(origin)) return origin.replace(/\/+$/, '');
   return String(process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/+$/, '');
 }
 
@@ -91,7 +93,7 @@ export async function crearPedidoChat(req, res, next) {
       throw error;
     }
 
-    const urlTicket = `${urlFrontend()}/pedido/${pedido.id}`;
+    const urlTicket = `${urlFrontend(req)}/pedido/${pedido.id}`;
     return res.status(201).json({
       success: true,
       mensaje: 'Pedido generado correctamente',
