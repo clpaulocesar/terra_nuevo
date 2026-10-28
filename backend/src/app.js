@@ -46,7 +46,7 @@ app.use(
     ],
   })
 );
-app.options('*', cors());
+// CORS se aplica globalmente con app.use(cors()) arriba.
 
 // Las imágenes viajan por multipart a /api/archivos, así que el JSON puede ser chico.
 app.use(express.json({ limit: '1mb' }));
