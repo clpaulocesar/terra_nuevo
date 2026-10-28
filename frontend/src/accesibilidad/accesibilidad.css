@@ -162,8 +162,10 @@ html.a11y-contraste {
   color-scheme: dark;
   background: #000;
 }
+/* Los contenedores de foto de producto quedan fuera: las fotos tienen fondo blanco
+   y un recuadro negro dejaría franjas a los costados (--terra-fondo-imagen-producto). */
 html.a11y-contraste body,
-html.a11y-contraste :is(main, section, article, aside, header, footer, nav, form, ul, ol, li, table, thead, tbody, tr, th, td, dl, dt, dd, figure, p, h1, h2, h3, h4, h5, h6, label, span, small, strong, b, em, i, div):not(.a11y-boton):not(.a11y-boton__punto):not(.a11y-opcion__interruptor):not(.a11y-opcion__interruptor i) {
+html.a11y-contraste :is(main, section, article, aside, header, footer, nav, form, ul, ol, li, table, thead, tbody, tr, th, td, dl, dt, dd, figure, p, h1, h2, h3, h4, h5, h6, label, span, small, strong, b, em, i, div):not(.a11y-boton):not(.a11y-boton__punto):not(.a11y-opcion__interruptor):not(.a11y-opcion__interruptor i):not(.terra-card__media):not(.product-related figure) {
   background-color: #000 !important;
   background-image: none !important;
   color: #fff !important;
@@ -197,7 +199,7 @@ html.a11y-contraste .a11y-opcion.is-on .a11y-opcion__interruptor { background: #
 html.a11y-contraste .a11y-opcion__interruptor { background: #666 !important; }
 html.a11y-contraste .a11y-opcion__interruptor i { background: #fff !important; }
 html.a11y-contraste .terra-voz__panel { background: #000 !important; color: #fff !important; border-color: #fff !important; }
-html.a11y-contraste .terra-card__media, html.a11y-contraste .product-gallery__main { background: #fff !important; }
+html.a11y-contraste .product-gallery__main { background: #fff !important; }
 
 /* Lectura en voz alta: indicador de la tarjeta recién leída (primer toque lee, segundo abre) */
 html.modo-accesible.a11y-leer .terra-card.is-leida { outline: 4px solid #ffd400; outline-offset: 3px; }
