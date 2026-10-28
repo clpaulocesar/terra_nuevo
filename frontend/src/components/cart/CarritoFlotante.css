@@ -1,9 +1,7 @@
 /* Widget flotante del carrito: solo logo al borde, drawer desde la derecha */
+/* Su posición (right y bottom) se define solo en routes/FloatingActions.css. */
 .cart-widget {
   position: fixed;
-  right: 0;
-  /* Se apila sobre el botón del asistente (altura de la píldora + separación). */
-  bottom: calc(var(--floating-cart-bottom, 4.5rem) + 3.1rem + var(--floating-controls-gap, 0.9rem));
   z-index: 75;
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -15,7 +13,6 @@
   justify-content: center;
   width: var(--floating-cart-size, 3.4rem);
   height: var(--floating-cart-size, 3.4rem);
-  margin-right: 1rem;
   border: none;
   border-radius: 999px;
   background: #a6192e;
@@ -207,8 +204,4 @@
   font-size: 0.82rem;
   cursor: pointer;
   text-decoration: underline;
-}
-
-@media (max-width: 639px) {
-  .cart-fab { margin-right: 0.75rem; }
 }

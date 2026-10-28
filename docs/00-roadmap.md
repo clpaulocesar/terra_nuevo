@@ -23,6 +23,7 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
   - 52 imágenes migradas de Supabase a copyparty, 0 fallidas; no queda ninguna URL de Supabase en `products` ni en `product_images`.
 - **Pruebas automatizadas**: backend con `node --test` (46 pruebas: cliente ERP contra HTTPS falso, cobro, login, imágenes contra copyparty falso, scripts), sobre un Postgres local desechable. Frontend: 25 + 23 pruebas.
 - **Fondo blanco detrás de las fotos de producto** en las tarjetas del catálogo y en "Otros modelos" de DetalleProducto, en modo claro, oscuro y alto contraste (variable `--terra-fondo-imagen-producto`). Sin cambios en tamaño ni recorte de las imágenes. Sin commit.
+- **Catálogo móvil corregido** (sin commit): ancho completo con margen de 16 px, 2 columnas desde 360 px y 3 desde 768, paginación en una fila con versión compacta, sin bloque vacío al final, flotantes con una sola definición y zona segura, logo más legible y logo de reemplazo al 60 %. Se quitaron las reglas heredadas de `index.css` y las de `Responsive.css` que pisaban el layout. Decisión: [[2026-10-28-flotantes-y-catalogo-movil]].
 - **Commits locales** `f24bf3a` (ERP y pagos) y `13f46df` (eliminar Supabase), sin push. La mayor parte del trabajo ya estaba en `812212d`, publicado en `origin/jhonatan`.
 
 ## En curso
@@ -50,6 +51,7 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
 
 ### Calidad y documentación
 - Revisión visual en modo claro, oscuro y alto contraste de Pedidos, Ventas directas y Clientes (cambios del 28/10 sin revisión en navegador).
+- Pendientes vistos al corregir el catálogo móvil: en Confirmación el botón del asistente tapa la barra "Total a pagar en caja"; el botón de accesibilidad tapa la primera columna del catálogo mientras se hace scroll; a 884 px y con texto al 150 % el enlace "Catálogo de Productos" del encabezado ocupa dos o tres líneas; el bloque móvil de `Catalogo.css` (`max-width: 639px`) todavía repite casi toda la tarjeta de escritorio.
 - La guía de usuario `docs/GUIA_USUARIO_TERRA_AUTOSERVICIO.md` que cita `AGENTS.md` no existe.
 - Scripts de la raíz (`scripts/asignar-productos-central.mjs`, `scripts/reclasificar-categorias.mjs`, `scripts/importar-excel-supabase.mjs`) todavía mencionan Supabase o deducen TLS por el host.
 

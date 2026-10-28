@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test:nav": "node --test src/navegacion/__tests__/interpretarIntencion.test.js src/utils/__tests__/erpCambios.test.js",
+    "test:nav": "node --test src/navegacion/__tests__/interpretarIntencion.test.js src/utils/__tests__/erpCambios.test.js src/utils/__tests__/paginacion.test.js",
     "test:a11y": "vitest run",
     "test": "npm run test:nav && npm run test:a11y"
   },

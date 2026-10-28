@@ -16,7 +16,11 @@ Verificación final de cada fase: `npm run build` y `npm run lint` (desde `front
 - [x] **0.5 Archivos muertos eliminados:** `src/App.css` (no importado), `components/layout/{Navbar,Header,Footer}.jsx` y `pages/NoEncontrado.jsx` (0 bytes, `NoEncontrado` vive definido en `AppRoutes.jsx`); carpeta `components/layout/` eliminada.
 - [x] **0.6 Corrección derivada:** `Layout.css` móvil (antes 640) pasó a 520 → la barra inferior cliente ahora coincide con el ocultamiento del nav (≤520 = solo barra inferior; 521–768 = nav compacto scrollable; >768 = header completo). Se eliminaron del bloque móvil las reglas muertas de header/padding (las gana `Responsive.css` con `!important`); el clearance inferior lo aporta `.site-footer{padding-bottom:5rem}` (siempre presente y después del `main`).
 
+> **Corrección 2026-10-28:** los selectores muertos de 0.3 (`.catalogo-hero`, `.category-hero`, `.catalogo-toolbar`, `.catalogo-grid`, `.catalogo-filters`) seguían en `Responsive.css`; se borraron en la tarea del catálogo móvil. También seguían en `index.css` las reglas `.page-content` y `.site-footer`, que ganaban en la cascada a `Layout.css`; se borraron.
+
 ## Fase 1 — Módulos de cliente
+
+- [x] **1.0 Catálogo móvil (2026-10-28).** Ancho completo con margen de 16 px, 2 columnas desde 360 px y 3 desde 768, imagen cuadrada (< 1024 px), nombre en 2 líneas, paginación en una fila (versión compacta en `utils/paginacion.js`), flotantes con una sola definición en `routes/FloatingActions.css` y zona segura (`viewport-fit=cover`), logo de 2.75rem y Tutorial solo ícono por debajo de 400 px. Decisión en `docs/decisiones/2026-10-28-flotantes-y-catalogo-movil.md`.
 
 - [ ] **1.1 `/catálogo` — doble encabezado (bug visual).** La ruta vive dentro de `Layout` (que dibuja `site-header terra-header`) y `Catalogo.jsx` además dibuja su propio `<header className="fixed top-0 … h-20 …">` (línea 185). Se superponen. Decidir si el catálogo usa el header de Layout o el propio, y ajustar `padding-top` del `main`.
 - [ ] **1.2 Header propio del catálogo en móvil**: logo + nav de 3 botones + carrito + inicio + avatar sin clases responsivas → desborda en 360px. Ocultar nav en ≤520px o convertirlo en menú.

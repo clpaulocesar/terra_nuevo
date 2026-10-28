@@ -1,10 +1,21 @@
 /* Acciones flotantes de la tienda: QR (arriba), carrito (medio) y asistente (abajo).
-   Las tres comparten el mismo margen derecho y se apilan verticalmente. */
+   Única definición de su posición: las tres comparten el margen derecho y se apilan
+   con las medidas de .app-shell (Layout.css). */
+
+.chat-widget {
+  right: var(--terra-flotantes-derecha);
+  bottom: var(--floating-cart-bottom);
+}
+
+.cart-widget {
+  right: var(--terra-flotantes-derecha);
+  bottom: calc(var(--floating-cart-bottom) + var(--floating-cart-size) + var(--floating-controls-gap));
+}
 
 .catalog-qr-fab {
   position: fixed;
-  right: 1rem;
-  bottom: calc(var(--floating-cart-bottom, 4.5rem) + 3.1rem + var(--floating-cart-size, 3.4rem) + var(--floating-controls-gap, 0.9rem) * 2);
+  right: var(--terra-flotantes-derecha);
+  bottom: calc(var(--floating-cart-bottom) + (var(--floating-cart-size) + var(--floating-controls-gap)) * 2);
   z-index: 74;
   display: inline-flex;
   align-items: center;
@@ -74,10 +85,11 @@
 /* La página de carrito ya muestra sus propios controles; los FABs no deben tapar el resumen. */
 .app-shell:has(.cart-page) :is(.catalog-qr-fab, .cart-widget, .chat-widget) { display: none; }
 
-@media (max-width: 639px) {
-  .catalog-qr-fab { right: 0.75rem; }
+/* Sin flotantes, el pie del carrito solo reserva el alto de la barra inferior. */
+@media (max-width: 767.98px) {
+  .app-shell:has(.cart-page) .site-footer { padding-bottom: var(--floating-cart-bottom); }
 }
 
 @media (max-width: 640px) {
-  .catalog-qr-fab { right: 0.6rem; }
+  .app-shell { --terra-flotantes-derecha: 0.75rem; }
 }

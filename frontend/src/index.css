@@ -39,8 +39,6 @@ h1 { font-size: clamp(1.8rem, 3vw, 2.7rem); line-height: 1.15; }
 .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
 /* Cabecera, marca y nav son exclusivas de routes/Layout.css (.site-header.terra-header). */
 .demo-banner { text-align: center; padding: 10px; background: #fff0cd; color: #634718; font-weight: 650; }
-.page-content { width: min(1180px, calc(100% - 36px)); margin: 0 auto; padding: 32px 0 54px; flex: 1; }
-.site-footer { padding: 18px; text-align: center; color: #707974; font-size: .85rem; }
 .hero-card { border-radius: 28px; background: linear-gradient(125deg,#0b593b,#18885b); color: white; padding: clamp(35px, 7vw, 85px); }
 .hero-card h1 { font-size: clamp(2.4rem, 6vw, 4.8rem); max-width: 660px; }
 .hero-card p { font-size: 1.2rem; max-width: 570px; margin-bottom: 28px; color: #e2f6e9; }
