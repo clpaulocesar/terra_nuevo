@@ -19,6 +19,7 @@
   --ok: #1e7e46;
   --ok-bg: #e4f4e9;
   --alerta: #c0392b;
+  --terra-card-image-background: #fff;
   --radius: 16px;
   --shadow: 0 20px 48px rgba(166, 25, 46, 0.10);
   --shadow-sm: 0 8px 24px rgba(166, 25, 46, 0.12);
@@ -778,7 +779,7 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   position: relative;
   width: 100%;
   height: 210px;
-  background: #faf7f5;
+  background: var(--terra-card-image-background);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -1488,7 +1489,7 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
     position: relative;
     width: 100%;
     height: 175px;
-    background: #faf7f5;
+    background: var(--terra-card-image-background);
     overflow: hidden;
     display: flex;
     align-items: center;

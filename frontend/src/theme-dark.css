@@ -195,7 +195,6 @@ html[data-theme="dark"] .terra-key--clear,
 html[data-theme="dark"] .terra-key--mode { background: var(--td-accent-soft); color: #ffb3bd; }
 html[data-theme="dark"] .terra-card { background: var(--td-surface); border-color: var(--td-line); }
 html[data-theme="dark"] .terra-card:hover { border-color: #5a4a45; }
-html[data-theme="dark"] .terra-card__media,
 html[data-theme="dark"] .terra-card__footer { background: var(--td-surface-2); }
 html[data-theme="dark"] .terra-card__img.img-fallback { background: var(--td-surface-2); opacity: 0.95; }
 html[data-theme="dark"] .terra-card__measure { background: rgba(30, 25, 23, 0.92); color: var(--td-text); }
