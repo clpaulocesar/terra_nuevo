@@ -15,6 +15,10 @@ import { listarProductosDestacados } from './services/api.js';
 import { crearPedidoBackend } from './services/pedidoService.js';
 import { VozProvider, useVoz } from './context/VozContext.jsx';
 import TutorialVozModal from './components/TutorialVozModal.jsx';
+import { TemporadaProvider, useTemporada } from './context/TemporadaContext.jsx';
+import TemporadaAmbiental from './components/TemporadaAmbiental.jsx';
+import ChatAsistente from './components/chat/ChatAsistente.jsx';
+import './styles/temporadas.css';
 import './InicioCliente.css';
 
 const INITIAL_CART = [
@@ -51,6 +55,7 @@ function AppGlobalContent() {
   const [busqueda, setBusqueda] = useState('');
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productosDestacados, setProductosDestacados] = useState([]);
+  const { temporada, festivoActual, alternarDiaNoche, esModoDia } = useTemporada();
 
   // Cart & Drawers
   const [cartOpen, setCartOpen] = useState(false);
@@ -64,40 +69,15 @@ function AppGlobalContent() {
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [toast, setToast] = useState({ visible: false, titulo: '', mensaje: '' });
 
-  // Modo Noche / Modo Día
-  const [modoOscuro, setModoOscuro] = useState(() => {
-    try {
-      return localStorage.getItem('terra_theme') === 'dark';
-    } catch {
-      return false;
+  // Modo Noche / Modo Día sincronizado con temporada
+  const toggleModoDiaNoche = () => {
+    alternarDiaNoche();
+    if (esModoDia) {
+      const nombreFestivo = festivoActual === 'halloween' ? 'Halloween' : festivoActual === 'navidad' ? 'Navidad' : 'Noche';
+      mostrarToast(`Modo Noche (${nombreFestivo}) activado`, 'Ambiente temático y festivo activado en la tienda.');
+    } else {
+      mostrarToast('Modo Día activado', 'Mostrando el diseño estándar y luminoso de TERRA.');
     }
-  });
-
-  useEffect(() => {
-    try {
-      if (modoOscuro) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('terra_theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('terra_theme', 'light');
-      }
-    } catch {
-      // ignore
-    }
-  }, [modoOscuro]);
-
-  const toggleModoOscuro = () => {
-    setModoOscuro((prev) => {
-      const nuevo = !prev;
-      mostrarToast(
-        nuevo ? 'Modo Noche activado' : 'Modo Día activado',
-        nuevo
-          ? 'Interfaz adaptada para ambientes oscuros y menor fatiga visual.'
-          : 'Mostrando la interfaz normal de la tienda web.'
-      );
-      return nuevo;
-    });
   };
 
   // Escape to close
@@ -110,8 +90,13 @@ function AppGlobalContent() {
         setAccountModalOpen(false);
       }
     };
+    const abrirChat = () => setAssistantOpen(true);
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener('terra:abrir-chat', abrirChat);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('terra:abrir-chat', abrirChat);
+    };
   }, []);
 
   useEffect(() => {
@@ -230,11 +215,6 @@ function AppGlobalContent() {
     );
   };
 
-  const respuestaAsistente = (texto) => {
-    alert(`Asistente Terra: ${texto}. Te transferimos con el equipo de la sucursal activa (${sucursalActiva.nombre}).`);
-    setAssistantOpen(false);
-  };
-
   const irASucursales = () => {
     if (paginaActual !== 'inicio') {
       setPaginaActual('inicio');
@@ -254,12 +234,13 @@ function AppGlobalContent() {
       onCerrarCarrito: () => setCartOpen(false),
       onAbrirMiCuenta: () => setAccountModalOpen(true),
       onAbrirSucursales: irASucursales,
-      onModoOscuro: (oscuro) => setModoOscuro(oscuro),
+      onModoOscuro: () => toggleModoDiaNoche(),
     });
-  }, [navegarA, ejecutarBusqueda, irASucursales, registrarAcciones]);
+  }, [navegarA, ejecutarBusqueda, irASucursales, registrarAcciones, toggleModoDiaNoche]);
 
   return (
     <div className="min-h-screen bg-surface font-body-md text-body-md text-on-surface">
+      <TemporadaAmbiental />
       {/* ========================================================= */}
       {/* ENCABEZADO UNIFICADO                                      */}
       {/* ========================================================= */}
@@ -272,8 +253,10 @@ function AppGlobalContent() {
         totalArticulos={totalArticulos}
         onAbrirCarrito={() => setCartOpen(true)}
         onToggleAccesibilidad={toggleAccesibilidad}
-        modoOscuro={modoOscuro}
-        onToggleModoOscuro={toggleModoOscuro}
+        modoOscuro={!esModoDia}
+        temporada={temporada}
+        festivoActual={festivoActual}
+        onToggleModoOscuro={toggleModoDiaNoche}
         busqueda={busqueda}
         setBusqueda={setBusqueda}
         onEjecutarBusqueda={ejecutarBusqueda}
@@ -283,7 +266,7 @@ function AppGlobalContent() {
       {/* ========================================================= */}
       {/* CONTENIDO PRINCIPAL SEGÚN PÁGINA                          */}
       {/* ========================================================= */}
-      <main className="w-full pt-44 bg-surface" id="contenido-principal">
+      <main className="w-full pt-36 sm:pt-44 bg-surface" id="contenido-principal">
         {paginaActual === 'inicio' && (
           <InicioPage
             sucursalActiva={sucursalActiva}
@@ -389,11 +372,14 @@ function AppGlobalContent() {
         onVerCarritoCompleto={() => navegarA('carrito')}
       />
 
+      <ChatAsistente
+        abierto={assistantOpen}
+        onCerrar={() => setAssistantOpen(false)}
+        onNavegar={navegarA}
+      />
+
       <Modals
         sucursalActiva={sucursalActiva}
-        assistantOpen={assistantOpen}
-        onCloseAssistant={() => setAssistantOpen(false)}
-        onRespuestaAsistente={respuestaAsistente}
         qrModalOpen={qrModalOpen}
         onCloseQrModal={() => setQrModalOpen(false)}
         accountModalOpen={accountModalOpen}
@@ -429,7 +415,9 @@ function AppGlobalContent() {
 export default function AppGlobal() {
   return (
     <VozProvider>
-      <AppGlobalContent />
+      <TemporadaProvider>
+        <AppGlobalContent />
+      </TemporadaProvider>
     </VozProvider>
   );
 }
