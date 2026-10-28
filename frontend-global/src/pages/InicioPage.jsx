@@ -41,150 +41,6 @@ const CATEGORIAS_FILTRO = [
   { id: 'oficina', nombre: 'Estudio & Home Office' },
 ];
 
-const PRODUCTOS_DESTACADOS_INICIO = [
-  {
-    id: 1,
-    cat: 'sofas',
-    sublinea: 'Línea Confort Santa Cruz',
-    rating: '4.9 (84)',
-    titulo: 'Sofá Cama Modular Nuvola',
-    descripcion: 'Tejido hidrófugo antimanchas de alto tráfico, estructura de roble curado y espuma viscoelástica.',
-    stock: 'Central & Norte',
-    precio: 3490,
-    enOferta: true,
-    masVendido: true,
-    badge: 'MÁS VENDIDO SCZ',
-    badgeClass: 'bg-primary text-on-primary',
-    extraBadge: 'Ver 3D en Kiosco',
-    extraIcon: 'view_in_ar',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBfy9dMfPB9IiWLd0EqA_bYO41kjvJw7QtX_g5Aq0d0hExCO5h2UydNobv-6d-QYDFy6qs0biXaKi-v3Z0aQxUEp6UxEdkgRwarTF1nEXZtwlaM8IOaozTbjDG9tfP3OInOB1LTaw9NuY5fEwrdNW7rTjB9HlO9R55AnAK5V84zdXsCaP-HgWhdHhVswR5T1uCi357PEzs_JeHnNtAWlN36TOuphQJmR9eakxCKxOIG',
-  },
-  {
-    id: 2,
-    cat: 'dormitorio',
-    sublinea: 'Dormitorio de Alto Lujo',
-    rating: '5.0 (112)',
-    titulo: 'Sommier King Terra Rest Pocket',
-    descripcion: 'Resortes independientes que aíslan el movimiento, tejido de bambú fresco ideal para el clima de Santa Cruz.',
-    stock: 'Central & Sur',
-    precio: 4950,
-    enOferta: true,
-    masVendido: false,
-    badge: '1 AÑO GARANTÍA',
-    badgeClass: 'bg-surface-container-highest text-on-surface',
-    extraBadge: 'Resortes Pocket',
-    extraIcon: 'bed',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC5-oN1Sf_NHCSlJNA_3vhfRtz6zj7ClIg1i9NkeZIx308IpMmOcHdI4fzgVsPPOLi0WoGZTbEI3uUxljlyKiGsim1Oaeo5xvGbnxoZaS4WPFLFUHEAWOsYUeolIvo5W5EO_hBTEiyGyGJM6x-5lP5Kslm3Hf31k1y7QfXwe7NQEZjZpJdfYhgSczIB0ZWOANkpp1MIdmeiR3iFimsYZf5EkcZUNWsjSswnAwD2es9S',
-  },
-  {
-    id: 3,
-    cat: 'sofas',
-    sublinea: 'Living & Descanso',
-    rating: '4.8 (43)',
-    titulo: 'Poltrona Giratoria & Balancín Verona',
-    descripcion: 'Mecanismo suave de giro 360 grados, reclinación progresiva y soporte lumbar anatómico certificado.',
-    stock: '3 Sucursales',
-    precio: 2190,
-    enOferta: false,
-    masVendido: true,
-    badge: 'RECLINABLE PRO',
-    badgeClass: 'bg-primary/10 text-primary',
-    extraBadge: 'Prueba Ergonómica',
-    extraIcon: 'touch_app',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAVGXgAv_rD6CusyOnm95LUK5WC2kvYQgE5JAD7H5P_HTqBFTIlqKhzOZjoyOJR0Sh_WBKJv4LBYpDQRxZZ5mDrS_muFSdgNdvxy1bFpx3-beH2EJYfWaAp83ItYoHErrNhvgQLp0JUNmqeiyjzesXPP0qCOSMB7YVzUH8pbmo85WTCtY3f-rsenKxtmtw9v25CWSOyF3dA_b-4DOLS7-7NeOAzyN1mz1DrbhRbcCTJ',
-  },
-  {
-    id: 4,
-    cat: 'comedores',
-    sublinea: 'Comedores & Vajilleros',
-    rating: '4.9 (29)',
-    titulo: 'Comedor Copenhague Roble',
-    descripcion: 'Mesa maciza extensible de 1.80m a 2.40m con 6 sillas tapizadas en tela repelente a líquidos.',
-    stock: 'Norte & Sur',
-    precio: 5890,
-    badge: 'SET 6 SILLAS',
-    badgeClass: 'bg-surface-container-highest text-on-surface',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAfWEZ7xkKrat9US47SOfyWxPRrQLfhWKgAjHcS--YQNIWDr1WSfXL4x0CQ2xj-mfSbkbfqONTHwtCBCK2UG9coa3XxuTL8Y2QH3Pr8H8EYZHXqt2lLLiiPLnCMxnc54ope7GlhEUpwg2V36c2m9nDmiB8SYd6DnHXAij7fZKsuzAeDZFovbRZnwuK3dzmvxC1d8ZwyKullORwPPPbdil_4aWNvIobc4uOyAAsbeR-1',
-  },
-  {
-    id: 5,
-    cat: 'dormitorio',
-    sublinea: 'Línea Clima Santa Cruz',
-    rating: '4.9 (67)',
-    titulo: 'Colchón Queen Terra Bio-Gel Fresh',
-    descripcion: 'Capa de micro-cápsulas de gel refrigerante que disipan el calor corporal para un descanso fresco continuo.',
-    stock: 'Central & Norte',
-    precio: 3280,
-    enOferta: true,
-    masVendido: true,
-    badge: 'TERMORREGULADOR',
-    badgeClass: 'bg-primary text-on-primary',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBM1wajMWbqwCjIJDr1OYNcnH3tvbyLvwCdC1bXP24vWfscZDkhRceiArgOuZGIcNZnEBmTp-Jr301iqfUqbLWgpCTz4QPmolv4pEdo_cwp-qT6IOXzQDl8sRFUM_MlgyG_76VcyltocQXfmiQlImAHcpzjZHtwE7m4NtnQaanaGv7qYWVCHWm_UyDbIVCd61vfAVCd8l7GRnjgbOcIcCVW8lsug6mDkb5euwTV0jXr',
-  },
-  {
-    id: 6,
-    cat: 'oficina',
-    sublinea: 'Espacios de Trabajo',
-    rating: '4.7 (31)',
-    titulo: 'Escritorio Ejecutivo Nordik Nogal',
-    descripcion: 'Superficie texturada de alta resistencia a rayaduras, canaleta oculta de cables y cajonera suave.',
-    stock: '3 Sucursales',
-    precio: 1850,
-    badge: 'DISEÑO ERGO',
-    badgeClass: 'bg-surface-container-highest text-on-surface',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDD_ps9UnLTh5Sj_kHeNrii3UejCn3r8nhINF5uaXinM7UjX45mDoahhBpT5Rl7NsrvLxUsnyc46fBUT1ABG3gBf5_WXmGqP64oIUM0zKBk1YUGVFjNsAh90_Zl0OA1N2EB3RmosQBuBolukeKX83vLo-szOGW-34m9TffBhzVR4hVA-axa3GUDzsrEIIJKgruN--fNtMxO8GHAmcsWYyvxFpuDLhX1UZ7GejO1cl4V',
-  },
-  {
-    id: 7,
-    cat: 'sofas',
-    sublinea: 'Living & Confort',
-    rating: '5.0 (52)',
-    titulo: 'Sofá Seccional Modular Lino',
-    descripcion: 'Diseño modular configurable para sala de estar con asientos extra confort y tapiz lavable.',
-    stock: 'Central & Norte',
-    precio: 4200,
-    badge: 'NUEVO SCZ',
-    badgeClass: 'bg-primary text-on-primary',
-    extraBadge: 'Modular Pro',
-    extraIcon: 'weekend',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBRnTMvzQ5Kd8WQI089f42cklQ6DjvWnV5eGTP5XLac9dpDxG5bIkNUQTqyWHDao9Brycjbs75IDqqiahTfLe9Ix7Z__OZK-ExXMZOp-yit8ZbVpa6u_Uv822pxS6aQCU0O9qQ-5pQs7BUYRa-XC2t3vSkTZu4Ht5w5ctYqEJVg8SgQdWqeVnPpiD5zFtdZd-lnpwgWJzl-RySUiX9w6k0XjjAJRfoehgCm1UYyuTB-',
-  },
-  {
-    id: 8,
-    cat: 'dormitorio',
-    sublinea: 'Almohadas & Descanso',
-    rating: '5.0 (128)',
-    titulo: 'Almohada Ortopédica Confort LYA',
-    descripcion: 'Microfibra siliconada virgen con tratamiento hipoalergénico y soporte cervical ergonómico.',
-    stock: '3 Sucursales',
-    precio: 20,
-    enOferta: true,
-    masVendido: true,
-    badge: 'FAVORITO',
-    badgeClass: 'bg-primary/10 text-primary',
-    extraBadge: 'Hipoalergénico',
-    extraIcon: 'hotel_class',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAXiQ6yJlZs-IOwGE_72hPGxPY0DnPCClt7MU6FGu_wr2-pWGHAvCWKDyPQTUY5x9Z25hLTVPGYFXky0CFOCFblQDkIr0RhxJHHJLn161WIPmmXSkiPKdt6BjVM-i1ooQkW4VQPkviYt8A70UtYhm9jyDpEqbOqrdCPAbNV3JtGstGKVxDcwn6Y79evf_sxrSTF5O_ag1VNmSB7njRBpggeRPFnEvhSPydr4G__HTtY',
-  },
-  {
-    id: 9,
-    cat: 'comedores',
-    sublinea: 'Comedores & Sillas',
-    rating: '4.8 (37)',
-    titulo: 'Set 4 Sillas Tapizadas Oslo',
-    descripcion: 'Estructura sólida de madera reforzada y tapizado antimanchas con tacto aterciopelado suave.',
-    stock: 'Central & Sur',
-    precio: 1680,
-    enOferta: false,
-    masVendido: true,
-    badge: 'SET 4 PIEZAS',
-    badgeClass: 'bg-surface-container-highest text-on-surface',
-    extraBadge: 'Madera Roble',
-    extraIcon: 'chair',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB-OmPdB9Bo1UxTW1G65FPCMBrIofoisvhefUrxdLSoN4UhNrvmiYo4J065VvUhcGrajV-kaevRWz0iulCb_e7gw8mrOFvlwHFf0nN31o-G9K5mqBvvrRH8_IPKHNPbLx3CL38X5U7kTOqaJ9dS9sGCizA3vWMQoFDhCtyC5YLIqmz4mGHxjRqY-bnXH5GhijazdpS9UIalDFf-dnOrR5RddL4PTCb2m_-opIsXxGSl',
-  },
-];
-
 function formatBs(val) {
   return 'Bs ' + Number(val || 0).toLocaleString('es-BO', { minimumFractionDigits: 2 });
 }
@@ -214,7 +70,7 @@ export default function InicioPage({
 
   const slideActivo = HERO_SLIDES[slideIndex];
 
-  const productosBase = (productosDestacados.length ? productosDestacados : PRODUCTOS_DESTACADOS_INICIO).map((producto) => {
+  const productosBase = (productosDestacados || []).map((producto) => {
     const textoLimpio = String(producto.descripcion || '')
       .split('\n')
       .map((s) => s.trim())
@@ -311,11 +167,6 @@ export default function InicioPage({
                 </button>
               );
             })}
-          </div>
-
-          <div className="hidden xl:flex items-center gap-2 text-on-surface-variant font-label-subtle text-label-subtle">
-            <span className="material-symbols-outlined text-[18px] text-primary">bolt</span>
-            <span>Entrega Express 24h dentro de 4to Anillo</span>
           </div>
         </div>
       </section>

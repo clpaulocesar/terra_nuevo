@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CATEGORY_PILLS } from '../data/catalogoData.js';
-import { SUCURSALES_DATA, evaluarDisponibilidadSucursal } from '../data/sucursalesData.js';
-import { listarProductos, obtenerCategorias } from '../services/api.js';
+import { evaluarDisponibilidadSucursal } from '../data/sucursalesData.js';
+import { listarProductos } from '../services/api.js';
+import { normalizarCategoria, coincideCategoriaProducto } from '../utils/categoriaUtils.js';
 
 function formatBs(val) {
   return 'Bs ' + Number(val || 0).toLocaleString('es-BO', { minimumFractionDigits: 2 });
@@ -44,6 +44,8 @@ const FIRMEZAS_DISPONIBLES = [
 ];
 
 function FiltrosAvanzadosContenido({
+  orden,
+  setOrden,
   minPrecioCatalogo,
   maxPrecioCatalogo,
   precioMaximo,
@@ -98,6 +100,26 @@ function FiltrosAvanzadosContenido({
               <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
           )}
+        </div>
+      </div>
+
+      <div className="space-y-space-xs">
+        <label className="font-label-interactive text-label-interactive font-semibold text-on-surface" htmlFor={onCerrarMobile ? 'catalog-sort-mobile' : 'catalog-sort-desktop'}>
+          Ordenar productos
+        </label>
+        <div className="relative flex min-h-11 items-center rounded-xl bg-surface-container-low px-3 text-on-surface transition-colors focus-within:ring-2 focus-within:ring-primary/20">
+          <span className="material-symbols-outlined mr-2 text-[19px] text-primary">swap_vert</span>
+          <select
+            id={onCerrarMobile ? 'catalog-sort-mobile' : 'catalog-sort-desktop'}
+            className="w-full cursor-pointer bg-transparent py-2 font-label-interactive text-label-interactive font-semibold text-on-surface outline-none"
+            value={orden}
+            onChange={(evento) => setOrden(evento.target.value)}
+          >
+            <option value="recomendados" className="bg-surface-container-lowest text-on-surface">Recomendados</option>
+            <option value="precio-asc" className="bg-surface-container-lowest text-on-surface">Precio: menor a mayor</option>
+            <option value="precio-desc" className="bg-surface-container-lowest text-on-surface">Precio: mayor a menor</option>
+            <option value="nombre" className="bg-surface-container-lowest text-on-surface">Nombre: A–Z</option>
+          </select>
         </div>
       </div>
 
@@ -313,15 +335,14 @@ function FiltrosAvanzadosContenido({
 
 export default function CatalogoPage({
   sucursalActiva,
-  setSucursalActiva,
   onAgregarAlCarrito,
   categoriaInicial = 'todas',
+  onCambiarCategoria,
   busquedaInicial = '',
+  onLimpiarBusqueda,
   onVerDetalle,
 }) {
-  const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
   const [categoriaActiva, setCategoriaActiva] = useState(categoriaInicial);
-  const [listaCategorias, setListaCategorias] = useState(CATEGORY_PILLS);
   const [busquedaLocal, setBusquedaLocal] = useState(busquedaInicial);
   const [filtroOfertas, setFiltroOfertas] = useState(false);
   const [filtroMasVendidos, setFiltroMasVendidos] = useState(false);
@@ -337,8 +358,21 @@ export default function CatalogoPage({
   const [coloresSeleccionados, setColoresSeleccionados] = useState({});
   const [productosReales, setProductosReales] = useState([]);
   const [paginacion, setPaginacion] = useState({ total: 0, totalPaginas: 1 });
-  const [cargando, setCargando] = useState(false);
   const [errorCarga, setErrorCarga] = useState('');
+
+  useEffect(() => {
+    setBusquedaLocal(busquedaInicial || '');
+    setPagina(1);
+  }, [busquedaInicial]);
+
+  useEffect(() => {
+    setCategoriaActiva(categoriaInicial || 'todas');
+    setPagina(1);
+  }, [categoriaInicial]);
+
+  useEffect(() => {
+    onCambiarCategoria?.(categoriaActiva);
+  }, [categoriaActiva, onCambiarCategoria]);
 
   // Debounce del precio para no saturar peticiones mientras se arrastra el slider
   useEffect(() => {
@@ -372,29 +406,10 @@ export default function CatalogoPage({
     setPagina(1);
   };
 
-  // Cargar categorías del backend
-  useEffect(() => {
-    obtenerCategorias()
-      .then((cats) => {
-        if (Array.isArray(cats) && cats.length > 0) {
-          setListaCategorias(
-            cats.map((c) => ({
-              id: c.key || c.id,
-              label: c.nombre,
-              icon: c.icono || 'chair',
-              isOffer: c.key === 'ofertas' || c.id === 'ofertas',
-            }))
-          );
-        }
-      })
-      .catch(() => {});
-  }, []);
-
   useEffect(() => {
     const controlador = new AbortController();
 
     const cargarProductos = async () => {
-      setCargando(true);
       setErrorCarga('');
       try {
         const precioFiltro =
@@ -417,10 +432,6 @@ export default function CatalogoPage({
       } catch (error) {
         if (error.name !== 'AbortError') {
           setErrorCarga(error.message);
-        }
-      } finally {
-        if (!controlador.signal.aborted) {
-          setCargando(false);
         }
       }
     };
@@ -496,6 +507,7 @@ export default function CatalogoPage({
     setFiltroRetiro(false);
     setPrecioMaximo(null);
     setBusquedaLocal('');
+    onLimpiarBusqueda?.();
     setPagina(1);
   };
 
@@ -527,10 +539,8 @@ export default function CatalogoPage({
         }
 
         // Categoría
-        if (categoriaActiva === 'ofertas') {
-          if (!prod.enOferta) return false;
-        } else if (categoriaActiva !== 'todas') {
-          if (prod.categoriaKey !== categoriaActiva) return false;
+        if (!coincideCategoriaProducto(prod, categoriaActiva)) {
+          return false;
         }
 
         // Ofertas
@@ -590,220 +600,6 @@ export default function CatalogoPage({
   return (
     <div className="relative w-full px-margin py-space-md">
       {/* ========================================================= */}
-      {/* CATALOG CONTROL HUB                                       */}
-      {/* ========================================================= */}
-      <div className="bg-surface-container-lowest rounded-xl shadow-md p-space-md lg:p-space-lg mb-space-lg">
-        {/* Top Row: Search & Store Availability Badge */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md mb-space-md">
-          {/* Large Touch Search Bar */}
-          <div className="relative flex-1">
-            <div className="flex items-center w-full h-14 pl-12 pr-4 bg-surface-container-low rounded-xl text-on-surface focus-within:bg-surface-container-lowest focus-within:shadow-md transition-all">
-              <span className="material-symbols-outlined absolute left-4 text-on-surface-variant text-[24px]">search</span>
-              <input
-                className="w-full bg-transparent font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant outline-none"
-                id="catalog-search"
-                placeholder="Buscar colchones, sommiers, almohadas, camas, sofás..."
-                type="text"
-                value={busquedaLocal}
-                onChange={(e) => setBusquedaLocal(e.target.value)}
-              />
-              <button
-                type="button"
-                className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-interactive text-label-interactive hover:bg-primary-container transition-colors flex items-center gap-1 shadow-sm cursor-pointer"
-                onClick={() => setPagina(1)}
-              >
-                <span className="material-symbols-outlined text-[18px]">manage_search</span>
-                Buscar
-              </button>
-            </div>
-          </div>
-
-          {/* Store Switcher Pill & Kiosk Stock Indicator */}
-          <div className="flex items-center gap-space-sm bg-surface-container-low p-1.5 rounded-xl self-start lg:self-center">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-container-lowest rounded-lg shadow-sm">
-              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
-              <div className="leading-tight">
-                <span className="font-label-subtle text-label-subtle text-on-surface-variant block">Showroom Activo:</span>
-                <span className="font-label-interactive text-label-interactive text-on-surface font-semibold">
-                  {sucursalActiva.nombre} · Santa Cruz
-                </span>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="px-3 py-2 text-primary hover:bg-surface-container rounded-lg font-label-interactive text-label-interactive flex items-center gap-1 transition-colors cursor-pointer"
-              id="branch-select-btn"
-              onClick={() => setBranchDropdownOpen((open) => !open)}
-            >
-              <span>{branchDropdownOpen ? 'Cerrar' : 'Cambiar sala'}</span>
-              <span className="material-symbols-outlined text-[18px]">
-                {branchDropdownOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Quick Branch Selector Dropdown Box */}
-        {branchDropdownOpen && (
-          <div
-            className="grid grid-cols-2 md:grid-cols-5 gap-2 pt-space-xs pb-space-sm border-t-0 bg-surface-container-low p-3 rounded-lg mb-space-md animate-fadeIn"
-            id="branch-dropdown"
-          >
-            {SUCURSALES_DATA.map((s) => {
-              const activa = s.id === sucursalActiva.id;
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  className={`flex flex-col text-left p-2.5 rounded-lg transition-all cursor-pointer ${
-                    activa
-                      ? 'bg-primary-container text-on-primary-container font-semibold shadow-sm'
-                      : 'bg-surface-container-lowest text-on-surface hover:bg-surface-container'
-                  }`}
-                  onClick={() => {
-                    setSucursalActiva(s);
-                    setBranchDropdownOpen(false);
-                  }}
-                >
-                  <span
-                    className={`text-[11px] uppercase tracking-wider ${
-                      activa ? 'text-on-primary-container/80' : 'text-on-surface-variant'
-                    }`}
-                  >
-                    {s.tag}
-                  </span>
-                  <span className="text-[13px] font-semibold">{s.nombre}</span>
-                  <span
-                    className={`text-[11px] font-normal ${
-                      activa ? 'opacity-90' : 'text-on-surface-variant'
-                    }`}
-                  >
-                    {s.stockKiosk}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Inventory Metrics Bar & Sorting Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-space-sm pb-space-sm border-b border-surface-container-low">
-          <div className="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-full text-on-surface">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-            <span className="font-label-interactive text-label-interactive text-on-surface">
-              {cargando ? (
-                'Cargando catálogo…'
-              ) : (
-                <>
-                  <strong>{(paginacion.total || productosFiltrados.length).toLocaleString('es-BO')} productos</strong> {totalFiltrosActivos > 0 ? '(filtrados)' : 'en catálogo'} · {sucursalActiva.nombre}
-                  {paginacion.totalPaginas > 1 && (
-                    <span className="text-on-surface-variant font-normal ml-1">
-                      (Mostrando {productosFiltrados.length} en pág. {pagina} de {paginacion.totalPaginas})
-                    </span>
-                  )}
-                </>
-              )}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Mobile / Tablet Filter Trigger Button */}
-            <button
-              type="button"
-              className="lg:hidden flex items-center gap-1.5 px-3.5 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface rounded-xl font-label-interactive text-label-interactive font-semibold border border-outline-variant/30 cursor-pointer shadow-xs"
-              onClick={() => setDrawerFiltrosAbierto(true)}
-              title="Abrir filtros avanzados"
-            >
-              <span className="material-symbols-outlined text-[18px] text-primary">tune</span>
-              <span>Filtros</span>
-              {totalFiltrosActivos > 0 && (
-                <span className="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] font-bold flex items-center justify-center">
-                  {totalFiltrosActivos}
-                </span>
-              )}
-            </button>
-
-            {/* Sorting Control */}
-            <div className="flex items-center gap-2">
-              <label className="font-label-subtle text-label-subtle text-on-surface-variant hidden sm:inline" htmlFor="catalog-sort">
-                Visualización:
-              </label>
-              <div className="relative inline-flex items-center bg-primary text-on-primary px-4 py-2 rounded-xl shadow-sm cursor-pointer hover:bg-primary-container transition-colors">
-                <span className="material-symbols-outlined text-[18px] mr-1.5">swap_vert</span>
-                <select
-                  id="catalog-sort"
-                  className="bg-transparent text-on-primary font-label-interactive text-label-interactive font-semibold outline-none cursor-pointer pr-4"
-                  value={orden}
-                  onChange={(e) => setOrden(e.target.value)}
-                >
-                  <option value="recomendados" className="text-on-surface bg-surface-container-lowest">
-                    Orden: Recomendados
-                  </option>
-                  <option value="precio-asc" className="text-on-surface bg-surface-container-lowest">
-                    Precio: Menor a Mayor
-                  </option>
-                  <option value="precio-desc" className="text-on-surface bg-surface-container-lowest">
-                    Precio: Mayor a Menor
-                  </option>
-                  <option value="nombre" className="text-on-surface bg-surface-container-lowest">
-                    Nombre: A - Z
-                  </option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Category Pills Row */}
-        <div className="flex items-center gap-2 overflow-x-auto pt-space-xs no-scrollbar py-2">
-          {listaCategorias.map((pill) => {
-            const esActiva = categoriaActiva === pill.id;
-            if (pill.isOffer) {
-              return (
-                <button
-                  key={pill.id}
-                  type="button"
-                  className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full font-label-interactive text-label-interactive shadow-sm transition-colors cursor-pointer ${
-                    esActiva
-                      ? 'bg-primary text-on-primary font-bold'
-                      : 'bg-primary-fixed text-on-primary-fixed font-bold hover:bg-primary-fixed-dim'
-                  }`}
-                  onClick={() => setCategoriaActiva(esActiva ? 'todas' : pill.id)}
-                >
-                  <span className="material-symbols-outlined text-[18px]">local_fire_department</span>
-                  <span>{pill.label}</span>
-                </button>
-              );
-            }
-
-            return (
-              <button
-                key={pill.id}
-                type="button"
-                className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full font-label-interactive text-label-interactive transition-colors cursor-pointer ${
-                  esActiva
-                    ? 'bg-inverse-surface text-on-primary font-bold shadow-sm'
-                    : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
-                }`}
-                onClick={() => setCategoriaActiva(pill.id)}
-              >
-                <span className="material-symbols-outlined text-[18px] text-on-surface-variant">{pill.icon}</span>
-                <span>{pill.label}</span>
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            className="shrink-0 flex items-center gap-1 px-3 py-2 bg-surface-container-high text-on-surface-variant rounded-full font-label-interactive text-label-interactive hover:bg-surface-container-highest transition-colors cursor-pointer"
-            onClick={() => setCategoriaActiva('todas')}
-          >
-            <span className="material-symbols-outlined text-[16px]">more_horiz</span>
-            <span>+23 más</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ========================================================= */}
       {/* MOBILE / TABLET FILTER DRAWER                             */}
       {/* ========================================================= */}
       {drawerFiltrosAbierto && (
@@ -815,6 +611,8 @@ export default function CatalogoPage({
           <div className="relative w-full max-w-sm bg-surface-container-lowest h-full shadow-2xl p-space-md overflow-y-auto flex flex-col justify-between z-10 border-l border-outline-variant/30 animate-fadeIn">
             <div>
               <FiltrosAvanzadosContenido
+                orden={orden}
+                setOrden={setOrden}
                 minPrecioCatalogo={minPrecioCatalogo}
                 maxPrecioCatalogo={maxPrecioCatalogo}
                 precioMaximo={precioMaximoActivo}
@@ -859,6 +657,8 @@ export default function CatalogoPage({
         {/* DESKTOP FILTER ASIDE */}
         <aside className="hidden lg:block lg:col-span-3 bg-surface-container-lowest p-space-md rounded-xl shadow-sm sticky top-48 border border-outline-variant/30">
           <FiltrosAvanzadosContenido
+            orden={orden}
+            setOrden={setOrden}
             minPrecioCatalogo={minPrecioCatalogo}
             maxPrecioCatalogo={maxPrecioCatalogo}
             precioMaximo={precioMaximoActivo}
@@ -884,6 +684,22 @@ export default function CatalogoPage({
 
         {/* PRODUCT GRID SECTION */}
         <section className="col-span-1 lg:col-span-9 space-y-space-md">
+          <div className="flex justify-end lg:hidden">
+            <button
+              type="button"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-2 font-label-interactive font-semibold text-on-surface shadow-xs transition-colors hover:bg-surface-container-highest"
+              onClick={() => setDrawerFiltrosAbierto(true)}
+            >
+              <span className="material-symbols-outlined text-[18px] text-primary">tune</span>
+              Filtros
+              {totalFiltrosActivos > 0 && (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-on-primary">
+                  {totalFiltrosActivos}
+                </span>
+              )}
+            </button>
+          </div>
+
           {/* Live Alert Ribbon */}
           <div className="bg-surface-container-lowest p-space-sm px-space-md rounded-xl shadow-sm flex items-center justify-between flex-wrap gap-2 border border-outline-variant/20">
             <div className="flex items-center gap-2 text-on-surface">
@@ -908,7 +724,17 @@ export default function CatalogoPage({
               {busquedaLocal.trim() && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-lowest text-[12px] font-medium text-on-surface shadow-xs border border-outline-variant/30">
                   <span>Texto: "{busquedaLocal}"</span>
-                  <button type="button" onClick={() => setBusquedaLocal('')} className="hover:text-primary cursor-pointer">✕</button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBusquedaLocal('');
+                      onLimpiarBusqueda?.();
+                    }}
+                    className="hover:text-primary cursor-pointer"
+                    aria-label="Quitar búsqueda"
+                  >
+                    ✕
+                  </button>
                 </span>
               )}
 
@@ -993,7 +819,8 @@ export default function CatalogoPage({
               return (
                 <div
                   key={prod.id}
-                  className="bg-surface-container-lowest rounded-xl shadow-md p-space-md flex flex-col justify-between hover:shadow-xl transition-all duration-300 group"
+                  className="bg-surface-container-lowest rounded-xl shadow-md p-space-md flex flex-col justify-between hover:shadow-xl transition-all duration-300 group cursor-pointer"
+                  onClick={() => onVerDetalle && onVerDetalle(prod)}
                 >
                   <div>
                     {/* Image Container & Badges */}
@@ -1100,7 +927,10 @@ export default function CatalogoPage({
                     <button
                       type="button"
                       className="w-full h-12 bg-primary text-on-primary rounded-xl font-label-interactive text-label-interactive flex items-center justify-center gap-2 hover:bg-primary-container shadow-[0_4px_12px_rgba(139,0,26,0.25)] transition-all active:scale-[0.98] cursor-pointer"
-                      onClick={() => onAgregarAlCarrito(prod)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAgregarAlCarrito(prod);
+                      }}
                     >
                       <span className="material-symbols-outlined text-[20px]">shopping_cart</span>
                       <span>Agregar al carrito</span>

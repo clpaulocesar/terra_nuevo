@@ -205,15 +205,14 @@ export default function CartDrawer({
               <span>Subtotal productos</span>
               <span className="font-semibold text-on-surface">{formatBs(subtotalProductos)}</span>
             </div>
-            <div className="flex items-center justify-between text-primary">
-              <span className="flex items-center gap-1">
-                <span>Descuento autoservicio web/sala</span>
-                <span className="material-symbols-outlined text-[15px] text-primary" title="Promoción Santa Cruz activa">
-                  info
+            {descuentoAutoservicio > 0 && (
+              <div className="flex items-center justify-between text-primary">
+                <span className="flex items-center gap-1">
+                  <span>Descuento aplicado</span>
                 </span>
-              </span>
-              <span className="font-semibold text-primary">-{formatBs(descuentoAutoservicio)}</span>
-            </div>
+                <span className="font-semibold text-primary">-{formatBs(descuentoAutoservicio)}</span>
+              </div>
+            )}
             <div className="flex items-center justify-between text-on-surface-variant">
               <span>Retiro en showroom</span>
               <span className="font-bold text-tertiary">Sin costo</span>

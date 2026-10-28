@@ -153,7 +153,18 @@ function construirFiltros({ buscar = '', categoria = '', soloActivos = false, so
       OR ${SIN_ACENTOS("COALESCE(p.product_group, '')")} ILIKE $${n})`);
   }
   const categoriaLimpia = String(categoria || '').trim();
-  if (categoriaLimpia && !['todos', 'todas'].includes(categoriaLimpia.toLowerCase())) { valores.push(categoriaLimpia); condiciones.push(`LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${valores.length})`); }
+  if (categoriaLimpia && !['todos', 'todas'].includes(categoriaLimpia.toLowerCase())) {
+    const raizCat = raizDeBusqueda(categoriaLimpia);
+    valores.push(categoriaLimpia);
+    const posExacta = valores.length;
+    valores.push(`%${raizCat}%`);
+    const posRaiz = valores.length;
+    condiciones.push(`(
+      LOWER(COALESCE(c.name, p.product_group, '')) = LOWER($${posExacta})
+      OR ${SIN_ACENTOS("COALESCE(c.name, p.product_group, '')")} ILIKE $${posRaiz}
+      OR c.id::text = $${posExacta}
+    )`);
+  }
   if (soloPromos) condiciones.push(EXISTE_PROMOCION);
   if (soloOfertas) condiciones.push('COALESCE(p.en_oferta, FALSE) = TRUE');
   if (conStock) condiciones.push('COALESCE(p.stock_quantity, 0) > 0');

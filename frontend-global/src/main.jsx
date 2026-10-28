@@ -11,7 +11,8 @@ import DetalleProductoPage from './pages/DetalleProductoPage.jsx';
 import CarritoPage from './pages/CarritoPage.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
 import { SUCURSALES_DATA } from './data/sucursalesData.js';
-import { listarProductosDestacados } from './services/api.js';
+import { CATEGORY_PILLS } from './data/catalogoData.js';
+import { listarProductosDestacados, obtenerCategorias } from './services/api.js';
 import { crearPedidoBackend } from './services/pedidoService.js';
 import { VozProvider, useVoz } from './context/VozContext.jsx';
 import TutorialVozModal from './components/TutorialVozModal.jsx';
@@ -20,25 +21,6 @@ import TemporadaAmbiental from './components/TemporadaAmbiental.jsx';
 import ChatAsistente from './components/chat/ChatAsistente.jsx';
 import './styles/temporadas.css';
 import './InicioCliente.css';
-
-const INITIAL_CART = [
-  {
-    id: 101,
-    nombre: 'CONFORT LYA',
-    categoria: 'Almohada Ortopédica',
-    precio: 20,
-    cantidad: 2,
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDFo6yF-48xTz08p_L-rF4Z0ZsmE2u3fLhMkm_1jI6jQ45p3qQ1Z_m6G2eY0p-pA94_v2vM4N81s-Tqf4B2iQ4Rj5fL7yV2ZkFhYgW9bU3pT_7mP9kH_jV1B8r-4Z8K-tT4G7A4W2B1X0mY8v9C3pQ7',
-  },
-  {
-    id: 102,
-    nombre: 'SOFÁ CAMA NUVOLA',
-    categoria: 'Stock en Sucursal Central',
-    precio: 3280,
-    cantidad: 1,
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBfy9dMfPB9IiWLd0EqA_bYO41kjvJw7QtX_g5Aq0d0hExCO5h2UydNobv-6d-QYDFy6qs0biXaKi-v3Z0aQxUEp6UxEdkgRwarTF1nEXZtwlaM8IOaozTbjDG9tfP3OInOB1LTaw9NuY5fEwrdNW7rTjB9HlO9R55AnAK5V84zdXsCaP-HgWhdHhVswR5T1uCi357PEzs_JeHnNtAWlN36TOuphQJmR9eakxCKxOIG',
-  },
-];
 
 function AppGlobalContent() {
   const {
@@ -53,13 +35,17 @@ function AppGlobalContent() {
   const [paginaActual, setPaginaActual] = useState('inicio');
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('todas');
   const [busqueda, setBusqueda] = useState('');
+  const [busquedaAplicada, setBusquedaAplicada] = useState('');
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productosDestacados, setProductosDestacados] = useState([]);
+  const [categoriasNavegacion, setCategoriasNavegacion] = useState(
+    CATEGORY_PILLS.filter((categoria) => categoria.id !== 'todas' && !categoria.isOffer)
+  );
   const { temporada, festivoActual, alternarDiaNoche, esModoDia } = useTemporada();
 
   // Cart & Drawers
   const [cartOpen, setCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState(INITIAL_CART.slice(0, 0));
+  const [cartItems, setCartItems] = useState([]);
   const [cuponTexto, setCuponTexto] = useState('');
   const [cuponAplicado, setCuponAplicado] = useState(false);
 
@@ -106,6 +92,23 @@ function AppGlobalContent() {
       .then(setProductosDestacados)
       .catch(() => {});
 
+    obtenerCategorias(controlador.signal)
+      .then((categorias) => {
+        if (Array.isArray(categorias) && categorias.length > 0) {
+          setCategoriasNavegacion(
+            categorias
+              .map((categoria) => ({
+                id: categoria.key || categoria.id,
+                label: categoria.nombre,
+                icon: categoria.icono || 'category',
+                total: categoria.total || 0,
+              }))
+              .filter((categoria) => categoria.id && categoria.id !== 'todas' && categoria.id !== 'ofertas')
+          );
+        }
+      })
+      .catch(() => {});
+
     return () => controlador.abort();
   }, []);
 
@@ -129,6 +132,7 @@ function AppGlobalContent() {
 
   const ejecutarBusqueda = (query) => {
     setBusqueda(query);
+    setBusquedaAplicada(query.trim());
     setPaginaActual('catalogo');
     anunciar(`Buscando ${query} en el catálogo`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -137,7 +141,7 @@ function AppGlobalContent() {
   // Cart calculations
   const totalArticulos = cartItems.reduce((acc, it) => acc + it.cantidad, 0);
   const subtotalProductos = cartItems.reduce((acc, it) => acc + it.precio * it.cantidad, 0);
-  const descuentoAutoservicio = subtotalProductos > 100 || cuponAplicado ? 120 : 0;
+  const descuentoAutoservicio = cuponAplicado ? 120 : 0;
   const totalPagar = Math.max(0, subtotalProductos - descuentoAutoservicio);
 
   const cambiarCantidad = (id, delta) => {
@@ -249,6 +253,8 @@ function AppGlobalContent() {
         setSucursalActiva={cambiarSucursal}
         onCambiarSucursalClick={irASucursales}
         paginaActual={paginaActual}
+        categoriaActiva={categoriaSeleccionada}
+        categorias={categoriasNavegacion}
         onNavegar={navegarA}
         totalArticulos={totalArticulos}
         onAbrirCarrito={() => setCartOpen(true)}
@@ -280,10 +286,14 @@ function AppGlobalContent() {
         {paginaActual === 'catalogo' && (
           <CatalogoPage
             sucursalActiva={sucursalActiva}
-            setSucursalActiva={cambiarSucursal}
             onAgregarAlCarrito={agregarAlCarrito}
             categoriaInicial={categoriaSeleccionada}
-            busquedaInicial={busqueda}
+            onCambiarCategoria={setCategoriaSeleccionada}
+            busquedaInicial={busquedaAplicada}
+            onLimpiarBusqueda={() => {
+              setBusqueda('');
+              setBusquedaAplicada('');
+            }}
             onVerDetalle={(prod) => navegarA('detalle', 'todas', prod)}
           />
         )}
@@ -295,6 +305,7 @@ function AppGlobalContent() {
             onNavegar={navegarA}
             onAgregarAlCarrito={agregarAlCarrito}
             onAbrirSucursales={irASucursales}
+            onVerDetalle={(prod) => navegarA('detalle', 'todas', prod)}
           />
         )}
         {paginaActual === 'carrito' && (
