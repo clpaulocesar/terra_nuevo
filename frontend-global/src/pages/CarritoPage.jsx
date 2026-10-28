@@ -779,12 +779,6 @@ export default function CarritoPage({
           </div>
         </section>
       </div>
-
-      {/* Terminal Footnote */}
-      <div className="w-full text-center py-4 bg-surface-container text-on-surface-variant font-label-subtle text-label-subtle">
-        <p>TERRA AUTOSERVICIO · Sucursal {sucursalActiva?.nombre || 'Central'}, Santa Cruz de la Sierra</p>
-        <p className="text-[11px] opacity-80 mt-0.5">Terminal táctil optimizado para celular, tablet, kiosco físico y PC</p>
-      </div>
     </div>
   );
 }

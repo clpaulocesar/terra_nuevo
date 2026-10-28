@@ -13,6 +13,8 @@ import CheckoutPage from './pages/CheckoutPage.jsx';
 import { SUCURSALES_DATA } from './data/sucursalesData.js';
 import { listarProductosDestacados } from './services/api.js';
 import { crearPedidoBackend } from './services/pedidoService.js';
+import { VozProvider, useVoz } from './context/VozContext.jsx';
+import TutorialVozModal from './components/TutorialVozModal.jsx';
 import './InicioCliente.css';
 
 const INITIAL_CART = [
@@ -34,7 +36,15 @@ const INITIAL_CART = [
   },
 ];
 
-export default function AppGlobal() {
+function AppGlobalContent() {
+  const {
+    anunciar,
+    registrarAcciones,
+    modalTutorialAbierto,
+    setModalTutorialAbierto,
+    procesarTextoVoz,
+  } = useVoz();
+
   const [sucursalActiva, setSucursalActiva] = useState(SUCURSALES_DATA[0]);
   const [paginaActual, setPaginaActual] = useState('inicio');
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('todas');
@@ -135,6 +145,7 @@ export default function AppGlobal() {
   const ejecutarBusqueda = (query) => {
     setBusqueda(query);
     setPaginaActual('catalogo');
+    anunciar(`Buscando ${query} en el catálogo`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -164,6 +175,7 @@ export default function AppGlobal() {
 
   const agregarAlCarrito = (producto) => {
     const titulo = producto.nombre || producto.titulo;
+    anunciar(`Agregado al carrito: ${titulo}`);
     setCartItems((prev) => {
       const existe = prev.find((it) => it.nombre.toLowerCase() === titulo.toLowerCase());
       if (existe) {
@@ -206,7 +218,7 @@ export default function AppGlobal() {
   };
 
   const toggleAccesibilidad = () => {
-    alert('Modo Kiosco de Accesibilidad Activado: Tamaño táctil ampliado y contraste regulado.');
+    setModalTutorialAbierto(true);
   };
 
   const cambiarSucursal = (nuevaSucursal) => {
@@ -233,6 +245,18 @@ export default function AppGlobal() {
       document.getElementById('sucursales-section')?.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  useEffect(() => {
+    registrarAcciones({
+      onNavegar: navegarA,
+      onEjecutarBusqueda: ejecutarBusqueda,
+      onAbrirCarrito: () => setCartOpen(true),
+      onCerrarCarrito: () => setCartOpen(false),
+      onAbrirMiCuenta: () => setAccountModalOpen(true),
+      onAbrirSucursales: irASucursales,
+      onModoOscuro: (oscuro) => setModoOscuro(oscuro),
+    });
+  }, [navegarA, ejecutarBusqueda, irASucursales, registrarAcciones]);
 
   return (
     <div className="min-h-screen bg-surface font-body-md text-body-md text-on-surface">
@@ -379,6 +403,12 @@ export default function AppGlobal() {
         }}
       />
 
+      <TutorialVozModal
+        abierto={modalTutorialAbierto}
+        onCerrar={() => setModalTutorialAbierto(false)}
+        onEjecutarComando={procesarTextoVoz}
+      />
+
       {/* Interactive Toast Notification */}
       <div
         className={`fixed top-48 right-6 z-50 transform transition-all duration-300 pointer-events-none bg-inverse-surface text-inverse-on-surface px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 ${
@@ -393,6 +423,14 @@ export default function AppGlobal() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AppGlobal() {
+  return (
+    <VozProvider>
+      <AppGlobalContent />
+    </VozProvider>
   );
 }
 

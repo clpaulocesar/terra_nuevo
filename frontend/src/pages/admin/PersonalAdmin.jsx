@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BadgeCheck, BriefcaseBusiness, CalendarDays, ChevronLeft, ChevronRight, Mail, Pencil, Plus, Search, ShieldCheck, SlidersHorizontal, Trash2, Truck, Users, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { BadgeCheck, BriefcaseBusiness, CalendarDays, ChevronLeft, ChevronRight, Eye, EyeOff, Mail, Pencil, Plus, Search, ShieldCheck, SlidersHorizontal, Trash2, Truck, UserPlus, Users, X } from 'lucide-react';
 import { actualizarPersonal, crearPersonal, eliminarPersonal, listarPersonal } from '../../services/personalService.js';
 import './PersonalAdmin.css';
 
@@ -16,6 +17,7 @@ export default function PersonalAdmin() {
   const [formulario, setFormulario] = useState(vacio);
   const [modal, setModal] = useState(false);
   const [editando, setEditando] = useState(null);
+  const [verPassword, setVerPassword] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
@@ -120,20 +122,180 @@ export default function PersonalAdmin() {
         {personalPagina.length ? personalPagina.map((persona) => <tr key={persona.id}><td><div className="staff-person"><i>{iniciales(persona.nombre)}</i><div><b>{persona.nombre}</b><small>ID: {persona.id}</small></div></div></td><td><span className={`staff-role staff-role--${persona.rol}`}>{ROLES[persona.rol]?.etiqueta || persona.rol}</span></td><td><span className="staff-email"><Mail size={16} />{persona.email}</span></td><td>{persona.rol === 'despacho' ? [persona.vehiculo, persona.placa].filter(Boolean).join(' · ') || '—' : '—'}</td><td><span className={persona.activo !== false ? 'staff-active' : 'staff-inactive'}>{persona.activo !== false ? 'Activo' : 'Inactivo'}</span></td><td><span className="staff-date"><CalendarDays size={16} />{new Date(persona.fecha_registro).toLocaleDateString('es-BO')}</span></td><td><div className="staff-actions"><button type="button" className="staff-cancel" onClick={() => abrirEdicion(persona)} disabled={guardando} aria-label={`Editar a ${persona.nombre}`}><Pencil size={16} aria-hidden="true" /></button><button type="button" className="staff-save" onClick={() => borrar(persona)} disabled={guardando} aria-label={`Eliminar a ${persona.nombre}`}><Trash2 size={16} aria-hidden="true" /></button></div></td></tr>) : <tr><td className="staff-empty" colSpan="7">No se encontró personal con estos filtros.</td></tr>}
       </tbody></table></div>}
     </section>
-    {modal && <div className="staff-modal" role="dialog" aria-modal="true" aria-labelledby="staff-title"><form onSubmit={enviar}>
-      <header><div><h2 id="staff-title">{editando ? 'Editar personal' : 'Registrar personal'}</h2><p>{editando ? 'Actualiza los datos operativos de la cuenta.' : 'Se creará una cuenta de acceso en Supabase.'}</p></div><button type="button" aria-label="Cerrar" onClick={() => !guardando && setModal(false)}><X /></button></header>
-      <div className="staff-form">
-        <label>Nombre completo<input name="nombre" value={formulario.nombre} onChange={(e) => setFormulario({ ...formulario, nombre: e.target.value })} required minLength="2" maxLength="120" /></label>
-        <label>Correo electrónico<input name="email" type="email" value={formulario.email} onChange={(e) => setFormulario({ ...formulario, email: e.target.value })} required maxLength="150" disabled={Boolean(editando)} /></label>
-        <label>Rol<select value={formulario.rol} onChange={(e) => setFormulario({ ...formulario, rol: e.target.value })} disabled={Boolean(editando)}>{Object.entries(ROLES).map(([rol, dato]) => <option value={rol} key={rol}>{dato.etiqueta}</option>)}</select><small>{ROLES[formulario.rol].descripcion}</small></label>
-        {formulario.rol === 'despacho' && <>
-          <label>Vehículo<input name="vehiculo" value={formulario.vehiculo} onChange={(e) => setFormulario({ ...formulario, vehiculo: e.target.value })} maxLength="60" placeholder="Moto, auto, furgoneta…" /><small>Se puede completar o editar después en Repartidores.</small></label>
-          <label>Número de placa<input name="placa" value={formulario.placa} onChange={(e) => setFormulario({ ...formulario, placa: e.target.value.toUpperCase() })} minLength="3" maxLength="12" placeholder="ABC123" /></label>
-        </>}
-        {!editando && <label>Contraseña temporal<input name="password" type="password" value={formulario.password} onChange={(e) => setFormulario({ ...formulario, password: e.target.value })} required minLength="8" maxLength="128" autoComplete="new-password" /><small>Comparte esta contraseña de forma segura.</small></label>}
-        {editando && <label>Estado<select value={formulario.activo ? 'activo' : 'inactivo'} onChange={(e) => setFormulario({ ...formulario, activo: e.target.value === 'activo' })}><option value="activo">Activo</option><option value="inactivo">Inactivo</option></select><small>Las cuentas inactivas no pueden iniciar sesión.</small></label>}
-      </div>
-      <footer><button type="button" className="staff-cancel" onClick={() => setModal(false)} disabled={guardando}>Cancelar</button><button className="staff-save" disabled={guardando}><BadgeCheck size={18} />{guardando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Crear cuenta'}</button></footer>
-    </form></div>}
+    {modal && typeof document !== 'undefined' && createPortal(
+      <div className="staff-modal" role="dialog" aria-modal="true" aria-labelledby="staff-title">
+        <div className="staff-modal-backdrop" onClick={() => !guardando && setModal(false)} />
+        <form onSubmit={enviar} className="staff-modal-card">
+          <header className="staff-modal-header">
+            <div className="staff-modal-header-info">
+              <span className="staff-modal-badge">
+                <ShieldCheck size={22} />
+              </span>
+              <div>
+                <h2 id="staff-title">{editando ? 'Editar personal operativo' : 'Registrar personal administrativo'}</h2>
+                <p>
+                  {editando
+                    ? 'Actualiza los datos operativos, rol o estado de la cuenta.'
+                    : 'Crea una cuenta con acceso seguro para administración, ventas o despacho.'}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="staff-modal-close"
+              aria-label="Cerrar modal"
+              onClick={() => !guardando && setModal(false)}
+            >
+              <X size={20} />
+            </button>
+          </header>
+
+          <div className="staff-form">
+            <label>
+              <span className="staff-label-title">
+                Nombre completo <strong className="required">*</strong>
+              </span>
+              <input
+                name="nombre"
+                value={formulario.nombre}
+                onChange={(e) => setFormulario({ ...formulario, nombre: e.target.value })}
+                required
+                minLength="2"
+                maxLength="120"
+                placeholder="Ej. Carlos Mendoza"
+              />
+            </label>
+
+            <label>
+              <span className="staff-label-title">
+                Correo corporativo <strong className="required">*</strong>
+              </span>
+              <input
+                name="email"
+                type="email"
+                value={formulario.email}
+                onChange={(e) => setFormulario({ ...formulario, email: e.target.value })}
+                required
+                maxLength="150"
+                disabled={Boolean(editando)}
+                placeholder="carlos@terracolchones.bo"
+              />
+            </label>
+
+            <label className="staff-form-wide">
+              <span className="staff-label-title">
+                Rol en el sistema <strong className="required">*</strong>
+              </span>
+              <select
+                value={formulario.rol}
+                onChange={(e) => setFormulario({ ...formulario, rol: e.target.value })}
+                disabled={Boolean(editando)}
+              >
+                {Object.entries(ROLES).map(([rol, dato]) => (
+                  <option value={rol} key={rol}>
+                    {dato.etiqueta}
+                  </option>
+                ))}
+              </select>
+              <small className="staff-field-hint">{ROLES[formulario.rol].descripcion}</small>
+            </label>
+
+            {formulario.rol === 'despacho' && (
+              <>
+                <label>
+                  <span className="staff-label-title">Vehículo de entrega</span>
+                  <input
+                    name="vehiculo"
+                    value={formulario.vehiculo}
+                    onChange={(e) => setFormulario({ ...formulario, vehiculo: e.target.value })}
+                    maxLength="60"
+                    placeholder="Moto, furgón, camioneta…"
+                  />
+                  <small className="staff-field-hint">Opcional. Se puede editar en Repartidores.</small>
+                </label>
+                <label>
+                  <span className="staff-label-title">Número de placa</span>
+                  <input
+                    name="placa"
+                    value={formulario.placa}
+                    onChange={(e) => setFormulario({ ...formulario, placa: e.target.value.toUpperCase() })}
+                    minLength="3"
+                    maxLength="12"
+                    placeholder="ABC123"
+                  />
+                </label>
+              </>
+            )}
+
+            {!editando && (
+              <label className="staff-form-wide">
+                <span className="staff-label-title">
+                  Contraseña temporal <strong className="required">*</strong>
+                </span>
+                <div className="staff-password-wrapper">
+                  <input
+                    name="password"
+                    type={verPassword ? 'text' : 'password'}
+                    value={formulario.password}
+                    onChange={(e) => setFormulario({ ...formulario, password: e.target.value })}
+                    required
+                    minLength="8"
+                    maxLength="128"
+                    autoComplete="new-password"
+                    placeholder="Mínimo 8 caracteres"
+                  />
+                  <button
+                    type="button"
+                    className="staff-password-toggle"
+                    onClick={() => setVerPassword((v) => !v)}
+                    aria-label={verPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    title={verPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                  >
+                    {verPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                <small className="staff-field-hint">
+                  Comparte esta contraseña de forma segura con el colaborador para su inicio de sesión.
+                </small>
+              </label>
+            )}
+
+            {editando && (
+              <label className="staff-form-wide">
+                <span className="staff-label-title">Estado de la cuenta</span>
+                <select
+                  value={formulario.activo ? 'activo' : 'inactivo'}
+                  onChange={(e) => setFormulario({ ...formulario, activo: e.target.value === 'activo' })}
+                >
+                  <option value="activo">Activo (habilitado para operar)</option>
+                  <option value="inactivo">Inactivo (acceso suspendido)</option>
+                </select>
+                <small className="staff-field-hint">Las cuentas inactivas no pueden iniciar sesión.</small>
+              </label>
+            )}
+          </div>
+
+          <footer className="staff-modal-footer">
+            <button
+              type="button"
+              className="staff-cancel"
+              onClick={() => setModal(false)}
+              disabled={guardando}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="staff-save"
+              disabled={guardando}
+            >
+              {editando ? <BadgeCheck size={18} /> : <UserPlus size={18} />}
+              <span>{guardando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Crear cuenta'}</span>
+            </button>
+          </footer>
+        </form>
+      </div>,
+      document.body
+    )}
   </main>;
 }
