@@ -1,5 +1,8 @@
 # ANÁLISIS TÉCNICO DEL PROYECTO — TERRA Autoservicio (terratabletv2.0)
 
+> [!warning] Foto del 28/10/2026, antes de los cambios del mismo día
+> Este análisis describe el código en el commit `3a617a1`. Después se integró el ERP, se eliminó Supabase y el login pasó a validarse solo contra la base, así que varias secciones (Supabase, credenciales del `.env`, comprobantes) ya no aplican. Estado actual: [[00-roadmap]] · [[01-arquitectura]] · [[erp-terra]] · [[pendientes-terceros]].
+
 > Documento generado a partir de la lectura del código fuente del repositorio (rama `jhonatan`, commit `3a617a1`).
 > Se ignoraron `node_modules`, `dist`, `.vite`, `.npm-cache-*`, `.git`, archivos de lock y binarios.
 > Cuando algo no se puede afirmar con el código disponible se marca como **No determinado** y se indica qué archivo o recurso lo resolvería.

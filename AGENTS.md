@@ -1,10 +1,19 @@
 # AGENTS.md
 
+## Antes de empezar: lee `docs/`
+`docs/` es un vault de Obsidian con el estado y las decisiones del proyecto. Antes de cualquier tarea lee:
+- `docs/00-roadmap.md`: hecho, en curso, pendiente y bloqueado por terceros.
+- `docs/01-arquitectura.md`: stack, servidores, red interna y copyparty.
+- Las notas de `docs/decisiones/` y `docs/integraciones/` relacionadas con la tarea (por ejemplo `integraciones/erp-terra.md` antes de tocar cobros o el ERP).
+- `docs/pendientes-terceros.md`: lo que depende de TERRA, Oscar o Alex.
+
+Si una decisión registrada en `docs/decisiones/` contradice lo que pide la tarea, avisa antes de cambiarla. `docs/analisis/ANALISIS_PROYECTO.md` es una foto del código anterior al 28/10/2026.
+
 ## Estructura
 - Dos paquetes de aplicación: `frontend/` (React 19 + Vite + Tailwind v4) y `backend/` (Express 5 + PostgreSQL propio, ESM `"type": "module"`). Ejecuta sus comandos npm desde dentro de cada carpeta.
 - El `package.json` de la raíz es solo para herramientas del repo (Playwright para `scripts/`). No agregues ahí dependencias de la aplicación.
 - Puntos de entrada: `frontend/src/main.jsx` → `App.jsx` → `src/routes/AppRoutes.jsx`; `backend/server.js` → `src/app.js` (monta `/api/{productos,pedidos,clientes,admin,...}` y `/api/health`).
-- Documentación: guía de usuario en `docs/GUIA_USUARIO_TERRA_AUTOSERVICIO.md`, con capturas en `docs/img/` generadas por `scripts/capturas-guia.mjs` (ver su encabezado).
+- Documentación técnica: vault de Obsidian en `docs/` (ver arriba). Guía de usuario prevista en `docs/GUIA_USUARIO_TERRA_AUTOSERVICIO.md`, con capturas en `docs/img/` generadas por `scripts/capturas-guia.mjs`; ninguno de los tres existe todavía (ver `docs/00-roadmap.md`).
 
 ## Comandos
 - Frontend: `cd frontend && npm install`; `npm run dev` → `http://localhost:5173`; `npm run build`; `npm run preview`; `npm run lint` (`oxlint`, reglas react+oxc según `.oxlintrc.json`); `npm test` (vitest).
@@ -129,3 +138,8 @@ Todo cambio que toque marcado JSX, clases o estilos debe pasar la lista final. R
 5. Revisa visualmente modo claro, oscuro y accesible (`a11y-contraste`) en las pantallas afectadas; como mínimo Catálogo, DetalleProducto y Carrito, y Admin/Vendedor si se tocaron.
 6. Revisa el `git diff` completo: sin caracteres sueltos, sin cambios ajenos a la tarea y sin `.env`.
 7. Haz commit solo si la tarea lo pide, un commit por cambio lógico. Nunca hagas push.
+8. Actualiza `docs/`:
+   - mueve lo terminado a "Hecho" en `00-roadmap.md`, con fecha;
+   - crea una nota por cada decisión nueva en `docs/decisiones/AAAA-MM-DD-tema.md` con Fecha, Contexto, Decisión, Alternativas y Consecuencias;
+   - actualiza `pendientes-terceros.md`, `01-arquitectura.md` y `integraciones/` si cambiaron.
+   Enlaza las notas con `[[nota]]`. Nunca escribas secretos (claves, contraseñas, tokens, cadenas de conexión) en `docs/`.
