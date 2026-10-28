@@ -91,7 +91,7 @@ export function imprimirTicketProducto(producto, { copias = 1 } = {}) {
     <article class="ticket-etiqueta">
       <header class="ticket-head">
         <span class="ticket-logo">TERRA AUTOSERVICIO</span>
-        <span class="ticket-branch">Equipetrol · Santa Cruz</span>
+        <span class="ticket-branch">Sucursal 1 Central · Santa Cruz</span>
       </header>
 
       <div class="ticket-categoria">${categoria}</div>

@@ -228,7 +228,7 @@ export function imprimirTicketVenta({ venta, cliente, items = [], metodoPago = '
   <div class="ticket-header">
     <div class="ticket-logo">TERRA AUTOSERVICIO</div>
     <div class="ticket-sub">Colchones & Muebles · Logramos tu descanso</div>
-    <div class="ticket-branch">Sucursal Equipetrol Showroom · Santa Cruz</div>
+    <div class="ticket-branch">Sucursal 1 Central Showroom · Santa Cruz</div>
   </div>
 
   <div class="badge-paid">COMPROBANTE DE VENTA</div>
@@ -312,7 +312,7 @@ export function imprimirTicketVenta({ venta, cliente, items = [], metodoPago = '
   <div class="ticket-footer">
     <strong>¡Gracias por tu compra!</strong>
     <p>Conserva este ticket como constancia de retiro o entrega.</p>
-    <p>Sucursal Equipetrol · TERRA Autoservicio</p>
+    <p>Sucursal 1 Central · TERRA Autoservicio</p>
   </div>
 
   <script>

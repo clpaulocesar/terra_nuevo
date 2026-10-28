@@ -437,7 +437,7 @@ export default function CheckoutPage({
                         <option>Central / Barrio Lindo / 3er - 4to Anillo</option>
                         <option>Norte (Alemana / 2 de Agosto / Banzer)</option>
                         <option>Sur (Radial 10 / San Aurelio / Santos Dumont)</option>
-                        <option>Equipetrol / Sirari / Villa Mercedes</option>
+                        <option>Sucursal 1 Central / Sirari / Villa Mercedes</option>
                         <option>Urubó / Colinas del Urubó</option>
                         <option>Este (Virgen de Cotoca / Pampa de la Isla)</option>
                       </select>

@@ -1,6 +1,6 @@
 export const SUCURSALES = [
   {
-    nombre: 'Showroom Equipetrol',
+    nombre: 'Showroom Sucursal 1 Central',
     direccion: 'Av. San Martín esq. Calle 7 Oeste',
     detalle: 'Sala principal',
   },
