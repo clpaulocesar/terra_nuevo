@@ -1,7 +1,6 @@
 /* Capa responsive transversal (cliente y backoffice). Se carga al final para
-   ajustar detalles de las vistas en celular, tablet y escritorio sin alterar la paleta. */
-*,*::before,*::after{box-sizing:border-box}
-img{max-width:100%}
+   ajustar detalles de las vistas en celular, tablet y escritorio sin alterar la paleta.
+   box-sizing e img{max-width:100%} los pone el preflight de Tailwind (capa base). */
 
 @media(max-width:1024px){
   .site-header.terra-header nav{gap:.25rem}

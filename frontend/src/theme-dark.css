@@ -22,18 +22,22 @@ html[data-theme="dark"] {
   --td-ok: #58c986;
   --td-ok-bg: #16311f;
 
-  /* Variables de Catalogo.css (:root) */
-  --vino-claro: #3a1a20;
-  --vino-suave: #33181d;
-  --crema: #1e1917;
-  --tinta: #f4ede8;
-  --muted: #b5a79f;
-  --linea: #3d3330;
-  --ok: #58c986;
-  --ok-bg: #16311f;
-  --alerta: #ff7a6e;
-  --shadow: 0 20px 48px rgba(0, 0, 0, 0.45);
-  --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.4);
+  /* Tokens --terra-* de index.css (los usan Tailwind y los alias de Catalogo.css).
+     Primario, primario oscuro y sobre-primario no cambian en modo noche. */
+  --terra-primario-claro: var(--td-accent-soft);
+  --terra-primario-suave: #33181d;
+  --terra-fondo: var(--td-bg);
+  --terra-superficie: var(--td-surface);
+  --terra-superficie-2: var(--td-surface-2);
+  --terra-crema: var(--td-surface);
+  --terra-texto: var(--td-text);
+  --terra-texto-suave: var(--td-muted);
+  --terra-borde: var(--td-line);
+  --terra-ok: var(--td-ok);
+  --terra-ok-fondo: var(--td-ok-bg);
+  --terra-alerta: #ff7a6e;
+  --terra-sombra: 0 20px 48px rgba(0, 0, 0, 0.45);
+  --terra-sombra-sm: 0 8px 24px rgba(0, 0, 0, 0.4);
 
   color: var(--td-text);
   background: var(--td-bg);

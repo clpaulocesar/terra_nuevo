@@ -7,21 +7,23 @@
    - Composición: tarjetas prominentes, espacio negativo, precio como elemento jerárquico #1
    ========================================================================== */
 
+/* Nombres heredados: alias de los tokens --terra-* de index.css, que ya cambian con
+   el tema. Desaparecen a medida que cada pantalla se migra a Tailwind. */
 :root {
-  --vino: #a6192e;
-  --vino-osc: #7e1122;
-  --vino-claro: #fdeeee;
-  --vino-suave: #f5e7ea;
-  --crema: #faf5ef;
-  --tinta: #231a16;
-  --muted: #7a6f68;
-  --linea: #eadfd3;
-  --ok: #1e7e46;
-  --ok-bg: #e4f4e9;
-  --alerta: #c0392b;
+  --vino: var(--terra-primario);
+  --vino-osc: var(--terra-primario-oscuro);
+  --vino-claro: var(--terra-primario-claro);
+  --vino-suave: var(--terra-primario-suave);
+  --crema: var(--terra-crema);
+  --tinta: var(--terra-texto);
+  --muted: var(--terra-texto-suave);
+  --linea: var(--terra-borde);
+  --ok: var(--terra-ok);
+  --ok-bg: var(--terra-ok-fondo);
+  --alerta: var(--terra-alerta);
   --radius: 16px;
-  --shadow: 0 20px 48px rgba(166, 25, 46, 0.10);
-  --shadow-sm: 0 8px 24px rgba(166, 25, 46, 0.12);
+  --shadow: var(--terra-sombra);
+  --shadow-sm: var(--terra-sombra-sm);
 }
 
 /* ==== ESTILO UNIVERSAL PARA TODOS LOS BOTONES ==== */

@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   Variantes del proyecto (ver AGENTS.md, "Estilos con Tailwind").
+   - dark: TemaContext y el script de index.html escriben siempre data-theme en
+     <html>, también cuando se sigue la preferencia del sistema
+     (prefers-color-scheme). Por eso la variante mira solo el atributo.
+   - contraste: ModoAccesibleContext pone la clase a11y-contraste en <html>,
+     también cuando el sistema pide prefers-contrast: more.
+   Se registra después de dark para que, con ambas activas, gane contraste.
+   ========================================================================== */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant contraste (&:where(.a11y-contraste, .a11y-contraste *));
+
 @theme {
   --color-terra-50: #fdf2f4;
   --color-terra-100: #fce7eb;
@@ -15,27 +27,92 @@
   --color-surface-muted: #736d71;
 
   --shadow-terra-card: 0 10px 30px -4px rgba(142, 23, 42, 0.05), 0 4px 16px -2px rgba(0, 0, 0, 0.03);
+
+  /* Teléfono angosto: la grilla del catálogo pasa a 2 columnas desde 360 px. */
+  --breakpoint-xs: 22.5rem;
+
+  --font-terra: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* En rem para que escalen con el texto al 125 % y 150 % del modo accesible. */
+  --radius-terra-boton: 0.75rem;
+  --radius-terra: 1rem;
+  --radius-terra-tarjeta: 1.125rem;
 }
 
+/* Tokens que cambian con el tema: la utilidad usa directamente la variable de
+   ejecución (inline), que se redefine en theme-dark.css y accesibilidad.css. */
+@theme inline {
+  --color-terra-primario: var(--terra-primario);
+  --color-terra-primario-oscuro: var(--terra-primario-oscuro);
+  --color-terra-primario-claro: var(--terra-primario-claro);
+  --color-terra-primario-suave: var(--terra-primario-suave);
+  --color-terra-sobre-primario: var(--terra-sobre-primario);
+  --color-terra-fondo: var(--terra-fondo);
+  --color-terra-superficie: var(--terra-superficie);
+  --color-terra-superficie-2: var(--terra-superficie-2);
+  --color-terra-crema: var(--terra-crema);
+  --color-terra-texto: var(--terra-texto);
+  --color-terra-texto-suave: var(--terra-texto-suave);
+  --color-terra-borde: var(--terra-borde);
+  --color-terra-ok: var(--terra-ok);
+  --color-terra-ok-fondo: var(--terra-ok-fondo);
+  --color-terra-alerta: var(--terra-alerta);
+  --color-terra-fondo-imagen: var(--terra-fondo-imagen-producto);
+
+  --shadow-terra: var(--terra-sombra);
+  --shadow-terra-sm: var(--terra-sombra-sm);
+
+  /* Medidas de la columna de botones flotantes y de la barra inferior móvil
+     (definidas en .app-shell, routes/Layout.css). */
+  --spacing-terra-flotante: var(--floating-cart-size);
+  --spacing-terra-barra-inferior: var(--terra-barra-inferior-alto);
+}
+
+/* Valores en modo claro. Modo oscuro: html[data-theme="dark"] en theme-dark.css.
+   Alto contraste: html.a11y-contraste en accesibilidad/accesibilidad.css. */
 :root {
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #193127;
-  background: #f6f8f5;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  --terra-primario: #a6192e;
+  --terra-primario-oscuro: #7e1122;
+  --terra-primario-claro: #fdeeee;
+  --terra-primario-suave: #f5e7ea;
+  --terra-sobre-primario: #ffffff;
+  --terra-fondo: #fcf9f8;
+  --terra-superficie: #ffffff;
+  --terra-superficie-2: #faf7f5;
+  --terra-crema: #faf5ef;
+  --terra-texto: #231a16;
+  --terra-texto-suave: #7a6f68;
+  --terra-borde: #eadfd3;
+  --terra-ok: #1e7e46;
+  --terra-ok-fondo: #e4f4e9;
+  --terra-alerta: #c0392b;
+  --terra-sombra: 0 20px 48px rgba(166, 25, 46, 0.10);
+  --terra-sombra-sm: 0 8px 24px rgba(166, 25, 46, 0.12);
 
   /* Las fotos de producto tienen fondo blanco: el contenedor también, en todos los temas,
      para que object-fit: contain no deje franjas de otro color a los costados. */
   --terra-fondo-imagen-producto: #ffffff;
 }
-* { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; }
-a { color: inherit; text-decoration: none; }
-button, input { font: inherit; }
-button { cursor: pointer; }
-button:disabled { opacity: .45; cursor: not-allowed; }
-h1, h2, h3, p { margin-top: 0; }
-h1 { font-size: clamp(1.8rem, 3vw, 2.7rem); line-height: 1.15; }
+
+/* Reglas globales por etiqueta: en la capa base para que las utilidades de
+   Tailwind (capa utilities) puedan sobrescribirlas. */
+@layer base {
+  :root {
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #193127;
+    background: #f6f8f5;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+  body { margin: 0; min-width: 320px; }
+  a { color: inherit; text-decoration: none; }
+  button, input { font: inherit; }
+  button { cursor: pointer; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  h1, h2, h3, p { margin-top: 0; }
+  h1 { font-size: clamp(1.8rem, 3vw, 2.7rem); line-height: 1.15; }
+}
+
 .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
 /* Cabecera, marca y nav son exclusivas de routes/Layout.css (.site-header.terra-header). */
 .demo-banner { text-align: center; padding: 10px; background: #fff0cd; color: #634718; font-weight: 650; }

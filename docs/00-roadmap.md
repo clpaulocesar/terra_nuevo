@@ -27,6 +27,21 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
 - **Commits locales** `f24bf3a` (ERP y pagos) y `13f46df` (eliminar Supabase), sin push. La mayor parte del trabajo ya estaba en `812212d`, publicado en `origin/jhonatan`.
 
 ## En curso
+
+### Migración del CSS a Tailwind v4
+Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas en `AGENTS.md`.
+
+| Fase | Pantallas | Estado |
+|---|---|---|
+| 0 | Base: tokens `@theme`, variantes `dark:` y `contraste:`, reglas globales en `@layer base` | Hecha el 2026-10-28 |
+| 1 | Catálogo, tarjeta, paginación, filtros, flotantes y Layout del cliente | En curso |
+| 2 | DetalleProducto | Pendiente |
+| 3 | Carrito, Identificación, Confirmación, PedidoGenerado | Pendiente |
+| 4 | Bienvenida, Categorías | Pendiente |
+| 5 | Mayorista | Pendiente |
+| 6 | Admin | Pendiente |
+
+### Otros
 - Subir los commits `f24bf3a` y `13f46df` **sin reescribir historia**: nada de force push sobre `812212d`, que ya está publicado.
 - Asignar clave a los 4 mayoristas existentes desde Clientes (botón de llave): hasta entonces no pueden entrar.
 

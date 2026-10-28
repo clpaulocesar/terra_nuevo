@@ -104,7 +104,7 @@ export default function LoginAdmin() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@terra.com"
-                  className="block w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-stone-200 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-terra-800 focus:ring-2 focus:ring-terra-800/15 transition-all bg-stone-50/30"
+                  className="block w-full pl-10 pr-4 py-2.5 text-base rounded-xl border border-stone-200 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-terra-800 focus:ring-2 focus:ring-terra-800/15 transition-all bg-stone-50/30"
                 />
               </div>
             </div>
@@ -145,7 +145,7 @@ export default function LoginAdmin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="block w-full pl-10 pr-11 py-2.5 text-sm rounded-xl border border-stone-200 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-terra-800 focus:ring-2 focus:ring-terra-800/15 transition-all bg-stone-50/30"
+                  className="block w-full pl-10 pr-11 py-2.5 text-base rounded-xl border border-stone-200 text-stone-800 placeholder-stone-400 focus:outline-none focus:border-terra-800 focus:ring-2 focus:ring-terra-800/15 transition-all bg-stone-50/30"
                 />
                 <button
                   type="button"
@@ -235,7 +235,7 @@ export default function LoginAdmin() {
               <button
                 type="submit"
                 disabled={cargando}
-                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-terra-800 hover:bg-terra-700 active:bg-terra-900 text-white font-medium text-sm tracking-wide shadow-md shadow-terra-800/25 focus:outline-none focus:ring-2 focus:ring-terra-800 focus:ring-offset-2 transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-terra-800 hover:bg-terra-700 active:bg-terra-900 text-white font-medium text-base tracking-wide shadow-md shadow-terra-800/25 focus:outline-none focus:ring-2 focus:ring-terra-800 focus:ring-offset-2 transition-all duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <svg
                   className="w-4 h-4"
