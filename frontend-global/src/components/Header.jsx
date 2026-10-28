@@ -1,12 +1,24 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { LOGO_TERRA, SUCURSALES_DATA } from '../data/sucursalesData.js';
 import { useVoz } from '../context/VozContext.jsx';
+import MenuCategorias from './MenuCategorias.jsx';
+
+function claveCategoria(valor) {
+  return String(valor || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/(es|s)$/, '');
+}
 
 export default function Header({
   sucursalActiva,
   setSucursalActiva,
   onCambiarSucursalClick,
   paginaActual,
+  categoriaActiva,
+  categorias = [],
   onNavegar,
   totalArticulos,
   onAbrirCarrito,
@@ -22,6 +34,7 @@ export default function Header({
 }) {
   const [dropdownSucursales, setDropdownSucursales] = useState(false);
   const [busquedaMovilAbierta, setBusquedaMovilAbierta] = useState(false);
+  const arrastreCategorias = useRef({ activo: false, inicioX: 0, scrollInicial: 0, movido: false });
   const {
     vozActiva,
     alternarVoz,
@@ -31,6 +44,78 @@ export default function Header({
     textoEscuchado,
     setModalTutorialAbierto,
   } = useVoz();
+
+  const iniciarArrastreCategorias = (evento) => {
+    // Solo iniciar arrastre si es con el botón principal del mouse; en táctiles el scroll es nativo
+    if (evento.pointerType !== 'mouse' || evento.button !== 0) return;
+    arrastreCategorias.current = {
+      activo: true,
+      inicioX: evento.clientX,
+      scrollInicial: evento.currentTarget.scrollLeft,
+      movido: false,
+    };
+  };
+
+  const moverCategorias = (evento) => {
+    const arrastre = arrastreCategorias.current;
+    if (!arrastre.activo) return;
+    const distancia = evento.clientX - arrastre.inicioX;
+    if (Math.abs(distancia) > 8) {
+      arrastre.movido = true;
+      if (!evento.currentTarget.hasPointerCapture(evento.pointerId)) {
+        try {
+          evento.currentTarget.setPointerCapture(evento.pointerId);
+        } catch {}
+      }
+      evento.currentTarget.scrollLeft = arrastre.scrollInicial - distancia;
+    }
+  };
+
+  const terminarArrastreCategorias = (evento) => {
+    arrastreCategorias.current.activo = false;
+    if (evento.currentTarget.hasPointerCapture(evento.pointerId)) {
+      try {
+        evento.currentTarget.releasePointerCapture(evento.pointerId);
+      } catch {}
+    }
+  };
+
+  const evitarClickTrasArrastre = (evento) => {
+    if (arrastreCategorias.current.movido) {
+      evento.preventDefault();
+      evento.stopPropagation();
+      arrastreCategorias.current.movido = false;
+    }
+  };
+
+  const desplazarCategoriasConRueda = (evento) => {
+    if (Math.abs(evento.deltaY) <= Math.abs(evento.deltaX)) return;
+    const contenedor = evento.currentTarget;
+    if (contenedor.scrollWidth <= contenedor.clientWidth) return;
+    contenedor.scrollLeft += evento.deltaY;
+    evento.preventDefault();
+  };
+
+  const navegarCategoria = (categoriaSolicitada, queryOpcional) => {
+    if (queryOpcional && onEjecutarBusqueda) {
+      onEjecutarBusqueda(queryOpcional);
+      return;
+    }
+
+    if (categoriaSolicitada === 'todas' || categoriaSolicitada === 'ofertas') {
+      onNavegar('catalogo', categoriaSolicitada);
+      return;
+    }
+
+    const claveSolicitada = claveCategoria(categoriaSolicitada);
+    const categoriaReal = categorias.find((categoria) => {
+      const claveReal = claveCategoria(categoria.id || categoria.label);
+      return claveReal === claveSolicitada || claveReal.includes(claveSolicitada) || claveSolicitada.includes(claveReal);
+    });
+
+    onNavegar('catalogo', categoriaReal?.id || categoriaSolicitada);
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_4px_20px_-4px_rgba(30,20,15,0.06)]">
       <div className="w-full flex flex-col justify-between">
@@ -394,11 +479,12 @@ export default function Header({
         )}
 
         {/* Sub Navigation Bar */}
-        <div className="h-11 sm:h-14 px-2 sm:px-margin bg-surface-container-lowest flex items-center justify-between overflow-x-auto">
-          <nav className="flex items-center gap-3 sm:gap-space-lg shrink-0 text-[12px] sm:text-[14px]">
+        <div className="h-11 sm:h-14 px-2 sm:px-margin bg-surface-container-lowest flex items-center overflow-hidden">
+          <nav className="flex w-full min-w-0 items-center gap-2 sm:gap-4 text-[12px] sm:text-[14px]">
+            <MenuCategorias onSeleccionar={navegarCategoria} categorias={categorias} />
             <button
               type="button"
-              className={`font-label-interactive transition-colors py-1.5 sm:py-2 cursor-pointer ${
+              className={`shrink-0 font-label-interactive transition-colors py-1.5 sm:py-2 cursor-pointer ${
                 paginaActual === 'inicio' ? 'text-primary font-bold' : 'text-on-surface-variant hover:text-on-surface'
               }`}
               onClick={() => onNavegar('inicio')}
@@ -407,53 +493,51 @@ export default function Header({
             </button>
             <button
               type="button"
-              className={`font-label-interactive transition-colors py-1.5 sm:py-2 cursor-pointer ${
+              className={`shrink-0 font-label-interactive transition-colors py-1.5 sm:py-2 cursor-pointer ${
                 paginaActual === 'catalogo' ? 'text-primary font-bold' : 'text-on-surface-variant hover:text-on-surface'
               }`}
               onClick={() => onNavegar('catalogo', 'todas')}
             >
-              Catálogo Completo
+              Catálogo
             </button>
-            <button
-              type="button"
-              className="font-label-interactive text-on-surface-variant hover:text-on-surface transition-colors py-1.5 sm:py-2 cursor-pointer"
-              onClick={() => onNavegar('catalogo', 'sofas')}
+            <div
+              className="flex min-w-0 flex-1 touch-pan-x select-none items-center gap-2 overflow-x-auto overscroll-x-contain px-1 scroll-smooth cursor-grab active:cursor-grabbing no-scrollbar"
+              onPointerDown={iniciarArrastreCategorias}
+              onPointerMove={moverCategorias}
+              onPointerUp={terminarArrastreCategorias}
+              onPointerCancel={terminarArrastreCategorias}
+              onClickCapture={evitarClickTrasArrastre}
+              onWheel={desplazarCategoriasConRueda}
+              onDragStart={(evento) => evento.preventDefault()}
+              aria-label="Categorías desplazables"
             >
-              Poltronas &amp; Sofás
-            </button>
+              {categorias.map((categoria) => {
+                const activa = paginaActual === 'catalogo' && categoriaActiva === categoria.id;
+                return (
+                  <button
+                    key={categoria.id}
+                    type="button"
+                    className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 font-label-interactive transition-colors cursor-pointer ${
+                      activa
+                        ? 'bg-inverse-surface text-inverse-on-surface font-bold'
+                        : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
+                    }`}
+                    onClick={() => onNavegar('catalogo', categoria.id)}
+                  >
+                    <span className="material-symbols-outlined text-[17px]">{categoria.icon}</span>
+                    <span>{categoria.label}</span>
+                  </button>
+                );
+              })}
+            </div>
             <button
               type="button"
-              className="font-label-interactive text-on-surface-variant hover:text-on-surface transition-colors py-1.5 sm:py-2 cursor-pointer"
-              onClick={() => onNavegar('catalogo', 'colchones')}
-            >
-              Dormitorio &amp; Colchones
-            </button>
-            <button
-              type="button"
-              className="font-label-interactive text-on-surface-variant hover:text-on-surface transition-colors py-1.5 sm:py-2 cursor-pointer"
-              onClick={() => onNavegar('catalogo', 'comedores')}
-            >
-              Comedores
-            </button>
-            <button
-              type="button"
-              className="font-label-interactive text-on-surface-variant hover:text-on-surface transition-colors py-1.5 sm:py-2 cursor-pointer"
-              onClick={() => onNavegar('catalogo', 'almohadas')}
-            >
-              Accesorios &amp; Almohadas
-            </button>
-            <button
-              type="button"
-              className="font-label-interactive text-primary font-bold hover:text-primary transition-colors py-1.5 sm:py-2 flex items-center gap-1 cursor-pointer"
+              className="shrink-0 font-label-interactive text-primary font-bold hover:text-primary transition-colors py-1.5 sm:py-2 flex items-center gap-1 cursor-pointer"
               onClick={() => onNavegar('catalogo', 'ofertas')}
             >
               <span className="material-symbols-outlined text-[15px] sm:text-[16px]">local_offer</span>Promociones
             </button>
           </nav>
-          <div className="hidden lg:flex items-center gap-space-sm font-label-subtle text-label-subtle text-on-surface-variant shrink-0">
-            <span className="material-symbols-outlined text-primary text-[18px]">verified</span>
-            <span>Entrega express en 24h dentro de 4to Anillo SCZ</span>
-          </div>
         </div>
       </div>
 

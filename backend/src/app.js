@@ -1,7 +1,10 @@
 import dotenv from 'dotenv';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-dotenv.config({ path: path.resolve(import.meta.dirname, '../.env') });
+const __dirname = typeof import.meta.dirname === 'string' ? import.meta.dirname : path.dirname(fileURLToPath(import.meta.url));
+
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 import express from 'express';
 import cors from 'cors';
 
@@ -27,7 +30,23 @@ import {
 const app = express();
 
 // Permitir conexiones cross-origin (incluyendo frontend en Vercel y local)
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => callback(null, true),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization',
+      'X-Api-Version',
+      'X-CSRF-Token',
+    ],
+  })
+);
+app.options('*', cors());
 
 // Las imágenes viajan por multipart a /api/archivos, así que el JSON puede ser chico.
 app.use(express.json({ limit: '1mb' }));
