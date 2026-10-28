@@ -319,18 +319,6 @@ export default function Header({
               </span>
             </button>
 
-            {/* BOT CHATBOT ASISTENTE SHORTCUT - VISIBLE ON ALL SCREENS */}
-            <button
-              type="button"
-              className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-full bg-surface-container-low hover:bg-surface-container text-primary flex items-center gap-1 transition-all cursor-pointer shrink-0 border border-outline-variant/30"
-              title="Abrir Asistente Virtual Inteligente (IA)"
-              aria-label="Abrir asistente de compras con IA"
-              onClick={() => window.dispatchEvent(new CustomEvent('terra:abrir-chat'))}
-            >
-              <span className="material-symbols-outlined text-[17px] sm:text-[19px]">smart_toy</span>
-              <span className="hidden xs:inline font-label-interactive text-[11px] font-semibold text-on-surface">Bot</span>
-            </button>
-
             {/* Mi Cuenta Button */}
             <button
               type="button"
