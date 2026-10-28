@@ -35,7 +35,7 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 |---|---|---|
 | 0 | Base: tokens `@theme`, variantes `dark:` y `contraste:`, reglas globales en `@layer base` | Hecha el 2026-10-28 |
 | 1 | Catálogo, tarjeta, paginación, filtros, flotantes y Layout del cliente | Hecha el 2026-10-28. Código en `src/features/catalogo/` y `src/features/layout-cliente/`; se borraron `Catalogo.css`, `Layout.css`, `FloatingActions.css`, `NavigationFix.css` y `HeaderOptionsHidden.css` |
-| 2 | DetalleProducto | Pendiente |
+| 2 | DetalleProducto | Hecha el 2026-10-28, sin commit, en revisión. Código en `src/features/detalle-producto/`; se borraron `DetalleProducto.css`, `DetalleProductoBack.css`, `DetalleProductoPalette.css`, `DetalleProductoRelated.css` y `DetalleProductoSpecs.css` (los tres últimos no se importaban) |
 | 3 | Carrito, Identificación, Confirmación, PedidoGenerado | Pendiente |
 | 4 | Bienvenida, Categorías | Pendiente |
 | 5 | Mayorista | Pendiente |

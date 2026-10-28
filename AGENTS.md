@@ -67,7 +67,7 @@ Si una decisión registrada en `docs/decisiones/` contradice lo que pide la tare
       colores.js
   ```
 - Las piezas compartidas y sin dominio van en `src/components/ui/` (Button, Modal, Input, Toast) y `src/hooks/`.
-- El código actual está en `src/pages/`. Mueve una pantalla a `src/features/` solo cuando una tarea la refactorice; nunca muevas archivos en masa. Ya migrados: `src/features/catalogo/` y `src/features/layout-cliente/`.
+- El código actual está en `src/pages/`. Mueve una pantalla a `src/features/` solo cuando una tarea la refactorice; nunca muevas archivos en masa. Ya migrados: `src/features/catalogo/`, `src/features/layout-cliente/` y `src/features/detalle-producto/`.
 
 ### Reglas de componentes
 - Página (`*Page.jsx`): obtiene los datos con hooks y compone componentes.
@@ -116,6 +116,7 @@ La migración de CSS a Tailwind va por fases y por pantalla (avance en `docs/00-
 - `contraste:` → clase `a11y-contraste` en `<html>` (ModoAccesibleContext; también con `prefers-contrast: more`). Con ambas activas gana `contraste:`.
 - Lo normal es no necesitar variantes: los tokens ya cambian con el tema. Úsalas solo para excepciones.
 - Otras variantes de `index.css`: `iconos-listas:` (la fuente de iconos cargó), `en-carrito:`, `con-asistente-abierto:` y `con-carrito-abierto:` (estado de la tienda que oculta los botones flotantes), y `con-resumen-fijo:` (< 761 px, cuando el resumen de Confirmación es una barra fija).
+- Consultas de contenedor (`@container` en el padre): a diferencia de los breakpoints, su `rem` sí crece con el modo accesible, así que con texto al 150 % el diseño pasa antes a una columna. Token `@terra-ficha:` (45 rem) en la ficha de producto.
 - Utilidades propias (`@utility` en `index.css`): `borde-medio` (borde de 1.5 px) y `fondo-cargando` (esqueleto de una foto que no cargó).
 
 ### Componentes compartidos
