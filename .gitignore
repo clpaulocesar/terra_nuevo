@@ -17,6 +17,9 @@ frontend/.env
 # Vercel
 .vercel
 
+# Respaldos CSV de los scripts de datos (contienen datos reales)
+backend/scripts/respaldos/
+
 # Logs
 *.log
 npm-debug.log*

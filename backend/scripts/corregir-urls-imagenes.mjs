@@ -1,20 +1,21 @@
-// Corrige las URLs de `products.imagen_url` que tienen saltos de línea o espacios
-// sobrantes y lista las que todavía apuntan a Supabase (solo lectura para esas).
+// Corrige las URLs de `products.imagen_url` que tienen saltos de línea o espacios sobrantes.
 //
 // Uso (desde la carpeta backend/):
 //   node scripts/corregir-urls-imagenes.mjs            -> vista previa, no modifica nada
-//   node scripts/corregir-urls-imagenes.mjs --aplicar  -> limpia las URLs con saltos de línea
+//   node scripts/corregir-urls-imagenes.mjs --aplicar  -> respalda en CSV y limpia las URLs
 //
-// Toma DATABASE_URL del entorno o de backend/.env. Nunca borra ni reescribe URLs de
-// Supabase: solo las informa para migrarlas cuando se defina el nuevo almacenamiento.
+// Toma DATABASE_URL del entorno o de backend/.env.
 import dotenv from 'dotenv';
+import fs from 'node:fs';
 import path from 'node:path';
 
 dotenv.config({ path: path.resolve(import.meta.dirname, '../.env'), quiet: true });
 const { pool } = await import('../src/config/database.js');
 
 const APLICAR = process.argv.includes('--aplicar');
+const CARPETA_RESPALDOS = path.resolve(import.meta.dirname, 'respaldos');
 const limpiar = (url) => String(url || '').replace(/[\r\n\t]+/g, '').trim();
+const csv = (valor) => `"${String(valor ?? '').replace(/"/g, '""')}"`;
 
 try {
   const { rows: sucias } = await pool.query(
@@ -37,6 +38,11 @@ try {
   if (arreglosSucios[0].n) console.log(`\nAviso: ${arreglosSucios[0].n} producto(s) con espacios o saltos de línea dentro de image_urls (no se tocan).`);
 
   if (sucias.length && APLICAR) {
+    // Respaldo de las filas tal como están antes de tocarlas.
+    fs.mkdirSync(CARPETA_RESPALDOS, { recursive: true });
+    const respaldo = path.join(CARPETA_RESPALDOS, `urls-imagen-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`);
+    fs.writeFileSync(respaldo, `id,codigo_terra,name,imagen_url\n${sucias.map((f) => [f.id, f.codigo_terra, f.name, f.imagen_url].map(csv).join(',')).join('\n')}\n`, 'utf8');
+    console.log(`\nRespaldo escrito en ${respaldo}`);
     const conexion = await pool.connect();
     try {
       await conexion.query('BEGIN');
@@ -53,22 +59,6 @@ try {
     }
   } else if (sucias.length) {
     console.log('\nModo vista previa. Ejecutá con --aplicar para corregir estas URLs.');
-  }
-
-  const { rows: supabase } = await pool.query(
-    `SELECT id, codigo_terra, name, imagen_url,
-            ARRAY(SELECT u FROM unnest(COALESCE(image_urls, '{}')) u WHERE u ILIKE '%supabase.co%') AS galeria_supabase
-       FROM products
-      WHERE imagen_url ILIKE '%supabase.co%'
-         OR EXISTS (SELECT 1 FROM unnest(COALESCE(image_urls, '{}')) u WHERE u ILIKE '%supabase.co%')
-      ORDER BY codigo_terra`
-  );
-  console.log(`\nProductos con imágenes en Supabase: ${supabase.length}`);
-  for (const fila of supabase) {
-    const principal = String(fila.imagen_url || '').includes('supabase.co') ? limpiar(fila.imagen_url) : '(principal fuera de Supabase)';
-    console.log(`  ${fila.codigo_terra || fila.id}  ${fila.name}`);
-    console.log(`     imagen_url: ${principal}`);
-    for (const url of fila.galeria_supabase) console.log(`     image_urls: ${limpiar(url)}`);
   }
 } catch (error) {
   console.error('Error:', error.message);

@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { pool } from '../config/database.js';
 
 // Cuentas de clientes mayoristas: `users` (rol, clave) + `customers` (perfil).
-// `users.auth_user_id` es legado de Supabase Auth: sigue siendo NOT NULL en la base,
-// así que se rellena con un UUID local que ya no autentica nada.
+// `users.auth_user_id` es una columna heredada que sigue siendo NOT NULL en la base,
+// así que se rellena con un UUID local que no se usa para autenticar.
 let columnasListas;
 export function asegurarColumnasUsuariosBD() {
   if (!columnasListas) {

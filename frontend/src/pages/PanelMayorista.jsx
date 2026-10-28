@@ -170,7 +170,7 @@ export default function PanelMayorista() {
     setDireccion(e.target.value);
   };
 
-  // Guardar cambios en Supabase y actualizar la sesión en memoria.
+  // Guardar cambios en el backend y actualizar la sesión en memoria.
   const handleGuardar = async (e) => {
     if (e) e.preventDefault();
     if (!sesion?.token || guardando) return;

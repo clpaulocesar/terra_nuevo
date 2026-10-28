@@ -1,8 +1,9 @@
-// Login propio de mayoristas (§1 de "Eliminar toda dependencia de Supabase") y
-// script de corrección de URLs. Necesita TEST_DATABASE_URL (Postgres LOCAL vacío).
+// Login propio de mayoristas (contra `users`, sin servicios externos) y script de
+// corrección de URLs. Necesita TEST_DATABASE_URL (Postgres LOCAL vacío).
 import test, { before, after, beforeEach, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 import { prepararBaseDePrueba, vaciarTablas, crearStaff, SALTAR_SIN_BD, TEST_DB } from './helpers/bdPrueba.js';
 
@@ -155,5 +156,9 @@ describe('autenticación de mayoristas', { skip: SALTAR_SIN_BD }, () => {
     const aplicado = correr(['--aplicar']);
     assert.equal(aplicado.status, 0, aplicado.stderr);
     assert.equal((await pool.query('SELECT imagen_url FROM products WHERE id=$1', [producto.id])).rows[0].imagen_url, 'https://ejemplo.test/imagen.jpg');
+    // El respaldo CSV de la corrida de prueba no debe quedar junto a los reales.
+    const respaldo = aplicado.stdout.match(/Respaldo escrito en (.+\.csv)/)?.[1]?.trim();
+    assert.ok(respaldo && fs.existsSync(respaldo), 'debe escribir el CSV de respaldo antes de aplicar');
+    fs.unlinkSync(respaldo);
   });
 });

@@ -2,11 +2,18 @@
 // Postgres LOCAL desechable. Las columnas que el backend agrega en tiempo de ejecución
 // (ALTER TABLE ... IF NOT EXISTS) y las tablas del ERP las crea el propio código.
 export const TEST_DB = process.env.TEST_DATABASE_URL;
-if (TEST_DB && /supabase|pooler|terracolchones/i.test(TEST_DB)) throw new Error('TEST_DATABASE_URL apunta a una base que no es local.');
+// Las pruebas borran y recrean tablas: solo se aceptan bases en esta misma máquina.
+if (TEST_DB) {
+  const host = new URL(TEST_DB).hostname.replace(/^\[|\]$/g, '');
+  if (!['localhost', '127.0.0.1', '::1'].includes(host)) {
+    throw new Error(`TEST_DATABASE_URL debe apuntar a un Postgres local (host recibido: ${host}).`);
+  }
+}
 
 export const SALTAR_SIN_BD = TEST_DB ? false : 'Definí TEST_DATABASE_URL (Postgres local vacío) para correr estas pruebas.';
 
-const TABLAS = ['payments', 'order_items', 'orders', 'products', 'customers', 'users', 'categories', 'wholesale_price_tiers', 'product_instructions',
+const TABLAS = ['payments', 'product_images', 'order_items', 'orders', 'products', 'customers', 'users', 'categories', 'wholesale_price_tiers', 'product_instructions',
+  'producto_sucursales', 'sucursales', 'promotion_products', 'promotions',
   'erp_quotations', 'erp_product_sync_state', 'erp_warehouse_stocks', 'erp_sync_runs', 'delivery_zones', 'staff_accounts'];
 
 const DDL = `
@@ -30,6 +37,22 @@ const DDL = `
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), order_id UUID REFERENCES orders(id) ON DELETE CASCADE, product_variant_id UUID, product_name TEXT, sku TEXT,
     quantity INTEGER NOT NULL, unit_price_minor BIGINT NOT NULL, discount_minor BIGINT DEFAULT 0, total_minor BIGINT NOT NULL, currency TEXT DEFAULT 'BOB',
     created_at TIMESTAMPTZ DEFAULT NOW());
+  CREATE TABLE IF NOT EXISTS product_instructions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    detalle_completo TEXT, intrucciones TEXT, colores TEXT, videos_url TEXT, imagenes_url TEXT);
+  CREATE TABLE IF NOT EXISTS product_images (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE, image_url TEXT NOT NULL,
+    alt_text TEXT, sort_order INTEGER NOT NULL DEFAULT 0, is_primary BOOLEAN NOT NULL DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+  CREATE TABLE IF NOT EXISTS sucursales (id_sucursal BIGSERIAL PRIMARY KEY, nombre VARCHAR(120) NOT NULL, direccion VARCHAR(200), activo BOOLEAN DEFAULT TRUE);
+  CREATE TABLE IF NOT EXISTS producto_sucursales (
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE, sucursal_id BIGINT NOT NULL REFERENCES sucursales(id_sucursal),
+    stock_disponible NUMERIC NOT NULL DEFAULT 0, activo BOOLEAN NOT NULL DEFAULT TRUE, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (product_id, sucursal_id));
+  CREATE TABLE IF NOT EXISTS promotions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT NOT NULL, is_active BOOLEAN NOT NULL DEFAULT TRUE, starts_at TIMESTAMPTZ, ends_at TIMESTAMPTZ);
+  CREATE TABLE IF NOT EXISTS promotion_products (
+    promotion_id UUID NOT NULL REFERENCES promotions(id) ON DELETE CASCADE, product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    PRIMARY KEY (promotion_id, product_id));
   CREATE TABLE IF NOT EXISTS payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(), order_id UUID NOT NULL REFERENCES orders(id) ON DELETE RESTRICT, provider TEXT, provider_transaction_id TEXT,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'refunded')),

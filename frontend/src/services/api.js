@@ -22,13 +22,15 @@ export const WHATSAPP_COMPROBANTES = String(
 ).replace(/\D/g, '');
 
 export async function apiRequest(ruta, { method = 'GET', body, signal, headers = {}, raw = false } = {}) {
+  // Con FormData (subida de archivos) el navegador fija el Content-Type con su boundary.
+  const esFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   let respuesta;
   try {
     respuesta = await fetch(`${API_URL}${ruta}`, {
       method,
       signal,
-      headers: { 'Content-Type': 'application/json', ...headers },
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      headers: esFormData ? headers : { 'Content-Type': 'application/json', ...headers },
+      ...(body !== undefined ? { body: esFormData ? body : JSON.stringify(body) } : {}),
     });
   } catch (error) {
     if (error.name === 'AbortError') throw error;

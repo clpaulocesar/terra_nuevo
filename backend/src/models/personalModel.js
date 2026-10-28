@@ -68,9 +68,8 @@ export async function obtenerPersonalBD(id) {
 
 export async function crearPersonalBD({ nombre, email, rol, passwordHash, vehiculo = null, placa = null }) {
   await asegurarTablaPersonal();
-  // `auth_user_id` es legado de cuando el personal se autenticaba con Supabase.
-  // La columna sigue siendo NOT NULL en bases existentes, así que se rellena con
-  // un UUID local que ya no se usa para autenticar.
+  // `auth_user_id` es una columna heredada que sigue siendo NOT NULL en bases
+  // existentes, así que se rellena con un UUID local que no se usa para autenticar.
   const authUserId = randomUUID();
   const { rows } = await pool.query(`
     INSERT INTO staff_accounts (auth_user_id, name, email, password_hash, role, vehicle, plate)

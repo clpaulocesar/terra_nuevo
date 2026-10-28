@@ -4,7 +4,7 @@ import { pool } from './database.js';
 export async function migrateAndSeed({ closePool = false } = {}) {
   console.log('Iniciando migración y sincronización con PostgreSQL...');
 
-  // 1. Crear tablas necesarias si no existen (cada una individualmente para compatibilidad con PgBouncer/Supabase)
+  // 1. Crear tablas necesarias si no existen (cada una individualmente para compatibilidad con PgBouncer)
   await pool.query(`
     CREATE TABLE IF NOT EXISTS clientes (
         id SERIAL PRIMARY KEY,
