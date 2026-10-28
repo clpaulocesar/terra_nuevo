@@ -1,43 +1,5 @@
-import { useState } from 'react';
-
-const COMPLEMENTOS_CARRITO = [
-  {
-    id: 301,
-    nombre: 'Protector de Almohada Impermeable',
-    categoria: 'ACCESORIOS · DORMITORIO',
-    descripcion: 'Barrera transpirable anti-ácaros con cierre invisible lavable.',
-    precio: 45,
-    tag: 'Impermeable',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCgf8o6AUQZTi3OpQ2l_kfeEinFFNJctyuiWYzUbjxm-F7bzh9g1XnOsmTdk3f69ZtA5eoamUy6StnK-WeQcCg87ZJIt8-WaOqiv3TnnRIlaScp4LFSePerlNfWy5G4xPWosNFNrXJW-y2Y0rbVeCwKj4VwUvFHpe4i9BIPs8c03GpWy34XMBwaI_USN8Q83rcPwXIb2LeAX1iYDIo3Wh-RGC9B18KuDMQ5GLyhMJIh',
-  },
-  {
-    id: 302,
-    nombre: 'Almohada PARE Fibra Color',
-    categoria: 'COJINES & RELAX',
-    descripcion: 'Relleno de fibra siliconada virgen con funda lavable en tono arena.',
-    precio: 40,
-    tag: 'Confort',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCs-vWsa2Ef-Ydc6OpuEvrxuje1bnM23lH1udw_qP-SzQOn0bp-z4ZB2DH8GhNBqLAIAPChj5pp73gffRidc1ws2tl8-BKnalYql8ssSz_0tZvnQ6kZnLjW2kTNaFUDAe9gcv0OsAfuY_XRR5aFq1DsfTFVFyoIc08TAGsYK63nFhwfKNcwIqzV1Z3xDlI5UYEtgcl4R3iulUTZrsZQndAf61ZMfTzszdPY5gayT-Yo',
-  },
-  {
-    id: 303,
-    nombre: 'Juego de Sábanas Algodón Percal 200 Hilos',
-    categoria: 'LENCERÍA DE CAMA',
-    descripcion: 'Frescura garantizada para el clima cálido cruceño. Tacto sedoso.',
-    precio: 180,
-    tag: 'Más Vendido',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDZHOyaNj3fSPjRyJXRNj6iBZ18pvTLUXHo2ywAy9TM2uG_ipDPPMkqsW8kiWgITGIDeHKQfGQBp5qSfvb-ZfGqjm8iM0n_COr35jtVHcRKQUcEXzbwKXIf1jeOTInXCaQsStD_xEgv7_TGDhsyJ4hG4ryvRM59_u6dZhrfuC55J4-adDQ239dIOxLTC7YU_J-tGtzYn1tFbK74o4Af2gdOBlawMv6FICJ6J4c9qdrE',
-  },
-  {
-    id: 304,
-    nombre: 'Kit de Limpieza y Cuidado de Tapices',
-    categoria: 'MANTENIMIENTO',
-    descripcion: 'Fórmula con pH neutro que preserva el color y textura original de linos.',
-    precio: 65,
-    tag: 'Cuidado Textil',
-    src: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBR4Q46ig7hplQe2K06rGHmSfp5NfaTfprj0KTSsxXTaJOpFFmEvpA0SSRCAoQkA-gGb50QxrTMkEEVZbTL9DEyA_6MCf8X24ri67yEVYuUmZGXCiAulIu45t7bMzE9TvX4Hr2SY5cPVX0W-8VByb4xKjUUEfIZeY8twTYcdLpZtAcPbhCouz49jFD8ostZLl5kXSMwu45ieYoF61azYZla7XdkGgu5XKZkth8MhmLU',
-  },
-];
+import { useState, useEffect } from 'react';
+import { listarProductos } from '../services/api.js';
 
 function formatBs(val) {
   return 'Bs ' + Number(val || 0).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -57,15 +19,32 @@ export default function CarritoPage({
   const [modalidadEntrega, setModalidadEntrega] = useState('pickup'); // 'pickup' | 'delivery'
   const [salaRetiroSeleccionada, setSalaRetiroSeleccionada] = useState(sucursalActiva?.id || 'central');
   const [addonProteccion, setAddonProteccion] = useState(false);
-  const [cuponInput, setCuponInput] = useState('TERRASCZ2025');
-  const [cuponValido, setCuponValido] = useState(true);
-  const [cuponMensaje, setCuponMensaje] = useState('Código TERRASCZ2025 aplicado (-Bs 120,00)');
+  const [cuponInput, setCuponInput] = useState('');
+  const [cuponValido, setCuponValido] = useState(false);
+  const [cuponMensaje, setCuponMensaje] = useState('');
+  const [complementos, setComplementos] = useState([]);
+
+  useEffect(() => {
+    const controlador = new AbortController();
+    listarProductos({
+      signal: controlador.signal,
+      limite: 4,
+      orden: 'recomendados',
+    })
+      .then((res) => {
+        if (Array.isArray(res?.productos) && res.productos.length > 0) {
+          setComplementos(res.productos.slice(0, 4));
+        }
+      })
+      .catch(() => {});
+    return () => controlador.abort();
+  }, []);
 
   // Totales
   const totalArticulos = cartItems.reduce((acc, it) => acc + it.cantidad, 0);
   const subtotalProductos = cartItems.reduce((acc, it) => acc + it.precio * it.cantidad, 0);
   const costoServicios = addonProteccion ? 120 : 0;
-  const descuentoAutoservicio = cuponValido ? (subtotalProductos > 100 ? 120 : 0) : 0;
+  const descuentoAutoservicio = cuponValido ? 120 : 0;
   const costoEnvio = 0; // Flete se liquida o coordina según zona de entrega
   const totalPagar = Math.max(0, subtotalProductos - descuentoAutoservicio + costoServicios + costoEnvio);
 
@@ -734,49 +713,57 @@ export default function CarritoPage({
           </div>
 
           {/* 4 Cross-Selling Products Bento/Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
-            {COMPLEMENTOS_CARRITO.map((prod) => (
-              <div
-                key={prod.id}
-                className="group bg-surface-container-lowest rounded-xl p-space-md shadow-[0_4px_12px_-2px_rgba(30,20,15,0.04)] hover:shadow-[0_12px_32px_-4px_rgba(30,20,15,0.08)] transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="w-full h-44 rounded-lg bg-surface-container-low overflow-hidden relative mb-space-sm">
-                    <img
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
-                      src={prod.src}
-                      alt={prod.nombre}
-                      loading="lazy"
-                    />
-                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-surface-container-lowest/90 font-label-subtle text-[11px] font-bold text-on-surface">
-                      {prod.tag}
-                    </span>
-                  </div>
-                  <p className="font-label-subtle text-label-subtle text-on-surface-variant uppercase">{prod.categoria}</p>
-                  <h3 className="font-title-sm text-title-sm text-on-surface font-semibold mt-0.5 line-clamp-1">
-                    {prod.nombre}
-                  </h3>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 line-clamp-2">
-                    {prod.descripcion}
-                  </p>
-                </div>
-                <div className="pt-space-md mt-space-sm border-t border-surface-container flex items-center justify-between">
+          {complementos.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+              {complementos.map((prod) => (
+                <div
+                  key={prod.id}
+                  className="group bg-surface-container-lowest rounded-xl p-space-md shadow-[0_4px_12px_-2px_rgba(30,20,15,0.04)] hover:shadow-[0_12px_32px_-4px_rgba(30,20,15,0.08)] transition-all flex flex-col justify-between cursor-pointer"
+                  onClick={() => onVerDetalle?.(prod) || onNavegar('detalle', 'todas', prod)}
+                >
                   <div>
-                    <p className="font-title-sm text-title-sm font-bold text-primary">{formatBs(prod.precio)}</p>
-                    <span className="font-label-subtle text-label-subtle text-tertiary font-semibold">En stock sala</span>
+                    <div className="w-full h-44 rounded-lg bg-surface-container-low overflow-hidden relative mb-space-sm flex items-center justify-center p-2">
+                      <img
+                        className="w-full h-full object-contain transition-transform group-hover:scale-105 duration-300"
+                        src={prod.imagen || prod.src || prod.imagenes?.[0]}
+                        alt={prod.nombre}
+                        loading="lazy"
+                      />
+                      {prod.enOferta && (
+                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-primary text-on-primary font-label-subtle text-[11px] font-bold">
+                          Oferta
+                        </span>
+                      )}
+                    </div>
+                    <p className="font-label-subtle text-label-subtle text-on-surface-variant uppercase">{prod.categoria}</p>
+                    <h3 className="font-title-sm text-title-sm text-on-surface font-semibold mt-0.5 line-clamp-1">
+                      {prod.nombre}
+                    </h3>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 line-clamp-2">
+                      {prod.descripcion}
+                    </p>
                   </div>
-                  <button
-                    type="button"
-                    className="w-9 h-9 rounded-full bg-primary text-on-primary hover:bg-primary-container flex items-center justify-center transition-transform active:scale-95 shadow-sm cursor-pointer"
-                    onClick={() => onAgregarAlCarrito(prod)}
-                    title="Agregar al carrito"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
-                  </button>
+                  <div className="pt-space-md mt-space-sm border-t border-surface-container flex items-center justify-between">
+                    <div>
+                      <p className="font-title-sm text-title-sm font-bold text-primary">{formatBs(prod.precio)}</p>
+                      <span className="font-label-subtle text-label-subtle text-tertiary font-semibold">En stock</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="w-9 h-9 rounded-full bg-primary text-on-primary hover:bg-primary-container flex items-center justify-center transition-transform active:scale-95 shadow-sm cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAgregarAlCarrito(prod);
+                      }}
+                      title="Agregar al carrito"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </div>

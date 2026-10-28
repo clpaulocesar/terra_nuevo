@@ -22,6 +22,7 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
   - 8 URLs de `products.imagen_url` con saltos de línea corregidas.
   - 52 imágenes migradas de Supabase a copyparty, 0 fallidas; no queda ninguna URL de Supabase en `products` ni en `product_images`.
 - **Pruebas automatizadas**: backend con `node --test` (46 pruebas: cliente ERP contra HTTPS falso, cobro, login, imágenes contra copyparty falso, scripts), sobre un Postgres local desechable. Frontend: 25 + 23 pruebas.
+- **Desconexión total de datos mock en frontend global**: eliminación de `PRODUCTOS_CATALOGO_FULL`, `PRODUCTOS_DESTACADOS_INICIO`, `PRODUCTO_DETALLE_DEFAULT`, `COMPLEMENTOS_CARRITO` y carrito inicial estático. Conexión 100% en vivo del catálogo, filtros de categoría, fichas técnicas y productos complementarios contra PostgreSQL y la API `/api/productos` y `/api/categorias`. Filtro SQL mejorado con tolerancia de raíz y acentos en `productoModel.js`.
 - **Fondo blanco detrás de las fotos de producto** en las tarjetas del catálogo y en "Otros modelos" de DetalleProducto, en modo claro, oscuro y alto contraste (variable `--terra-fondo-imagen-producto`). Sin cambios en tamaño ni recorte de las imágenes. Sin commit.
 - **Commits locales** `f24bf3a` (ERP y pagos) y `13f46df` (eliminar Supabase), sin push. La mayor parte del trabajo ya estaba en `812212d`, publicado en `origin/jhonatan`.
 

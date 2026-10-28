@@ -52,8 +52,7 @@ export default function CheckoutPage({
   // Cálculos de totales
   const totalArticulos = cartItems.reduce((acc, it) => acc + it.cantidad, 0);
   const subtotalProductos = cartItems.reduce((acc, it) => acc + it.precio * it.cantidad, 0);
-  const descuentoPromocion = subtotalProductos > 100 ? 120 : 0;
-  const totalPagar = Math.max(0, subtotalProductos - descuentoPromocion);
+  const totalPagar = subtotalProductos;
 
   const handleTipoDocChange = (nuevoTipo) => {
     setTipoDoc(nuevoTipo);
@@ -980,31 +979,11 @@ export default function CheckoutPage({
                 ))}
               </div>
 
-              {/* Cupón Aplicado */}
-              <div className="bg-primary/5 p-3 rounded-lg flex items-center justify-between text-[13px] border border-primary/10">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-[18px]">sell</span>
-                  <div>
-                    <p className="font-label-interactive text-label-interactive text-primary font-bold">TERRASCZ2025</p>
-                    <p className="font-label-subtle text-label-subtle text-on-surface-variant text-[11px]">
-                      Descuento Kiosco Autoservicio
-                    </p>
-                  </div>
-                </div>
-                <span className="font-label-interactive text-label-interactive text-primary font-bold">
-                  -{formatBs(descuentoPromocion)}
-                </span>
-              </div>
-
               {/* Financial Breakdown */}
               <div className="space-y-2 pt-space-xs font-body-sm text-body-sm text-on-surface-variant">
                 <div className="flex justify-between">
                   <span>Subtotal Productos</span>
                   <span className="font-semibold text-on-surface">{formatBs(subtotalProductos)}</span>
-                </div>
-                <div className="flex justify-between text-primary">
-                  <span>Descuento Promoción</span>
-                  <span className="font-semibold">-{formatBs(descuentoPromocion)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="flex items-center gap-1">
@@ -1014,14 +993,6 @@ export default function CheckoutPage({
                   <span className={`font-semibold uppercase ${modalidadEntrega === 'retiro' ? 'text-primary' : 'text-on-surface'}`}>
                     {modalidadEntrega === 'retiro' ? 'Sin costo' : 'Con comisión'}
                   </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Armado e Inspección Técnica</span>
-                  <span className="font-semibold text-primary uppercase">Incluido</span>
-                </div>
-                <div className="flex justify-between text-[11px] text-on-surface-variant">
-                  <span>Impuesto de Ley (IVA 13% incluido)</span>
-                  <span>Incluido en factura</span>
                 </div>
 
                 {/* Total Divider */}
