@@ -230,11 +230,11 @@ function GaleriaProducto({ colores, setColores, imagenes, setImagenes, destino, 
     if (!archivos.length) return;
     setSubiendo(true);
     try {
-      avisar(`Subiendo ${archivos.length} imagen${archivos.length > 1 ? 'es' : ''} a Supabase...`);
-      const urls = await Promise.all(archivos.map(subirImagenProducto));
+      avisar(`Subiendo ${archivos.length} imagen${archivos.length > 1 ? 'es' : ''}...`);
+      const urls = await Promise.all(archivos.map((archivo) => subirImagenProducto(archivo)));
       setImagenes((prev) => [...prev, ...urls]);
       asociarImagenesConDestino(setColores, destino, urls);
-      avisar('Imágenes guardadas permanentemente en Supabase.');
+      avisar('Imágenes guardadas en el servidor de archivos.');
     } catch (err) {
       avisar(err.message || 'No se pudieron subir las imágenes.');
     } finally {

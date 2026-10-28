@@ -17,26 +17,13 @@ import { useTutorial } from '../context/TutorialContext.jsx';
 import { marcarTutorialVisto, tutorialYaVisto } from '../tutorial/almacenamiento.js';
 import TutorialInvitacion from '../tutorial/TutorialInvitacion.jsx';
 import { useTutorialGuiado } from '../tutorial/useTutorialGuiado.js';
+import { paginasVisibles } from '../utils/paginacion.js';
+import { usePaginadorCompacto } from '../hooks/usePaginadorCompacto.js';
 import './Catalogo.css';
 
 // Cuántas categorías se muestran como chips sueltos junto al selector "Todos".
 // El resto queda disponible dentro del desplegable.
 const CATEGORIAS_VISIBLES = 4;
-
-// Rango de botones numerados que se muestran en el paginador (con "…" entre saltos).
-const paginasVisibles = (actual, total) => {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-  const conjunto = new Set([1, total, actual - 1, actual, actual + 1]);
-  if (actual <= 3) [2, 3, 4].forEach((n) => conjunto.add(n));
-  if (actual >= total - 2) [total - 1, total - 2, total - 3].forEach((n) => conjunto.add(n));
-  const lista = [...conjunto].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
-  const resultado = [];
-  lista.forEach((n, i) => {
-    if (i > 0 && n - lista[i - 1] > 1) resultado.push(`gap-${n}`);
-    resultado.push(n);
-  });
-  return resultado;
-};
 
 const coloresDeProducto = (producto) => {
   const registros = Array.isArray(producto?.colores) ? producto.colores : [];
@@ -273,6 +260,7 @@ export default function Catalogo() {
   // mientras la actual anuncie que hay siguiente.
   const ultimaPaginaPermitida = totalConocido ? totalPaginas : Math.max(totalPaginas, tieneSiguiente ? pagina + 1 : pagina);
   const mostrarPaginador = totalConocido ? totalPaginas > 1 : (pagina > 1 || tieneSiguiente);
+  const paginadorCompacto = usePaginadorCompacto();
 
   // Orden de respaldo dentro de la página: si el backend ya ordenó, no cambia nada;
   // si es una versión anterior que ignora `orden`, al menos la página se ve ordenada.
@@ -1173,7 +1161,7 @@ export default function Catalogo() {
                 </button>
 
                 <div className="terra-paginador__paginas">
-                  {paginasVisibles(pagina, ultimaPaginaPermitida).map((item) =>
+                  {paginasVisibles(pagina, ultimaPaginaPermitida, { compacta: paginadorCompacto }).map((item) =>
                     typeof item === 'string' ? (
                       <span key={item} className="terra-paginador__gap" aria-hidden="true">…</span>
                     ) : (

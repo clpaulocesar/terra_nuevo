@@ -295,7 +295,8 @@
   }
 }
 
-@media (max-width: 360px) {
+/* Por debajo de 400 px solo el ícono; el nombre accesible está en aria-label. */
+@media (max-width: 399.98px) {
   .terra-tutorial-btn--movil span {
     display: none;
   }

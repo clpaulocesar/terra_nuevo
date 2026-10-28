@@ -267,6 +267,57 @@ export async function guardarInstruccionesProductoBD(productoId, instrucciones) 
   }
 }
 
+// `product_images` (tabla preexistente) registra cada imagen nueva de la galería además
+// de `products.imagen_url` e `image_urls`, que es lo que lee el frontend.
+let imagenesReady;
+export function asegurarTablaImagenesBD() {
+  if (!imagenesReady) {
+    imagenesReady = (async () => {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS product_images (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+          image_url TEXT NOT NULL,
+          alt_text TEXT,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `);
+      await pool.query('CREATE INDEX IF NOT EXISTS product_images_product_order_idx ON product_images (product_id, sort_order)');
+    })().catch((error) => { imagenesReady = null; throw error; });
+  }
+  return imagenesReady;
+}
+
+// Es aditivo: nunca borra ni modifica filas existentes. Hay filas heredadas (imágenes
+// de Cloudinary y en base64) que no están en `image_urls` y no existen en otro lado.
+export async function registrarImagenesProductoBD(productoId, imagenes, conexion = pool) {
+  await asegurarTablaImagenesBD();
+  const lista = [...new Set((Array.isArray(imagenes) ? imagenes : []).map((u) => String(u || '').trim()).filter(Boolean))];
+  if (!lista.length) return;
+  const { rows: [estado] } = await conexion.query(
+    `SELECT COALESCE(MAX(sort_order) + 1, 0) AS siguiente,
+            COALESCE(BOOL_OR(is_primary), FALSE) AS hay_principal,
+            COALESCE(ARRAY_AGG(image_url) FILTER (WHERE image_url = ANY($2::text[])), '{}') AS existentes
+       FROM product_images
+      WHERE product_id = $1`,
+    [productoId, lista]
+  );
+  const existentes = new Set(estado.existentes);
+  let orden = Number(estado.siguiente);
+  let hayPrincipal = estado.hay_principal;
+  for (const url of lista) {
+    if (existentes.has(url)) continue;
+    await conexion.query(
+      'INSERT INTO product_images (product_id, image_url, sort_order, is_primary) VALUES ($1, $2, $3, $4)',
+      [productoId, url, orden, !hayPrincipal]
+    );
+    orden += 1;
+    hayPrincipal = true;
+  }
+}
+
 export async function crearProductoBD(datos) {
   await asegurarEscalasMayoristasBD();
   const baseSlug = String(datos.nombre || 'producto').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -281,6 +332,7 @@ export async function crearProductoBD(datos) {
   );
   await reemplazarEscalasMayoristas(rows[0].id, datos.escalasMayorista || []);
   await guardarInstruccionesProductoBD(rows[0].id, datos.instrucciones);
+  if (Array.isArray(datos.imagenes)) await registrarImagenesProductoBD(rows[0].id, datos.imagenes);
   return obtenerProductoBD(rows[0].id);
 }
 
@@ -366,6 +418,7 @@ export async function actualizarProductoBD(id, datos) {
       rows[0].id,
       datos.instrucciones
     );
+    if (Array.isArray(datos.imagenes)) await registrarImagenesProductoBD(rows[0].id, datos.imagenes);
   }
 
   return rows[0] ? obtenerProductoBD(rows[0].id) : null;
@@ -399,6 +452,70 @@ export async function actualizarStockBD(id, { showroom, agregar } = {}) {
     [Number(incremental ? agregar : (showroom ?? 0)), idStr]
   );
   return rows[0] ? obtenerProductoBD(rows[0].id) : null;
+}
+
+// ---- Espejo del ERP de TERRA ----
+// El ERP es la fuente de verdad de precio público, stock y datos maestros. Lo que
+// es propio de este sistema (oferta, precio mayorista, escalas, imágenes,
+// descripción, categoría, slug) NO se toca. El código interno y el stock por
+// almacén van a `erp_product_sync_state` y `erp_warehouse_stocks` (erpModel.js).
+// `conexion` permite correr dentro de la transacción del pedido.
+function textoErp(valor) {
+  const texto = String(valor ?? '').trim();
+  return texto || null;
+}
+
+// `stockVenta` es el stock del almacén de venta (ALMACEN CENTRAL), ya calculado por
+// el servicio: `stock_quantity` nunca se llena con `stockTotal`.
+export async function reescribirProductoDesdeErpBD(productoId, erp, stockVenta, conexion = pool) {
+  const precio = Number(erp?.precioPublico);
+  const stock = Math.max(0, Math.floor(Number(stockVenta) || 0));
+  const { rows } = await conexion.query(
+    `UPDATE products
+        SET public_price = CASE WHEN $2::numeric IS NULL THEN public_price ELSE $2::numeric END,
+            stock_quantity = $3,
+            name = COALESCE($4, name),
+            size = COALESCE($5, size),
+            color = COALESCE($6, color),
+            marca = COALESCE($7, marca),
+            codigo_terra = COALESCE($8, codigo_terra),
+            updated_at = NOW()
+      WHERE id = $1
+      RETURNING id, public_price, stock_quantity`,
+    [
+      productoId,
+      Number.isFinite(precio) && precio >= 0 ? precio : null,
+      stock,
+      textoErp(erp?.nombre),
+      textoErp(erp?.medida),
+      textoErp(erp?.color),
+      textoErp(erp?.marca),
+      textoErp(erp?.codigoTerra),
+    ]
+  );
+  return rows[0] || null;
+}
+
+// 404 en el ERP: el producto no existe o no está habilitado. Se deja sin stock y oculto.
+export async function marcarProductoNoEncontradoErpBD(productoId, conexion = pool) {
+  const { rows } = await conexion.query(
+    `UPDATE products
+        SET stock_quantity = 0, activo = FALSE, is_active = FALSE, updated_at = NOW()
+      WHERE id = $1
+      RETURNING id`,
+    [productoId]
+  );
+  return rows[0] || null;
+}
+
+// Descuenta stock local tras el 201 de la cotización (nunca por debajo de 0).
+export async function descontarStockBD(productoId, cantidad, conexion = pool) {
+  await conexion.query(
+    `UPDATE products
+        SET stock_quantity = GREATEST(COALESCE(stock_quantity, 0) - $2, 0), updated_at = NOW()
+      WHERE id = $1`,
+    [productoId, Math.max(0, Math.floor(Number(cantidad) || 0))]
+  );
 }
 
 export async function eliminarProductoBD(id) {

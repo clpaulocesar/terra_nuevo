@@ -359,7 +359,6 @@ export default function ChatAsistente() {
         aria-label={abierto ? 'Cerrar asistente' : 'Abrir asistente'}
       >
         {abierto ? <X size={24} /> : <MessageCircle size={24} />}
-        {!abierto && <span>Asistente</span>}
       </button>
     </div>
   );

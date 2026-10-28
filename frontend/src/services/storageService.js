@@ -1,34 +1,33 @@
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-// Los proyectos nuevos de Supabase usan claves publicables `sb_publishable_*`.
-// Se prioriza esa clave porque la anónima antigua puede quedar invalidada al rotar JWT.
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
-const BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'product-images';
+import { apiRequest } from './api.js';
+import { getAdminToken } from './adminService.js';
 
-export async function subirImagenProducto(archivo) {
-  if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error('Falta configurar Supabase Storage en las variables del frontend.');
+// Las imágenes de producto se suben al backend (POST /api/archivos/productos), que las
+// guarda en el almacenamiento propio y devuelve la URL pública. El navegador nunca
+// habla con el almacenamiento directamente.
+const MAX_BYTES = 8 * 1024 * 1024;
+
+export async function subirImagenProducto(archivo, { codigoTerra = null, productoId = null } = {}) {
   if (!archivo?.type?.startsWith('image/')) throw new Error('Selecciona un archivo de imagen válido.');
-  if (archivo.size > 8 * 1024 * 1024) throw new Error(`“${archivo.name}” supera el límite de 8 MB.`);
+  if (archivo.size > MAX_BYTES) throw new Error(`“${archivo.name}” supera el límite de 8 MB.`);
+  const token = getAdminToken();
+  if (!token) throw new Error('Inicia sesión como administrador para subir imágenes.');
 
   // Normaliza la foto (máx 1600px, JPEG q0.85) para que pese menos y siempre
   // tenga el mismo formato en el kiosco.
   const normalizada = await normalizarImagen(archivo);
-  const nombreSeguro = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.jpg`;
-  const ruta = `productos/${nombreSeguro}`;
-  const respuesta = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${ruta}`, {
+  const formulario = new FormData();
+  formulario.append('archivos', normalizada, 'imagen.jpg');
+  if (codigoTerra) formulario.append('codigoTerra', String(codigoTerra));
+  if (productoId) formulario.append('productoId', String(productoId));
+
+  const datos = await apiRequest('/archivos/productos', {
     method: 'POST',
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'image/jpeg',
-      'x-upsert': 'false',
-    },
-    body: normalizada,
+    body: formulario,
+    headers: { Authorization: `Bearer ${token}` },
   });
-  if (!respuesta.ok) {
-    const detalle = await respuesta.text();
-    throw new Error(`No se pudo subir la imagen. Verifica el bucket público “${BUCKET}” y sus permisos de inserción.${detalle ? ` (${detalle})` : ''}`);
-  }
-  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${ruta}`;
+  const url = Array.isArray(datos?.urls) ? datos.urls[0] : null;
+  if (!url) throw new Error('El servidor no devolvió la URL de la imagen.');
+  return url;
 }
 
 function normalizarImagen(archivo) {
@@ -60,15 +59,4 @@ function normalizarImagen(archivo) {
     };
     lector.readAsDataURL(archivo);
   });
-}
-
-export async function subirComprobantePago(archivo) {
-  if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error('Falta configurar Supabase Storage en las variables del frontend.');
-  if (!archivo?.type?.startsWith('image/')) throw new Error('Selecciona una imagen válida para el comprobante.');
-  if (archivo.size > 8 * 1024 * 1024) throw new Error('El comprobante supera el límite de 8 MB.');
-  const extension = archivo.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const ruta = `comprobantes/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extension}`;
-  const respuesta = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${ruta}`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': archivo.type, 'x-upsert': 'false' }, body: archivo });
-  if (!respuesta.ok) throw new Error('No se pudo subir el comprobante. Verifica los permisos de Storage.');
-  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${ruta}`;
 }

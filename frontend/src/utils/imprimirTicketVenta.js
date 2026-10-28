@@ -237,6 +237,7 @@ export function imprimirTicketVenta({ venta, cliente, items = [], metodoPago = '
     <div class="ticket-info-row">
       <span>N° Ticket:</span>
       <strong>${codigo}</strong>
+      ${venta?.erp_cotizacion_numero ? `<small>Cotización TERRA Nº ${String(venta.erp_cotizacion_numero)}</small>` : ''}
     </div>
     <div class="ticket-info-row">
       <span>Fecha / Hora:</span>

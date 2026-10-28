@@ -4,9 +4,6 @@ import { registrarClienteBackend } from '../services/clienteService.js';
 
 export default function Modals({
   sucursalActiva,
-  assistantOpen,
-  onCloseAssistant,
-  onRespuestaAsistente,
   qrModalOpen,
   onCloseQrModal,
   accountModalOpen,
@@ -411,65 +408,6 @@ export default function Modals({
                   Tus datos están protegidos conforme a las políticas de privacidad de TERRA Bolivia.
                 </p>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* MODAL ASISTENTE DE SALA                                   */}
-      {/* ========================================================= */}
-      {assistantOpen && (
-        <div className="fixed right-6 bottom-28 w-80 sm:w-96 bg-surface-container-lowest rounded-2xl shadow-2xl p-5 z-50 transition-all border border-surface-container animate-fadeIn">
-          <div className="flex items-center justify-between pb-3 border-b border-surface-container-low">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center">
-                <span className="material-symbols-outlined text-[18px]">support_agent</span>
-              </div>
-              <div>
-                <h3 className="font-title-sm text-title-sm text-on-surface font-bold text-[14px]">
-                  Asesor Terra Santa Cruz
-                </h3>
-                <span className="text-tertiary text-[11px] font-semibold flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span> En línea para ayudarte
-                </span>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="w-7 h-7 rounded-full bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface-variant cursor-pointer"
-              onClick={onCloseAssistant}
-            >
-              <span className="material-symbols-outlined text-[16px]">close</span>
-            </button>
-          </div>
-          <div className="py-4 space-y-3 font-body-sm text-body-sm">
-            <div className="bg-surface-container-low p-3 rounded-xl text-on-surface">
-              ¡Hola! ¿Deseas saber si un sofá o colchón está para prueba física en el showroom de{' '}
-              <strong>{sucursalActiva.nombre}</strong> o en otra de nuestras sucursales?
-            </div>
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                className="text-left px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors cursor-pointer"
-                onClick={() => onRespuestaAsistente('Consultar existencias')}
-              >
-                📍 Consultar existencias en sala activa
-              </button>
-              <button
-                type="button"
-                className="text-left px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors cursor-pointer"
-                onClick={() => onRespuestaAsistente('Coordinar flete')}
-              >
-                🚚 Coordinar flete y armado a domicilio
-              </button>
-              <button
-                type="button"
-                className="text-left px-3 py-2 rounded-lg bg-primary/10 text-primary font-semibold hover:bg-primary/20 transition-colors cursor-pointer"
-                onClick={() => onRespuestaAsistente('WhatsApp')}
-              >
-                💬 Conversar con asesor humano por WhatsApp
-              </button>
             </div>
           </div>
         </div>

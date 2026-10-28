@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowDownUp, ChevronLeft, ChevronRight, Crown, Eye, EyeOff, MessageCircle, Search, ShoppingCart, Trash2, UserPlus, Users, X } from 'lucide-react';
-import { crearUsuarioMayorista, eliminarCliente, listarClientes } from '../../services/clienteService.js';
+import { ArrowDownUp, ChevronLeft, ChevronRight, Crown, Eye, EyeOff, KeyRound, MessageCircle, Search, ShoppingCart, Trash2, UserPlus, Users, X } from 'lucide-react';
+import { asignarClaveMayorista, crearUsuarioMayorista, eliminarCliente, listarClientes } from '../../services/clienteService.js';
+import { getAdminUser } from '../../services/adminService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
-import { avisoEliminado, avisoError, confirmarEliminacion } from '../../utils/alertas.js';
+import { avisoEliminado, avisoError, avisoExito, confirmarEliminacion } from '../../utils/alertas.js';
 import './Admin.css';
 import './ClientesAdmin.css';
 import './ClientesAdminDelivery.css';
@@ -23,6 +24,8 @@ export default function ClientesAdmin() {
   const [guardando, setGuardando] = useState(false);
   const [verPassword, setVerPassword] = useState(false);
   const [formulario, setFormulario] = useState({ nombre: '', email: '', telefono: '', nit: '', password: '' });
+  const [asignandoClave, setAsignandoClave] = useState(null);
+  const esAdmin = getAdminUser()?.rol === 'admin';
 
   useEffect(() => {
     listarClientes({ limite: 100 }).then(setClientes).catch((err) => setError(err.message));
@@ -84,6 +87,26 @@ export default function ClientesAdmin() {
     }
   };
 
+  // Los mayoristas ya no tienen cuenta externa: el administrador les asigna la clave.
+  const asignarClave = async (cliente) => {
+    const valor = window.prompt(`Nueva contraseña para ${cliente.nombre} (mínimo 8 caracteres):`, '');
+    if (valor === null) return;
+    const password = String(valor);
+    if (password.length < 8 || password.length > 128) {
+      await avisoError('La contraseña debe tener entre 8 y 128 caracteres.');
+      return;
+    }
+    setAsignandoClave(cliente.id);
+    try {
+      await asignarClaveMayorista(cliente.id, password);
+      await avisoExito({ titulo: 'Clave asignada', texto: `Compartila de forma segura con ${cliente.nombre}.` });
+    } catch (err) {
+      await avisoError(err.message || 'No se pudo asignar la clave.');
+    } finally {
+      setAsignandoClave(null);
+    }
+  };
+
   const actualizarCampo = (event) => {
     const { name, value } = event.target;
     setFormulario((actual) => ({ ...actual, [name]: value }));
@@ -109,7 +132,7 @@ export default function ClientesAdmin() {
     <main className="clients-admin">
       <header className="clients-heading"><div className="clients-heading-copy"><div className="clients-heading-title"><span className="clients-heading-icon"><Users size={28} /></span><h1>Directorio de clientes</h1></div><p>Gestiona tus clientes, mayoristas y control de compras.</p></div><button className="primary" type="button" onClick={() => setMostrarFormulario(true)}><UserPlus size={18} />Crear usuario mayorista</button></header>
       <section className="clients-kpis">
-        <article className="clients-kpi clients-kpi--base"><span className="clients-kpi-icon"><Users size={28} /></span><div><small>Base consolidada</small><b>{clientes.length}</b><span>Clientes en Supabase</span></div><ArrowDownUp className="clients-kpi-watermark" size={32} /></article>
+        <article className="clients-kpi clients-kpi--base"><span className="clients-kpi-icon"><Users size={28} /></span><div><small>Base consolidada</small><b>{clientes.length}</b><span>Clientes registrados</span></div><ArrowDownUp className="clients-kpi-watermark" size={32} /></article>
         <article className="clients-kpi clients-kpi--wholesale"><span className="clients-kpi-icon"><Crown size={28} /></span><div><small>Mayoristas</small><b>{clientes.filter((cliente) => cliente.rol === 'mayorista').length}</b><span>Con cuenta comercial</span></div><ArrowDownUp className="clients-kpi-watermark" size={32} /></article>
         <article className="clients-kpi clients-kpi--purchases"><span className="clients-kpi-icon"><ShoppingCart size={28} /></span><div><small>Con compras</small><b>{clientes.filter((cliente) => cliente.compras > 0).length}</b><span>Historial registrado</span></div><ArrowDownUp className="clients-kpi-watermark" size={32} /></article>
         <article className="clients-kpi clients-kpi--contact"><span className="clients-kpi-icon"><MessageCircle size={28} /></span><div><small>Contacto inmediato</small><b>{clientes.filter((cliente) => cliente.telefono).length}</b><span>Con teléfono</span></div><ArrowDownUp className="clients-kpi-watermark" size={32} /></article>
@@ -125,7 +148,7 @@ export default function ClientesAdmin() {
               <td><span className={`client-type ${cliente.rol === 'mayorista' ? 'is-wholesale' : ''}`}>{cliente.rol === 'mayorista' ? 'Mayorista' : 'Minorista'}</span></td>
               <td><b>{cliente.telefono || 'Sin teléfono'}</b><small>{cliente.email || 'Sin correo'}</small></td>
               <td><span className="client-purchases">{cliente.compras || 0} {Number(cliente.compras) === 1 ? 'compra' : 'compras'}</span></td><td><b>{formatoMoneda(cliente.gasto || 0)}</b></td><td>{cliente.fecha_registro ? new Date(cliente.fecha_registro).toLocaleDateString('es-BO') : 'Sin compras'}</td>
-              <td><div className="client-table-actions"><button type="button" className="client-delete" title="Eliminar cliente" aria-label={`Eliminar ${cliente.nombre}`} disabled={eliminando === cliente.id} onClick={() => borrarCliente(cliente)}><Trash2 size={18} /></button></div></td>
+              <td><div className="client-table-actions">{esAdmin && cliente.rol === 'mayorista' && <button type="button" title="Asignar clave de acceso" aria-label={`Asignar clave a ${cliente.nombre}`} disabled={asignandoClave === cliente.id} onClick={() => asignarClave(cliente)}><KeyRound size={18} /></button>}<button type="button" className="client-delete" title="Eliminar cliente" aria-label={`Eliminar ${cliente.nombre}`} disabled={eliminando === cliente.id} onClick={() => borrarCliente(cliente)}><Trash2 size={18} /></button></div></td>
             </tr>)}
             {!paginaClientes.length && <tr><td className="clients-empty" colSpan="7">No se encontraron clientes con estos filtros.</td></tr>}
           </tbody></table></div>

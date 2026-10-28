@@ -43,6 +43,13 @@
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
 }
+/* En teléfono el catálogo ocupa todo el ancho (sin franjas del fondo a los costados);
+   el margen lateral de 16 px lo ponen la búsqueda y la grilla. */
+@media (max-width: 767.98px) {
+  .page-content:has(> .terra-catalogo) {
+    padding: 0;
+  }
+}
 
 /* Material Symbols */
 .terra-catalogo .material-symbols-outlined {
@@ -321,14 +328,15 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 44px;
-  padding: 0 16px;
+  min-height: 44px;
+  padding: 4px 16px;
   border: none;
   border-radius: 12px;
   background: var(--vino);
   color: #fff;
   font-weight: 900;
   font-size: 0.92rem;
+  line-height: 1.15;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition-duration: 0.4s;
@@ -645,13 +653,15 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 }
 
 /* ==== PAGINADOR ==== */
+/* Una sola fila: en pantallas angostas el componente muestra menos números
+   (utils/paginacion.js) en lugar de partir la fila. */
 .terra-paginador {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 2rem auto 0.5rem;
+  gap: 6px;
+  flex-wrap: nowrap;
+  margin: 1.5rem auto 0.5rem;
   padding-top: 1.25rem;
   border-top: 1px solid var(--linea);
 }
@@ -667,9 +677,9 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   align-items: center;
   justify-content: center;
   gap: 4px;
-  min-width: 46px;
-  height: 46px;
-  padding: 0 12px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
   border: 1.5px solid var(--linea);
   border-radius: 12px;
   background: #fff;
@@ -711,13 +721,22 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 .terra-wholesale-cart h2 { font-size: 1rem; margin: 0; }.terra-wholesale-cart header p { color: var(--muted); font-size: .72rem; font-weight: 700; margin: .18rem 0 0; }.terra-wholesale-cart__items { display: grid; gap: .55rem; padding: .8rem; }.terra-wholesale-cart__items article { background: #faf8f7; border-radius: 10px; display: grid; gap: .2rem .45rem; grid-template-columns: 1fr auto; padding: .7rem; }
 .terra-wholesale-cart__items strong { display: block; font-size: .78rem; line-height: 1.25; }.terra-wholesale-cart__items small { color: #26804c; display: block; font-size: .68rem; font-weight: 800; margin-top: .25rem; }.terra-wholesale-cart__items b { font-size: .76rem; white-space: nowrap; }.terra-wholesale-cart__items button { background: transparent; border: 0; color: #bd1b30; cursor: pointer; font-size: .68rem; font-weight: 800; grid-column: 2; padding: 0; text-align: right; }
 .terra-wholesale-cart__more { color: var(--muted); font-size: .72rem; margin: 0; padding: 0 .8rem .7rem; }.terra-wholesale-cart__total { border-top: 1px solid #eee6e5; display: flex; justify-content: space-between; padding: 1rem; }.terra-wholesale-cart__total span { color: #56605c; font-size: .78rem; }.terra-wholesale-cart__total strong { color: var(--vino); font-size: 1.1rem; }.terra-wholesale-cart__checkout { align-items: center; background: var(--vino); color: #fff; display: flex; font-size: .82rem; font-weight: 900; gap: .4rem; justify-content: center; margin: 0 .8rem .8rem; padding: .82rem; border-radius: 10px; text-decoration: none; }.terra-wholesale-cart__empty { color: var(--muted); padding: 1.3rem; text-align: center; }.terra-wholesale-cart__empty .material-symbols-outlined { color: var(--vino); font-size: 28px; }.terra-wholesale-cart__empty p { font-size: .78rem; line-height: 1.45; margin: .45rem 0 0; }
-@media (max-width: 1350px) { .terra-wholesale-catalog-layout .terra-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } } @media (max-width: 1100px) { .terra-wholesale-catalog-layout { grid-template-columns: 1fr; }.terra-wholesale-catalog-layout .terra-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }.terra-wholesale-cart { position: static; } } @media (max-width: 800px) { .terra-wholesale-catalog-layout .terra-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } } @media (max-width: 600px) { .terra-wholesale-catalog-layout .terra-grid { grid-template-columns: 1fr; }.terra-card__precio { align-items: flex-start; flex-wrap: wrap; }.terra-wholesale-saving { margin-left: 0; } }
+@media (max-width: 1350px) { .terra-wholesale-catalog-layout .terra-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } } @media (max-width: 1100px) { .terra-wholesale-catalog-layout { grid-template-columns: 1fr; }.terra-wholesale-catalog-layout .terra-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }.terra-wholesale-cart { position: static; } } @media (max-width: 800px) { .terra-wholesale-catalog-layout .terra-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } } @media (max-width: 600px) { .terra-wholesale-catalog-layout .terra-grid { grid-template-columns: 1fr; }.terra-wholesale-catalog-layout .terra-card__media { aspect-ratio: 16 / 10; }.terra-card__precio { align-items: flex-start; flex-wrap: wrap; }.terra-wholesale-saving { margin-left: 0; } }
 
 /* ==== GRID DE PRODUCTOS ==== */
 .terra-grid-section {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 0 1rem 2rem;
+  padding: 0 1rem 1rem;
+}
+/* Desde tablet la columna de botones flotantes (FloatingActions.css) no debe tapar
+   tarjetas: se reserva su ancho a la derecha, salvo lo que ya cubra el margen de la
+   página en pantallas anchas. */
+@media (min-width: 768px) {
+  .terra-grid-section {
+    padding-right: max(1rem, calc(var(--terra-flotantes-reserva, 1rem) - max(1rem, (100vw - 1216px) / 2)));
+    padding-bottom: 2rem;
+  }
 }
 
 .terra-grid__inner {
@@ -726,14 +745,17 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 
 .terra-grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1.25rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
 }
-@media (min-width: 640px) {
-  .terra-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+@media (min-width: 360px) {
+  .terra-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 768px) {
+  .terra-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
 }
 @media (min-width: 1024px) {
-  .terra-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .terra-grid { gap: 1.5rem; }
 }
 
 /* ==== TARJETA DE PRODUCTO (enfoque conversión) ==== */
@@ -778,8 +800,8 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 .terra-card__media {
   position: relative;
   width: 100%;
-  height: 210px;
-  background: var(--terra-card-image-background);
+  aspect-ratio: 1;
+  background: var(--terra-fondo-imagen-producto);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -793,13 +815,20 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   transition: transform 0.4s ease;
   display: block;
 }
+/* Escritorio y tablet horizontal del kiosco: la imagen conserva su alto fijo. */
+@media (min-width: 1024px) {
+  .terra-card__media {
+    aspect-ratio: auto;
+    height: 210px;
+  }
+}
 .terra-card:hover .terra-card__img { transform: scale(1.05); }
-/* Logo TERRA como imagen de respaldo: más chico y centrado, sin ocupar toda la caja. */
+/* Logo TERRA como imagen de respaldo: 60 % del ancho, centrado por el flex del contenedor. */
 .terra-card__img.img-fallback {
+  width: 60%;
+  height: auto;
   object-fit: contain;
-  padding: 18%;
-  box-sizing: border-box;
-  background: var(--crema);
+  background: var(--terra-fondo-imagen-producto);
   opacity: 0.9;
 }
 .terra-card:hover .terra-card__img.img-fallback { transform: none; }
@@ -865,9 +894,10 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 
 .terra-card__top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px 8px;
 }
 
 .terra-card__reviews {
@@ -885,6 +915,7 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   font-weight: 800;
   padding: 3px 10px;
   border-radius: 999px;
+  white-space: nowrap;
 }
 .terra-card__stock--ok { background: var(--ok-bg); color: var(--ok); }
 .terra-card__stock--no { background: #fdeeee; color: var(--alerta); }
@@ -897,6 +928,10 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   color: var(--tinta);
   line-height: 1.3;
   letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .terra-card__desc {
@@ -967,13 +1002,16 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   justify-content: center;
   gap: 8px;
   width: 100%;
-  height: 48px;
+  min-height: 48px;
+  padding: 6px 10px;
   border: none;
   border-radius: 12px;
   background: var(--vino);
   color: #fff;
   font-weight: 900;
   font-size: 0.95rem;
+  line-height: 1.15;
+  text-align: center;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition-duration: 0.4s;
@@ -1188,12 +1226,11 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   /* Espaciado principal: usar el Layout compartido (header+footer), solo ajustamos el contenido */
   .terra-main {
     padding-top: 15px;
-    padding-bottom: 92px;
   }
 
   /* ---------- BARRA DE BÚSQUEDA ---------- */
   .terra-search-bar {
-    padding: 0 0.75rem;
+    padding: 0 1rem;
     margin-top: 0;
   }
 
@@ -1313,8 +1350,8 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 
   .terra-btn-dropdown {
     width: 100%;
-    height: 46px;
-    padding: 0 14px;
+    min-height: 46px;
+    padding: 4px 14px;
     border: none;
     border-radius: 12px;
     background: var(--vino);
@@ -1331,7 +1368,7 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 
   /* ---------- CATEGORÍAS (riel horizontal) ---------- */
   .terra-categories {
-    margin: 0.75rem 0.75rem 0.5rem;
+    margin: 0.75rem 1rem 0.5rem;
   }
 
   .terra-categories__inner {
@@ -1446,22 +1483,10 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   .terra-cat-menu__count { font-size: 0.8rem; padding: 3px 10px; }
 
   /* ---------- PAGINADOR ---------- */
-  .terra-paginador { gap: 6px; margin-top: 1.5rem; }
-  .terra-paginador__btn { min-width: 42px; height: 44px; padding: 0 10px; font-size: 0.9rem; }
-  .terra-paginador__btn--nav { padding: 0 12px; }
+  .terra-paginador__btn { font-size: 0.9rem; }
+  .terra-paginador__btn--nav { padding: 0 10px; }
   .terra-paginador__nav-label { display: none; }
-
-  /* ---------- GRID DE PRODUCTOS ---------- */
-  .terra-grid-section {
-    max-width: 100%;
-    padding: 0 0.75rem 1rem;
-  }
-
-  .terra-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
+  .terra-paginador__gap { min-width: 16px; }
 
   /* Tarjeta de producto móvil: limpia, enfocada en conversión */
   .terra-card {
@@ -1488,8 +1513,8 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   .terra-card__media {
     position: relative;
     width: 100%;
-    height: 175px;
-    background: var(--terra-card-image-background);
+    aspect-ratio: 1;
+    background: var(--terra-fondo-imagen-producto);
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -1553,34 +1578,36 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   }
   .terra-card__measure-icon { font-size: 13px; color: var(--vino); }
 
+  /* Tarjeta compacta para dos columnas. */
   .terra-card__body {
-    padding: 14px 16px 10px;
+    padding: 10px 10px 8px;
     display: flex;
     flex-direction: column;
-    gap: 9px;
+    gap: 6px;
   }
 
   .terra-card__top {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 6px;
+    gap: 4px 6px;
   }
 
   .terra-card__reviews {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 800;
     color: #b8860b;
   }
   .terra-card__stars { color: #f5a623; }
 
   .terra-card__stock {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 800;
-    padding: 3px 9px;
+    padding: 2px 7px;
     border-radius: 999px;
   }
   .terra-card__stock--ok { background: var(--ok-bg); color: var(--ok); }
@@ -1589,7 +1616,7 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   .terra-card__title-link { text-decoration: none; }
   .terra-card__title {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 0.9rem;
     font-weight: 900;
     color: var(--tinta);
     line-height: 1.3;
@@ -1625,18 +1652,19 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 
   .terra-card__footer {
     margin-top: auto;
-    padding: 12px 16px 16px;
+    padding: 10px;
     background: #faf7f5;
     border-top: 1px solid var(--linea);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
 
   .terra-card__precio {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 6px;
+    gap: 2px 6px;
   }
 
   .terra-card__precio-original {
@@ -1647,7 +1675,7 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
   }
 
   .terra-card__precio-actual {
-    font-size: 1.5rem;
+    font-size: 1.15rem;
     font-weight: 900;
     color: var(--vino);
     letter-spacing: -0.02em;
@@ -1657,15 +1685,16 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: 5px;
     width: 100%;
-    height: 48px;
+    min-height: 44px;
+    padding: 4px 6px;
     border: none;
     border-radius: 12px;
     background: var(--vino);
     color: #fff;
     font-weight: 900;
-    font-size: 0.92rem;
+    font-size: 0.8rem;
     cursor: pointer;
     box-shadow: var(--shadow-sm);
     transition-duration: 0.4s;
@@ -1881,61 +1910,11 @@ html.iconos-listas .terra-catalogo .material-symbols-outlined { visibility: visi
 
 @media (min-width: 640px) and (max-width: 1023px) {
   .terra-header__inner { padding: 0 1.25rem; }
-  .terra-card__media { height: 195px; }
   .terra-card__precio-actual { font-size: 1.45rem; }
 }
 
 /* ==== QR SCANNER (v2.0 feature) ==== */
-/* Va en la misma fila que el carrito flotante, a su izquierda, con las mismas
-   variables del layout (--floating-cart-*) para no pisarlo ni al asistente. */
-.catalog-qr-fab {
-  --qr-fab-cart-margin: 1rem;
-  position: fixed;
-  right: calc(var(--floating-cart-size, 3.4rem) + var(--qr-fab-cart-margin) + 0.6rem);
-  bottom: var(--floating-cart-bottom, 4.5rem);
-  z-index: 50;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  height: var(--floating-cart-size, 3.4rem);
-  padding: 0 1rem;
-  border: none;
-  border-radius: 999px;
-  background: var(--vino);
-  color: #fff;
-  font-weight: 900;
-  font-size: 0.9rem;
-  cursor: pointer;
-  box-shadow: 0 10px 28px rgba(166, 25, 46, 0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.catalog-qr-fab:hover { background: var(--vino-osc); box-shadow: 0 12px 32px rgba(166, 25, 46, 0.35); }
-.catalog-qr-fab:active { transform: scale(0.98); }
-/* El carrito reduce su margen derecho en pantallas chicas (CarritoFlotante.css y Responsive.css). */
-@media (max-width: 639px) {
-  .catalog-qr-fab { --qr-fab-cart-margin: 0.75rem; font-size: 0.85rem; padding: 0 0.85rem; }
-}
-@media (max-width: 520px) {
-  .catalog-qr-fab { --qr-fab-cart-margin: 0.6rem; }
-}
-@media (max-width: 380px) {
-  .catalog-qr-fab span { display: none; }
-  .catalog-qr-fab { padding: 0 0.8rem; }
-}
-.catalog-qr-fab b {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.4rem;
-  height: 1.4rem;
-  padding: 0 0.3rem;
-  border-radius: 999px;
-  background: #fff;
-  color: var(--vino);
-  font-size: 0.75rem;
-  font-weight: 900;
-}
-
+/* El botón flotante del QR (.catalog-qr-fab) vive en routes/FloatingActions.css. */
 .catalog-qr-overlay {
   position: fixed;
   inset: 0;

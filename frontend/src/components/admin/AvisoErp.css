@@ -1,0 +1,150 @@
+/* Aviso de verificación con el ERP de TERRA (modal de cobro y ventas directas). */
+:root {
+  --terra-erp-ok-bg: #e7f6ec;
+  --terra-erp-ok-fg: #1d6b3a;
+  --terra-erp-aviso-bg: #fdeeee;
+  --terra-erp-aviso-fg: #a6192e;
+  --terra-erp-cambio-bg: #fff6e0;
+  --terra-erp-cambio-fg: #7a4b00;
+  --terra-erp-neutro-bg: #f1f3f5;
+  --terra-erp-neutro-fg: #3d4852;
+}
+
+html[data-theme="dark"],
+html.a11y-contraste {
+  --terra-erp-ok-bg: #12361f;
+  --terra-erp-ok-fg: #9fe3b4;
+  --terra-erp-aviso-bg: #3a1218;
+  --terra-erp-aviso-fg: #ffb3bd;
+  --terra-erp-cambio-bg: #3a2a08;
+  --terra-erp-cambio-fg: #ffd98a;
+  --terra-erp-neutro-bg: #22262b;
+  --terra-erp-neutro-fg: #e3e6ea;
+}
+
+.aviso-erp {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+
+.aviso-erp__estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  font-weight: 600;
+  background: var(--terra-erp-neutro-bg);
+  color: var(--terra-erp-neutro-fg);
+}
+
+.aviso-erp__estado--ok {
+  background: var(--terra-erp-ok-bg);
+  color: var(--terra-erp-ok-fg);
+}
+
+.aviso-erp__estado--error {
+  background: var(--terra-erp-aviso-bg);
+  color: var(--terra-erp-aviso-fg);
+}
+
+.aviso-erp__reintentar {
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.aviso-erp__cambios {
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.6rem;
+  background: var(--terra-erp-cambio-bg);
+  color: var(--terra-erp-cambio-fg);
+}
+
+.aviso-erp__cambios ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.aviso-erp__cambios li {
+  margin: 0.2rem 0;
+}
+
+.aviso-erp__total {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+}
+
+.aviso-erp__total strong {
+  font-size: 1.25rem;
+}
+
+.aviso-erp__spin {
+  animation: aviso-erp-girar 1s linear infinite;
+}
+
+@keyframes aviso-erp-girar {
+  to { transform: rotate(360deg); }
+}
+
+/* Badges del estado ERP en listados y cabeceras. */
+.badge-erp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--terra-erp-neutro-bg);
+  color: var(--terra-erp-neutro-fg);
+}
+
+.badge-erp--ok {
+  background: var(--terra-erp-ok-bg);
+  color: var(--terra-erp-ok-fg);
+}
+
+.badge-erp--verificar,
+.badge-erp--rechazado {
+  background: var(--terra-erp-aviso-bg);
+  color: var(--terra-erp-aviso-fg);
+}
+
+.badge-erp--enviando {
+  background: var(--terra-erp-cambio-bg);
+  color: var(--terra-erp-cambio-fg);
+}
+
+.aviso-erp__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.aviso-erp__acciones button {
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--terra-erp-neutro-fg);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aviso-erp__spin { animation: none; }
+}

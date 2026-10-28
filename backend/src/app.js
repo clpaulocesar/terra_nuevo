@@ -15,6 +15,7 @@ import personalRoutes from './routes/personalRoutes.js';
 import geocodificacionRoutes from './routes/geocodificacionRoutes.js';
 import envioRoutes from './routes/envioRoutes.js';
 import sucursalRoutes from './routes/sucursalRoutes.js';
+import archivoRoutes from './routes/archivoRoutes.js';
 
 import { verificarConexion } from './config/database.js';
 
@@ -28,8 +29,8 @@ const app = express();
 // Permitir conexiones cross-origin (incluyendo frontend en Vercel y local)
 app.use(cors());
 
-// Permitir recibir JSON (límite alto para fotos en base64 desde el admin).
-app.use(express.json({ limit: '12mb' }));
+// Las imágenes viajan por multipart a /api/archivos, así que el JSON puede ser chico.
+app.use(express.json({ limit: '1mb' }));
 
 // Ruta principal requerida por la especificación
 app.get('/', (req, res) => {
@@ -169,6 +170,7 @@ app.use('/api/personal', personalRoutes);
 app.use('/api/geocodificacion', geocodificacionRoutes);
 app.use('/api/envios', envioRoutes);
 app.use('/api/sucursales', sucursalRoutes);
+app.use('/api/archivos', archivoRoutes);
 
 // Manejo centralizado de errores.
 app.use(rutaNoEncontrada);
