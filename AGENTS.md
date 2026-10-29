@@ -67,7 +67,7 @@ Si una decisión registrada en `docs/decisiones/` contradice lo que pide la tare
       colores.js
   ```
 - Las piezas compartidas y sin dominio van en `src/components/ui/` (Button, Modal, Input, Toast) y `src/hooks/`.
-- El código actual está en `src/pages/`. Mueve una pantalla a `src/features/` solo cuando una tarea la refactorice; nunca muevas archivos en masa.
+- El código actual está en `src/pages/`. Mueve una pantalla a `src/features/` solo cuando una tarea la refactorice; nunca muevas archivos en masa. Ya migrados: `src/features/catalogo/`, `src/features/layout-cliente/` y `src/features/detalle-producto/`.
 
 ### Reglas de componentes
 - Página (`*Page.jsx`): obtiene los datos con hooks y compone componentes.
@@ -92,46 +92,62 @@ Si una decisión registrada en `docs/decisiones/` contradice lo que pide la tare
 - Los comentarios explican el *por qué*, no el *qué*.
 - No refactorices archivos que la tarea no requiere. Si un archivo que tocas incumple mucho estas reglas, indícalo en el resumen y propone el refactor como tarea aparte.
 
-## Reglas de CSS (revisar en cada cambio)
-Todo cambio que toque marcado JSX, clases o estilos debe pasar la lista final. Referencia actual: CSS principal ≈ 212 KB (≈ 37 KB gzip), 0 `@import`. No lo hagas crecer sin motivo.
+## Estilos: Tailwind v4 y tokens (revisar en cada cambio)
+Todo cambio que toque marcado JSX, clases o estilos debe pasar la lista final. Referencia actual: CSS principal ≈ 267 KB (≈ 46 KB gzip). No lo hagas crecer sin motivo.
 
-### Dónde van los estilos
-- Prioriza clases utilitarias de Tailwind en el JSX. Escribe CSS solo para lo que Tailwind no expresa bien (animaciones complejas, ajustes de librerías como Leaflet).
-- Nada de `style={{...}}` en línea, salvo valores realmente dinámicos (por ejemplo, el color de una muestra).
-- Antes de agregar una regla, busca una clase o variable existente (`grep -r "<propiedad>: <valor>" frontend/src`). Reutiliza, no copies.
-- Un archivo CSS por componente o pantalla, importado por ese componente (no global), con una clase raíz (`.orders-list`, `.orders-list__item`, `.orders-list--empty`).
-- No crees archivos "fix" u "override" (`*ColorFix.css`, `*Reference.css`): corrige la regla original.
-- Al rediseñar algo, BORRA las reglas viejas. Nunca apiles un diseño nuevo encima del anterior (deuda actual: login admin, botón QR, modal de producto, hero de categorías).
-- No dupliques reglas de escritorio dentro de media queries; sobrescribe solo lo que cambia.
+La migración de CSS a Tailwind va por fases y por pantalla (avance en `docs/00-roadmap.md`). Mientras una pantalla no se migra, su `.css` sigue vigente con las reglas de "CSS heredado" de abajo.
 
-### Tokens de diseño
-- Colores, radios, sombras y tamaños de letra salen de variables CSS definidas una vez en `:root` y redefinidas en `html[data-theme="dark"]` y `html.a11y-contraste`.
-- Sin colores hex fijos en CSS de componentes ni en JSX: usa `var(--...)`.
-- El código nuevo usa variables `--terra-*`. No migres los prefijos antiguos (`--vino/--crema`, `--td-*`) dentro de una tarea no relacionada.
+### Cómo se escriben estilos nuevos
+- Clases de Tailwind en el JSX, mobile-first: estilos base para teléfono y `xs:` (360 px), `sm:` (640), `md:` (768) y `lg:` (1024) para crecer.
+- Colores, radios, sombras, fuente y medidas repetidas salen de los tokens de `@theme` en `src/index.css`: `bg-terra-primario`, `text-terra-texto-suave`, `border-terra-borde`, `rounded-terra-tarjeta`, `shadow-terra-sm`, `font-terra`, `size-terra-flotante`, etc. Nunca colores sueltos (`bg-[#a6192e]`, `text-red-700`).
+- Sin valores arbitrarios repetidos: si un valor (`[...]`) aparece más de una vez, se agrega como token en `@theme` (o `@theme inline` si cambia con el tema).
+- Un componente con demasiadas clases se divide en subcomponentes; no se usa `@apply`.
+- Sin `style={{...}}`, salvo valores realmente dinámicos (por ejemplo, el color de una muestra). Sin `!important` (`!` en Tailwind tampoco).
+- No se crean archivos `.css` nuevos, salvo para animaciones (`@keyframes`) o para ajustar librerías externas (Leaflet, driver.js, SweetAlert2).
+- Tamaños en `rem` (los de Tailwind ya lo son): el modo accesible escala `<html>` al 125/150 % y todo debe crecer con él. Nunca `px` para texto.
 
-### Modo oscuro y alto contraste
-- Ambos funcionan redefiniendo variables. Los componentes nuevos no deben necesitar `html[data-theme="dark"] .mi-componente {...}`.
-- No agregues selectores a las listas de modo oscuro de `theme-dark.css` / `theme-dark-admin.css`; usa variables.
-- No agregues selectores `:is(...)` gigantes sobre todas las etiquetas.
+### Tokens (`src/index.css`)
+- Colores que cambian con el tema: `@theme inline` apunta a variables de ejecución `--terra-*` (`--terra-primario`, `--terra-superficie`, `--terra-texto`, ...). Su valor claro está en `:root` de `index.css`; el oscuro en `html[data-theme="dark"]` de `theme-dark.css`; el de alto contraste en `html.a11y-contraste` de `accesibilidad/accesibilidad.css`. Un color nuevo se agrega en esos tres lugares.
+- Tokens fijos (radios, fuente, breakpoint `xs`) en `@theme`.
+- `--vino`, `--crema`, `--tinta`, `--muted`, `--linea`, `--ok`, `--ok-bg`, `--alerta`, `--shadow` y `--shadow-sm` (`Catalogo.css`) son alias de los tokens: no les des valores nuevos. `--td-*` es la paleta base del modo oscuro. Se eliminan a medida que se migra cada pantalla.
 
-### Selectores
-- Máximo una clase + una pseudoclase (`.card:hover`) y 3 partes compuestas. Sin IDs en CSS.
-- Sin `!important`, salvo en `accesibilidad.css` para ajustes de accesibilidad forzados por el usuario.
-- No estilices por etiqueta en profundidad (`.admin-content table td span`).
+### Variantes
+- `dark:` → `[data-theme="dark"]` en `<html>`. TemaContext y el script de `index.html` siempre escriben el atributo, también al seguir `prefers-color-scheme`.
+- `contraste:` → clase `a11y-contraste` en `<html>` (ModoAccesibleContext; también con `prefers-contrast: more`). Con ambas activas gana `contraste:`.
+- Lo normal es no necesitar variantes: los tokens ya cambian con el tema. Úsalas solo para excepciones.
+- Otras variantes de `index.css`: `iconos-listas:` (la fuente de iconos cargó), `en-carrito:`, `con-asistente-abierto:` y `con-carrito-abierto:` (estado de la tienda que oculta los botones flotantes), y `con-resumen-fijo:` (< 761 px, cuando el resumen de Confirmación es una barra fija).
+- Consultas de contenedor (`@container` en el padre): a diferencia de los breakpoints, su `rem` sí crece con el modo accesible, así que con texto al 150 % el diseño pasa antes a una columna. Token `@terra-ficha:` (45 rem) en la ficha de producto.
+- Utilidades propias (`@utility` en `index.css`): `borde-medio` (borde de 1.5 px) y `fondo-cargando` (esqueleto de una foto que no cargó).
+
+### Componentes compartidos
+- Iconos de Material Symbols con `components/ui/IconoMaterial.jsx` (tamaño siempre en `className`, por ejemplo `text-2xl`). No uses la clase `material-symbols-outlined`: la hoja de Google fija 24 px fuera de capas y anula las utilidades.
+- Carga: `components/ui/IndicadorCarga.jsx`. Botones flotantes: posiciones y estilo en `components/flotantes/estilosFlotantes.js` (única definición).
+- Clases gancho: algunas clases sin estilos propios se mantienen en el JSX porque otras hojas o el JS las usan (`app-shell`, `page-content`, `site-header`, `site-footer`, `cart-widget`, `chat-widget`, `menu-movil`, `terra-card`, `terra-cat`, `terra-btn-agregar`, `terra-paginador__btn`, `terra-grid`...). No les agregues estilos; desaparecen cuando se migran las hojas que las usan (sobre todo `accesibilidad.css`).
+
+### Cascada: el CSS heredado gana a las utilidades
+- Las utilidades de Tailwind están en `@layer utilities`; todo el CSS de los `.css` del proyecto está fuera de capas y les gana aunque tenga menos especificidad. Al migrar un componente, borra sus reglas viejas en la misma tarea; si no, la clase de Tailwind no tiene efecto.
+- Las reglas globales por etiqueta van en `@layer base` (`index.css`) para que las utilidades puedan sobrescribirlas. `box-sizing` e `img { max-width: 100% }` los pone el preflight de Tailwind.
+- `@import "tailwindcss"` en `index.css` es el único `@import` permitido.
+
+### CSS heredado (pantallas aún no migradas)
+- Antes de agregar una regla, busca una clase o variable existente. Reutiliza, no copies.
+- No crees archivos "fix" u "override" (`*ColorFix.css`, `*Reference.css`): corrige la regla original. Al migrar cada pantalla se borran sus archivos "fix".
+- Al rediseñar algo, BORRA las reglas viejas. No dupliques reglas de escritorio dentro de media queries.
+- Colores con `var(--terra-*)`; sin hex fijos. Modo oscuro y contraste redefiniendo variables; no agregues selectores a las listas de `theme-dark.css` / `theme-dark-admin.css` ni `:is(...)` gigantes.
+- Selectores: máximo una clase + una pseudoclase y 3 partes compuestas; sin IDs; sin estilizar por etiqueta en profundidad. Sin `!important`, salvo en `accesibilidad.css` para ajustes forzados por el usuario.
 
 ### Rendimiento
-- Sin `@import` en CSS. Las fuentes van como `<link>` en `index.html` con `display=swap`. Atkinson Hyperlegible la inyecta `ModoAccesibleContext.jsx` solo cuando `a11y-fuente` está activo; mantenlo así.
+- Las fuentes van como `<link>` en `index.html` con `display=swap`. Atkinson Hyperlegible la inyecta `ModoAccesibleContext.jsx` solo cuando `a11y-fuente` está activo; mantenlo así.
 - Carga solo los pesos de fuente que se usan. No agregues familias tipográficas sin preguntar.
 - Sin imágenes base64 (`url(data:...)`) de más de 1 kB; usa `public/` o `src/assets/` (las propias de Leaflet están permitidas).
-- Toda animación o transición necesita su alternativa en `@media (prefers-reduced-motion: reduce)`.
+- Toda animación o transición necesita su alternativa con `motion-reduce:` o `@media (prefers-reduced-motion: reduce)`.
 
-### Unidades y diseño
-- Tamaños de letra en `rem` (el modo accesible escala `html` al 125/150 %). Nunca `px` para texto.
-- Mobile-first con los breakpoints de Tailwind. Debe funcionar en la tablet de tienda de 768 px con texto al 150 %: sin texto cortado ni scroll horizontal.
+### Diseño
+- Debe funcionar en la tablet del kiosco (1024 × 768, horizontal y vertical) y en teléfonos desde 360 px, con texto al 150 %: sin texto cortado ni scroll horizontal.
 - Zonas de toque ≥ 44 px (48 px en modo accesible).
 
 ## Antes de terminar CUALQUIER tarea
-1. Sin `@import` nuevos, IDs en CSS, colores fijos, `!important`, tamaños de letra en `px` ni estilos en línea.
+1. Sin `@import` nuevos, archivos `.css` nuevos (salvo animaciones o librerías), IDs en CSS, colores fijos o fuera de los tokens, valores arbitrarios repetidos, `!important`, tamaños de letra en `px` ni estilos en línea.
 2. Se borraron las reglas y el código que el cambio reemplazó.
 3. En `frontend/` pasan `npm run lint` (sin advertencias nuevas en archivos tocados), `npm run build` y `npm test`; si se tocó el backend, inicia y `/api/health` responde.
 4. Si cambiaron estilos o imports, informa el tamaño del CSS y JS principal (`dist/assets`, normal y gzip) antes y después; justifica cualquier aumento.

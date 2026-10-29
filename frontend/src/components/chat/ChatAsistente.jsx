@@ -12,6 +12,7 @@ import MensajeMarkdown from './MensajeMarkdown.jsx';
 import { useNavegacion } from '../../navegacion/NavegacionContext.jsx';
 import { CLAVES_CHAT } from '../../navegacion/registroNavegacion.js';
 import { convertirAudioAWav } from '../../utils/audioWav.js';
+import { BOTON_FLOTANTE, OCULTO_EN_CARRITO, POSICION_ASISTENTE } from '../flotantes/estilosFlotantes.js';
 import './ChatAsistente.css';
 
 const BIENVENIDA = {
@@ -261,7 +262,10 @@ export default function ChatAsistente() {
   }
 
   return (
-    <div className={`chat-widget ${abierto ? 'abierto' : ''}`}>
+    <div
+      className={`chat-widget z-70 flex flex-col items-end gap-3 font-terra ${abierto ? 'abierto' : ''}
+        ${POSICION_ASISTENTE} ${OCULTO_EN_CARRITO}`}
+    >
       {abierto && (
         <section className="chat-panel" aria-label="Asistente virtual">
           <header className="chat-panel-header">
@@ -353,7 +357,7 @@ export default function ChatAsistente() {
 
       <button
         type="button"
-        className="chat-fab"
+        className={`inline-flex ${BOTON_FLOTANTE}`}
         onClick={() => setAbierto((v) => !v)}
         aria-expanded={abierto}
         aria-label={abierto ? 'Cerrar asistente' : 'Abrir asistente'}

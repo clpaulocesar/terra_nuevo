@@ -100,3 +100,8 @@
   .terra-voz__panel { position: fixed; top: 72px; left: 12px; right: 12px; width: auto; max-width: none; }
   .terra-voz__panel-flecha { display: none; }
 }
+
+/* Dentro del menú desplegable del teléfono (EncabezadoCliente, clase menu-movil). */
+@media (width < 40rem) {
+  .menu-movil .terra-voz { display: flex; gap: 0.5rem; }
+}

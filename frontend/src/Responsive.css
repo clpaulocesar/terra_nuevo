@@ -1,26 +1,13 @@
 /* Capa responsive transversal (cliente y backoffice). Se carga al final para
-   ajustar detalles de las vistas en celular, tablet y escritorio sin alterar la paleta. */
-*,*::before,*::after{box-sizing:border-box}
-img{max-width:100%}
+   ajustar detalles de las vistas en celular, tablet y escritorio sin alterar la paleta.
+   box-sizing e img{max-width:100%} los pone el preflight de Tailwind (capa base). */
 
 @media(max-width:1024px){
-  .site-header.terra-header nav{gap:.25rem}
-  .site-header.terra-header nav a{font-size:.88rem;padding:.55rem .7rem}
   .admin-content{padding:1rem!important}
   .products-admin,.clients-admin,.dash,.orders{padding:.75rem!important}
 }
 
 @media(max-width:768px){
-  /* Cliente: navegación horizontal, disponible sin que los enlaces se corten. */
-  .site-header.terra-header .terra-logo{flex:0 0 auto}
-  .site-header.terra-header .desktop-nav{display:flex;flex:0 1 auto;gap:.2rem;justify-content:flex-start;min-width:0;overflow:visible;white-space:nowrap}
-  .site-header.terra-header .desktop-nav::-webkit-scrollbar{display:none}
-  .site-header.terra-header .desktop-nav a{flex:0 0 auto;font-size:.72rem;padding:.48rem .55rem}
-  .site-header.terra-header .desktop-nav a span{display:none}
-  .site-header.terra-header .terra-header-right{flex:0 0 auto;gap:.35rem}
-  .site-header.terra-header .terra-header-right .terra-cart-link{font-size:.72rem;padding:.48rem .55rem}
-  .site-header.terra-header .terra-header-right .terra-home-btn{width:2.1rem;height:2.1rem}
-
   /* Admin: Drawer deslizante fluido + Bottom nav para celular */
   .admin-shell {
     display: grid !important;
@@ -60,12 +47,10 @@ img{max-width:100%}
 }
 
 @media(max-width:520px){
-  .site-header.terra-header .desktop-nav{display:none}
-  .site-header.terra-header .terra-header-right{margin-left:auto}
   h1{overflow-wrap:anywhere}
   .products-filters,.clients-filters{padding:.7rem!important}
-  .confirm-layout,.ident-layout,.cart-layout,.detalle-layout{gap:1rem!important}
-  .confirm-card,.confirm-summary,.cart-list-card,.cart-summary,.detalle-info{padding:1rem!important}
+  .confirm-layout,.ident-layout,.cart-layout{gap:1rem!important}
+  .confirm-card,.confirm-summary,.cart-list-card,.cart-summary{padding:1rem!important}
   .pedido-row{align-items:flex-start;flex-direction:column;gap:.25rem}
   .pedido-row b{overflow-wrap:anywhere}
   .products-modal,.orders-modal{padding:.5rem!important}
@@ -99,9 +84,4 @@ img{max-width:100%}
   .welcome-spot{bottom:.6rem!important;padding:.55rem .75rem!important;right:.6rem!important}
   .welcome-spot>b{font-size:.82rem!important}
   .welcome-trust{margin-top:1.5rem!important}
-}
-
-/* En teléfono la navegación inferior sustituye por completo a la superior. */
-@media(max-width:640px){
-  .site-header.terra-header .desktop-nav{display:none}
 }

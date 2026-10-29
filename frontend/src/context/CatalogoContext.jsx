@@ -93,6 +93,8 @@ export function CatalogoProvider({ children }) {
       categoria: filtros.categoria?.trim() || '',
       orden: filtros.orden || 'recomendados',
       ofertas: Boolean(filtros.soloOfertas),
+      // El catálogo no muestra productos con stock 0 (ni los cuenta en las categorías).
+      stock: true,
       limite: filtros.limite || LIMITE_CATALOGO,
       pagina,
     })
@@ -112,7 +114,7 @@ export function CatalogoProvider({ children }) {
   const cargarCategorias = useCallback(async () => {
     if (estadoRef.current.categoriasCargadas) return estadoRef.current.categorias;
     if (enVuelo.current.has('categorias')) return enVuelo.current.get('categorias');
-    const promesa = listarCategorias()
+    const promesa = listarCategorias({ stock: true })
       .then((cats) => {
         const lista = Array.isArray(cats) ? cats : [];
         dispatch({ type: 'categorias/recibidas', categorias: lista });

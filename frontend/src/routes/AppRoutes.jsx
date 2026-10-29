@@ -1,24 +1,17 @@
-import { lazy, Suspense, useRef, useState, useEffect } from 'react';
-import {
-  BrowserRouter, Routes, Route, Link,
-  NavLink, Outlet, useNavigate, useLocation,
-} from 'react-router-dom';
-import { ShoppingCart, Home, Package, Tags, UserRound, LogOut, ChevronDown, BookOpen, ReceiptText, MessageCircle, FileText, ContactRound, QrCode, Menu, X } from 'lucide-react';
-import { useCarrito } from '../hooks/useCarrito.js';
-import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
-import { TutorialProvider, useTutorial } from '../context/TutorialContext.jsx';
-import BotonTutorial from '../tutorial/BotonTutorial.jsx';
-import { useContext } from 'react';
+import { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { TutorialProvider } from '../context/TutorialContext.jsx';
 
-import { MODO_DEMO, WHATSAPP_COMPROBANTES } from '../services/api.js';
 import Bienvenida from '../pages/Bienvenida.jsx';
 import Categorias from '../pages/Categorias.jsx';
-import DetalleProducto from '../pages/DetalleProducto.jsx';
+import DetalleProductoPage from '../features/detalle-producto/DetalleProductoPage.jsx';
 import CarritoPage from '../pages/CarritoPage.jsx';
 import IdentificacionPage from '../pages/Identificacion.jsx';
 import ConfirmacionPage from '../pages/Confirmacion.jsx';
 import PedidoGeneradoPage from '../pages/PedidoGenerado.jsx';
-import Catalogo from '../pages/Catalogo.jsx';
+import CatalogoPage from '../features/catalogo/CatalogoPage.jsx';
+import LayoutCliente from '../features/layout-cliente/LayoutCliente.jsx';
+import IndicadorCarga from '../components/ui/IndicadorCarga.jsx';
 import RutaAdmin from '../components/admin/RutaAdmin.jsx';
 // Backoffice y cuenta mayorista: se descargan sólo cuando se entra a esas rutas, así el
 // kiosco no carga su JS ni su CSS (Vite genera un chunk por cada import()).
@@ -42,200 +35,17 @@ const LoginAdmin = lazy(() => import('../pages/admin/LoginAdmin.jsx'));
 const VendedorLayout = lazy(() => import('../components/vendedor/VendedorLayout.jsx'));
 const DashboardVendedor = lazy(() => import('../pages/vendedor/DashboardVendedor.jsx'));
 const LoginVendedor = lazy(() => import('../pages/vendedor/LoginVendedor.jsx'));
-import ChatAsistente from '../components/chat/ChatAsistente.jsx';
-import CarritoFlotante from '../components/cart/CarritoFlotante.jsx';
-import WebAccountModal from '../components/WebAccountModal.jsx';
-import BotonTema from '../components/ui/BotonTema.jsx';
-import BotonesVoz from '../components/accesibilidad/BotonesVoz.jsx';
-import LectorVoz from '../components/accesibilidad/LectorVoz.jsx';
-import { NavegacionProvider, useNavegacion } from '../navegacion/NavegacionContext.jsx';
-import SaltarContenido from '../accesibilidad/SaltarContenido.jsx';
-import BotonAccesibilidad from '../accesibilidad/BotonAccesibilidad.jsx';
-import VigilanteInactividad from '../accesibilidad/VigilanteInactividad.jsx';
-import './Layout.css';
-import './NavigationFix.css';
+import { NavegacionProvider } from '../navegacion/NavegacionContext.jsx';
+// ClienteTheme.css (Confirmación) y Responsive.css (backoffice y Bienvenida) se migran en sus fases.
 import './ClienteTheme.css';
 import '../Responsive.css';
-import './HeaderOptionsHidden.css';
-import './FloatingActions.css';
 // Modo noche: va al final para que sus reglas pisen las de todas las páginas.
 // (theme-dark-admin.css lo importan los layouts y logins del backoffice, que son lazy.)
 import '../theme-dark.css';
 
-function Layout() {
-  const { cantidadTotal } = useCarrito();
-  const { sesion, esMayorista, cerrarSesion } = useContext(SesionClienteContext);
-  // El modal de login mayorista lo controla NavegacionContext (voz, chat y ?login=1 lo abren).
-  const { loginMayoristaAbierto: cuentaAbierta, abrirLoginMayorista, cerrarLoginMayorista } = useNavegacion();
-  const { solicitarTutorial } = useTutorial();
-  const [menuCuentaAbierto, setMenuCuentaAbierto] = useState(false);
-  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const pulsacionesLogo = useRef([]);
-
-  useEffect(() => {
-    setMenuMovilAbierto(false);
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [location.pathname]);
-
-  const abrirAdminConLogo = (event) => {
-    const ahora = Date.now();
-    pulsacionesLogo.current = [...pulsacionesLogo.current, ahora].filter((marca) => ahora - marca < 2500);
-    if (pulsacionesLogo.current.length < 5) return;
-    event.preventDefault();
-    pulsacionesLogo.current = [];
-    navigate('/admin/login');
-  };
-
-  const cerrarCuenta = () => {
-    cerrarSesion();
-    setMenuCuentaAbierto(false);
-    navigate('/');
-  };
-  const abrirTutorial = () => {
-    setMenuMovilAbierto(false);
-    if (location.pathname !== '/catalogo') navigate('/catalogo');
-    solicitarTutorial();
-  };
-  const inicialesCuenta = String(sesion?.nombre || 'M').split(' ').filter(Boolean).slice(0, 2).map((parte) => parte[0]).join('').toUpperCase();
-  const enlaceAsesor = `https://wa.me/${WHATSAPP_COMPROBANTES}?text=${encodeURIComponent('Hola, necesito asesoramiento sobre mi cuenta mayorista TERRA.')}`;
-
-  return (
-    <div className="app-shell">
-      <SaltarContenido />
-      <LectorVoz />
-      <BotonAccesibilidad />
-      <VigilanteInactividad />
-      <header className="site-header terra-header">
-        <div className="terra-header-left">
-          <Link to="/" className="brand terra-logo" title="TERRA Autoservicio" onClick={abrirAdminConLogo}>
-            <img src="/logo-terra.png" alt="TERRA Autoservicio" />
-          </Link>
-        </div>
-
-        <button
-          type="button"
-          className="terra-menu-toggle"
-          data-tour="menu-movil"
-          aria-label={menuMovilAbierto ? 'Cerrar menú' : 'Abrir menú'}
-          aria-expanded={menuMovilAbierto}
-          aria-controls="terra-menu-movil"
-          onClick={() => setMenuMovilAbierto((abierto) => !abierto)}
-        >
-          {menuMovilAbierto ? <X size={20} /> : <Menu size={20} />}
-        </button>
-
-        <BotonTutorial onClick={abrirTutorial} movil />
-
-        <div id="terra-menu-movil" className={`terra-header-nav${menuMovilAbierto ? ' is-open' : ''}`}>
-        {/* Desktop & Tablet Navigation */}
-        <nav className="desktop-nav" aria-label="Navegación principal">
-          <NavLink to="/catalogo"><Package size={17} /> <span>Catálogo de Productos</span></NavLink>
-          <NavLink to="/categorias"><Tags size={17} /> <span>Líneas y Categorías</span></NavLink>
-        </nav>
-
-        <div className="terra-header-right">
-          <BotonesVoz />
-          <BotonTema />
-          <BotonTutorial onClick={abrirTutorial} />
-          <div className="terra-account">
-            <button type="button" className={`terra-login-button${esMayorista ? ' terra-login-button--mayorista' : ''}`} data-tour="iniciar-sesion" aria-haspopup={esMayorista ? 'menu' : 'dialog'} aria-expanded={esMayorista ? menuCuentaAbierto : cuentaAbierta} onClick={() => { setMenuMovilAbierto(false); return esMayorista ? setMenuCuentaAbierto((abierto) => !abierto) : abrirLoginMayorista(); }}>{esMayorista ? <i className="terra-account-avatar">{inicialesCuenta}</i> : <UserRound size={19} />}<span>{esMayorista ? (sesion?.nombre || 'Mayorista') : 'Iniciar sesión'}</span>{esMayorista && <ChevronDown size={15} className={menuCuentaAbierto ? 'is-open' : ''} />}</button>
-            {esMayorista && menuCuentaAbierto && <section className="terra-account-menu" role="menu">
-              <div className="terra-account-summary">
-                <i className="terra-account-avatar terra-account-avatar--large">{inicialesCuenta}</i>
-                <div>
-                  <div className="terra-account-name"><strong>{sesion?.nombre || 'Cliente mayorista'}</strong><b>Nivel Oro</b></div>
-                  <small className="terra-account-status">Cuenta mayorista autorizada</small>
-                  <span>{sesion?.email}</span>
-                  <span>NIT/CI: {sesion?.nit || 'Pendiente de registro'}</span>
-                </div>
-              </div>
-              <nav className="terra-account-links" aria-label="Opciones de cuenta mayorista">
-                <Link className="is-active" to="/mi-cuenta" onClick={() => setMenuCuentaAbierto(false)}><Home size={16} /> Mi panel mayorista<i /></Link>
-                <Link to="/catalogo" onClick={() => setMenuCuentaAbierto(false)}><BookOpen size={16} /> Catálogo mayorista con precios B2B</Link>
-                <Link to="/mi-cuenta/pedidos" onClick={() => setMenuCuentaAbierto(false)}><ReceiptText size={16} /> Mis pedidos</Link>
-                <button type="button" className="terra-account-link-disabled" title="Disponible próximamente"><FileText size={16} /> Mis cotizaciones y licitaciones</button>
-                <Link to="/mi-cuenta/perfil" onClick={() => setMenuCuentaAbierto(false)}><ContactRound size={16} /> Mi perfil y datos de facturación</Link>
-                <a className="terra-account-support" href={enlaceAsesor} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Soporte por WhatsApp<i>Asesor en línea</i></a>
-              </nav>
-              <div className="terra-account-footer"><button type="button" onClick={cerrarCuenta}><LogOut size={16} /> Cerrar sesión</button></div>
-            </section>}
-          </div>
-          <NavLink to="/carrito" className="cart-link terra-cart-link" data-tour="carrito">
-            <ShoppingCart size={18} />
-            <span>Carrito</span>
-            {cantidadTotal > 0 && <b>{cantidadTotal}</b>}
-          </NavLink>
-          <NavLink to="/" end className="terra-home-btn" title="Inicio">
-            <Home size={18} />
-            <span>Inicio</span>
-          </NavLink>
-        </div>
-        </div>
-      </header>
-      {cuentaAbierta && <WebAccountModal onClose={() => cerrarLoginMayorista()} />}
-
-      {MODO_DEMO && (
-        <div className="demo-banner">
-          MODO DEMOSTRACIÓN: precios y pedidos simulados para exhibición showroom.
-        </div>
-      )}
-
-      <main className="page-content" id="contenido" tabIndex={-1}>
-        <Outlet />
-      </main>
-
-      {/* Mobile Bottom Navigation (< 640px) */}
-      <nav className="mobile-bottom-nav" aria-label="Navegación móvil">
-        <NavLink to="/catalogo" className="mobile-nav-item">
-          <Package size={20} />
-          <span>Catálogo</span>
-        </NavLink>
-        <NavLink to="/categorias" className="mobile-nav-item">
-          <Tags size={20} />
-          <span>Categorías</span>
-        </NavLink>
-        <NavLink to="/carrito" className="mobile-nav-item mobile-cart-item" data-tour="carrito">
-          <div className="mobile-cart-icon-wrap">
-            <ShoppingCart size={20} />
-            {cantidadTotal > 0 && <span className="mobile-cart-badge">{cantidadTotal}</span>}
-          </div>
-          <span>Carrito</span>
-        </NavLink>
-        <NavLink to="/" end className="mobile-nav-item">
-          <Home size={20} />
-          <span>Inicio</span>
-        </NavLink>
-      </nav>
-
-      <footer className="site-footer">
-        <div>TERRA AUTOSERVICIO · Sucursal Equipetrol, Santa Cruz</div>
-        <small>Terminal táctil optimizado para celular, tablet y PC</small>
-      </footer>
-
-      <CarritoFlotante />
-      <ChatAsistente />
-      <button
-        type="button"
-        className="catalog-qr-fab"
-        onClick={() => navigate(`/catalogo?abrirQr=1&t=${Date.now()}`)}
-        aria-label="Comprar por QR, abrir cámara"
-      >
-        <QrCode size={21} />
-      </button>
-    </div>
-  );
-}
-
 // Mientras baja el chunk de una ruta lazy.
 function CargandoRuta() {
-  return (
-    <div className="terra-empty terra-empty--loading" role="status" aria-live="polite">
-      <div className="terra-loader" aria-hidden="true" />
-      <p className="terra-empty__text">Cargando…</p>
-    </div>
-  );
+  return <IndicadorCarga texto="Cargando…" role="status" aria-live="polite" />;
 }
 
 function NoEncontrado() {
@@ -270,11 +80,11 @@ export default function AppRoutes() {
           <Route path="pedidos" element={<PedidosAdmin />} />
           <Route path="clientes" element={<ClientesAdmin />} />
         </Route>
-        <Route element={<TutorialProvider><Layout /></TutorialProvider>}>
+        <Route element={<TutorialProvider><LayoutCliente /></TutorialProvider>}>
           <Route index element={<Bienvenida />} />
           <Route path="categorias" element={<Categorias />} />
-          <Route path="catalogo" element={<Catalogo />} />
-          <Route path="productos/:id" element={<DetalleProducto />} />
+          <Route path="catalogo" element={<CatalogoPage />} />
+          <Route path="productos/:id" element={<DetalleProductoPage />} />
           <Route path="carrito" element={<CarritoPage />} />
           <Route path="identificacion" element={<IdentificacionPage />} />
           <Route path="confirmacion" element={<ConfirmacionPage />} />
