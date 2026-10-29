@@ -16,8 +16,9 @@ export async function buscarProductosChatBD(termino = '', { soloOfertas = false 
          p.id,
          p.name AS nombre,
          COALESCE(p.stock_quantity, 0)::int AS stock,
-         COALESCE(p.en_oferta, FALSE) AS en_oferta,
-         COALESCE(c.name, p.product_group, 'General') AS categoria,
+          COALESCE(p.en_oferta, FALSE) AS en_oferta,
+          (COALESCE(p.nuevo_lanzamiento, FALSE) AND (p.nuevo_hasta IS NULL OR p.nuevo_hasta > NOW())) AS nuevo_lanzamiento,
+          COALESCE(c.name, p.product_group, 'General') AS categoria,
          p.marca,
          p.size AS medida,
          p.color,
@@ -42,13 +43,13 @@ export async function buscarProductosChatBD(termino = '', { soloOfertas = false 
          AND translate(lower(busqueda), 'áéíóúüñ', 'aeiouun')
              ILIKE '%' || translate(lower($1), 'áéíóúüñ', 'aeiouun') || '%'
      )
-     SELECT id, nombre, stock, en_oferta, categoria, marca, medida, color, sku, precio_venta, precio_lista, precio_oferta, descripcion, imagen_url, palabras_clave
+      SELECT id, nombre, stock, en_oferta, nuevo_lanzamiento, categoria, marca, medida, color, sku, precio_venta, precio_lista, precio_oferta, descripcion, imagen_url, palabras_clave
      FROM filtrados
      UNION ALL
-     SELECT id, nombre, stock, en_oferta, categoria, marca, medida, color, sku, precio_venta, precio_lista, precio_oferta, descripcion, imagen_url, palabras_clave
+      SELECT id, nombre, stock, en_oferta, nuevo_lanzamiento, categoria, marca, medida, color, sku, precio_venta, precio_lista, precio_oferta, descripcion, imagen_url, palabras_clave
      FROM base
      WHERE NOT EXISTS (SELECT 1 FROM filtrados)
-     ORDER BY en_oferta DESC, precio_venta
+      ORDER BY nuevo_lanzamiento DESC, en_oferta DESC, precio_venta
      `,
     [texto, Boolean(soloOfertas)]
   );

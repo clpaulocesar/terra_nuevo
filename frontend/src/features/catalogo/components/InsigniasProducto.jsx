@@ -27,6 +27,11 @@ export default function InsigniasProducto({ producto, esMasVendido }) {
   const tipoBadge = producto.badge === 'Más Vendido' ? 'bestseller' : producto.badge === 'Nuevo' ? 'nuevo' : 'destacado';
   return (
     <div className="terra-card__badges absolute top-2.5 left-2.5 z-5 flex flex-col gap-1.5">
+      {producto.nuevo_lanzamiento && (
+        <Insignia tipo="nuevo" icono="new_releases">
+          Nuevo lanzamiento
+        </Insignia>
+      )}
       {producto.en_oferta && (
         <Insignia tipo="oferta" icono="local_fire_department">
           Oferta{producto.descuento ? ` ${producto.descuento}` : ''}

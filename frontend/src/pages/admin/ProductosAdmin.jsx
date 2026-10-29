@@ -689,6 +689,8 @@ export default function ProductosAdmin() {
     const generarQr = datos.get('generar_qr') === 'on';
     const precioOferta = datos.get('precio_oferta') === '' || datos.get('precio_oferta') === null ? null : Number(datos.get('precio_oferta'));
     const enOferta = datos.get('en_oferta') === 'on' && precioOferta > 0;
+    const nuevoLanzamiento = datos.get('nuevo_lanzamiento') === 'on';
+    const nuevoDias = datos.get('nuevo_dias') === '' || datos.get('nuevo_dias') === null ? null : Number(datos.get('nuevo_dias'));
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
@@ -699,6 +701,8 @@ export default function ProductosAdmin() {
       precioFabrica: datos.get('precio_fabrica') === '' || datos.get('precio_fabrica') === null ? null : Number(datos.get('precio_fabrica')),
       precioOferta,
       enOferta,
+      nuevoLanzamiento,
+      nuevoDias,
       showroom: Number(datos.get('showroom')),
       activo: datos.get('visible') === 'on',
       medida: datos.get('medida') || null,
@@ -1330,6 +1334,14 @@ export default function ProductosAdmin() {
                 <input name="en_oferta" type="checkbox" defaultChecked={editarProducto.enOferta === true} />
                 <span>En oferta <small>Muestra el precio de oferta y la etiqueta en el catálogo</small></span>
               </label>
+              <label className="product-form-check">
+                <input name="nuevo_lanzamiento" type="checkbox" defaultChecked={editarProducto.nuevoLanzamiento === true} />
+                <span>Nuevo lanzamiento <small>Muestra la etiqueta y prioriza el producto en el catálogo</small></span>
+              </label>
+              <label>
+                Caducidad del lanzamiento (días) <small>Opcional · vacío = sin caducidad</small>
+                <input name="nuevo_dias" min="1" max="36500" type="number" defaultValue={editarProducto.nuevoDias ?? ''} placeholder="30" />
+              </label>
 
               <label>
                 Medidas / Especificación
@@ -1481,6 +1493,14 @@ export default function ProductosAdmin() {
               <label className="product-form-check">
                 <input name="en_oferta" type="checkbox" />
                 <span>En oferta <small>Muestra el precio de oferta y la etiqueta en el catálogo</small></span>
+              </label>
+              <label className="product-form-check">
+                <input name="nuevo_lanzamiento" type="checkbox" />
+                <span>Nuevo lanzamiento <small>Muestra la etiqueta y prioriza el producto en el catálogo</small></span>
+              </label>
+              <label>
+                Caducidad del lanzamiento (días) <small>Opcional · vacío = sin caducidad</small>
+                <input name="nuevo_dias" min="1" max="36500" type="number" placeholder="30" />
               </label>
               <label>
                 Medidas / Detalle

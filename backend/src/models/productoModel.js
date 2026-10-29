@@ -3,12 +3,14 @@ import { pool } from '../config/database.js';
 // Precio que ve el cliente: si el producto está en oferta y tiene precio de
 // oferta, manda ese; si no, el precio de lista (public_price).
 const PRECIO_EFECTIVO = 'CASE WHEN COALESCE(p.en_oferta, FALSE) AND COALESCE(p.precio_oferta, 0) > 0 THEN p.precio_oferta ELSE COALESCE(p.public_price, 0) END';
+const ES_NUEVO_LANZAMIENTO = '(COALESCE(p.nuevo_lanzamiento, FALSE) AND (p.nuevo_hasta IS NULL OR p.nuevo_hasta > NOW()))';
 
 const campos = `p.id, COALESCE(p.codigo_terra, p.internal_code, p.slug) AS sku, p.codigo_terra AS codigo_terra, p.internal_code AS codigo_interno, p.slug AS slug,
   p.name AS nombre, p.description AS descripcion, p.marca AS marca, COALESCE(c.name, p.product_group, 'Sin categoría') AS categoria,
   ${PRECIO_EFECTIVO} AS precio, COALESCE(p.public_price, 0) AS precio_lista, p.precio_oferta AS precio_oferta, p.precio_fabrica AS precio_fabrica,
   p.precio_mayorista AS precio_mayorista, p.stock_quantity::integer AS stock,
   p.size AS medida, p.color AS detalle, p.imagen_url, COALESCE(p.image_urls, CASE WHEN p.imagen_url IS NULL THEN ARRAY[]::text[] ELSE ARRAY[p.imagen_url] END) AS imagenes, p.video_url, p.colors AS colores, pi.imagenes_url AS instrucciones_imagenes, pi.intrucciones AS instrucciones, pi.detalle_completo AS instrucciones_detalle, pi.videos_url AS instrucciones_video, COALESCE(p.activo, p.is_active, TRUE) AS activo, COALESCE(p.en_oferta, FALSE) AS en_oferta,
+  ${ES_NUEVO_LANZAMIENTO} AS nuevo_lanzamiento, p.nuevo_hasta,
   COALESCE((SELECT json_agg(json_build_object('minCantidad', w.minimum_quantity, 'precio', w.unit_price) ORDER BY w.minimum_quantity)
     FROM wholesale_price_tiers w WHERE w.product_id=p.id), '[]'::json) AS escalas_mayorista,
   COALESCE((SELECT json_agg(json_build_object(
@@ -58,7 +60,9 @@ export function asegurarEscalasMayoristasBD() {
         ALTER TABLE products
           ADD COLUMN IF NOT EXISTS precio_fabrica NUMERIC(12,2),
           ADD COLUMN IF NOT EXISTS precio_oferta NUMERIC(12,2),
-          ADD COLUMN IF NOT EXISTS en_oferta BOOLEAN DEFAULT FALSE
+          ADD COLUMN IF NOT EXISTS en_oferta BOOLEAN DEFAULT FALSE,
+          ADD COLUMN IF NOT EXISTS nuevo_lanzamiento BOOLEAN DEFAULT FALSE,
+          ADD COLUMN IF NOT EXISTS nuevo_hasta TIMESTAMPTZ
       `);
     })().catch((error) => { escalasReady = null; throw error; });
   }
@@ -93,16 +97,16 @@ const EXISTE_PROMOCION = `EXISTS (
 
 // Cada opción tiene su propio ORDER BY fijo: nunca se interpola texto del request.
 // Se aceptan alias en kebab-case y snake_case para no romper clientes existentes.
-// "recomendados" (y su alias "relevancia") pone primero los productos en oferta
-// (products.en_oferta), también cuando se filtra por categoría. "ofertas" además
-// limita el listado a esos productos (ver construirFiltros).
+// "recomendados" (y su alias "relevancia") pone primero los nuevos lanzamientos
+// vigentes, después las ofertas (products.en_oferta), también al filtrar por
+// categoría. "ofertas" además limita el listado a esos productos (ver construirFiltros).
 const ORDENES = {
-  recomendados: 'COALESCE(p.en_oferta, FALSE) DESC, COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
-  relevancia: 'COALESCE(p.en_oferta, FALSE) DESC, COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
-  ofertas: 'COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC',
+  recomendados: `${ES_NUEVO_LANZAMIENTO} DESC, COALESCE(p.en_oferta, FALSE) DESC, COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC`,
+  relevancia: `${ES_NUEVO_LANZAMIENTO} DESC, COALESCE(p.en_oferta, FALSE) DESC, COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC`,
+  ofertas: `${ES_NUEVO_LANZAMIENTO} DESC, COALESCE(v.unidades, 0) DESC, COALESCE(p.stock_quantity, 0) DESC, p.name ASC, p.id ASC`,
   'mas-vendidos': 'COALESCE(v.unidades, 0) DESC, p.created_at DESC, p.id DESC',
   mas_vendidos: 'COALESCE(v.unidades, 0) DESC, p.created_at DESC, p.id DESC',
-  nuevos: 'p.created_at DESC, p.id DESC',
+  nuevos: `${ES_NUEVO_LANZAMIENTO} DESC, p.created_at DESC, p.id DESC`,
   'precio-asc': `${PRECIO_EFECTIVO} ASC, p.name ASC, p.id ASC`,
   precio_asc: `${PRECIO_EFECTIVO} ASC, p.name ASC, p.id ASC`,
   'precio-desc': `${PRECIO_EFECTIVO} DESC, p.name ASC, p.id ASC`,
@@ -243,6 +247,19 @@ function precioOpcional(valor) {
   return Number.isFinite(numero) && numero >= 0 ? numero : null;
 }
 
+// Días de vigencia de "Nuevo lanzamiento": entero positivo; vacío o 0 = sin caducidad.
+function diasDeVigencia(valor) {
+  if (valor === undefined || valor === null || valor === '') return null;
+  const numero = Math.trunc(Number(valor));
+  if (!Number.isSafeInteger(numero) || numero <= 0) return null;
+  return Math.min(numero, 36500);
+}
+
+function fechaFinNuevoLanzamiento(activo, valor) {
+  const dias = diasDeVigencia(valor);
+  return activo && dias ? new Date(Date.now() + dias * 86400000) : null;
+}
+
 // Guarda las instrucciones de armado/uso del producto en `product_instructions`
 // (una fila por producto). Si todos los campos vienen vacíos, borra la fila para
 // que el chatbot no devuelva instrucciones en blanco. `undefined` = no tocar.
@@ -336,10 +353,12 @@ export async function crearProductoBD(datos) {
   // `codigoInterno` -> internal_code. Si no mandan el interno, repite el Terra.
   const codigo = String(datos.sku || `TRR-${Date.now()}`).trim();
   const codigoInterno = String(datos.codigoInterno || codigo).trim();
+  const nuevoLanzamiento = Boolean(datos.nuevoLanzamiento);
+  const nuevoHasta = fechaFinNuevoLanzamiento(nuevoLanzamiento, datos.nuevoDias);
   const { rows } = await pool.query(
-    `INSERT INTO products (name, slug, codigo_terra, description, public_price, precio_mayorista, stock_quantity, imagen_url, image_urls, video_url, colors, activo, is_active, internal_code, size, color, category_id, precio_fabrica, precio_oferta, en_oferta)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12,$16,$13,$14,(SELECT id FROM categories WHERE LOWER(name)=LOWER($15) AND is_active=TRUE LIMIT 1),$17,$18,$19) RETURNING id`,
-    [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), datos.precioMayorista ?? null, Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.video_url || null, Array.isArray(datos.colores) ? datos.colores : [], datos.activo ?? true, datos.medida || null, datos.detalle || null, datos.categoria, codigoInterno, precioOpcional(datos.precioFabrica), precioOpcional(datos.precioOferta), Boolean(datos.enOferta)]
+    `INSERT INTO products (name, slug, codigo_terra, description, public_price, precio_mayorista, stock_quantity, imagen_url, image_urls, video_url, colors, activo, is_active, internal_code, size, color, category_id, precio_fabrica, precio_oferta, en_oferta, nuevo_lanzamiento, nuevo_hasta)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12,$16,$13,$14,(SELECT id FROM categories WHERE LOWER(name)=LOWER($15) AND is_active=TRUE LIMIT 1),$17,$18,$19,$20,$21) RETURNING id`,
+    [datos.nombre, `${baseSlug}-${Date.now()}`, codigo, datos.descripcion || null, Number(datos.precio || 0), datos.precioMayorista ?? null, Number(datos.stock ?? datos.showroom ?? 0), datos.imagen_url || null, Array.isArray(datos.imagenes) ? datos.imagenes : [], datos.video_url || null, Array.isArray(datos.colores) ? datos.colores : [], datos.activo ?? true, datos.medida || null, datos.detalle || null, datos.categoria, codigoInterno, precioOpcional(datos.precioFabrica), precioOpcional(datos.precioOferta), Boolean(datos.enOferta), nuevoLanzamiento, nuevoHasta]
   );
   await reemplazarEscalasMayoristas(rows[0].id, datos.escalasMayorista || []);
   await guardarInstruccionesProductoBD(rows[0].id, datos.instrucciones);
@@ -352,6 +371,12 @@ export async function actualizarProductoBD(id, datos) {
   await asegurarEscalasMayoristasBD();
 
   const idStr = String(id || '').trim();
+  const nuevoLanzamiento = datos.nuevoLanzamiento === undefined || datos.nuevoLanzamiento === null
+    ? null
+    : Boolean(datos.nuevoLanzamiento);
+  const nuevoHasta = nuevoLanzamiento === true
+    ? fechaFinNuevoLanzamiento(true, datos.nuevoDias)
+    : null;
 
   const { rows } = await pool.query(
     `UPDATE products
@@ -384,6 +409,12 @@ export async function actualizarProductoBD(id, datos) {
          precio_oferta = CASE WHEN $21 THEN $18 ELSE precio_oferta END,
          en_oferta = COALESCE($19, en_oferta),
          marca = COALESCE($20, marca),
+         nuevo_lanzamiento = CASE WHEN $22::boolean IS NULL THEN nuevo_lanzamiento ELSE $22::boolean END,
+         nuevo_hasta = CASE
+           WHEN $22::boolean IS NULL THEN nuevo_hasta
+           WHEN $22::boolean THEN $23::timestamptz
+           ELSE NULL
+         END,
          updated_at = NOW()
      WHERE id::text = $15
         OR slug = $15
@@ -415,6 +446,8 @@ export async function actualizarProductoBD(id, datos) {
         : Boolean(datos.enOferta),
       datos.marca ?? null,
       datos.precioOferta !== undefined,
+      nuevoLanzamiento,
+      nuevoHasta,
     ]
   );
 

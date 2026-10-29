@@ -36,6 +36,7 @@ export default function TarjetaProducto({
     producto.nombre,
     producto.tagMedida || producto.medida,
     precioLeido,
+    producto.nuevo_lanzamiento ? 'nuevo lanzamiento' : '',
     producto.en_oferta ? 'en oferta' : '',
     disponible ? '' : 'agotado',
   ].filter(Boolean).join(', ');

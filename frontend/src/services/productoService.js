@@ -10,6 +10,11 @@ export function normalizarProducto(producto) {
   const precioFabrica = producto.precio_fabrica === null || producto.precio_fabrica === undefined || producto.precio_fabrica === '' ? null : Number(producto.precio_fabrica);
   const enOferta = producto.en_oferta === true;
   const ofertaActiva = enOferta && Number.isFinite(precioOferta) && precioOferta > 0 && precioLista > precio;
+  const nuevoHasta = producto.nuevo_hasta ? String(producto.nuevo_hasta) : null;
+  const nuevoLanzamiento = producto.nuevo_lanzamiento === true;
+  const nuevoDias = nuevoLanzamiento && nuevoHasta
+    ? Math.max(1, Math.ceil((new Date(nuevoHasta).getTime() - Date.now()) / 86400000))
+    : (producto.nuevo_lanzamiento === true && !nuevoHasta ? '' : null);
   const precioMayorista = producto.precio_mayorista === null || producto.precio_mayorista === undefined || producto.precio_mayorista === '' ? null : Number(producto.precio_mayorista);
   const showroom = Number(producto.showroom ?? producto.stock ?? 0);
   const imagenes = Array.isArray(producto.imagenes) && producto.imagenes.length ? producto.imagenes : (producto.imagen_url ? [producto.imagen_url] : []);
@@ -30,6 +35,9 @@ export function normalizarProducto(producto) {
     precioOferta: Number.isFinite(precioOferta) ? precioOferta : null,
     precioFabrica: Number.isFinite(precioFabrica) ? precioFabrica : null,
     enOferta,
+    nuevoLanzamiento,
+    nuevoHasta,
+    nuevoDias,
     precioOriginal: ofertaActiva ? precioLista : (producto.precio_original ? Number(producto.precio_original) : null),
     descuento: ofertaActiva ? `-${Math.round(((precioLista - precio) / precioLista) * 100)}%` : null,
     showroom,
@@ -40,6 +48,7 @@ export function normalizarProducto(producto) {
     video_url: producto.video_url ? String(producto.video_url).trim() : null,
     visible: producto.activo !== false,
     en_oferta: producto.en_oferta === true,
+    nuevo_lanzamiento: nuevoLanzamiento,
     activo: producto.activo !== false,
     detalle: producto.detalle || producto.medida || '',
     descripcion: producto.descripcion || '',
