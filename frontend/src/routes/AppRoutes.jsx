@@ -5,10 +5,10 @@ import { TutorialProvider } from '../context/TutorialContext.jsx';
 import Bienvenida from '../pages/Bienvenida.jsx';
 import Categorias from '../pages/Categorias.jsx';
 import DetalleProductoPage from '../features/detalle-producto/DetalleProductoPage.jsx';
-import CarritoPage from '../pages/CarritoPage.jsx';
-import IdentificacionPage from '../pages/Identificacion.jsx';
-import ConfirmacionPage from '../pages/Confirmacion.jsx';
-import PedidoGeneradoPage from '../pages/PedidoGenerado.jsx';
+import CarritoPage from '../features/carrito/CarritoPage.jsx';
+import IdentificacionPage from '../features/identificacion/IdentificacionPage.jsx';
+import ConfirmacionPage from '../features/confirmacion/ConfirmacionPage.jsx';
+import PedidoGeneradoPage from '../features/pedido-generado/PedidoGeneradoPage.jsx';
 import CatalogoPage from '../features/catalogo/CatalogoPage.jsx';
 import LayoutCliente from '../features/layout-cliente/LayoutCliente.jsx';
 import IndicadorCarga from '../components/ui/IndicadorCarga.jsx';
@@ -36,7 +36,7 @@ const VendedorLayout = lazy(() => import('../components/vendedor/VendedorLayout.
 const DashboardVendedor = lazy(() => import('../pages/vendedor/DashboardVendedor.jsx'));
 const LoginVendedor = lazy(() => import('../pages/vendedor/LoginVendedor.jsx'));
 import { NavegacionProvider } from '../navegacion/NavegacionContext.jsx';
-// ClienteTheme.css (Confirmación) y Responsive.css (backoffice y Bienvenida) se migran en sus fases.
+// ClienteTheme.css (Categorías) y Responsive.css (backoffice y Bienvenida) se migran en sus fases.
 import './ClienteTheme.css';
 import '../Responsive.css';
 // Modo noche: va al final para que sus reglas pisen las de todas las páginas.

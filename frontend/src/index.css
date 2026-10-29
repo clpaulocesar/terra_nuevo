@@ -19,7 +19,10 @@
 @custom-variant en-carrito (&:where(.app-shell:has(.cart-page) *));
 @custom-variant con-asistente-abierto (&:where(.app-shell:has(.chat-widget.abierto) *));
 @custom-variant con-carrito-abierto (&:where(.app-shell:has(.cart-widget.abierto) *));
-/* Por debajo de 761 px el resumen de Confirmación es una barra fija (Confirmacion.css). */
+/* En Identificación el carrito flotante se oculta: tapa los controles del formulario. */
+@custom-variant en-identificacion (&:where(.app-shell:has([data-pagina=identificacion]) *));
+/* Por debajo de 761 px el resumen del Carrito y de Confirmación es una hoja fija abajo
+   (components/ui/HojaInferior.jsx). */
 @custom-variant con-resumen-fijo (@media (width < 47.5625rem));
 
 @theme {
@@ -60,7 +63,11 @@
   --text-terra-lg: 1.05rem;
   --text-terra-xl: 1.15rem;
   --text-terra-icono-lg: 1.375rem;
+  /* Títulos del flujo de compra (Carrito, Identificación y Confirmación). */
+  --text-terra-titulo: 2.1rem;
+  --text-terra-titulo-movil: 1.7rem;
   --tracking-terra-ajustado: -0.01em;
+  --tracking-terra-titulo: -0.02em;
   --leading-terra-boton: 1.15;
 
   /* En rem para que escalen con el texto al 125 % y 150 % del modo accesible. */
@@ -80,6 +87,10 @@
   /* Video del producto: fondo del reproductor y telón detrás del video ampliado. */
   --color-terra-pantalla: #000000;
   --color-terra-telon: rgba(0, 0, 0, 0.8);
+  /* Botón "Enviar ticket a WhatsApp" de PedidoGenerado: colores de la marca WhatsApp. */
+  --color-terra-whatsapp: #25d366;
+  --color-terra-whatsapp-hover: #1fbd59;
+  --color-terra-whatsapp-texto: #073b1c;
 
   --shadow-terra-control: 0 4px 10px rgba(0, 0, 0, 0.04);
   --shadow-terra-chip: 0 4px 8px rgba(0, 0, 0, 0.05);
@@ -90,6 +101,13 @@
   --shadow-terra-flotante: 0 8px 24px rgba(166, 25, 46, 0.35);
   /* Anillo de foco o de selección (campo de búsqueda, tarjeta recién agregada). */
   --shadow-terra-anillo: 0 0 0 4px rgba(166, 25, 46, 0.12);
+  /* Opción elegida (modalidad de entrega, producto marcado para envío). */
+  --shadow-terra-anillo-fino: 0 0 0 3px rgba(166, 25, 46, 0.12);
+  /* Tarjetas y botón principal del flujo de compra, hoja inferior y cajón del carrito. */
+  --shadow-terra-panel: 0 14px 38px rgba(35, 26, 22, 0.07);
+  --shadow-terra-boton: 0 14px 28px rgba(166, 25, 46, 0.24);
+  --shadow-terra-hoja: 0 -12px 40px rgba(35, 26, 22, 0.1);
+  --shadow-terra-cajon: -18px 0 48px rgba(27, 28, 28, 0.22);
 
   --animate-terra-aparecer: terra-aparecer 0.2s ease both;
   --animate-terra-hoja: terra-subir 0.25s ease both;
@@ -169,6 +187,8 @@
   --color-terra-aviso-texto: var(--terra-aviso-texto);
   --color-terra-oro-fondo: var(--terra-oro-fondo);
   --color-terra-oro-texto: var(--terra-oro-texto);
+  --color-terra-oro-borde: var(--terra-oro-borde);
+  --color-terra-ok-borde: var(--terra-ok-borde);
 
   --shadow-terra: var(--terra-sombra);
   --shadow-terra-sm: var(--terra-sombra-sm);
@@ -179,6 +199,14 @@
   --spacing-terra-flotante-derecha: var(--terra-flotantes-derecha);
   --spacing-terra-flotante-separacion: var(--terra-flotante-separacion);
   --spacing-terra-barra-inferior: var(--terra-barra-inferior-alto);
+  /* Hoja inferior del resumen (Carrito y Confirmación en teléfono): distancia al borde
+     de abajo (en teléfono arranca sobre la barra inferior) y alto máximo abierta. */
+  --spacing-terra-hoja-abajo: var(--terra-hoja-abajo);
+  --spacing-terra-hoja-abierta: calc(100dvh - 3rem - var(--terra-hoja-abajo));
+
+  /* Ancho de pantalla sin la columna de flotantes ni el botón de accesibilidad (se
+     reserva a cada lado desde 768 px en Identificación y Confirmación). */
+  --container-terra-sin-flotantes: calc(100vw - 2 * max(var(--terra-a11y-reserva), var(--terra-flotantes-reserva)));
 }
 
 @theme {
@@ -186,6 +214,9 @@
      en una fila aunque el texto esté al 150 %, como el paginador. */
   --spacing-terra-toque: 44px;
   --spacing-terra-hueco: 6px;
+  /* Hoja inferior del resumen: alto cerrado y margen inferior con la zona segura. */
+  --spacing-terra-hoja: 8.5rem;
+  --spacing-terra-zona-segura: max(0.85rem, env(safe-area-inset-bottom));
 }
 
 /* Borde de 1.5 px de campos, chips y botones del paginador (Tailwind v4 no tiene
@@ -244,6 +275,8 @@
   --terra-aviso-texto: #5a4311;
   --terra-oro-fondo: #fff7df;
   --terra-oro-texto: #b27600;
+  --terra-oro-borde: #f0e0b8;
+  --terra-ok-borde: #bfe3ca;
 
   /* Las fotos de producto tienen fondo blanco: el contenedor también, en todos los temas,
      para que object-fit: contain no deje franjas de otro color a los costados. */
@@ -261,6 +294,8 @@
   /* Ancho que ocupan desde el borde de la pantalla (para reservarlo en la grilla). */
   --terra-flotantes-reserva: calc(var(--terra-flotantes-derecha) + var(--terra-flotante-tamano) + 0.75rem);
   --terra-a11y-reserva: calc(16px + 56px + 0.75rem);
+  /* La hoja inferior del resumen arranca sobre la barra inferior (solo en teléfono). */
+  --terra-hoja-abajo: 0px;
 }
 @media (width < 40rem) {
   :root {
@@ -268,6 +303,7 @@
     --terra-flotante-separacion: 0.75rem;
     --terra-flotantes-derecha: 0.75rem;
     --terra-flotante-abajo: calc(var(--terra-barra-inferior-alto) + 1.25rem + env(safe-area-inset-bottom, 0px));
+    --terra-hoja-abajo: calc(var(--terra-barra-inferior-alto) + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -296,7 +332,7 @@
 .eyebrow { font-size: .74rem; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; color: #598a6e; }
 .hero-card .eyebrow { color: #c3e9cf; }
 .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 22px; }
-.feature-card, .form-card, .product-card, .cart-row { background: white; border: 1px solid #e0e8e0; border-radius: 20px; }
+.feature-card, .form-card, .product-card { background: white; border: 1px solid #e0e8e0; border-radius: 20px; }
 .feature-card { padding: 24px; }
 .feature-card p, .muted { color: #707974; }
 .btn { border: 0; border-radius: 12px; display: inline-flex; justify-content: center; align-items: center; gap: 9px; padding: 12px 18px; font-weight: 750; transition: filter .15s; }
@@ -330,12 +366,6 @@
 .error-box { background: #fff0ef; color: #ac302b; }
 .narrow-page { width: min(840px, 100%); margin: auto; }
 .empty-state { display: flex; align-items: center; flex-direction: column; justify-content: center; gap: 16px; padding: 85px 12px; text-align: center; color: #707974; }
-.cart-list { display: grid; gap: 12px; }
-.cart-row { display: flex; align-items: center; gap: 16px; padding: 16px; }
-.cart-emoji { font-size: 2.3rem; padding: 10px; background: #f2f7f2; border-radius: 12px; }
-.cart-description { flex: 1; }
-.cart-description h3 { margin: 0 0 5px; }
-.cart-description p { margin: 0; color: #66766b; }
 .quantity-controls { display: inline-flex; align-items: center; gap: 12px; }
 .quantity-controls button, .icon-danger { border: 0; background: #eef5ef; border-radius: 9px; padding: 9px; display: grid; place-items: center; }
 .icon-danger { color: #b44038; background: #fff0ed; }
@@ -355,12 +385,10 @@
 @media (max-width: 750px) {
   .feature-grid { grid-template-columns: 1fr; }
   .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .cart-row { flex-wrap: wrap; }
   .section-heading { align-items: start; flex-direction: column; }
 }
 @media (max-width: 480px) {
   .product-grid { grid-template-columns: 1fr; }
-  .cart-description { flex-basis: calc(100% - 100px); }
   .actions { flex-direction: column; }
   .form-card { padding: 18px; }
 }
