@@ -147,7 +147,7 @@ html.modo-accesible.a11y-fuente .pedido-page {
 /* Texto grande: con 150 % nada debe cortarse ni generar scroll horizontal */
 html.modo-accesible body { overflow-x: hidden; }
 html.modo-accesible .terra-card__title, html.modo-accesible .terra-card h3,
-html.modo-accesible .cart-item-info h3, html.modo-accesible .product-buy h1 { overflow-wrap: anywhere; }
+html.modo-accesible .product-buy h1 { overflow-wrap: anywhere; }
 html.modo-accesible .terra-card__badges .terra-badge { white-space: normal; }
 html.modo-accesible .terra-grid, html.modo-accesible .product-related > div { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)) !important; }
 
@@ -165,7 +165,7 @@ html.a11y-contraste {
   --terra-borde-control: #fff; --terra-texto-control: #fff; --terra-borde-suave: #fff; --terra-borde-hover: #fff;
   --terra-texto-tenue: #e6e6e6; --terra-esqueleto: #1f1f1f; --terra-deshabilitado: #333; --terra-encabezado: #000;
   --terra-velo: rgba(0, 0, 0, 0.85); --terra-aviso-fondo: #000; --terra-aviso-texto: #ffd400;
-  --terra-oro-fondo: #000; --terra-oro-texto: #ffd400;
+  --terra-oro-fondo: #000; --terra-oro-texto: #ffd400; --terra-oro-borde: #fff; --terra-ok-borde: #fff;
   --td-bg: #000; --td-surface: #000; --td-surface-2: #111; --td-surface-3: #1f1f1f; --td-line: #fff; --td-line-soft: #bbb;
   --td-text: #fff; --td-muted: #e6e6e6; --td-accent: #ffd400; --td-accent-soft: #332b00; --td-ok: #7cff9b; --td-ok-bg: #003314;
   --terra-border: #fff; --terra-surface: #000; --terra-bg-soft: #111; --terra-text-dark: #fff; --terra-text-muted: #e6e6e6; --terra-wine: #ffd400; --terra-wine-light: #332b00;
@@ -199,7 +199,7 @@ html.a11y-contraste :is(.terra-badge, .product-badge, [class*="badge"], [class*=
   background: #000 !important; color: #ffd400 !important; border: 2px solid #ffd400 !important; text-shadow: none !important;
 }
 html.a11y-contraste .terra-card__oferta-tag, html.a11y-contraste .terra-card__precio-actual, html.a11y-contraste .price { color: #ffd400 !important; }
-html.a11y-contraste :is(.terra-card, .product-card, .cart-item, .confirm-card, .confirm-summary, .pedido-ticket, .pedido-steps, .product-detail__card, .categoria-card, .warehouse-card, .categories-table, .admin-content .card) { border: 2px solid #fff !important; }
+html.a11y-contraste :is(.terra-card, .product-card, .confirm-card, .confirm-summary, .pedido-ticket, .pedido-steps, .product-detail__card, .categoria-card, .warehouse-card, .categories-table, .admin-content .card) { border: 2px solid #fff !important; }
 html.a11y-contraste :is(.terra-cat--active, .terra-dropdown-item--active, .categories-filters nav button.active, .terra-card--oferta) { outline: 3px solid #ffd400 !important; outline-offset: -3px; }
 html.a11y-contraste ::selection { background: #ffd400; color: #000; }
 html.a11y-contraste .a11y-panel { background: #000 !important; color: #fff !important; border-color: #fff !important; }

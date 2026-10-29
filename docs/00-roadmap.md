@@ -11,7 +11,11 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
 ## Hecho
 
 ### 2026-10-29
+<<<<<<< HEAD
 - **Pie de página corporativo adaptado a todos los dispositivos**: diseño responsive optimizado para móviles (360px), tablets (768px portrait y 1024px landscape del kiosco) y pantallas de escritorio. Botones táctiles >= 44px (WCAG), espaciado lateral seguro ante botones flotantes y barra inferior de derechos de autor. Retiro temporal de la temática Halloween.
+=======
+- **Fase 3 de Tailwind** (flujo de compra y carrito flotante): ver la tabla de abajo y [[2026-10-28-migracion-tailwind]]. Corrige de paso que la barra inferior del teléfono tapaba "Continuar y generar pedido" en Carrito y Confirmación, el scroll horizontal del ticket en teléfono y los flotantes sobre el resumen de Confirmación.
+>>>>>>> 9e2b009e83b1b3b4db51a3221292023aa9ee6985
 - **El catálogo ya no muestra productos con stock 0** (sin commit): `?stock=true` en el listado y en los conteos de categorías; la ficha, "Otros modelos" y el admin siguen viendo todo. La casilla "Solo con stock" de Ventas directas vuelve a funcionar. Decisión: [[2026-10-29-catalogo-sin-stock-cero]]. Pruebas: backend 50.
 
 ### 2026-10-28
@@ -41,13 +45,14 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 | 0 | Base: tokens `@theme`, variantes `dark:` y `contraste:`, reglas globales en `@layer base` | Hecha el 2026-10-28 |
 | 1 | Catálogo, tarjeta, paginación, filtros, flotantes y Layout del cliente | Hecha el 2026-10-28. Código en `src/features/catalogo/` y `src/features/layout-cliente/`; se borraron `Catalogo.css`, `Layout.css`, `FloatingActions.css`, `NavigationFix.css` y `HeaderOptionsHidden.css` |
 | 2 | DetalleProducto | Hecha el 2026-10-28. Código en `src/features/detalle-producto/`; se borraron `DetalleProducto.css`, `DetalleProductoBack.css`, `DetalleProductoPalette.css`, `DetalleProductoRelated.css` y `DetalleProductoSpecs.css` (los tres últimos no se importaban) |
-| 3 | Carrito, Identificación, Confirmación, PedidoGenerado | Pendiente |
+| 3 | Carrito, Identificación, Confirmación, PedidoGenerado y carrito flotante | Hecha el 2026-10-29. Código en `src/features/carrito/`, `identificacion/`, `confirmacion/`, `pedido-generado/` y piezas comunes en `compra/`; se borraron `CarritoPage.css`, `Identificacion.css`, `Confirmacion.css`, `PedidoGenerado.css` y `CarritoFlotante.css`, y sus reglas en `theme-dark.css`, `ClienteTheme.css` y `Responsive.css`. Quedan 55 archivos `.css` |
 | 4 | Bienvenida, Categorías | Pendiente |
 | 5 | Mayorista | Pendiente |
 | 6 | Admin | Pendiente |
 
 ### Otros
 - **Extraer hooks de `CatalogoPage.jsx`** (tarea aparte): supera las 300 líneas por la lógica de filtros, orden, paginación, voz y teclado. Pasarla a hooks en `src/features/catalogo/hooks/` sin cambiar comportamiento.
+- **Reducir el bundle JS principal** (tarea aparte): supera los 600 kB (≈ 614 kB, 186 kB gzip). Revisar qué pantallas del cliente y librerías entran en el chunk principal y separarlas por ruta con `React.lazy` (admin, vendedor y mayorista ya son lazy).
 - Subir los commits `f24bf3a` y `13f46df` **sin reescribir historia**: nada de force push sobre `812212d`, que ya está publicado.
 - Asignar clave a los 4 mayoristas existentes desde Clientes (botón de llave): hasta entonces no pueden entrar.
 

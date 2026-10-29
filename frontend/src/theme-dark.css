@@ -54,6 +54,8 @@ html[data-theme="dark"] {
   --terra-aviso-texto: #ffdb9b;
   --terra-oro-fondo: #3a2b10;
   --terra-oro-texto: #ffdb9b;
+  --terra-oro-borde: #5a4218;
+  --terra-ok-borde: #24503a;
 
   color: var(--td-text);
   background: var(--td-bg);
@@ -64,7 +66,6 @@ html[data-theme="dark"] body { background: var(--td-bg); color: var(--td-text); 
 html[data-theme="dark"] .feature-card,
 html[data-theme="dark"] .form-card,
 html[data-theme="dark"] .product-card,
-html[data-theme="dark"] .cart-row,
 html[data-theme="dark"] .search-box,
 html[data-theme="dark"] .category-chip { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
 html[data-theme="dark"] .search-box input { background: transparent; color: var(--td-text); }
@@ -97,78 +98,14 @@ html[data-theme="dark"] .welcome-trust p { color: var(--td-text); }
 html[data-theme="dark"] .carousel-btn { background: rgba(30, 25, 23, 0.9); color: var(--td-text); }
 html[data-theme="dark"] .carousel-btn:hover { background: var(--td-surface-3); }
 
-/* ---------- Carrito (página) ---------- */
-html[data-theme="dark"] .cart-page { color: var(--td-text); }
-html[data-theme="dark"] .cart-heading p,
-html[data-theme="dark"] .cart-empty p { color: var(--td-muted); }
-html[data-theme="dark"] .cart-heading span,
-html[data-theme="dark"] .cart-item-info span { color: #ffd08a; }
-html[data-theme="dark"] .cart-terminal { background: var(--td-surface-2); }
-html[data-theme="dark"] .cart-terminal small { color: var(--td-muted); }
-html[data-theme="dark"] .cart-notice { background: #3a2b10; }
-html[data-theme="dark"] .cart-notice > svg,
-html[data-theme="dark"] .cart-notice p { color: #ffdb9b; }
-html[data-theme="dark"] .cart-list-card,
-html[data-theme="dark"] .cart-summary { background: var(--td-surface); color: var(--td-text); }
-html[data-theme="dark"] .cart-item { background: var(--td-surface-2); }
-html[data-theme="dark"] .cart-item-image { background: var(--td-surface-3); }
-html[data-theme="dark"] .cart-item-info p,
-html[data-theme="dark"] .cart-summary > small { color: var(--td-muted); }
-html[data-theme="dark"] .cart-quantity { background: var(--td-surface-3); }
-html[data-theme="dark"] .cart-quantity button { background: var(--td-surface); color: var(--td-text); }
-html[data-theme="dark"] .cart-summary-box,
-html[data-theme="dark"] .cart-total span,
-html[data-theme="dark"] .cart-total b,
-html[data-theme="dark"] .cart-empty svg { color: var(--td-ok); }
-html[data-theme="dark"] .cart-back { background: var(--td-surface-2); border: 1px solid var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .cart-back:hover { background: var(--td-surface-3); }
-html[data-theme="dark"] .cart-summary-box hr { border-top-color: var(--td-line); }
-html[data-theme="dark"] .cart-list-title button,
-html[data-theme="dark"] .cart-delete { color: #ff8a95; }
-html[data-theme="dark"] .cart-item-color { color: var(--td-muted); }
-html[data-theme="dark"] .cart-item-color i { border: 1px solid var(--td-line); }
-html[data-theme="dark"] .cart-quantity button:disabled { opacity: .4; }
-
-/* Selector de entrega (cliente mayorista) */
-html[data-theme="dark"] .cart-delivery { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .cart-delivery__head p,
-html[data-theme="dark"] .cart-delivery__text small { color: var(--td-muted); }
-html[data-theme="dark"] .cart-delivery__tag { background: var(--td-accent-soft); color: #ffb3bd; }
-html[data-theme="dark"] .cart-delivery__option { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .cart-delivery__option:hover:not(:disabled) { border-color: #7c3b47; }
-html[data-theme="dark"] .cart-delivery__option.is-selected { background: var(--td-accent-soft); border-color: #ff8a95; box-shadow: 0 0 0 3px #ff8a9522; }
-html[data-theme="dark"] .cart-delivery__icon { background: var(--td-surface); border-color: var(--td-line); color: #ffb3bd; }
-html[data-theme="dark"] .cart-delivery__option.is-selected .cart-delivery__icon { background: #a6192e; border-color: #a6192e; color: #fff; }
-html[data-theme="dark"] .cart-delivery__mark { background: var(--td-surface); border-color: var(--td-line); }
-html[data-theme="dark"] .cart-delivery__option.is-selected .cart-delivery__mark { background: #a6192e; border-color: #a6192e; }
-html[data-theme="dark"] .cart-delivery__address { background: var(--td-ok-bg); border-color: #24503a; }
-html[data-theme="dark"] .cart-delivery__address > svg,
-html[data-theme="dark"] .cart-delivery__address b { color: var(--td-ok); }
-html[data-theme="dark"] .cart-delivery__address strong { color: var(--td-text); }
-html[data-theme="dark"] .cart-delivery__address small { color: var(--td-muted); }
-html[data-theme="dark"] .cart-delivery__address a,
-html[data-theme="dark"] .cart-delivery__hint a { color: #ffb3bd; }
-html[data-theme="dark"] .cart-delivery__hint { color: #ffdb9b; }
-
-/* ---------- Carrito flotante y asistente ---------- */
-html[data-theme="dark"] .cart-drawer,
-html[data-theme="dark"] .cart-drawer-footer,
+/* ---------- Asistente ---------- */
 html[data-theme="dark"] .chat-panel,
 html[data-theme="dark"] .chat-form { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .cart-drawer-body,
 html[data-theme="dark"] .chat-mensajes { background: var(--td-bg); }
-html[data-theme="dark"] .cart-drawer-item,
 html[data-theme="dark"] .chat-msg-asistente,
 html[data-theme="dark"] .chat-cancelar-grabacion { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .cart-drawer-thumb,
 html[data-theme="dark"] .chat-imagen { background: var(--td-surface-3); border-color: var(--td-line); }
-html[data-theme="dark"] .cart-vacio,
-html[data-theme="dark"] .cart-drawer-info span,
-html[data-theme="dark"] .cart-drawer-vaciar,
 html[data-theme="dark"] .chat-escribiendo { color: var(--td-muted); }
-html[data-theme="dark"] .cart-drawer-qty { border-color: var(--td-line); }
-html[data-theme="dark"] .cart-drawer-qty button { color: var(--td-text); }
-html[data-theme="dark"] .cart-drawer-total strong,
 html[data-theme="dark"] .chat-msg-asistente a { color: #ffb3bd; }
 html[data-theme="dark"] .chat-form input { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
 html[data-theme="dark"] .chat-msg-error,
@@ -190,98 +127,6 @@ html[data-theme="dark"] .categoria-body a { color: var(--td-text); }
 html[data-theme="dark"] .categorias-offer { background: #3a2b10; }
 html[data-theme="dark"] .categorias-offer span { color: #ffdb9b; }
 
-/* ---------- Identificación, confirmación y pedido ---------- */
-html[data-theme="dark"] .ident-page > header a { background: var(--td-surface-2); color: var(--td-text); }
-html[data-theme="dark"] .ident-page > header span,
-html[data-theme="dark"] .ident-card label em,
-html[data-theme="dark"] .ident-keyboard header small,
-html[data-theme="dark"] .ident-whatsapp small { color: var(--td-muted); }
-html[data-theme="dark"] .ident-lead,
-html[data-theme="dark"] .ident-card + aside { color: var(--td-text); }
-html[data-theme="dark"] .ident-card { background: var(--td-surface); color: var(--td-text); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4); }
-html[data-theme="dark"] .ident-card label > div { background: var(--td-surface-2); }
-html[data-theme="dark"] .ident-card label.active > div { background: var(--td-surface-3); }
-html[data-theme="dark"] .ident-card label > div input { background: transparent; color: var(--td-text); }
-html[data-theme="dark"] .ident-card i { background: var(--td-surface-3); color: var(--td-muted); }
-html[data-theme="dark"] .ident-card label b,
-html[data-theme="dark"] .ident-card small { color: #ff9a92; }
-html[data-theme="dark"] .ident-keyboard { background: var(--td-surface); border-color: var(--td-line); }
-html[data-theme="dark"] .ident-keyboard header span { color: var(--td-text); }
-html[data-theme="dark"] .ident-keyboard button { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .ident-keyboard button:hover,
-html[data-theme="dark"] .ident-keyboard button:focus-visible { background: var(--td-accent-soft); border-color: var(--td-accent); }
-html[data-theme="dark"] .ident-whatsapp,
-html[data-theme="dark"] .ident-card + aside { background: var(--td-surface-2); }
-html[data-theme="dark"] .ident-whatsapp > span { background: var(--td-surface-3); }
-html[data-theme="dark"] .ident-guest { background: var(--td-surface-3); color: var(--td-text); }
-html[data-theme="dark"] .ident-guest:hover { background: #3f3431; }
-
-/* ---------- Confirmación de pedido ---------- */
-html[data-theme="dark"] .confirm-page { color: var(--td-text); }
-html[data-theme="dark"] .confirm-back { background: var(--td-surface-2); color: var(--td-text); }
-html[data-theme="dark"] .confirm-page header span { color: #ffd08a; }
-html[data-theme="dark"] .confirm-page header p { color: var(--td-muted); }
-html[data-theme="dark"] .confirm-notice { background: #3a2b10; }
-html[data-theme="dark"] .confirm-notice svg,
-html[data-theme="dark"] .confirm-notice p { color: #ffdb9b; }
-html[data-theme="dark"] .confirm-card,
-html[data-theme="dark"] .confirm-summary { background: var(--td-surface); color: var(--td-text); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4); }
-html[data-theme="dark"] .confirm-client,
-html[data-theme="dark"] .confirm-item,
-html[data-theme="dark"] .confirm-summary > div,
-html[data-theme="dark"] .confirm-payment i { background: var(--td-surface-2); color: var(--td-text); }
-html[data-theme="dark"] .confirm-client svg { color: #ffb3bd; }
-html[data-theme="dark"] .confirm-client span,
-html[data-theme="dark"] .confirm-item small,
-html[data-theme="dark"] .confirm-payment span,
-html[data-theme="dark"] .confirm-summary > small { color: var(--td-muted); }
-html[data-theme="dark"] .confirm-item > span { background: var(--td-accent-soft); color: #ffb3bd; }
-html[data-theme="dark"] .confirm-summary hr { border-top-color: var(--td-line); }
-html[data-theme="dark"] .confirm-total span,
-html[data-theme="dark"] .confirm-total b { color: #ffb3bd; }
-html[data-theme="dark"] .confirm-summary > a { background: var(--td-surface-2); border: 1px solid var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .confirm-summary > a:hover { background: var(--td-surface-3); }
-html[data-theme="dark"] .confirm-error { background: #3a1a1c !important; color: #ff9a92; }
-html[data-theme="dark"] .confirm-delivery { background: var(--td-ok-bg); border-color: #24503a; }
-html[data-theme="dark"] .confirm-delivery svg { color: var(--td-ok); }
-html[data-theme="dark"] .confirm-delivery b { color: var(--td-text); }
-html[data-theme="dark"] .confirm-delivery span,
-html[data-theme="dark"] .confirm-delivery small { color: var(--td-muted); }
-html[data-theme="dark"] .confirm-delivery a { color: #ffb3bd; }
-html[data-theme="dark"] .confirm-delivery.is-pickup { background: #3a2b10; border-color: #5a4218; }
-html[data-theme="dark"] .confirm-delivery.is-pickup svg,
-html[data-theme="dark"] .confirm-delivery.is-pickup b { color: #ffdb9b; }
-
-/* ---------- Pedido generado ---------- */
-html[data-theme="dark"] .pedido-page { color: var(--td-text); }
-html[data-theme="dark"] .pedido-success { color: #ffb3bd; }
-html[data-theme="dark"] .pedido-lead { color: var(--td-muted); }
-html[data-theme="dark"] .pedido-ticket,
-html[data-theme="dark"] .pedido-steps { background: var(--td-surface); color: var(--td-text); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45); }
-html[data-theme="dark"] .pedido-ticket header { border-bottom-color: var(--td-line); }
-html[data-theme="dark"] .pedido-ticket header svg,
-html[data-theme="dark"] .pedido-code strong,
-html[data-theme="dark"] .pedido-code svg,
-html[data-theme="dark"] .pedido-row b { color: #ffb3bd; }
-html[data-theme="dark"] .pedido-ticket header span,
-html[data-theme="dark"] .pedido-code span,
-html[data-theme="dark"] .pedido-steps span { color: var(--td-muted); }
-html[data-theme="dark"] .pedido-code,
-html[data-theme="dark"] .pedido-time { background: var(--td-surface-2); color: var(--td-text); }
-html[data-theme="dark"] .pedido-ticket footer { background: var(--td-accent-soft); color: #ffb3bd; }
-html[data-theme="dark"] .pedido-time svg { color: #ffd08a; }
-html[data-theme="dark"] .pedido-catalog { background: var(--td-surface-2); border: 1px solid var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .pedido-catalog:hover { background: var(--td-surface-3); }
-
-/* ---------- Identificación: acentos de ClienteTheme.css ---------- */
-html[data-theme="dark"] .ident-page h1,
-html[data-theme="dark"] .ident-card label.active > div,
-html[data-theme="dark"] .keyboard-title svg,
-html[data-theme="dark"] .keyboard-title b,
-html[data-theme="dark"] .ident-order b,
-html[data-theme="dark"] .ident-card + aside svg { color: #ffb3bd; }
-html[data-theme="dark"] .keyboard-title b { background: var(--td-accent-soft); }
-
 /* ---------- Acentos rojos de ClienteTheme.css, Bienvenida y Categorías ---------- */
 html[data-theme="dark"] .categoria-body strong,
 html[data-theme="dark"] .welcome-eyebrow,
@@ -293,8 +138,6 @@ html[data-theme="dark"] .categorias-pills a:first-child,
 html[data-theme="dark"] .categoria-body a { background: var(--td-surface-2); color: var(--td-text); }
 
 /* ---------- Genéricos restantes (index.css) ---------- */
-html[data-theme="dark"] .cart-emoji { background: var(--td-surface-2); }
-html[data-theme="dark"] .cart-description p { color: var(--td-muted); }
 html[data-theme="dark"] .quantity-controls button { background: var(--td-surface-2); color: var(--td-text); }
 html[data-theme="dark"] .icon-danger { background: #3a1a1c; color: #ff9a92; }
 html[data-theme="dark"] .summary strong { color: #ffb3bd; }
@@ -303,9 +146,7 @@ html[data-theme="dark"] .success-icon { color: var(--td-ok); }
 html[data-theme="dark"] .code-card { background: var(--td-surface); color: var(--td-text); }
 html[data-theme="dark"] .code-card strong { color: var(--td-ok); }
 
-/* ---------- Carrito flotante y asistente: restos ---------- */
-html[data-theme="dark"] .cart-drawer-thumb,
-html[data-theme="dark"] .cart-drawer-del { color: #ffb3bd; }
+/* ---------- Asistente: restos ---------- */
 html[data-theme="dark"] .chat-cancelar-grabacion:hover { background: var(--td-surface-3); color: var(--td-text); }
 
 /* ---------- Modal de cuenta web (WebAccountModal.css) ---------- */
