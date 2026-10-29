@@ -4,6 +4,7 @@
 // en Carrito y Confirmación, también el de la hoja del resumen (LayoutCliente sube
 // --terra-flotante-abajo por encima de ella). Va en el flujo y sin z-index: nunca tapa la hoja.
 // En el carrito no hay flotantes, pero sí el botón de accesibilidad a esa altura.
+// El relleno inferior no lleva sm: (un sm:py anularía la reserva entre 640 y 767 px).
 // site-footer: gancho de la hoja de impresión de PedidoGenerado.css.
 export default function PieCliente({ enCarrito }) {
   const anioActual = new Date().getFullYear();
@@ -14,7 +15,7 @@ export default function PieCliente({ enCarrito }) {
   return (
     <footer
       className={`site-footer mt-auto w-full border-t border-[#e5ded4] bg-[#f5f2eb]
-        px-4 py-8 sm:px-8 sm:py-10 md:px-10 lg:px-16 xl:px-20 text-neutral-800
+        px-4 pt-8 pb-8 sm:px-8 sm:pt-10 md:px-10 md:pb-10 lg:px-16 xl:px-20 text-neutral-800
         dark:border-terra-borde-suave dark:bg-terra-superficie dark:text-stone-300 ${reserva}`}
       data-purpose="reference-corporate-footer"
     >
