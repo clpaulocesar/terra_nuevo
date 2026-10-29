@@ -48,9 +48,9 @@ export default function AdminLayout() {
     {drawerAbierto && <div className="admin-drawer-overlay" onClick={() => setDrawerAbierto(false)} aria-hidden="true" />}
     <aside className={`admin-sidebar ${drawerAbierto ? 'open' : ''}`}>
       <header className="admin-brand"><img src="/logo-terra.png" alt="TERRA Autoservicio" className="admin-brand-logo" /><button className="admin-drawer-close" onClick={() => setDrawerAbierto(false)} aria-label="Cerrar menú" type="button"><X size={20} /></button></header>
-      <section className="admin-branch"><span><Store size={17} /></span><div><small>Sucursal activa</small><b>Equipetrol Showroom</b></div><i title="Terminal operativo" /></section>
+      <section className="admin-branch"><span><Store size={17} /></span><div><small>Sucursal activa</small><b>TERRA Showroom</b></div><i title="Terminal operativo" /></section>
       {navegacion()}
-      <footer><div className="admin-user"><span><Users size={15} /></span><div><b>{usuario.nombre}</b><small>{etiquetaRol} · Sucursal Equipetrol</small></div></div><button onClick={salir}><LogOut size={16} /> Cerrar sesión</button></footer>
+      <footer><div className="admin-user"><span><Users size={15} /></span><div><b>{usuario.nombre}</b><small>{etiquetaRol}</small></div></div><button onClick={salir}><LogOut size={16} /> Cerrar sesión</button></footer>
     </aside>
     <div className="admin-main-wrap"><AdminHeader onToggleDrawer={() => setDrawerAbierto((prev) => !prev)} /><main className="admin-content" id="contenido" tabIndex={-1}><Outlet /></main></div>
     {navegacion('admin-mobile-bottom-nav')}

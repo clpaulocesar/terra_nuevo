@@ -74,7 +74,7 @@ export default function VendedorLayout() {
             </span>
             <section>
               <b>{usuario.nombre}</b>
-              <small>Vendedor · Sucursal Equipetrol</small>
+              <small>Vendedor</small>
             </section>
           </div>
           <button type="button" className="seller-sidebar-logout" onClick={salir}>
