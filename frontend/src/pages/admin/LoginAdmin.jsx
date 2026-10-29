@@ -278,7 +278,7 @@ export default function LoginAdmin() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px]">
           <div>
             <span>
-              © 2026 <strong>Terra Autoservicio</strong> · Sucursal Equipetrol. Todos los derechos reservados.
+              © 2026 <strong>Terra Autoservicio</strong>. Todos los derechos reservados.
             </span>
           </div>
           <div className="flex items-center space-x-3 text-stone-400">
