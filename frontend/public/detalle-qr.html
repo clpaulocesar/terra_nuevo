@@ -145,7 +145,7 @@
       <main id="contenido"><div class="estado"><div class="spin"></div>Cargando datos del producto…</div></main>
       <aside class="qr-cart-panel" aria-label="Resumen de compra QR">
         <h2>Tu compra por QR</h2>
-        <p id="qrCartResumen">0 unidades · seguí escaneando productos</p>
+        <p id="qrCartResumen">0 unidades · sigue escaneando productos</p>
         <div class="qr-cart-items" id="qrCartProductos" aria-live="polite"></div>
         <div class="qr-cart-total"><span>Total estimado</span><b id="qrCartTotal">Bs 0,00</b></div>
         <div class="qr-cart-actions">
@@ -160,7 +160,7 @@
       <a class="btn sec" id="btnCatalogo" href="/catalogo">Ver catálogo completo</a>
       <a class="btn ghost" id="btnFicha" href="#">Abrir ficha completa en la tienda →</a>
     </div>
-    <footer>TERRA Autoservicio · Santa Cruz — mostrá esta ficha en showroom para asesorarte.</footer>
+    <footer>TERRA Autoservicio · Santa Cruz — muestra esta ficha en showroom para asesorarte.</footer>
   </div>
 
   <script>
@@ -218,7 +218,7 @@
         var total = items.reduce(function (suma, item) { return suma + Number(item.precio) * Number(item.cantidad); }, 0);
         document.getElementById('qrCartResumen').textContent = unidades
           ? unidades + (unidades === 1 ? ' unidad' : ' unidades') + ' · ' + items.length + (items.length === 1 ? ' producto' : ' productos')
-          : '0 unidades · seguí escaneando productos';
+          : '0 unidades · sigue escaneando productos';
         document.getElementById('qrCartConfirmar').disabled = unidades === 0;
         document.getElementById('qrCartTotal').textContent = formatoBs(total);
         document.getElementById('qrCartProductos').innerHTML = items.length
@@ -231,7 +231,7 @@
               + '<strong>' + esc(formatoBs(Number(item.precio) * Number(item.cantidad))) + '</strong></button>'
               + '<button class="qr-cart-remove" type="button" data-eliminar-producto-id="' + esc(item.id) + '" aria-label="Eliminar ' + esc(item.nombre) + '" title="Eliminar producto">×</button></article>';
           }).join('')
-          : '<div class="qr-cart-empty">Agregá este producto u otro código QR para armar tu compra.</div>';
+          : '<div class="qr-cart-empty">Agrega este producto u otro código QR para armar tu compra.</div>';
         return items;
       }
 
@@ -252,13 +252,13 @@
                 cargar(productoSeleccionadoId);
               } else {
                 secuenciaCargaDetalle += 1;
-                contenido.innerHTML = '<div class="qr-cart-empty">Seleccioná un producto de tu compra QR para ver su detalle.</div>';
+                contenido.innerHTML = '<div class="qr-cart-empty">Selecciona un producto de tu compra QR para ver su detalle.</div>';
                 btnFicha.style.display = 'none';
               }
             }
             mostrarEstadoQr('Producto eliminado de tu compra por QR.');
           } catch {
-            mostrarEstadoQr('No se pudo eliminar el producto. Habilitá el almacenamiento del sitio e intentá nuevamente.', true);
+            mostrarEstadoQr('No se pudo eliminar el producto. Habilita el almacenamiento del sitio e intenta nuevamente.', true);
           }
           return;
         }
@@ -281,7 +281,7 @@
         try {
           if (actualizarResumenQr().length) location.href = '/carrito?confirmarQr=1';
         } catch {
-          mostrarEstadoQr('No se pudo leer la compra en este navegador. Habilitá el almacenamiento del sitio para continuar.', true);
+          mostrarEstadoQr('No se pudo leer la compra en este navegador. Habilita el almacenamiento del sitio para continuar.', true);
         }
       });
 
@@ -344,7 +344,7 @@
       try {
         actualizarResumenQr();
       } catch {
-        mostrarEstadoQr('El navegador no permite guardar esta compra. Revisá la configuración de privacidad del sitio.', true);
+        mostrarEstadoQr('El navegador no permite guardar esta compra. Revisa la configuración de privacidad del sitio.', true);
       }
 
       async function cargar(productoId) {
@@ -378,9 +378,9 @@
         var apiConfigurada = Boolean((window.TERRA_CONFIG && window.TERRA_CONFIG.API_URL) || apiParam);
         var detalleErrores = errores.map(esc).join('<br>');
         var ayuda = apiConfigurada
-          ? 'Comprobá que la URL de API apunte al backend público, que esté activo y que permita CORS desde este sitio.'
-          : 'No hay una URL pública de backend configurada. Definí API_URL en <code class="url">/config.js</code> con la dirección del backend terminada en <code class="url">/api</code>.';
-        contenido.innerHTML = '<div class="error-box"><b>No se pudo cargar el producto.</b><br>' + ayuda + '<br><br><b>Diagnóstico de conexión:</b><br>' + detalleErrores + '<br><br>El QR sí recibió el ID <code class="url">' + esc(idDetalle) + '</code>; verificá que exista en la base de datos.</div>';
+          ? 'Comprueba que la URL de API apunte al backend público, que esté activo y que permita CORS desde este sitio.'
+          : 'No hay una URL pública de backend configurada. Define API_URL en <code class="url">/config.js</code> con la dirección del backend terminada en <code class="url">/api</code>.';
+        contenido.innerHTML = '<div class="error-box"><b>No se pudo cargar el producto.</b><br>' + ayuda + '<br><br><b>Diagnóstico de conexión:</b><br>' + detalleErrores + '<br><br>El QR sí recibió el ID <code class="url">' + esc(idDetalle) + '</code>; verifica que exista en la base de datos.</div>';
       }
 
       function pintar(p) {
@@ -457,9 +457,9 @@
               }
               guardarCompraQr(items);
               actualizarResumenQr();
-              mostrarEstadoQr(String(p.nombre) + ' se agregó a tu compra. Podés seguir escaneando otros productos.');
+              mostrarEstadoQr(String(p.nombre) + ' se agregó a tu compra. Puedes seguir escaneando otros productos.');
             } catch {
-              mostrarEstadoQr('No se pudo guardar el producto. Habilitá el almacenamiento del sitio e intentá nuevamente.', true);
+              mostrarEstadoQr('No se pudo guardar el producto. Habilita el almacenamiento del sitio e intenta nuevamente.', true);
             }
           });
         }

@@ -122,7 +122,7 @@ La migración de CSS a Tailwind va por fases y por pantalla (avance en `docs/00-
 ### Componentes compartidos
 - Iconos de Material Symbols con `components/ui/IconoMaterial.jsx` (tamaño siempre en `className`, por ejemplo `text-2xl`). No uses la clase `material-symbols-outlined`: la hoja de Google fija 24 px fuera de capas y anula las utilidades.
 - Carga: `components/ui/IndicadorCarga.jsx`. Botones flotantes: posiciones y estilo en `components/flotantes/estilosFlotantes.js` (única definición).
-- Clases gancho: algunas clases sin estilos propios se mantienen en el JSX porque otras hojas o el JS las usan (`app-shell`, `page-content`, `cart-widget`, `cart-page`, `cart-confirm`, `confirm-page`, `confirm-summary`, `pedido-ticket`, `chat-widget`, `menu-movil`, `terra-card`, `terra-cat`, `terra-btn-agregar`, `terra-paginador__btn`, `terra-grid`...). No les agregues estilos; desaparecen cuando se migran las hojas que las usan (sobre todo `accesibilidad.css`).
+- Clases gancho: algunas clases sin estilos propios se mantienen en el JSX porque otras hojas o el JS las usan (`app-shell`, `page-content`, `cart-widget`, `cart-page`, `cart-confirm`, `confirm-page`, `confirm-summary`, `pedido-ticket`, `chat-widget`, `menu-movil`, `terra-card`, `terra-cat`, `terra-btn-agregar`, `terra-paginador__btn`, `terra-grid`, `hoja-asa`...). No les agregues estilos; desaparecen cuando se migran las hojas que las usan (sobre todo `accesibilidad.css`).
 
 ### Cascada: el CSS heredado gana a las utilidades
 - Las utilidades de Tailwind están en `@layer utilities`; todo el CSS de los `.css` del proyecto está fuera de capas y les gana aunque tenga menos especificidad. Al migrar un componente, borra sus reglas viejas en la misma tarea; si no, la clase de Tailwind no tiene efecto.

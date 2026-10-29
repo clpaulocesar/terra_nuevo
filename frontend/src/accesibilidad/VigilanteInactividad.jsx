@@ -39,7 +39,7 @@ export default function VigilanteInactividad() {
       setAvisando(false);
       temporizadorAvisoRef.current = window.setTimeout(() => {
         setAvisando(true);
-        anunciar('La pantalla volverá al modo normal en 30 segundos por inactividad. Tocá "Seguir aquí" para continuar.', { forzar: true });
+        anunciar('La pantalla volverá al modo normal en 30 segundos por inactividad. Toca "Seguir aquí" para continuar.', { forzar: true });
         temporizadorFinRef.current = window.setTimeout(() => {
           setAvisando(false);
           desactivar();
@@ -58,7 +58,7 @@ export default function VigilanteInactividad() {
   if (!avisando) return null;
   return (
     <div className="a11y-aviso-inactividad" role="alertdialog" aria-live="assertive" aria-labelledby="a11y-inactividad-titulo">
-      <p id="a11y-inactividad-titulo">¿Seguís ahí? La pantalla volverá al modo normal en 30 segundos.</p>
+      <p id="a11y-inactividad-titulo">¿Sigues ahí? La pantalla volverá al modo normal en 30 segundos.</p>
       <button type="button" ref={botonSeguirRef} onClick={() => setAvisando(false)}>Seguir aquí</button>
     </div>
   );

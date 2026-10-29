@@ -45,7 +45,7 @@ export default function ResumenConfirmacion({ pedido, onAmpliarQr }) {
       )}
       {!pedido.metodoPago && (
         <p className={`m-0 mb-4 text-center text-terra-xs text-terra-texto-suave ${ocultoCerrada}`}>
-          Seleccioná un medio de pago para continuar.
+          Selecciona un medio de pago para continuar.
         </p>
       )}
       <button

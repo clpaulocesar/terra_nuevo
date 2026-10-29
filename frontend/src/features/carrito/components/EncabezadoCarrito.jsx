@@ -9,10 +9,10 @@ export default function EncabezadoCarrito() {
           className="m-0 text-terra-titulo-movil font-black tracking-terra-titulo sm:mt-3 sm:mb-1.5
             sm:text-terra-titulo"
         >
-          Revisá tu pedido
+          Revisa tu pedido
         </h1>
         <p className="m-0 max-w-[62ch] text-base text-terra-texto-suave">
-          Verificá tus artículos antes de generar el ticket para pagar en caja.
+          Verifica tus artículos antes de generar el ticket para pagar en caja.
         </p>
       </div>
     </header>

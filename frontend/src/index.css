@@ -200,8 +200,10 @@
   --spacing-terra-flotante-separacion: var(--terra-flotante-separacion);
   --spacing-terra-barra-inferior: var(--terra-barra-inferior-alto);
   /* Hoja inferior del resumen (Carrito y Confirmación en teléfono): distancia al borde
-     de abajo (en teléfono arranca sobre la barra inferior) y alto máximo abierta. */
+     de abajo (en teléfono arranca sobre la barra inferior), alto cerrada (lo mide
+     useHojaInferior) y alto máximo abierta. */
   --spacing-terra-hoja-abajo: var(--terra-hoja-abajo);
+  --spacing-terra-hoja: var(--terra-hoja-alto);
   --spacing-terra-hoja-abierta: calc(100dvh - 3rem - var(--terra-hoja-abajo));
 
   /* Ancho de pantalla sin la columna de flotantes ni el botón de accesibilidad (se
@@ -214,8 +216,7 @@
      en una fila aunque el texto esté al 150 %, como el paginador. */
   --spacing-terra-toque: 44px;
   --spacing-terra-hueco: 6px;
-  /* Hoja inferior del resumen: alto cerrado y margen inferior con la zona segura. */
-  --spacing-terra-hoja: 8.5rem;
+  /* Hoja inferior del resumen: margen inferior con la zona segura. */
   --spacing-terra-zona-segura: max(0.85rem, env(safe-area-inset-bottom));
 }
 
@@ -296,6 +297,8 @@
   --terra-a11y-reserva: calc(16px + 56px + 0.75rem);
   /* La hoja inferior del resumen arranca sobre la barra inferior (solo en teléfono). */
   --terra-hoja-abajo: 0px;
+  /* Alto de la hoja cerrada hasta que useHojaInferior mide su contenido. */
+  --terra-hoja-alto: 8.5rem;
 }
 @media (width < 40rem) {
   :root {

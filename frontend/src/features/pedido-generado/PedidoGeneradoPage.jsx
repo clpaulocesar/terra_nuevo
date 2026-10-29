@@ -52,7 +52,7 @@ export default function PedidoGeneradoPage() {
       </div>
       <h1 className="my-3 text-[clamp(2.1rem,5vw,3.3rem)] print:hidden">¡Tu ticket está listo!</h1>
       <p className="mx-auto mt-0 mb-4 max-w-152 text-terra-texto-suave print:hidden">
-        Presentá este código en caja para realizar el pago y coordinar la entrega o retiro.
+        Presenta este código en caja para realizar el pago y coordinar la entrega o retiro.
       </p>
       {/* Ticket y pasos en dos columnas solo con 42 rem o más de ancho: a 768 px, o con el
           texto al 150 %, van en una columna. */}

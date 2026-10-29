@@ -38,7 +38,7 @@ export function useConfirmacionPedido() {
         if (vigente) setTarifasEnvio(Array.isArray(tarifas) ? tarifas : []);
       })
       .catch(() => {
-        if (vigente) setError('No se pudieron cargar las tarifas de envío. Volvé a intentarlo.');
+        if (vigente) setError('No se pudieron cargar las tarifas de envío. Vuelve a intentarlo.');
       })
       .finally(() => {
         if (vigente) setCargandoTarifas(false);
@@ -51,7 +51,7 @@ export function useConfirmacionPedido() {
   const tarifaSeleccionada = tarifasEnvio.find((tarifa) => tarifa.id === zonaEnvioId);
   const costoEnvio = Number(tarifaSeleccionada?.costo || 0);
   const valorEnvio = esFlujoMayorista
-    ? (tarifaSeleccionada ? formatoMoneda(costoEnvio) : 'Seleccioná una zona')
+    ? (tarifaSeleccionada ? formatoMoneda(costoEnvio) : 'Selecciona una zona')
     : 'Por definir en caja';
   const filaEnvio = {
     etiqueta: `Envío${tarifaSeleccionada ? ` · ${tarifaSeleccionada.nombre}` : ''}`,
@@ -76,11 +76,11 @@ export function useConfirmacionPedido() {
   const confirmar = async () => {
     if (enviando.current) return;
     if (!metodoPago) {
-      setError('Seleccioná un medio de pago para continuar.');
+      setError('Selecciona un medio de pago para continuar.');
       return;
     }
     if (esFlujoMayorista && quiereEnvio && !zonaEnvioId) {
-      setError('Seleccioná la zona de entrega para calcular el envío.');
+      setError('Selecciona la zona de entrega para calcular el envío.');
       return;
     }
 

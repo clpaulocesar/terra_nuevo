@@ -1,14 +1,17 @@
 // Pie de página corporativo de TERRA Autoservicio.
-// Por debajo de 768 px reserva bajo el texto el alto de los flotantes y de la barra inferior.
+// Por debajo de 768 px reserva bajo el texto el alto de los flotantes y de la barra inferior;
+// en Carrito y Confirmación, también el de la hoja del resumen (LayoutCliente sube
+// --terra-flotante-abajo por encima de ella). Va en el flujo y sin z-index: nunca tapa la hoja.
+// En el carrito no hay flotantes, pero sí el botón de accesibilidad a esa altura.
 // site-footer: gancho de la hoja de impresión de PedidoGenerado.css.
 export default function PieCliente({ enCarrito }) {
   const reserva = enCarrito
-    ? 'max-md:pb-terra-flotante-abajo'
+    ? 'max-md:pb-[calc(var(--terra-flotante-abajo)+var(--terra-a11y-reserva))]'
     : 'max-md:pb-[calc(var(--terra-flotante-abajo)+var(--terra-flotantes-alto)+var(--terra-flotante-separacion))]';
 
   return (
     <footer
-      className={`site-footer relative z-30 mt-auto w-full border-t border-[#e5ded4] bg-[#f5f2eb] px-6 py-10 sm:px-12 lg:px-20 text-neutral-800 dark:border-terra-borde-suave dark:bg-terra-superficie dark:text-stone-300 ${reserva}`}
+      className={`site-footer mt-auto w-full border-t border-[#e5ded4] bg-[#f5f2eb] px-6 py-10 sm:px-12 lg:px-20 text-neutral-800 dark:border-terra-borde-suave dark:bg-terra-superficie dark:text-stone-300 ${reserva}`}
       data-purpose="reference-corporate-footer"
     >
       <div className="mx-auto max-w-[1720px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-14">

@@ -68,7 +68,7 @@ export default function TicketPedido({ pedido, cliente, items, pagoQrPendiente }
           aria-hidden="true"
           className="shrink-0"
         />
-        Conservá este código hasta finalizar tu compra.
+        Conserva este código hasta finalizar tu compra.
       </footer>
     </article>
   );

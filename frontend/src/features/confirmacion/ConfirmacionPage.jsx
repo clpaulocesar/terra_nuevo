@@ -28,13 +28,13 @@ export default function ConfirmacionPage() {
     : { direccion: cliente.direccion, referencia: cliente.referencia };
 
   return (
-    <section className="confirm-page mx-auto con-resumen-fijo:pb-terra-hoja md:max-w-terra-sin-flotantes">
+    <section className="confirm-page mx-auto md:max-w-terra-sin-flotantes">
       <EnlaceVolver to={esFlujoMayorista ? '/mi-cuenta' : '/identificacion'}>
         {esFlujoMayorista ? 'Volver a mi perfil' : 'Volver a identificación'}
       </EnlaceVolver>
       <header className="my-6">
         <span className="text-xs font-extrabold text-terra-acento uppercase">Paso 3 de 3 · Confirmación</span>
-        <h1 className="my-2 text-terra-titulo-movil sm:text-terra-titulo">Revisá y confirmá tu pedido</h1>
+        <h1 className="my-2 text-terra-titulo-movil sm:text-terra-titulo">Revisa y confirma tu pedido</h1>
         <p className="text-terra-texto-suave">
           {quiereEnvio
             ? 'Generamos el pedido para pagar en caja y coordinamos el envío a tu dirección.'
@@ -46,8 +46,8 @@ export default function ConfirmacionPage() {
         titulo="Pago en mostrador presencial"
       >
         {quiereEnvio
-          ? 'Presentá el código del pedido al cajero para efectuar el pago y coordinar el envío a domicilio.'
-          : 'Presentá el código del pedido al cajero para efectuar el pago y coordinar la entrega.'}
+          ? 'Presenta el código del pedido al cajero para efectuar el pago y coordinar el envío a domicilio.'
+          : 'Presenta el código del pedido al cajero para efectuar el pago y coordinar la entrega.'}
       </AvisoPagoMostrador>
       {/* Datos y resumen en dos columnas solo con 48 rem o más de ancho: a 768 y 884 px (con
           la reserva de los flotantes) o con el texto al 150 %, van en una columna. */}

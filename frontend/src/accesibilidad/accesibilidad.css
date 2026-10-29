@@ -106,11 +106,13 @@ html.modo-accesible.a11y-foco .terra-card:focus-visible {
   box-shadow: 0 0 0 7px #000 !important;
 }
 
-/* Botones grandes: objetivos táctiles de 48 px */
-html.modo-accesible.a11y-botones :is(button, a[href], [role="button"], input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), select) {
+/* Botones grandes: objetivos táctiles de 48 px. El asa de la hoja inferior (.hoja-asa) ya se
+   toca en 48 px con su ::before y debe seguir viéndose como una barra; :where no suma
+   especificidad. */
+html.modo-accesible.a11y-botones :is(button, a[href], [role="button"], input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), select):where(:not(.hoja-asa)) {
   min-height: 48px;
 }
-html.modo-accesible.a11y-botones :is(button, [role="button"]) { min-width: 48px; }
+html.modo-accesible.a11y-botones :is(button, [role="button"]):where(:not(.hoja-asa)) { min-width: 48px; }
 html.modo-accesible.a11y-botones input[type="checkbox"],
 html.modo-accesible.a11y-botones input[type="radio"] { width: 28px; height: 28px; }
 html.modo-accesible.a11y-botones .terra-cat, html.modo-accesible.a11y-botones .terra-dropdown-item { min-height: 52px; }
@@ -184,11 +186,11 @@ html.a11y-contraste :is(main, section, article, aside, header, footer, nav, form
   text-shadow: none !important;
 }
 html.a11y-contraste :is(img, video, canvas, svg) { background: transparent !important; }
-html.a11y-contraste :is(button, [role="button"], a.btn, .btn, .terra-btn-agregar, .cart-confirm, .cart-back, .confirm-summary > a, .product-buy__now, .categories-add, .warehouse-admin button) {
+html.a11y-contraste :is(button, [role="button"], a.btn, .btn, .terra-btn-agregar, .cart-confirm, .cart-back, .confirm-summary > a, .product-buy__now, .categories-add, .warehouse-admin button):where(:not(.hoja-asa)) {
   background: #000 !important; background-image: none !important;
   color: #ffd400 !important; border: 2px solid #ffd400 !important; box-shadow: none !important;
 }
-html.a11y-contraste :is(button, [role="button"]):hover { background: #ffd400 !important; color: #000 !important; }
+html.a11y-contraste :is(button, [role="button"]):where(:not(.hoja-asa)):hover { background: #ffd400 !important; color: #000 !important; }
 html.a11y-contraste :is(button, [role="button"]):hover * { color: #000 !important; background: transparent !important; }
 html.a11y-contraste :is(button, [role="button"]) * { background: transparent !important; color: inherit !important; }
 html.a11y-contraste a { color: #ffd400 !important; text-decoration: underline; }

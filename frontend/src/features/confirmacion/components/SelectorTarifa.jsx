@@ -11,7 +11,7 @@ export default function SelectorTarifa({ tarifas, zonaId, cargando, onElegir }) 
         disabled={cargando}
         className="min-h-11 rounded-lg border border-terra-borde bg-terra-superficie p-2 text-terra-texto"
       >
-        <option value="">{cargando ? 'Cargando tarifas…' : 'Seleccioná tu zona'}</option>
+        <option value="">{cargando ? 'Cargando tarifas…' : 'Selecciona tu zona'}</option>
         {tarifas.map((tarifa) => (
           <option
             key={tarifa.id}

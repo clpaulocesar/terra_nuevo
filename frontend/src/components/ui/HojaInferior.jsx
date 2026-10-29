@@ -2,8 +2,8 @@ import { X } from 'lucide-react';
 
 // Panel que en pantallas anchas es una tarjeta más y por debajo de 761 px
 // (con-resumen-fijo:) queda fijo abajo, sobre la barra inferior del teléfono: cerrado
-// muestra 8.5rem y el asa lo abre. Abierto se cierra con el asa, con "Cerrar", tocando
-// el velo de fondo o con Esc (useHojaInferior).
+// muestra el total y el botón principal (su alto lo mide useHojaInferior) y el asa lo
+// abre. Abierto se cierra con el asa, con "Cerrar", tocando el velo de fondo o con Esc.
 // El estado viene de useHojaInferior; quien lo usa decide qué ocultar con la hoja cerrada.
 const HOJA = `con-resumen-fijo:fixed con-resumen-fijo:inset-x-0 con-resumen-fijo:bottom-terra-hoja-abajo
   con-resumen-fijo:z-30 con-resumen-fijo:rounded-t-terra-modal con-resumen-fijo:rounded-b-none
@@ -16,7 +16,7 @@ const CERRADA = 'con-resumen-fijo:max-h-terra-hoja con-resumen-fijo:overflow-hid
 const ABIERTA = 'con-resumen-fijo:z-1310 con-resumen-fijo:max-h-terra-hoja-abierta con-resumen-fijo:overflow-y-auto';
 
 export default function HojaInferior({ hoja, etiquetaAbrir, etiquetaCerrar, className = '', children }) {
-  const { asaRef } = hoja;
+  const { asaRef, hojaRef } = hoja;
   return (
     <>
       {hoja.abierta && (
@@ -28,25 +28,27 @@ export default function HojaInferior({ hoja, etiquetaAbrir, etiquetaCerrar, clas
           aria-label={etiquetaCerrar}
         />
       )}
-      <aside className={`${className} ${HOJA} ${hoja.abierta ? ABIERTA : CERRADA}`}>
-        {/* El asa se ve de 14 px pero se toca en 44: el ::before absoluto suma 7 px arriba (el
-            relleno superior de la hoja) y 23 px abajo, sin ocupar lugar en la hoja cerrada. */}
+      <aside
+        ref={hojaRef}
+        className={`${className} ${HOJA} ${hoja.abierta ? ABIERTA : CERRADA}`}
+      >
+        {/* El asa se ve de 14 px pero se toca en 48 (también con "Botones grandes"): el ::before
+            absoluto suma 7 px arriba (el relleno superior de la hoja) y 27 px abajo, sin ocupar
+            lugar en la hoja cerrada. La barra es el ::after: las reglas forzadas del modo accesible
+            pintan los span de negro en contraste. hoja-asa: gancho que la excluye de esas reglas
+            (accesibilidad.css). */}
         <button
           ref={asaRef}
           type="button"
-          className="relative mb-1 hidden h-3.5 w-full cursor-grab items-center justify-center border-0 bg-transparent
-            p-0 before:absolute before:inset-x-0 before:-top-1.75 before:-bottom-5.75 con-resumen-fijo:flex"
+          className="hoja-asa relative mb-1 hidden h-3.5 w-full cursor-grab items-center justify-center border-0
+            bg-transparent p-0 before:absolute before:inset-x-0 before:-top-1.75 before:-bottom-6.75 after:h-1 after:w-11
+            after:rounded-full after:bg-terra-borde-control con-resumen-fijo:flex"
           aria-label={hoja.abierta ? etiquetaCerrar : etiquetaAbrir}
           aria-expanded={hoja.abierta}
           onClick={hoja.alternar}
           onTouchStart={hoja.iniciarArrastre}
           onTouchEnd={hoja.terminarArrastre}
-        >
-          <span
-            aria-hidden="true"
-            className="h-1 w-11 rounded-full bg-terra-borde-control"
-          />
-        </button>
+        />
         {hoja.abierta && (
           <button
             type="button"

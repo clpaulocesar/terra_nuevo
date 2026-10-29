@@ -66,7 +66,7 @@ export default function PagoQr({ total, onAmpliar, className = '' }) {
         Ampliar QR para escanear
       </button>
       <p className="m-0 text-left text-xs leading-snug text-terra-texto-suave">
-        Escaneá desde cualquier banca móvil (BCP, Unión, BNB, Mercantil, Bisa, GanaMóvil, etc.) y confirmá para
+        Escanea desde cualquier banca móvil (BCP, Unión, BNB, Mercantil, Bisa, GanaMóvil, etc.) y confirma para
         generar tu ticket de retiro.
       </p>
     </div>

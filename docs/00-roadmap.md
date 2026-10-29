@@ -11,6 +11,8 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
 ## Hecho
 
 ### 2026-10-29
+- **Resumen del Carrito tapado por el pie en tablet vertical** (rama `fix/carrito-resumen-tablet`): el pie de `684e119` (`z-30`) quedaba encima de la hoja inferior de la fase 3, también en Confirmación. El pie va en el flujo y sin z-index, la reserva para la hoja la hace el pie (sin el hueco vacío dentro de la página) y el alto de la hoja cerrada se mide, así que con texto al 150 % el botón ya no queda cortado. Con "Botones grandes" del modo accesible, el asa de la hoja ya no se convierte en un recuadro vacío de 48 px con borde amarillo: sigue siendo una barra y solo crece su zona de toque (48 px). Decisión: [[2026-10-29-hoja-resumen-sobre-el-pie]].
+- **Textos del cliente en tuteo** (misma rama): 103 textos con voseo pasados a tú (88 en `frontend/src/` y 15 en `public/detalle-qr.html`). Decisión: [[2026-10-29-textos-en-tuteo]].
 - **Fase 3 de Tailwind** (flujo de compra y carrito flotante): ver la tabla de abajo y [[2026-10-28-migracion-tailwind]]. Corrige de paso que la barra inferior del teléfono tapaba "Continuar y generar pedido" en Carrito y Confirmación, el scroll horizontal del ticket en teléfono y los flotantes sobre el resumen de Confirmación.
 - **El catálogo ya no muestra productos con stock 0** (sin commit): `?stock=true` en el listado y en los conteos de categorías; la ficha, "Otros modelos" y el admin siguen viendo todo. La casilla "Solo con stock" de Ventas directas vuelve a funcionar. Decisión: [[2026-10-29-catalogo-sin-stock-cero]]. Pruebas: backend 50.
 
@@ -75,6 +77,8 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 - Revisión visual en modo claro, oscuro y alto contraste de Pedidos, Ventas directas y Clientes (cambios del 28/10 sin revisión en navegador).
 - Resueltos en la fase 1 de Tailwind: el asistente ya no tapa "Total a pagar en caja" en Confirmación; desde 768 px el botón de accesibilidad no pasa sobre la grilla; el enlace "Catálogo de Productos" queda en una línea (solo ícono entre 640 y 1023 px). Además, con texto al 150 % el encabezado ya no recorta el logo ni "Carrito" (pasa a dos líneas).
 - La guía de usuario `docs/GUIA_USUARIO_TERRA_AUTOSERVICIO.md` que cita `AGENTS.md` no existe.
+- **Pie del cliente con colores fijos → tokens.** `PieCliente.jsx` (de `684e119`) usa colores sueltos (`bg-[#f5f2eb]`, `border-[#e5ded4]`, `text-stone-600`, `text-neutral-800`, `text-emerald-600`...) y variantes `dark:` en lugar de los tokens `terra-*`. Pasarlo a tokens y revisarlo en claro, oscuro y contraste.
+- **Tuteo en admin, vendedores y backend.** Quedan textos con voseo en `src/pages/admin`, `src/pages/vendedor`, `src/components/admin`, `src/services/envioService.js` y en los mensajes del backend (por ejemplo, en [[erp-terra]]). Ver [[2026-10-29-textos-en-tuteo]].
 - Scripts de la raíz (`scripts/asignar-productos-central.mjs`, `scripts/reclasificar-categorias.mjs`, `scripts/importar-excel-supabase.mjs`) todavía mencionan Supabase o deducen TLS por el host.
 
 ## Bloqueado por terceros

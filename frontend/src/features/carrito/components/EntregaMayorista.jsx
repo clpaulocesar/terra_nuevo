@@ -19,10 +19,10 @@ export default function EntregaMayorista({ sesion, entregaDomicilio, onCambiarEn
             id="entrega-titulo"
             className={TITULO_SECCION}
           >
-            ¿Cómo querés recibir tu pedido?
+            ¿Cómo quieres recibir tu pedido?
           </h2>
           <p className="mt-1 mb-0 text-terra-sm text-terra-texto-suave">
-            El envío a domicilio es opcional. Si preferís, retirá en tienda sin costo.
+            El envío a domicilio es opcional. Si prefieres, retira en tienda sin costo.
           </p>
         </div>
         <span
@@ -40,14 +40,14 @@ export default function EntregaMayorista({ sesion, entregaDomicilio, onCambiarEn
         <OpcionEntrega
           icono={PackageOpen}
           titulo="Retiro en tienda"
-          detalle="Pagás y retirás en el mostrador."
+          detalle="Pagas y retiras en el mostrador."
           elegida={!entregaDomicilio}
           onElegir={() => onCambiarEntrega(false)}
         />
         <OpcionEntrega
           icono={Truck}
           titulo="Envío a domicilio"
-          detalle={tieneDireccion ? 'A la dirección de tu perfil mayorista.' : 'Necesitás registrar una dirección.'}
+          detalle={tieneDireccion ? 'A la dirección de tu perfil mayorista.' : 'Necesitas registrar una dirección.'}
           elegida={entregaDomicilio}
           disabled={!tieneDireccion}
           onElegir={() => onCambiarEntrega(true)}
@@ -67,7 +67,7 @@ export default function EntregaMayorista({ sesion, entregaDomicilio, onCambiarEn
             className="shrink-0"
           />
           <span>
-            Para recibir a domicilio registrá una dirección.{' '}
+            Para recibir a domicilio registra una dirección.{' '}
             <Link
               to="/mi-cuenta"
               className="font-extrabold text-terra-acento"

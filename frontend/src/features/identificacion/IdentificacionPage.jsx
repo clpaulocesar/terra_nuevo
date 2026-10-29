@@ -93,7 +93,7 @@ export default function IdentificacionPage() {
         Datos para tu pedido en tienda
       </h1>
       <p className="mx-auto my-0 max-w-140 text-center text-base text-terra-texto-suave">
-        Ingresá tus datos para asociar el ticket y llamarte en caja o coordinar el despacho.
+        Ingresa tus datos para asociar el ticket y llamarte en caja o coordinar el despacho.
       </p>
       <form
         onSubmit={continuar}
