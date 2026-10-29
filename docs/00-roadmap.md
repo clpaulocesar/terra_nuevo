@@ -11,7 +11,11 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
 ## Hecho
 
 ### 2026-10-29
+<<<<<<< HEAD
+- **Pie de página corporativo adaptado a todos los dispositivos**: diseño responsive optimizado para móviles (360px), tablets (768px portrait y 1024px landscape del kiosco) y pantallas de escritorio. Botones táctiles >= 44px (WCAG), espaciado lateral seguro ante botones flotantes y barra inferior de derechos de autor. Retiro temporal de la temática Halloween.
+=======
 - **Fase 3 de Tailwind** (flujo de compra y carrito flotante): ver la tabla de abajo y [[2026-10-28-migracion-tailwind]]. Corrige de paso que la barra inferior del teléfono tapaba "Continuar y generar pedido" en Carrito y Confirmación, el scroll horizontal del ticket en teléfono y los flotantes sobre el resumen de Confirmación.
+>>>>>>> 9e2b009e83b1b3b4db51a3221292023aa9ee6985
 - **El catálogo ya no muestra productos con stock 0** (sin commit): `?stock=true` en el listado y en los conteos de categorías; la ficha, "Otros modelos" y el admin siguen viendo todo. La casilla "Solo con stock" de Ventas directas vuelve a funcionar. Decisión: [[2026-10-29-catalogo-sin-stock-cero]]. Pruebas: backend 50.
 
 ### 2026-10-28
