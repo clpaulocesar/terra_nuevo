@@ -69,6 +69,9 @@ export async function eliminarCategoria(req, res, next) {
 export async function listarCategorias(req, res, next) {
   try {
     const incluirVacias = ['1', 'true'].includes(String(req.query.todas ?? '').toLowerCase());
+    // El catálogo pide ?stock=true: cuenta solo productos con stock, igual que su listado,
+    // para no mostrar categorías que al tocarlas quedan vacías.
+    const soloConStock = req.query.stock === 'true';
     const resultado = await pool.query(`
       WITH ventas_categoria AS (
         SELECT c2.id AS categoria_id, SUM(COALESCE(oi.quantity, 0))::integer AS unidades
@@ -81,6 +84,7 @@ export async function listarCategorias(req, res, next) {
              COALESCE(vc.unidades, 0)::integer AS ventas
       FROM categories c
       LEFT JOIN products p ON p.category_id = c.id AND COALESCE(p.activo, p.is_active, TRUE) = TRUE
+        ${soloConStock ? 'AND COALESCE(p.stock_quantity, 0) > 0' : ''}
       LEFT JOIN ventas_categoria vc ON vc.categoria_id = c.id
       WHERE c.is_active = TRUE
       GROUP BY c.id, c.name, vc.unidades

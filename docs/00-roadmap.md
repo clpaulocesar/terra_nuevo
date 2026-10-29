@@ -1,5 +1,5 @@
 ---
-actualizado: 2026-10-28
+actualizado: 2026-10-29
 tags: [roadmap]
 ---
 
@@ -9,6 +9,9 @@ Estado del proyecto TERRA Autoservicio. Se actualiza al cerrar cada tarea (ver `
 Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · Terceros: [[pendientes-terceros]].
 
 ## Hecho
+
+### 2026-10-29
+- **El catálogo ya no muestra productos con stock 0** (sin commit): `?stock=true` en el listado y en los conteos de categorías; la ficha, "Otros modelos" y el admin siguen viendo todo. La casilla "Solo con stock" de Ventas directas vuelve a funcionar. Decisión: [[2026-10-29-catalogo-sin-stock-cero]]. Pruebas: backend 50.
 
 ### 2026-10-28
 - **Análisis técnico del repositorio**: [[ANALISIS_PROYECTO]] (foto previa a los cambios del día).
@@ -36,7 +39,7 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 |---|---|---|
 | 0 | Base: tokens `@theme`, variantes `dark:` y `contraste:`, reglas globales en `@layer base` | Hecha el 2026-10-28 |
 | 1 | Catálogo, tarjeta, paginación, filtros, flotantes y Layout del cliente | Hecha el 2026-10-28. Código en `src/features/catalogo/` y `src/features/layout-cliente/`; se borraron `Catalogo.css`, `Layout.css`, `FloatingActions.css`, `NavigationFix.css` y `HeaderOptionsHidden.css` |
-| 2 | DetalleProducto | Hecha el 2026-10-28, sin commit, en revisión. Código en `src/features/detalle-producto/`; se borraron `DetalleProducto.css`, `DetalleProductoBack.css`, `DetalleProductoPalette.css`, `DetalleProductoRelated.css` y `DetalleProductoSpecs.css` (los tres últimos no se importaban) |
+| 2 | DetalleProducto | Hecha el 2026-10-28. Código en `src/features/detalle-producto/`; se borraron `DetalleProducto.css`, `DetalleProductoBack.css`, `DetalleProductoPalette.css`, `DetalleProductoRelated.css` y `DetalleProductoSpecs.css` (los tres últimos no se importaban) |
 | 3 | Carrito, Identificación, Confirmación, PedidoGenerado | Pendiente |
 | 4 | Bienvenida, Categorías | Pendiente |
 | 5 | Mayorista | Pendiente |

@@ -53,7 +53,10 @@ export async function listarProductos(req, res, next) {
     const soloActivos = req.query.todos === 'true' ? false : true;
     const soloPromos = req.query.promos === 'true';
     const soloOfertas = req.query.ofertas === 'true';
-    const conStock = false; 
+    // Solo quien lo pide filtra por stock: el catálogo del kiosco oculta los productos
+    // con stock 0 y Ventas directas tiene "Solo con stock". El resto (admin, ficha,
+    // relacionados) sigue viendo todo.
+    const conStock = req.query.stock === 'true';
     const precioMin = req.query.precioMin != null && req.query.precioMin !== '' ? Number(req.query.precioMin) : null;
     const precioMax = req.query.precioMax != null && req.query.precioMax !== '' ? Number(req.query.precioMax) : null;
 
