@@ -23,6 +23,10 @@ const VARIANTES = {
     reposo: 'border border-terra-primario/25 bg-terra-primario-claro text-terra-acento dark:border-terra-borde-hover',
     activo: `border border-transparent ${DEGRADADO_OFERTA}`,
   },
+  nuevos: {
+    reposo: 'border border-terra-ok/30 bg-terra-ok-fondo text-terra-ok dark:border-terra-borde-hover',
+    activo: 'border border-transparent bg-terra-ok text-terra-sobre-primario',
+  },
 };
 
 // Chip del riel de categorías (también "Ofertas", el selector y "+N más").

@@ -68,6 +68,7 @@ function construirQueryProductos({
   orden = '',
   promos = false,
   ofertas = false,
+  nuevos = false,
   stock = false,
   precioMin = null,
   precioMax = null,
@@ -81,6 +82,7 @@ function construirQueryProductos({
   if (todos) p.set('todos', 'true');
   if (promos) p.set('promos', 'true');
   if (ofertas) p.set('ofertas', 'true');
+  if (nuevos) p.set('nuevos', 'true');
   if (stock) p.set('stock', 'true');
   if (precioMin !== null && precioMin !== '' && Number.isFinite(Number(precioMin))) p.set('precioMin', String(precioMin));
   if (precioMax !== null && precioMax !== '' && Number.isFinite(Number(precioMax))) p.set('precioMax', String(precioMax));

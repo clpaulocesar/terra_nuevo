@@ -10,8 +10,8 @@ const ANCHOS_ESQUELETO = [110, 150, 130, 140];
 const RielCategorias = forwardRef(function RielCategorias(
   {
     cargando, categorias, categoriasEnRiel, totalCategorias, categoriaActivaFuera, categoriaSeleccionada,
-    esActiva, soloOfertas, menuAbierto, visibles, onAlternarMenu, onCerrarMenu, onAbrirMenu, onElegir, onAlternarOfertas,
-  },
+     esActiva, soloOfertas, soloNuevos, menuAbierto, visibles, onAlternarMenu, onCerrarMenu, onAbrirMenu, onElegir, onAlternarOfertas, onAlternarNuevos,
+   },
   refMenu,
 ) {
   return (
@@ -44,16 +44,25 @@ const RielCategorias = forwardRef(function RielCategorias(
               onElegir={onElegir}
             />
 
-            <ChipCategoria
-              variante="ofertas"
-              icono="local_fire_department"
-              etiqueta="Ofertas"
-              activo={soloOfertas}
-              punto={soloOfertas}
-              data-tour="ofertas"
-              aria-pressed={soloOfertas}
-              onClick={onAlternarOfertas}
-            />
+             <ChipCategoria
+               variante="ofertas"
+               icono="local_fire_department"
+               etiqueta="Ofertas"
+               activo={soloOfertas}
+               punto={soloOfertas}
+               data-tour="ofertas"
+               aria-pressed={soloOfertas}
+               onClick={onAlternarOfertas}
+             />
+             <ChipCategoria
+               variante="nuevos"
+               icono="new_releases"
+               etiqueta="Nuevos"
+               activo={soloNuevos}
+               punto={soloNuevos}
+               aria-pressed={soloNuevos}
+               onClick={onAlternarNuevos}
+             />
 
             {categoriasEnRiel.map((cat) => {
               const activa = esActiva(cat.id);

@@ -20,8 +20,8 @@ const estadoInicial = {
   categoriasCargadas: false,
 };
 
-export function claveFiltros({ buscar = '', categoria = '', orden = 'recomendados', limite = LIMITE_CATALOGO, soloOfertas = false } = {}) {
-  return JSON.stringify({ b: buscar.trim().toLowerCase(), c: categoria.trim().toLowerCase(), o: orden, l: limite, f: Boolean(soloOfertas) });
+export function claveFiltros({ buscar = '', categoria = '', orden = 'recomendados', limite = LIMITE_CATALOGO, soloOfertas = false, soloNuevos = false } = {}) {
+  return JSON.stringify({ b: buscar.trim().toLowerCase(), c: categoria.trim().toLowerCase(), o: orden, l: limite, f: Boolean(soloOfertas), n: Boolean(soloNuevos) });
 }
 
 function reducer(estado, accion) {
@@ -93,6 +93,7 @@ export function CatalogoProvider({ children }) {
       categoria: filtros.categoria?.trim() || '',
       orden: filtros.orden || 'recomendados',
       ofertas: Boolean(filtros.soloOfertas),
+      nuevos: Boolean(filtros.soloNuevos),
       // El catálogo no muestra productos con stock 0 (ni los cuenta en las categorías).
       stock: true,
       limite: filtros.limite || LIMITE_CATALOGO,
@@ -136,12 +137,12 @@ export function CatalogoProvider({ children }) {
 }
 
 // Hook de consumo: devuelve la página pedida desde caché y la carga si falta.
-export function useCatalogoPaginado({ buscar = '', categoria = '', orden = 'recomendados', pagina = 1, limite = LIMITE_CATALOGO, soloOfertas = false }) {
+export function useCatalogoPaginado({ buscar = '', categoria = '', orden = 'recomendados', pagina = 1, limite = LIMITE_CATALOGO, soloOfertas = false, soloNuevos = false }) {
   const contexto = useContext(CatalogoContext);
   if (!contexto) throw new Error('useCatalogoPaginado debe usarse dentro de <CatalogoProvider>.');
   const { estado, cargarPagina, cargarCategorias } = contexto;
 
-  const filtros = useMemo(() => ({ buscar, categoria, orden, limite, soloOfertas }), [buscar, categoria, orden, limite, soloOfertas]);
+  const filtros = useMemo(() => ({ buscar, categoria, orden, limite, soloOfertas, soloNuevos }), [buscar, categoria, orden, limite, soloOfertas, soloNuevos]);
   const clave = claveFiltros(filtros);
   const consulta = estado.consultas[clave];
   const productos = consulta?.paginas?.[pagina];

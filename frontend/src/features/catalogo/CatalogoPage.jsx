@@ -105,6 +105,10 @@ export default function CatalogoPage() {
   const [soloOfertas, setSoloOfertas] = useState(
     () => contextoCatalogo?.soloOfertas ?? searchParams.get('ofertas') === '1',
   );
+  // Chip "Nuevos lanzamientos": limita el listado a productos con nuevo_lanzamiento vigente.
+  const [soloNuevos, setSoloNuevos] = useState(
+    () => contextoCatalogo?.soloNuevos ?? searchParams.get('nuevos') === '1',
+  );
   const [menuOrdenAbierto, setMenuOrdenAbierto] = useState(false);
   const [menuCategoriasAbierto, setMenuCategoriasAbierto] = useState(false);
   const [pagina, setPagina] = useState(() => {
@@ -120,6 +124,7 @@ export default function CatalogoPage() {
       categoria: categoriaSeleccionada,
       orden,
       soloOfertas,
+      soloNuevos,
       pagina,
     },
   };
@@ -150,9 +155,16 @@ export default function CatalogoPage() {
     const activo = !soloOfertas;
     setSoloOfertas(activo);
     setPagina(1);
-    // La URL refleja el filtro para poder compartirla o volver con "atrás".
+    // La URL refleja el filtro para poder compartirlo o volver con "atrás".
     navigate(activo ? '/catalogo?ofertas=1' : '/catalogo', { replace: true });
     anunciar(activo ? 'Mostrando solo productos en oferta.' : 'Mostrando todos los productos.');
+  };
+  const alternarNuevos = () => {
+    const activo = !soloNuevos;
+    setSoloNuevos(activo);
+    setPagina(1);
+    navigate(activo ? '/catalogo?nuevos=1' : '/catalogo', { replace: true });
+    anunciar(activo ? 'Mostrando solo nuevos lanzamientos.' : 'Mostrando todos los productos.');
   };
 
   // Escribir "oferta de toallas" o "toallas en oferta" en el buscador enciende el
@@ -169,10 +181,12 @@ export default function CatalogoPage() {
   useEffect(() => {
     if (primeraSincronizacionRef.current) { primeraSincronizacionRef.current = false; return; }
     const ofertasUrl = searchParams.get('ofertas') === '1';
+    const nuevosUrl = searchParams.get('nuevos') === '1';
     const categoriaUrl = (searchParams.get('categoria') || '').trim();
     const buscarUrl = (searchParams.get('buscar') || '').trim();
     let cambio = false;
     if (ofertasUrl !== soloOfertas) { setSoloOfertas(ofertasUrl); cambio = true; }
+    if (nuevosUrl !== soloNuevos) { setSoloNuevos(nuevosUrl); cambio = true; }
     if (searchParams.has('categoria') && categoriaUrl !== categoriaSeleccionada) {
       setCategoriaSeleccionada(categoriaUrl);
       // Misma regla que el chip: una categoría nueva (voz, chat, enlace) limpia la búsqueda anterior.
@@ -203,8 +217,9 @@ export default function CatalogoPage() {
     orden,
     pagina,
     limite: LIMITE_CATALOGO,
-    soloOfertas,
-  });
+     soloOfertas,
+     soloNuevos,
+   });
 
   // Si el backend devuelve menos páginas de las que pide la URL, se corrige.
   useEffect(() => {
@@ -521,8 +536,10 @@ export default function CatalogoPage() {
           categoriaActivaFuera={activaFueraDelRiel ? categoriaActivaObj : null}
           categoriaSeleccionada={categoriaSeleccionada}
           esActiva={esCategoriaActiva}
-          soloOfertas={soloOfertas}
-          menuAbierto={menuCategoriasAbierto}
+           soloOfertas={soloOfertas}
+           soloNuevos={soloNuevos}
+           onAlternarNuevos={alternarNuevos}
+           menuAbierto={menuCategoriasAbierto}
           visibles={CATEGORIAS_VISIBLES}
           onAlternarMenu={() => setMenuCategoriasAbierto((prev) => !prev)}
           onCerrarMenu={() => setMenuCategoriasAbierto(false)}

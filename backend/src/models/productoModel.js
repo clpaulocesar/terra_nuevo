@@ -139,7 +139,7 @@ export function raizDeBusqueda(termino) {
   return palabras.join(' ');
 }
 
-function construirFiltros({ buscar = '', categoria = '', soloActivos = false, soloPromos = false, soloOfertas = false, conStock = false, precioMin = null, precioMax = null } = {}) {
+function construirFiltros({ buscar = '', categoria = '', soloActivos = false, soloPromos = false, soloOfertas = false, soloNuevos = false, conStock = false, precioMin = null, precioMax = null } = {}) {
   const valores = [];
   const condiciones = [];
   if (soloActivos) condiciones.push('COALESCE(p.activo, p.is_active, TRUE) = TRUE');
@@ -171,6 +171,7 @@ function construirFiltros({ buscar = '', categoria = '', soloActivos = false, so
   }
   if (soloPromos) condiciones.push(EXISTE_PROMOCION);
   if (soloOfertas) condiciones.push('COALESCE(p.en_oferta, FALSE) = TRUE');
+  if (soloNuevos) condiciones.push(`${ES_NUEVO_LANZAMIENTO}`);
   if (conStock) condiciones.push('COALESCE(p.stock_quantity, 0) > 0');
   if (Number.isFinite(precioMin)) { valores.push(precioMin); condiciones.push(`${PRECIO_EFECTIVO} >= $${valores.length}`); }
   if (Number.isFinite(precioMax)) { valores.push(precioMax); condiciones.push(`${PRECIO_EFECTIVO} <= $${valores.length}`); }
@@ -187,13 +188,14 @@ export async function listarProductosPaginadoBD({
   soloActivos = false,
   soloPromos = false,
   soloOfertas = false,
+  soloNuevos = false,
   conStock = false,
   precioMin = null,
   precioMax = null,
   orden = 'recomendados',
 } = {}) {
   await asegurarEscalasMayoristasBD();
-  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, soloOfertas: soloOfertas || orden === 'ofertas', conStock, precioMin, precioMax });
+  const { valores, condiciones } = construirFiltros({ buscar, categoria, soloActivos, soloPromos, soloOfertas: soloOfertas || orden === 'ofertas', soloNuevos, conStock, precioMin, precioMax });
   const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
   const orderBy = ORDENES[orden] || ORDENES.recomendados;
 
