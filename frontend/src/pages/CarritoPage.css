@@ -800,7 +800,7 @@
   }
   .cart-back:hover { background: var(--cp-crema); }
 
-  .cart-summary.is-mobile-open { max-height: calc(100dvh - 3rem); overflow-y: auto; }
+  .cart-summary.is-mobile-open { max-height: calc(100dvh - 3rem); overflow-y: auto; bottom: 25px; }
   .cart-summary.is-mobile-open h2 { display: block; }
   .cart-summary.is-mobile-open .cart-summary-box { background: var(--cp-crema); border: 1px solid var(--cp-linea); border-radius: 14px; margin-bottom: .9rem; padding: .7rem .9rem; }
   .cart-summary.is-mobile-open .cart-summary-box > p:first-child,

@@ -304,7 +304,7 @@
   .confirm-edit,
   .confirm-summary > small { display: none; }
   .confirm-submit { margin-top: .45rem; min-height: 2.85rem; }
-  .confirm-summary.is-mobile-open { max-height: calc(100dvh - 3rem); overflow-y: auto; }
+  .confirm-summary.is-mobile-open { max-height: calc(100dvh - 3rem); overflow-y: auto; bottom: 25px; }
   .confirm-summary.is-mobile-open h2 { display: block; }
   .confirm-summary.is-mobile-open .confirm-summary-box { background: var(--confirm-crema); border: 1px solid var(--confirm-linea); border-radius: 14px; margin-bottom: 1rem; padding: .85rem 1rem; }
   .confirm-summary.is-mobile-open .confirm-summary-box > p:first-child,
