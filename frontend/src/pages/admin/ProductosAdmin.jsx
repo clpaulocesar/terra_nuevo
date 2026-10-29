@@ -687,6 +687,8 @@ export default function ProductosAdmin() {
     event.preventDefault();
     const datos = new FormData(event.currentTarget);
     const generarQr = datos.get('generar_qr') === 'on';
+    const precioOferta = datos.get('precio_oferta') === '' || datos.get('precio_oferta') === null ? null : Number(datos.get('precio_oferta'));
+    const enOferta = datos.get('en_oferta') === 'on' && precioOferta > 0;
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
@@ -695,8 +697,8 @@ export default function ProductosAdmin() {
       precio: Number(datos.get('precio')),
       precioMayorista: datos.get('precio_mayorista') === '' ? null : Number(datos.get('precio_mayorista')),
       precioFabrica: datos.get('precio_fabrica') === '' || datos.get('precio_fabrica') === null ? null : Number(datos.get('precio_fabrica')),
-      precioOferta: datos.get('precio_oferta') === '' || datos.get('precio_oferta') === null ? null : Number(datos.get('precio_oferta')),
-      enOferta: datos.get('en_oferta') === 'on',
+      precioOferta,
+      enOferta,
       showroom: Number(datos.get('showroom')),
       activo: datos.get('visible') === 'on',
       medida: datos.get('medida') || null,
@@ -713,7 +715,6 @@ export default function ProductosAdmin() {
       },
     };
 
-    if (payload.enOferta && !(payload.precioOferta > 0)) { await avisoError('Para activar "En oferta" indicá un precio de oferta mayor a 0.'); return; }
     if (payload.enOferta && payload.precioOferta >= payload.precio) { await avisoError('El precio de oferta debe ser menor al precio de venta.'); return; }
 
     try {
@@ -745,6 +746,8 @@ export default function ProductosAdmin() {
     event.preventDefault();
     const datos = new FormData(event.currentTarget);
     const precioNumerico = Number(datos.get('precio'));
+    const precioOferta = datos.get('precio_oferta') === '' || datos.get('precio_oferta') === null ? null : Number(datos.get('precio_oferta'));
+    const enOferta = datos.get('en_oferta') === 'on' && precioOferta > 0;
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
@@ -753,8 +756,8 @@ export default function ProductosAdmin() {
       precio: precioNumerico > 0 ? precioNumerico : (editarProducto.precioLista ?? Number(String(editarProducto.precio).replace(/\./g, '').replace(/,/g, '.'))),
       precioMayorista: datos.get('precio_mayorista') === '' ? null : Number(datos.get('precio_mayorista')),
       precioFabrica: datos.get('precio_fabrica') === '' || datos.get('precio_fabrica') === null ? null : Number(datos.get('precio_fabrica')),
-      precioOferta: datos.get('precio_oferta') === '' || datos.get('precio_oferta') === null ? null : Number(datos.get('precio_oferta')),
-      enOferta: datos.get('en_oferta') === 'on',
+      precioOferta,
+      enOferta,
       medida: datos.get('medida') || editarProducto.medida,
       descripcion: datos.get('descripcion') || editarProducto.descripcion,
       showroom: Number(datos.get('showroom')),
@@ -771,7 +774,6 @@ export default function ProductosAdmin() {
       },
     };
 
-    if (payload.enOferta && !(payload.precioOferta > 0)) { await avisoError('Para activar "En oferta" indicá un precio de oferta mayor a 0.'); return; }
     if (payload.enOferta && payload.precioOferta >= payload.precio) { await avisoError('El precio de oferta debe ser menor al precio de venta.'); return; }
 
     try {

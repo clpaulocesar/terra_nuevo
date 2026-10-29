@@ -381,7 +381,7 @@ export async function actualizarProductoBD(id, datos) {
          ),
          internal_code = COALESCE($16, internal_code),
          precio_fabrica = COALESCE($17, precio_fabrica),
-         precio_oferta = COALESCE($18, precio_oferta),
+         precio_oferta = CASE WHEN $21 THEN $18 ELSE precio_oferta END,
          en_oferta = COALESCE($19, en_oferta),
          marca = COALESCE($20, marca),
          updated_at = NOW()
@@ -414,6 +414,7 @@ export async function actualizarProductoBD(id, datos) {
         ? null
         : Boolean(datos.enOferta),
       datos.marca ?? null,
+      datos.precioOferta !== undefined,
     ]
   );
 
