@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { formatoMoneda } from '../../../utils/formatoMoneda.js';
 import { imagenDeProducto, usarImagenFallback } from '../../../utils/imagenProducto.js';
 
-const MARGEN = 'mx-3.5 block';
+const MARGEN = 'mx-3.5';
 
 // Fondo blanco detrás de la foto en todos los temas (las fotos tienen fondo blanco).
 export default function TarjetaRelacionado({ producto }) {
