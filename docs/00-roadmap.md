@@ -47,6 +47,7 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 
 ### Otros
 - **Extraer hooks de `CatalogoPage.jsx`** (tarea aparte): supera las 300 líneas por la lógica de filtros, orden, paginación, voz y teclado. Pasarla a hooks en `src/features/catalogo/hooks/` sin cambiar comportamiento.
+- **Reducir el bundle JS principal** (tarea aparte): supera los 600 kB (≈ 614 kB, 186 kB gzip). Revisar qué pantallas del cliente y librerías entran en el chunk principal y separarlas por ruta con `React.lazy` (admin, vendedor y mayorista ya son lazy).
 - Subir los commits `f24bf3a` y `13f46df` **sin reescribir historia**: nada de force push sobre `812212d`, que ya está publicado.
 - Asignar clave a los 4 mayoristas existentes desde Clientes (botón de llave): hasta entonces no pueden entrar.
 

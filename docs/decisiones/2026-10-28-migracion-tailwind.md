@@ -44,6 +44,12 @@ tags: [decision, frontend, css]
 - Desde 768 px la grilla reserva también el ancho del botón de accesibilidad a la izquierda. En Confirmación, por debajo de 761 px (variante `con-resumen-fijo:`), los flotantes y el botón de accesibilidad arrancan sobre la barra del resumen.
 - Desde 640 px las acciones del encabezado pasan a una segunda línea cuando no entran (texto al 150 %), en vez de recortar el logo y "Carrito".
 
+### Diferencias aceptadas (revisión del 2026-10-28)
+Cambios visibles respecto del diseño anterior que se revisaron en las capturas y se dejan a propósito:
+- **Catálogo mayorista entre 1024 y 1100 px**: 2 columnas con el resumen al costado (antes 3 columnas con los precios partidos en dos líneas).
+- **Botón deshabilitado rosado**: "Agregar" sin stock usa el token `terra-deshabilitado` en lugar del gris anterior.
+- **Reserva para el botón de accesibilidad entre 768 y 1024 px**: la grilla deja libre a la izquierda el ancho de ese botón para que no tape tarjetas.
+
 ## Fase 2 (DetalleProducto)
 - Código en `src/features/detalle-producto/`: página, componentes, hooks (`useDetalleProducto`, `useCompraProducto`, `useColoresProducto`) y funciones puras con tests (colores y video). El selector de colores sigue oculto con `MOSTRAR_COLORES`, como antes.
 - Galería y compra pasan a dos columnas con una consulta de contenedor (`@terra-ficha:`, 45 rem) en lugar de un breakpoint: con texto normal el corte queda cerca de los 930 px (antes 900); con texto al 150 % la ficha queda en una columna y el título ya no queda tapado por los flotantes. Ficha técnica y showroom usan el mismo corte.
