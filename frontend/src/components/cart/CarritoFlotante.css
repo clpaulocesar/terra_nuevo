@@ -1,46 +1,4 @@
 /* Widget flotante del carrito: solo logo al borde, drawer desde la derecha */
-/* Su posición (right y bottom) se define solo en routes/FloatingActions.css. */
-.cart-widget {
-  position: fixed;
-  z-index: 75;
-  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.cart-fab {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--floating-cart-size, 3.4rem);
-  height: var(--floating-cart-size, 3.4rem);
-  border: none;
-  border-radius: 999px;
-  background: #a6192e;
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 8px 24px rgba(166, 25, 46, 0.35);
-  transition: transform 0.15s ease, background 0.15s ease;
-}
-.cart-fab:hover { background: #8e1527; transform: translateY(-1px); }
-.cart-fab:active { transform: scale(0.97); }
-
-.cart-fab-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  min-width: 1.4rem;
-  height: 1.4rem;
-  padding: 0 0.3rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: #1b1c1c;
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 800;
-}
-
 .cart-overlay {
   position: fixed;
   inset: 0;
@@ -68,11 +26,6 @@
   transform: translateX(0);
   pointer-events: auto;
 }
-/* Con el drawer abierto se oculta el boton flotante para que no tape el footer */
-.cart-widget.abierto .cart-fab {
-  display: none;
-}
-
 .cart-drawer-header {
   display: flex;
   align-items: center;

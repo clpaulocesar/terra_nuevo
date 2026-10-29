@@ -5,7 +5,7 @@ import LoginAdmin from '../pages/admin/LoginAdmin.jsx';
 import LoginVendedor from '../pages/vendedor/LoginVendedor.jsx';
 import CarritoPage from '../pages/CarritoPage.jsx';
 import ConfirmacionPage from '../pages/Confirmacion.jsx';
-import Catalogo from '../pages/Catalogo.jsx';
+import CatalogoPage from '../features/catalogo/CatalogoPage.jsx';
 import AdminLayout from '../components/admin/AdminLayout.jsx';
 import VendedorLayout from '../components/vendedor/VendedorLayout.jsx';
 import { renderCon, OPCIONES_AXE } from '../test/renderCon.jsx';
@@ -16,7 +16,7 @@ const PANTALLAS = [
   { nombre: 'Login de vendedor', ui: <LoginVendedor />, ruta: '/vendedor/login' },
   { nombre: 'Carrito (vacío)', ui: <CarritoPage />, ruta: '/carrito' },
   { nombre: 'Confirmación', ui: <ConfirmacionPage />, ruta: '/confirmacion' },
-  { nombre: 'Catálogo', ui: <Catalogo />, ruta: '/catalogo' },
+  { nombre: 'Catálogo', ui: <CatalogoPage />, ruta: '/catalogo' },
   { nombre: 'Backoffice (layout admin)', ui: <AdminLayout />, ruta: '/admin', admin: { nombre: 'Prueba', rol: 'admin' } },
   { nombre: 'Portal vendedor (layout)', ui: <VendedorLayout />, ruta: '/vendedor', admin: { nombre: 'Prueba', rol: 'vendedor' } },
 ];

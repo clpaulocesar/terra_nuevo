@@ -39,10 +39,12 @@ export default function ImagenPerezosa({ src, alt, className = '', margen = '200
     onLoad?.(event);
   };
 
+  // data-cargada permite estilizar la espera (esqueleto, fundido) con variantes data-* y has-*.
   return (
     <img
       ref={ref}
-      className={`${className} imagen-perezosa ${cargada ? 'imagen-perezosa--lista' : ''}`.replace(/\s+/g, ' ').trim()}
+      data-cargada={cargada}
+      className={className}
       alt={alt}
       src={visible ? src : PLACEHOLDER}
       loading="lazy"

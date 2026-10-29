@@ -21,6 +21,7 @@ Verificación final de cada fase: `npm run build` y `npm run lint` (desde `front
 ## Fase 1 — Módulos de cliente
 
 - [x] **1.0 Catálogo móvil (2026-10-28).** Ancho completo con margen de 16 px, 2 columnas desde 360 px y 3 desde 768, imagen cuadrada (< 1024 px), nombre en 2 líneas, paginación en una fila (versión compacta en `utils/paginacion.js`), flotantes con una sola definición en `routes/FloatingActions.css` y zona segura (`viewport-fit=cover`), logo de 2.75rem y Tutorial solo ícono por debajo de 400 px. Decisión en `docs/decisiones/2026-10-28-flotantes-y-catalogo-movil.md`.
+- [x] **1.0b Catálogo y layout del cliente en Tailwind (fase 1, 2026-10-28).** Ver `docs/decisiones/2026-10-28-migracion-tailwind.md`. Cubre 1.1 (no hay doble encabezado: el catálogo usa el del layout) y 1.10.
 
 - [ ] **1.1 `/catálogo` — doble encabezado (bug visual).** La ruta vive dentro de `Layout` (que dibuja `site-header terra-header`) y `Catalogo.jsx` además dibuja su propio `<header className="fixed top-0 … h-20 …">` (línea 185). Se superponen. Decidir si el catálogo usa el header de Layout o el propio, y ajustar `padding-top` del `main`.
 - [ ] **1.2 Header propio del catálogo en móvil**: logo + nav de 3 botones + carrito + inicio + avatar sin clases responsivas → desborda en 360px. Ocultar nav en ≤520px o convertirlo en menú.
@@ -28,7 +29,7 @@ Verificación final de cada fase: `npm run build` y `npm run lint` (desde `front
 - [ ] **1.4 `Categorias.css`**: `.categorias-pills` usa `flex` + `white-space: nowrap` → desborde horizontal garantizado en pantallas chicas. Añadir `overflow-x: auto` con scroll o `flex-wrap` en ≤600px.
 - [ ] **1.5 `Bienvenida.css`**: `.welcome-hero` (7fr 5fr, min-height 490px) ya tiene 900/600. Verificar CTA e imagen a 320–360px.
 - [ ] **1.6 `CarritoPage.css`**: revisar fila de artículo (img + info + cantidad + precio) a 360px; **botones de cantidad de 2rem < 44px** → subir a ≥2.75rem en móvil.
-- [ ] **1.7 `DetalleProducto.css`**: galería 1fr 1fr ya colapsa (800/520). Verificar miniaturas y acciones sticky a 320px.
+- [x] **1.7 DetalleProducto (fase 2 de Tailwind, 2026-10-28).** Migrado a `src/features/detalle-producto/`; se borraron `DetalleProducto.css` y los cuatro archivos "fix". Ver `docs/decisiones/2026-10-28-migracion-tailwind.md`.
 - [ ] **1.8 `Identificacion.css`**: teclado en pantalla (850/520). Verificar que las teclas midan ≥44px y que en landscape no tape el formulario.
 - [ ] **1.9 `Confirmacion.css` y `PedidoGenerado.css`**: resumen/totales a 360px (grid 7fr/5fr ya colapsa). Estilos de impresión del pedido: comprobar siguen ok.
 - [ ] **1.10 Header cliente (`Layout.css` + `Responsive.css`)**: probar a 320px que logo + carrito + botón inicio quepan sin scroll (nav ya se oculta <520px) y que la barra inferior móvil no tape contenido.
