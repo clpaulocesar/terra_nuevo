@@ -357,6 +357,7 @@ export default function ChatAsistente() {
 
       <button
         type="button"
+        data-tour="chat"
         className={`inline-flex ${BOTON_FLOTANTE}`}
         onClick={() => setAbierto((v) => !v)}
         aria-expanded={abierto}

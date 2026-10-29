@@ -95,6 +95,7 @@ export default function CarritoFlotante() {
 
       <button
         type="button"
+        data-tour="carrito-flotante"
         className={`relative ${BOTON_FLOTANTE} ${abierto ? 'hidden' : 'inline-flex'}`}
         onClick={() => setAbierto((v) => !v)}
         aria-expanded={abierto}

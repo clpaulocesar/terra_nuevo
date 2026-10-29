@@ -67,7 +67,8 @@ export default function TutorialInvitacion({ abierto, onComenzar, onOmitir }) {
         </h2>
         <p className="tutorial-invite__texto">
           Te mostramos paso a paso cómo buscar productos, usar las categorías,
-          aprovechar las ofertas y completar tu compra.
+          aprovechar las ofertas, comprar por QR, usar el carrito y preguntarle
+          al asistente virtual.
         </p>
         <div className="tutorial-invite__acciones">
           <button

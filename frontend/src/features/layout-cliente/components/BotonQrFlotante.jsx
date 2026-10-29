@@ -9,6 +9,7 @@ export default function BotonQrFlotante({ onClick }) {
   return (
     <button
       type="button"
+      data-tour="qr"
       className={`z-74 inline-flex overflow-visible animate-terra-halo [&>svg]:size-5.5 motion-reduce:animate-none
         before:pointer-events-none before:absolute before:-inset-1.75 before:-z-1 before:rounded-full
         before:bg-terra-primario/14 ${BOTON_FLOTANTE} ${POSICION_QR} ${OCULTO_EN_CARRITO} ${OCULTO_CON_ASISTENTE}

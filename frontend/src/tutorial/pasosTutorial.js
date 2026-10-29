@@ -6,6 +6,9 @@ export const SELECTORES_TUTORIAL = {
   producto: '[data-tour="producto"]',
   agregar: '[data-tour="agregar"]',
   carrito: ['[data-tour="carrito"]'],
+  qr: '[data-tour="qr"]',
+  carritoFlotante: '[data-tour="carrito-flotante"]',
+  chat: '[data-tour="chat"]',
   iniciarSesion: '[data-tour="iniciar-sesion"]',
   menuMovil: '[data-tour="menu-movil"]',
 };
@@ -45,6 +48,24 @@ export function construirPasosTutorial({ esMovil = false, esMayorista = false } 
       selectores: [SELECTORES_TUTORIAL.agregar],
       titulo: 'Agregar al carrito',
       descripcion: 'Agrega el producto al carrito. Puedes ajustar la cantidad antes de continuar.',
+    },
+    {
+      selectores: [SELECTORES_TUTORIAL.qr],
+      titulo: 'Comprar por QR',
+      descripcion: 'Toca aquí para abrir la cámara y escanear el QR de un producto. Se agrega al carrito sin tener que buscarlo.',
+      lado: 'left',
+    },
+    {
+      selectores: [SELECTORES_TUTORIAL.carritoFlotante],
+      titulo: 'Carrito flotante',
+      descripcion: 'Este botón abre tu carrito sin salir del catálogo. Ajusta cantidades y continúa la compra desde ahí.',
+      lado: 'left',
+    },
+    {
+      selectores: [SELECTORES_TUTORIAL.chat],
+      titulo: 'Asistente virtual',
+      descripcion: 'Toca el chat y pregúntale lo que necesites. Por ejemplo: “¿Qué ofertas hay?”, “Mostrame las ofertas” o “Busca un colchón en oferta”. También puedes dictarlo con el micrófono.',
+      lado: 'left',
     },
     {
       selectores: SELECTORES_TUTORIAL.carrito,
