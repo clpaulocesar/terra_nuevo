@@ -174,7 +174,7 @@ export default function BotonesVoz({ className = '' }) {
             <div
               className="terra-voz__panel"
               role={escuchando ? 'tooltip' : 'group'}
-              aria-label={escuchando ? undefined : 'Comandos de voz: tocá uno para ejecutarlo'}
+              aria-label={escuchando ? undefined : 'Comandos de voz: toca uno para ejecutarlo'}
               id={idPanel}
               data-sin-lectura="true"
             >
@@ -182,11 +182,11 @@ export default function BotonesVoz({ className = '' }) {
               {escuchando ? (
                 <>
                   <b className="terra-voz__panel-titulo terra-voz__panel-titulo--escuchando"><Mic size={14} /> Te escucho…</b>
-                  <p className="terra-voz__panel-texto">Decí por ejemplo: {sugerenciasEscucha.map((s, i) => <em key={s}>{i > 0 ? ', ' : ''}«{s}»</em>)}</p>
+                  <p className="terra-voz__panel-texto">Di por ejemplo: {sugerenciasEscucha.map((s, i) => <em key={s}>{i > 0 ? ', ' : ''}«{s}»</em>)}</p>
                 </>
               ) : (
                 <>
-                  <b className="terra-voz__panel-titulo">Podés decir…</b>
+                  <b className="terra-voz__panel-titulo">Puedes decir…</b>
                   <ul className="terra-voz__lista">
                     {comandos.map((c) => (
                       <li key={c.ejemplo}>
@@ -203,7 +203,7 @@ export default function BotonesVoz({ className = '' }) {
                       </li>
                     ))}
                   </ul>
-                  <small className="terra-voz__panel-pie">Tocá un comando o decí <strong>ayuda</strong> para escuchar todos.</small>
+                  <small className="terra-voz__panel-pie">Toca un comando o di <strong>ayuda</strong> para escuchar todos.</small>
                 </>
               )}
             </div>

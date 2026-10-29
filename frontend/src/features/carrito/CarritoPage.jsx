@@ -11,8 +11,8 @@ import ListaArticulos from './components/ListaArticulos.jsx';
 import ResumenCarrito from './components/ResumenCarrito.jsx';
 
 const ERRORES_QR = {
-  vacio: 'No encontramos productos escaneados. Volvé a escanear los códigos QR y agregalos antes de confirmar.',
-  almacenamiento: 'No se pudo recuperar la compra QR. Habilitá el almacenamiento del sitio y volvé a intentarlo.',
+  vacio: 'No encontramos productos escaneados. Vuelve a escanear los códigos QR y agrégalos antes de confirmar.',
+  almacenamiento: 'No se pudo recuperar la compra QR. Habilita el almacenamiento del sitio y vuelve a intentarlo.',
 };
 
 // cart-page: gancho de la variante en-carrito (oculta los flotantes) y de accesibilidad.css.
@@ -53,7 +53,7 @@ export default function CarritoPage() {
     return (
       <EstadoCarrito
         titulo={mensajeError ? 'No se pudo confirmar la compra QR' : 'Tu carrito está vacío'}
-        mensaje={mensajeError || 'Explorá el catálogo y elegí los productos que más te gusten.'}
+        mensaje={mensajeError || 'Explora el catálogo y elige los productos que más te gusten.'}
         esAlerta={Boolean(mensajeError)}
         enlace={mensajeError
           ? { to: '/catalogo?abrirQr=1', texto: 'Volver a escanear' }
@@ -63,7 +63,7 @@ export default function CarritoPage() {
   }
 
   return (
-    <section className="cart-page mx-auto con-resumen-fijo:pb-terra-hoja md:max-w-terra-sin-flotantes">
+    <section className="cart-page mx-auto md:max-w-terra-sin-flotantes">
       <EncabezadoCarrito />
       {esMayorista && (
         <EntregaMayorista

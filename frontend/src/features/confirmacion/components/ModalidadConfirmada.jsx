@@ -19,7 +19,7 @@ export default function ModalidadConfirmada({ quiereEnvio, direccion, referencia
           {quiereEnvio ? 'Envío a domicilio' : 'Retiro en tienda'}
         </b>
         <span className="mt-1 block text-terra-sm text-terra-texto-suave">
-          {quiereEnvio ? direccion : 'Pagás y retirás tu pedido en el mostrador de la tienda.'}
+          {quiereEnvio ? direccion : 'Pagas y retiras tu pedido en el mostrador de la tienda.'}
         </span>
         {quiereEnvio && referencia && (
           <small className="mt-1 block text-terra-xs text-terra-texto-suave">Referencia: {referencia}</small>

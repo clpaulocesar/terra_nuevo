@@ -21,7 +21,7 @@ export default function MediosPago({ metodo, onElegir, className = '' }) {
       <div
         className="flex flex-wrap gap-1.5"
         role="radiogroup"
-        aria-label="Seleccioná un medio de pago"
+        aria-label="Selecciona un medio de pago"
       >
         {MEDIOS.map(({ id, etiqueta, icono: Icono }) => {
           const elegido = metodo === id;

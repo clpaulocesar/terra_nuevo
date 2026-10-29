@@ -18,6 +18,9 @@ export default function TotalesCompra({ subtotal, envio, total, hojaCerrada }) {
   const cajaCerrada = hojaCerrada
     ? 'con-resumen-fijo:border-0 con-resumen-fijo:bg-transparent con-resumen-fijo:p-0'
     : '';
+  // En teléfono angosto con el texto grande, el monto baja a su propia línea en vez de
+  // partir la etiqueta en tres o más y agrandar la hoja.
+  const totalCerrado = hojaCerrada ? 'con-resumen-fijo:flex-wrap con-resumen-fijo:gap-y-0' : '';
   return (
     <div className={`rounded-terra-campo border border-terra-borde bg-terra-superficie-2 px-4 py-3.5 ${cajaCerrada}`}>
       <FilaDetalle
@@ -33,9 +36,9 @@ export default function TotalesCompra({ subtotal, envio, total, hojaCerrada }) {
         />
       )}
       <hr className={`my-3 border-t border-terra-borde ${ocultoCerrada}`} />
-      <p className={FILA}>
+      <p className={`${FILA} ${totalCerrado}`}>
         <span className="text-terra-md font-extrabold text-terra-acento">Total a pagar en caja</span>
-        <b className="text-2xl font-black tracking-terra-titulo whitespace-nowrap text-terra-acento">
+        <b className="ml-auto text-2xl font-black tracking-terra-titulo whitespace-nowrap text-terra-acento">
           {formatoMoneda(total)}
         </b>
       </p>

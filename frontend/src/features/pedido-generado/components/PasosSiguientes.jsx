@@ -13,21 +13,21 @@ export default function PasosSiguientes({ total, pagoQrPendiente }) {
         numero={1}
         titulo="Acercate a caja"
       >
-        Mostrá el código de tu pedido al personal en mostrador.
+        Muestra el código de tu pedido al personal en mostrador.
       </PasoSiguiente>
       <PasoSiguiente
         numero={2}
-        titulo={pagoQrPendiente ? 'Pago con QR Simple' : 'Realizá el pago'}
+        titulo={pagoQrPendiente ? 'Pago con QR Simple' : 'Realiza el pago'}
       >
         {pagoQrPendiente
-          ? `Mostrá tu comprobante de transferencia por ${formatoMoneda(total)} en caja.`
-          : 'Podés pagar con efectivo, QR Simple o tarjeta en caja.'}
+          ? `Muestra tu comprobante de transferencia por ${formatoMoneda(total)} en caja.`
+          : 'Puedes pagar con efectivo, QR Simple o tarjeta en caja.'}
       </PasoSiguiente>
       <PasoSiguiente
         numero={3}
-        titulo="Coordiná tu entrega"
+        titulo="Coordina tu entrega"
       >
-        Retirá en tienda o consultá opciones de despacho.
+        Retira en tienda o consulta opciones de despacho.
       </PasoSiguiente>
       <div
         className="flex items-center gap-2 rounded-terra-chico bg-terra-control-hover p-3 text-terra-xs
@@ -38,7 +38,7 @@ export default function PasosSiguientes({ total, pagoQrPendiente }) {
           aria-hidden="true"
           className="shrink-0 text-terra-acento"
         />
-        Tu ticket tiene validez limitada. Consultá en caja.
+        Tu ticket tiene validez limitada. Consulta en caja.
       </div>
     </aside>
   );

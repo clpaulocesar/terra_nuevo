@@ -1,7 +1,7 @@
 import { Store, Truck } from 'lucide-react';
 import BotonModalidad from './BotonModalidad.jsx';
 
-// Pregunta "¿Deseás envío a domicilio?" con sus dos opciones. Los campos del envío
+// Pregunta "¿Deseas envío a domicilio?" con sus dos opciones. Los campos del envío
 // llegan como children y se muestran solo con el envío elegido.
 export default function ModalidadEntrega({ entregaDomicilio, onElegirRetiro, onElegirEnvio, children }) {
   return (
@@ -18,7 +18,7 @@ export default function ModalidadEntrega({ entregaDomicilio, onElegirRetiro, onE
           aria-hidden="true"
           className="text-terra-acento"
         />
-        ¿Deseás envío a domicilio?
+        ¿Deseas envío a domicilio?
       </span>
       <div
         className="mb-3 grid gap-3 sm:grid-cols-2"
@@ -28,7 +28,7 @@ export default function ModalidadEntrega({ entregaDomicilio, onElegirRetiro, onE
         <BotonModalidad
           icono={Store}
           titulo="No, retiro en tienda"
-          detalle="Pagás y retirás en mostrador"
+          detalle="Pagas y retiras en mostrador"
           elegido={!entregaDomicilio}
           onElegir={onElegirRetiro}
         />

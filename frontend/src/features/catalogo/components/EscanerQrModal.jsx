@@ -40,10 +40,10 @@ export default function EscanerQrModal({ escaner, refVideo, refArchivo }) {
           </button>
         </header>
         <h2 id="catalog-qr-title" className="mt-3 mb-1.5 text-[clamp(1.25rem,2.5vw,1.55rem)] font-black text-terra-texto">
-          Escaneá un producto
+          Escanea un producto
         </h2>
         <p className="mb-4 text-terra-md leading-normal text-terra-texto-suave">
-          Usá la cámara o cargá una foto del QR. Podés sumar varios productos antes de confirmar.
+          Usa la cámara o carga una foto del QR. Puedes sumar varios productos antes de confirmar.
         </p>
         <CamaraQr ref={refVideo} pausado={escaner.escaneoPausado} leyendoImagen={escaner.leyendoImagenQr} />
         <SubirImagenQr escaner={escaner} refArchivo={refArchivo} />
@@ -101,7 +101,7 @@ function SubirImagenQr({ escaner, refArchivo }) {
         <ImageUp size={18} /> {leyendo ? 'Leyendo imagen…' : 'Subir imagen QR'}
       </button>
       <small className="text-terra-2xs leading-snug text-terra-texto-suave">
-        Elegí una foto o captura donde el código se vea completo.
+        Elige una foto o captura donde el código se vea completo.
       </small>
     </div>
   );

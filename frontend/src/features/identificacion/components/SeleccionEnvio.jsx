@@ -17,7 +17,7 @@ export default function SeleccionEnvio({ items, itemsEnvio, onAlternar, onMarcar
             ¿Qué productos deseas enviar a domicilio?
           </b>
           <small className="mt-0.5 block text-terra-xs text-terra-texto-suave">
-            Tocá un producto para alternar entre envío a domicilio y retiro en tienda.
+            Toca un producto para alternar entre envío a domicilio y retiro en tienda.
           </small>
         </div>
         <button

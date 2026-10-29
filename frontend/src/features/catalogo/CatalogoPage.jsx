@@ -240,8 +240,8 @@ export default function CatalogoPage() {
     }
     if (!elegido) {
       anunciar(termino
-        ? `No encontré ${termino} en esta página. Decí "buscar ${termino}" o el nombre completo.`
-        : 'Decime qué producto agregar, por ejemplo "agregar confort lya", o tocá primero una tarjeta.');
+        ? `No encontré ${termino} en esta página. Di "buscar ${termino}" o el nombre completo.`
+        : 'Dime qué producto agregar, por ejemplo "agregar confort lya", o toca primero una tarjeta.');
       return;
     }
     const disponible = Number(elegido.stock) >= 1;
@@ -511,7 +511,7 @@ export default function CatalogoPage() {
             <EstadoCatalogo
               icono="search_off"
               titulo="No encontramos productos"
-              texto="Probá cambiando los filtros o limpiá la búsqueda."
+              texto="Prueba cambiando los filtros o limpia la búsqueda."
               accion="Restablecer filtros"
               onAccion={restablecerFiltros}
             />

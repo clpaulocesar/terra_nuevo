@@ -45,7 +45,7 @@ export const OPCIONES = [
   { clave: 'focoReforzado', etiqueta: 'Foco reforzado', ayuda: 'Contorno amarillo grueso en el elemento activo.' },
   { clave: 'subrayarEnlaces', etiqueta: 'Subrayar enlaces', ayuda: 'Todos los enlaces se muestran subrayados.' },
   { clave: 'sinAnimaciones', etiqueta: 'Sin animaciones', ayuda: 'Detiene transiciones y carruseles automáticos.' },
-  { clave: 'leerEnVoz', etiqueta: 'Leer en voz alta', ayuda: 'Lee lo que tocás o enfocás. En productos: nombre, medida y precio.' },
+  { clave: 'leerEnVoz', etiqueta: 'Leer en voz alta', ayuda: 'Lee lo que tocas o enfocas. En productos: nombre, medida y precio.' },
   { clave: 'navegacionVoz', etiqueta: 'Navegación por voz', ayuda: 'Muestra los comandos del micrófono para moverte hablando.' },
   { clave: 'fuenteLegible', etiqueta: 'Fuente legible', ayuda: 'Tipografía Atkinson Hyperlegible con más espacio entre letras.' },
   { clave: 'masTiempo', etiqueta: 'Más tiempo', ayuda: 'Los avisos no se cierran solos y las esperas duran el doble.' },
@@ -157,7 +157,7 @@ export function ModoAccesibleProvider({ children }) {
   const activar = useCallback(() => {
     setEstado((previo) => ({ ...previo, ...OPCIONES_POR_DEFECTO, activo: true }));
     setSolicitudPanelVoz((n) => n + 1);
-    anunciar('Modo accesible activado. Texto grande, alto contraste, botones grandes y lectura en voz alta encendidos. Decí "ayuda" en el micrófono para conocer los comandos.', { forzar: true });
+    anunciar('Modo accesible activado. Texto grande, alto contraste, botones grandes y lectura en voz alta encendidos. Di "ayuda" en el micrófono para conocer los comandos.', { forzar: true });
   }, [anunciar]);
 
   const desactivar = useCallback(() => {
@@ -169,7 +169,7 @@ export function ModoAccesibleProvider({ children }) {
   const alternar = useCallback(() => {
     setEstado((previo) => {
       if (previo.activo) { detener(); anunciar('Modo accesible desactivado.', { forzar: true }); return { ...previo, activo: false }; }
-      anunciar('Modo accesible activado. Decí "ayuda" en el micrófono para conocer los comandos.', { forzar: true });
+      anunciar('Modo accesible activado. Di "ayuda" en el micrófono para conocer los comandos.', { forzar: true });
       return { ...previo, ...OPCIONES_POR_DEFECTO, activo: true };
     });
     setSolicitudPanelVoz((n) => n + 1);

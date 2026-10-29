@@ -41,7 +41,7 @@ const CamaraQr = forwardRef(function CamaraQr({ pausado, leyendoImagen }, refVid
           <Check size={28} className="size-10.5 rounded-full bg-terra-ok p-1.5" />
           <span>Código leído</span>
           <small className="inline-flex items-center gap-1.25 text-terra-2xs font-semibold opacity-85">
-            <CameraOff size={14} /> Cámara apagada · tocá &quot;Escanear otro&quot; para seguir
+            <CameraOff size={14} /> Cámara apagada · toca &quot;Escanear otro&quot; para seguir
           </small>
         </div>
       )}

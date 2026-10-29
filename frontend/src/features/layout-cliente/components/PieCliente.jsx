@@ -1,16 +1,19 @@
 // Pie de página corporativo de TERRA Autoservicio.
 // Adaptado para móviles (< 640px), tablets (640-1024px) y pantallas grandes (>= 1024px).
-// Por debajo de 768 px reserva bajo el texto el alto de los flotantes y de la barra inferior.
+// Por debajo de 768 px reserva bajo el texto el alto de los flotantes y de la barra inferior;
+// en Carrito y Confirmación, también el de la hoja del resumen (LayoutCliente sube
+// --terra-flotante-abajo por encima de ella). Va en el flujo y sin z-index: nunca tapa la hoja.
+// En el carrito no hay flotantes, pero sí el botón de accesibilidad a esa altura.
 // site-footer: gancho de la hoja de impresión de PedidoGenerado.css.
 export default function PieCliente({ enCarrito }) {
   const anioActual = new Date().getFullYear();
   const reserva = enCarrito
-    ? 'max-md:pb-terra-flotante-abajo'
+    ? 'max-md:pb-[calc(var(--terra-flotante-abajo)+var(--terra-a11y-reserva))]'
     : 'max-md:pb-[calc(var(--terra-flotante-abajo)+var(--terra-flotantes-alto)+var(--terra-flotante-separacion))]';
 
   return (
     <footer
-      className={`site-footer relative z-30 mt-auto w-full border-t border-[#e5ded4] bg-[#f5f2eb]
+      className={`site-footer mt-auto w-full border-t border-[#e5ded4] bg-[#f5f2eb]
         px-4 py-8 sm:px-8 sm:py-10 md:px-10 lg:px-16 xl:px-20 text-neutral-800
         dark:border-terra-borde-suave dark:bg-terra-superficie dark:text-stone-300 ${reserva}`}
       data-purpose="reference-corporate-footer"
