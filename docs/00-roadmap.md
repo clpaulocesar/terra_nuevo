@@ -11,6 +11,7 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
 ## Hecho
 
 ### 2026-10-29
+- **Pie de página corporativo adaptado a todos los dispositivos**: diseño responsive optimizado para móviles (360px), tablets (768px portrait y 1024px landscape del kiosco) y pantallas de escritorio. Botones táctiles >= 44px (WCAG), espaciado lateral seguro ante botones flotantes y barra inferior de derechos de autor. Retiro temporal de la temática Halloween.
 - **El catálogo ya no muestra productos con stock 0** (sin commit): `?stock=true` en el listado y en los conteos de categorías; la ficha, "Otros modelos" y el admin siguen viendo todo. La casilla "Solo con stock" de Ventas directas vuelve a funcionar. Decisión: [[2026-10-29-catalogo-sin-stock-cero]]. Pruebas: backend 50.
 
 ### 2026-10-28
