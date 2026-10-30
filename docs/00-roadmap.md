@@ -11,6 +11,7 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
 ## Hecho
 
 ### 2026-10-30
+- **Analítica anónima de visitas del sitio público**: registro de vistas y sesiones por página, consulta por período y panel exclusivo para administradores. No se guardan IP, datos personales ni parámetros de URL. Decisión: [[2026-10-30-visitas-web-anonimas]].
 - **Grilla del catálogo adaptable al ancho** (catálogo, ofertas y categorías, cliente y mayorista): `auto-fill` con ancho mínimo de tarjeta de 13 rem (`--spacing-terra-tarjeta-min`) en lugar de columnas por breakpoint. 1 columna de 360 a 430 px, 2 a 640 y 768 px, 3 a 1024 × 768; con texto al 150 % entran menos solas. La foto conserva su proporción con un tope de 210 px de alto. Se borraron la anulación de `accesibilidad.css` y las reglas de `.product-grid`. Decisión: [[2026-10-30-grilla-catalogo-auto-fill]].
 
 ### 2026-10-29
