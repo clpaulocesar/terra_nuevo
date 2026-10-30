@@ -10,7 +10,7 @@ import {
 import { useVoz } from '../../context/VozContext.jsx';
 import MensajeMarkdown from './MensajeMarkdown.jsx';
 import { convertirAudioAWav } from '../../utils/audioWav.js';
-import './ChatAsistente.css';
+
 
 const BIENVENIDA = {
   id: 'bienvenida',
