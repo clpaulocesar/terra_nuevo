@@ -1,4 +1,5 @@
-import { ShoppingCart, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+import ImagenProducto from '../../../components/ui/ImagenProducto.jsx';
 import { formatoMoneda } from '../../../utils/formatoMoneda.js';
 import { nombreEnUnaLinea } from '../utils/nombreLinea.js';
 import ControlCantidad from './ControlCantidad.jsx';
@@ -31,16 +32,14 @@ export default function LineaCarrito({ item, compacta = false, onCambiarCantidad
   return (
     <article className={ARTICULO[variante]}>
       <div
-        className={`flex shrink-0 items-center justify-center overflow-hidden rounded-terra-chico ${FOTO[variante]}
-          ${item.imagen_url ? 'bg-terra-fondo-imagen' : 'bg-terra-control-hover text-terra-acento'}`}
+        className={`flex shrink-0 items-center justify-center overflow-hidden rounded-terra-chico bg-terra-fondo-imagen
+          ${FOTO[variante]}`}
       >
-        {item.imagen_url
-          ? <img
-              src={item.imagen_url}
-              alt={nombre}
-              className="size-full object-cover"
-            />
-          : <ShoppingCart size={20} />}
+        <ImagenProducto
+          src={item.imagen_url}
+          alt={nombre}
+          className="size-full object-cover data-reemplazo:object-contain data-reemplazo:p-1"
+        />
       </div>
       <div className="min-w-0 flex-1">
         <b

@@ -129,6 +129,7 @@ La migración de CSS a Tailwind va por fases y por pantalla (avance en `docs/00-
 
 ### Componentes compartidos
 - Iconos de Material Symbols con `components/ui/IconoMaterial.jsx` (tamaño siempre en `className`, por ejemplo `text-2xl`). No uses la clase `material-symbols-outlined`: la hoja de Google fija 24 px fuera de capas y anula las utilidades.
+- Fotos de producto siempre con `components/ui/ImagenProducto.jsx` (logo de TERRA si no hay URL o si la foto falla; `perezosa` para el catálogo). Nunca un `<img>` suelto ni `onError` propio.
 - Carga: `components/ui/IndicadorCarga.jsx`. Botones flotantes: posiciones y estilo en `components/flotantes/estilosFlotantes.js` (única definición).
 - Clases gancho: algunas clases sin estilos propios se mantienen en el JSX porque otras hojas o el JS las usan (`app-shell`, `page-content`, `cart-widget`, `cart-page`, `cart-confirm`, `confirm-page`, `confirm-summary`, `pedido-ticket`, `chat-widget`, `menu-movil`, `terra-card`, `terra-cat`, `terra-btn-agregar`, `terra-paginador__btn`, `hoja-asa`...). No les agregues estilos; desaparecen cuando se migran las hojas que las usan (sobre todo `accesibilidad.css`).
 
