@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, ChevronRight, Grid2X2, LayoutGrid, Percent, ShoppingBag } from 'lucide-react';
 import { listarCategorias } from '../services/productoService.js';
-import { imagenDeProducto, usarImagenFallback } from '../utils/imagenProducto.js';
+import ImagenProducto from '../components/ui/ImagenProducto.jsx';
 import SelectorCategorias from '../components/ui/SelectorCategorias.jsx';
 import './Categorias.css';
 
@@ -48,7 +48,7 @@ export default function Categorias() {
     <div className="categorias-page">
       <section className="categorias-hero">
         <div className="categorias-hero__slides">
-          <img src={FOTO_HERO.src} alt={FOTO_HERO.alt} className="activo" onError={usarImagenFallback} />
+          <ImagenProducto src={FOTO_HERO.src} alt={FOTO_HERO.alt} className="activo" />
         </div>
         <div className="categorias-hero__overlay" />
 
@@ -103,11 +103,10 @@ export default function Categorias() {
             >
               <div className="categoria-card__media">
                 {categoria.imagen_url ? (
-                  <img
-                    src={imagenDeProducto(categoria.imagen_url)}
+                  <ImagenProducto
+                    src={categoria.imagen_url}
                     alt={categoria.nombre}
                     loading="lazy"
-                    onError={usarImagenFallback}
                   />
                 ) : (
                   <span className="categoria-card__placeholder">

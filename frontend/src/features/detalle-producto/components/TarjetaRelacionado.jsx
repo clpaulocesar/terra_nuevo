@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
+import ImagenProducto from '../../../components/ui/ImagenProducto.jsx';
 import { formatoMoneda } from '../../../utils/formatoMoneda.js';
-import { imagenDeProducto, usarImagenFallback } from '../../../utils/imagenProducto.js';
 
 const MARGEN = 'mx-3.5 block';
 
@@ -13,11 +13,10 @@ export default function TarjetaRelacionado({ producto }) {
         text-terra-texto no-underline"
     >
       <figure className="aspect-4/3 overflow-hidden bg-terra-fondo-imagen">
-        <img
-          className={`size-full object-contain ${producto.imagen_url ? '' : 'img-fallback'}`}
-          src={imagenDeProducto(producto.imagen_url)}
+        <ImagenProducto
+          className="size-full object-contain"
+          src={producto.imagen_url}
           alt={producto.nombre}
-          onError={usarImagenFallback}
         />
       </figure>
       <h3 className={`${MARGEN} mt-3 mb-1 text-terra-sm`}>{producto.nombre}</h3>

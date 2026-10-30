@@ -1,11 +1,8 @@
 import { useCallback, useState } from 'react';
-import { IMAGEN_PRODUCTO_FALLBACK } from '../../../utils/imagenProducto.js';
 import { urlVideoEnBucle, videoIncrustado } from '../utils/videoProducto.js';
 import FotoPrincipal from './FotoPrincipal.jsx';
 import MiniaturaGaleria from './MiniaturaGaleria.jsx';
 import ModalVideo from './ModalVideo.jsx';
-
-const FOTOS_REEMPLAZO = [IMAGEN_PRODUCTO_FALLBACK];
 
 // Galería: foto elegida, hasta 4 miniaturas y el video ampliado. Con la ficha en
 // una columna ocupa el ancho de la tarjeta hasta 600 px.
@@ -13,8 +10,8 @@ export default function GaleriaProducto({ producto, colores, color, onElegirColo
   const [foto, setFoto] = useState(0);
   const [videoAmpliado, setVideoAmpliado] = useState(false);
   const cerrarVideo = useCallback(() => setVideoAmpliado(false), []);
-  const fotosPropias = producto.imagen_url ? [producto.imagen_url] : FOTOS_REEMPLAZO;
-  const fotos = producto.imagenes?.length ? producto.imagenes : fotosPropias;
+  // Sin fotos queda una sola entrada vacía: ImagenProducto muestra el logo de TERRA.
+  const fotos = producto.imagenes?.length ? producto.imagenes : [producto.imagen_url];
   const embed = producto.video_url ? videoIncrustado(producto.video_url) : null;
   const video = { embed, src: urlVideoEnBucle(embed), url: producto.video_url };
 

@@ -26,7 +26,7 @@ import { crearVentaDirecta, registrarPagoPedido } from '../../services/pedidoSer
 import AvisoErp from '../../components/admin/AvisoErp.jsx';
 import { getAdminUser } from '../../services/adminService.js';
 import { formatoMoneda } from '../../utils/formatoMoneda.js';
-import { imagenDeProducto, usarImagenFallback } from '../../utils/imagenProducto.js';
+import ImagenProducto from '../../components/ui/ImagenProducto.jsx';
 import { imprimirTicketVenta } from '../../utils/imprimirTicketVenta.js';
 import ModalQrPago from '../../components/ui/ModalQrPago.jsx';
 import './VentasDirectasAdmin.css';
@@ -575,11 +575,10 @@ export default function VentasDirectasAdmin() {
               {productos.map((producto) => (
                 <article className="direct-card" key={producto.id}>
                   <div className="direct-card__media">
-                    <img
+                    <ImagenProducto
                       className="direct-card__img"
                       alt={producto.nombre}
-                      src={imagenDeProducto(producto.imagen_url)}
-                      onError={usarImagenFallback}
+                      src={producto.imagen_url}
                       loading="lazy"
                     />
                     {producto.promocion && <span className="direct-badge direct-badge--promo">PROMO</span>}
