@@ -83,18 +83,6 @@ export default function PieCliente({ enCarrito }) {
             {/* Enlaces de Redes Sociales: botones táctiles >= 44px (size-11) */}
             <div className="flex flex-wrap items-center gap-2.5 pt-1 sm:gap-3 text-stone-700 dark:text-stone-300">
               <a
-                aria-label="YouTube de TERRA"
-                className="flex size-11 items-center justify-center rounded-xl border border-stone-200/80 bg-white text-stone-700 shadow-xs transition-all duration-150 hover:border-terra-primario hover:bg-terra-primario hover:text-white active:scale-95 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:border-terra-primario dark:hover:bg-terra-primario dark:hover:text-white"
-                href="https://www.youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <svg className="size-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                </svg>
-              </a>
-
-              <a
                 aria-label="Instagram de TERRA"
                 className="flex size-11 items-center justify-center rounded-xl border border-stone-200/80 bg-white text-stone-700 shadow-xs transition-all duration-150 hover:border-terra-primario hover:bg-terra-primario hover:text-white active:scale-95 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:border-terra-primario dark:hover:bg-terra-primario dark:hover:text-white"
                 href="https://www.instagram.com/terracolchonesymuebles?srtk=MWZjZGd3aHdjdWozeA=="
