@@ -1,5 +1,5 @@
 ---
-actualizado: 2026-10-29
+actualizado: 2026-10-30
 tags: [roadmap]
 ---
 
@@ -9,6 +9,10 @@ Estado del proyecto TERRA Autoservicio. Se actualiza al cerrar cada tarea (ver `
 Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · Terceros: [[pendientes-terceros]].
 
 ## Hecho
+
+### 2026-10-30
+- **Se eliminó `frontend-global/`**: la app duplicada del sitio público ya no se mantiene; el cliente se sirve solo desde `frontend/` (kiosco, backoffice y mayorista).
+- **Grilla del catálogo adaptable al ancho** (catálogo, ofertas y categorías, cliente y mayorista): `auto-fill` con ancho mínimo de tarjeta de 13 rem (`--spacing-terra-tarjeta-min`) en lugar de columnas por breakpoint. 1 columna de 360 a 430 px, 2 a 640 y 768 px, 3 a 1024 × 768; con texto al 150 % entran menos solas. La foto conserva su proporción con un tope de 210 px de alto. Se borraron la anulación de `accesibilidad.css` y las reglas de `.product-grid`. Decisión: [[2026-10-30-grilla-catalogo-auto-fill]].
 
 ### 2026-10-29
 - **Pie de página corporativo adaptado a todos los dispositivos**: diseño responsive optimizado para móviles (360px), tablets (768px portrait y 1024px landscape del kiosco) y pantallas de escritorio. Botones táctiles >= 44px (WCAG), espaciado lateral seguro ante botones flotantes y barra inferior de derechos de autor. Retiro temporal de la temática Halloween.
@@ -71,7 +75,6 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 
 ### Funcionalidad
 - Fase 2 del ERP: job de sincronización con `GET /api/productos/catalogo` (usará `erp_sync_runs`) para que el kiosco muestre precio y stock reales antes de llegar a caja; importación única de imágenes del ERP. Ver [[erp-terra]].
-- `frontend-global/`: el checkout envía un id de producto inválido y simula éxito si el backend falla ([[ANALISIS_PROYECTO]], sección 6.5).
 - Reportes y dashboard calculan sobre los últimos 200 pedidos; usar los endpoints agregados.
 
 ### Calidad y documentación

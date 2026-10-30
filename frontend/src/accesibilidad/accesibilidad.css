@@ -151,7 +151,7 @@ html.modo-accesible body { overflow-x: hidden; }
 html.modo-accesible .terra-card__title, html.modo-accesible .terra-card h3,
 html.modo-accesible .product-buy h1 { overflow-wrap: anywhere; }
 html.modo-accesible .terra-card__badges .terra-badge { white-space: normal; }
-html.modo-accesible .terra-grid, html.modo-accesible .product-related > div { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)) !important; }
+html.modo-accesible .product-related > div { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)) !important; }
 
 /* Alto contraste (también con prefers-contrast: more). Hecho con variables más
    reglas genéricas: fondo negro, texto blanco, acento amarillo, bordes blancos.

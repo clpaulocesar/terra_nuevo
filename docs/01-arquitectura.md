@@ -1,5 +1,5 @@
 ---
-actualizado: 2026-10-28
+actualizado: 2026-10-30
 tags: [arquitectura]
 ---
 
@@ -11,8 +11,7 @@ Visión de conjunto del sistema. Detalle por archivo en [[ANALISIS_PROYECTO]] (a
 
 ```mermaid
 flowchart LR
-  K[Kiosco y backoffice<br/>frontend/] -->|HTTPS /api| B[Backend Express<br/>backend/]
-  G[Sitio público<br/>frontend-global/] -->|HTTPS /api| B
+  K[Kiosco, sitio público y backoffice<br/>frontend/] -->|HTTPS /api| B[Backend Express<br/>backend/]
   B -->|SQL| P[(PostgreSQL propio)]
   B -->|PUT ?j| C[copyparty<br/>imágenes de producto]
   B -->|HTTPS red interna| E[API ERP TERRA<br/>192.168.0.82:9433]
@@ -25,8 +24,7 @@ flowchart LR
 
 | Parte | Tecnología |
 |---|---|
-| `frontend/` | React 19, Vite 8, Tailwind v4, react-router 7. Kiosco de autoservicio, backoffice (admin, vendedor, despacho) y portal mayorista. |
-| `frontend-global/` | React 19 + Vite sin router. Sitio público; se despliega aparte. |
+| `frontend/` | React 19, Vite 8, Tailwind v4, react-router 7. Kiosco de autoservicio, sitio público, backoffice (admin, vendedor, despacho) y portal mayorista. |
 | `backend/` | Node 24, Express 5 (ESM), `pg` sin ORM, `bcryptjs`, `multer`. |
 | Base de datos | PostgreSQL 18 propio. Conexión por `DATABASE_URL`; TLS solo con `DB_SSL=true` (hoy sin TLS, ver [[pendientes-terceros]]). |
 | Pruebas | `node --test` en el backend (Postgres local desechable, servidores falsos de ERP y copyparty); vitest + `node --test` en el frontend. |

@@ -1,18 +1,17 @@
 import TarjetaProducto from './TarjetaProducto.jsx';
 import ResumenPedidoMayorista from './ResumenPedidoMayorista.jsx';
 
-// Grilla de tarjetas: 1 columna en teléfono, 2 desde 640 px y 3 desde 768 px. El
-// mayorista suma la columna con el resumen del pedido desde 1024 px.
-// terra-grid: gancho de accesibilidad.css (una columna en el modo accesible).
+// Grilla de tarjetas: entran tantas columnas como quepan con el ancho mínimo de la tarjeta
+// (--spacing-terra-tarjeta-min, en rem), sin cortes por breakpoint. Con el texto al 150 % o
+// con la columna del resumen mayorista (desde 1024 px) entran menos, solas.
+const COLUMNAS = 'grid-cols-[repeat(auto-fill,minmax(min(100%,var(--spacing-terra-tarjeta-min)),1fr))]';
+
 export default function GrillaProductos({
   productos, esMayorista, agregados, ventasMaximas, cantidadesMayorista, items, cantidadTotal, subtotal,
   onCambiarCantidad, onAgregar, onQuitar, onClickTarjeta, onTeclaTarjeta, onAbrirDetalle, stateTarjeta,
 }) {
-  const columnas = esMayorista
-    ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 min-[84.375rem]:grid-cols-3'
-    : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
   const grilla = (
-    <div className={`terra-grid grid gap-3 md:gap-5 lg:gap-6 ${columnas}`}>
+    <div className={`grid gap-3 md:gap-5 lg:gap-6 ${COLUMNAS}`}>
       {productos.map((producto, indice) => (
         <TarjetaProducto
           key={producto.id}

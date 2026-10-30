@@ -19,7 +19,7 @@ tags: [decision, frontend, responsive]
 - Desde 768 px la grilla del catálogo reserva a la derecha el ancho de la columna de flotantes, salvo lo que ya cubre el margen de la página en pantallas anchas.
 - Por debajo de 768 px, el pie de página reserva bajo su texto el alto de los flotantes y de la barra inferior. Así, al final del scroll ningún botón tapa la paginación ni la última tarjeta.
 - `viewport-fit=cover` en `index.html`. El encabezado suma `env(safe-area-inset-top)` y la barra inferior móvil `env(safe-area-inset-bottom)`.
-- Catálogo: 2 columnas desde 360 px y 3 desde 768 px. La imagen es cuadrada por debajo de 1024 px y conserva 210 px de alto desde 1024. En modo accesible la grilla usa tarjetas de 260 px como mínimo, una columna en teléfono.
+- Catálogo: 2 columnas desde 360 px y 3 desde 768 px. La imagen es cuadrada por debajo de 1024 px y conserva 210 px de alto desde 1024. En modo accesible la grilla usa tarjetas de 260 px como mínimo, una columna en teléfono. *Reemplazado el 30/10 por [[2026-10-30-grilla-catalogo-auto-fill]] (auto-fill con ancho mínimo en rem).*
 - Paginador en una fila. La versión compacta (`‹ 1 … 5 … 826 ›`) se elige con `usarPaginadorCompacto` (`utils/paginacion.js`), medido en rem para que el texto al 125 % o 150 % cambie antes de versión.
 
 ## Alternativas consideradas
