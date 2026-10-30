@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test:nav": "node --test src/navegacion/__tests__/interpretarIntencion.test.js src/utils/__tests__/erpCambios.test.js src/utils/__tests__/paginacion.test.js src/features/catalogo/utils/__tests__/productoCatalogo.test.js src/features/detalle-producto/utils/__tests__/detalleProducto.test.js src/features/carrito/utils/__tests__/carrito.test.js src/features/identificacion/utils/__tests__/identificacion.test.js src/features/confirmacion/utils/__tests__/confirmacion.test.js src/features/pedido-generado/utils/__tests__/pedidoGenerado.test.js src/utils/__tests__/imagenProducto.test.js",
+    "test:nav": "node --test src/navegacion/__tests__/interpretarIntencion.test.js src/utils/__tests__/erpCambios.test.js src/utils/__tests__/paginacion.test.js src/features/catalogo/utils/__tests__/productoCatalogo.test.js src/features/catalogo/utils/__tests__/limitePagina.test.js src/features/detalle-producto/utils/__tests__/detalleProducto.test.js src/features/carrito/utils/__tests__/carrito.test.js src/features/identificacion/utils/__tests__/identificacion.test.js src/features/confirmacion/utils/__tests__/confirmacion.test.js src/features/pedido-generado/utils/__tests__/pedidoGenerado.test.js src/utils/__tests__/imagenProducto.test.js",
     "test:a11y": "vitest run",
     "test": "npm run test:nav && npm run test:a11y"
   },

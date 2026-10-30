@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCarrito } from '../../hooks/useCarrito.js';
 import { obtenerIconoCategoria } from '../../data/categorias.js';
 import { SesionClienteContext } from '../../context/SesionClienteContext.jsx';
-import { LIMITE_CATALOGO, useCatalogoPaginado } from '../../context/CatalogoContext.jsx';
+import { useCatalogoPaginado } from '../../context/CatalogoContext.jsx';
 import { useAccesibilidad } from '../../context/AccesibilidadContext.jsx';
 import { elegirProducto } from '../../navegacion/interpretarIntencion.js';
 import TecladoTactil from '../../components/ui/TecladoTactil.jsx';
@@ -14,7 +14,9 @@ import TutorialInvitacion from '../../tutorial/TutorialInvitacion.jsx';
 import { useTutorialGuiado } from '../../tutorial/useTutorialGuiado.js';
 import { usePaginadorCompacto } from '../../hooks/usePaginadorCompacto.js';
 import { separarOfertasDeBusqueda } from './utils/productoCatalogo.js';
+import { limitePorColumnas, paginaConProducto } from './utils/limitePagina.js';
 import { useEscanerQr } from './hooks/useEscanerQr.js';
+import { useColumnasGrilla } from './hooks/useColumnasGrilla.js';
 import BuscadorCatalogo from './components/BuscadorCatalogo.jsx';
 import ContadorProductos from './components/ContadorProductos.jsx';
 import MenuOrden from './components/MenuOrden.jsx';
@@ -157,8 +159,15 @@ export default function CatalogoPage() {
   }, [location.key]);
   const cambiarBusqueda = (valor) => { setBuscar(valor); setPagina(1); };
 
+  // Tarjetas por página: un múltiplo de las columnas de la grilla, para que las filas queden
+  // completas. Es null hasta medir la grilla (no se pide nada antes).
+  const [limite, setLimite] = useState(null);
+  const grillaRef = useRef(null);
+
   const {
     productos,
+    paginaMostrada,
+    recargando,
     cargando,
     error: errorProductos,
     total: totalProductos,
@@ -173,14 +182,26 @@ export default function CatalogoPage() {
     categoria: categoriaSeleccionada,
     orden,
     pagina,
-    limite: LIMITE_CATALOGO,
+    limite,
     soloOfertas,
   });
 
-  // Si el backend devuelve menos páginas de las que pide la URL, se corrige.
+  // Si cambian las columnas (rotar, redimensionar, texto al 150 %) se recalcula el límite y
+  // se va a la página que contiene la primera tarjeta que se ve. Página y límite cambian
+  // juntos: un solo pedido.
+  useColumnasGrilla(grillaRef, (columnas, indiceVisible) => {
+    const nuevo = limitePorColumnas(columnas);
+    if (nuevo === limite) return;
+    if (limite) setPagina(paginaConProducto((paginaMostrada - 1) * limite + indiceVisible, nuevo));
+    setLimite(nuevo);
+  });
+
+  // Si el backend devuelve menos páginas de las que pide la URL, se corrige. Mientras se
+  // recarga por un cambio de límite, el total es el del límite anterior: no se toca.
   useEffect(() => {
-    if (!cargando && totalConocido && totalPaginas > 0 && pagina > totalPaginas) setPagina(totalPaginas);
-  }, [cargando, totalConocido, totalPaginas, pagina]);
+    if (cargando || recargando) return;
+    if (totalConocido && totalPaginas > 0 && pagina > totalPaginas) setPagina(totalPaginas);
+  }, [cargando, recargando, totalConocido, totalPaginas, pagina]);
 
   // Backend viejo sin total: se puede avanzar una página más allá de lo conocido
   // mientras la actual anuncie que hay siguiente.
@@ -426,8 +447,30 @@ export default function CatalogoPage() {
   const textoContador = cargando
     ? 'Cargando…'
     : totalConocido
-      ? `${totalProductos} disponibles${totalPaginas > 1 ? ` · pág. ${pagina}/${totalPaginas}` : ''}`
-      : `${productosFiltrados.length} en esta página · pág. ${pagina}`;
+      ? `${totalProductos} disponibles${totalPaginas > 1 ? ` · pág. ${paginaMostrada}/${totalPaginas}` : ''}`
+      : `${productosFiltrados.length} en esta página · pág. ${paginaMostrada}`;
+
+  const avisoGrilla = cargando
+    ? <IndicadorCarga texto="Cargando productos…" />
+    : errorProductos
+      ? (
+        <EstadoCatalogo
+          icono="cloud_off"
+          titulo="No se pudo cargar el catálogo"
+          texto={errorProductos}
+          accion="Reintentar"
+          onAccion={reintentarCarga}
+        />
+      )
+      : productosFiltrados.length === 0 && (
+        <EstadoCatalogo
+          icono="search_off"
+          titulo="No encontramos productos"
+          texto="Prueba cambiando los filtros o limpia la búsqueda."
+          accion="Restablecer filtros"
+          onAccion={restablecerFiltros}
+        />
+      );
 
   return (
     <div
@@ -497,45 +540,27 @@ export default function CatalogoPage() {
             md:pb-8 md:pl-[max(1rem,calc(var(--terra-a11y-reserva)-max(1rem,(100vw-1216px)/2)))]
             ${esMayorista ? 'max-w-420' : 'max-w-terra'}`}
         >
-          {cargando ? (
-            <IndicadorCarga texto="Cargando productos…" />
-          ) : errorProductos ? (
-            <EstadoCatalogo
-              icono="cloud_off"
-              titulo="No se pudo cargar el catálogo"
-              texto={errorProductos}
-              accion="Reintentar"
-              onAccion={reintentarCarga}
-            />
-          ) : productosFiltrados.length === 0 ? (
-            <EstadoCatalogo
-              icono="search_off"
-              titulo="No encontramos productos"
-              texto="Prueba cambiando los filtros o limpia la búsqueda."
-              accion="Restablecer filtros"
-              onAccion={restablecerFiltros}
-            />
-          ) : (
-            <GrillaProductos
-              productos={productosFiltrados}
-              esMayorista={esMayorista}
-              agregados={agregados}
-              ventasMaximas={ventasMaximas}
-              cantidadesMayorista={cantidadesMayorista}
-              items={items}
-              cantidadTotal={cantidadTotal}
-              subtotal={subtotal}
-              onCambiarCantidad={(id, cantidad) => setCantidadesMayorista((prev) => ({ ...prev, [id]: cantidad }))}
-              onAgregar={handleAgregar}
-              onQuitar={quitarProducto}
-              onClickTarjeta={manejarClickTarjeta}
-              onTeclaTarjeta={manejarTeclaTarjeta}
-            />
-          )}
+          <GrillaProductos
+            refGrilla={grillaRef}
+            aviso={avisoGrilla}
+            productos={productosFiltrados}
+            esMayorista={esMayorista}
+            agregados={agregados}
+            ventasMaximas={ventasMaximas}
+            cantidadesMayorista={cantidadesMayorista}
+            items={items}
+            cantidadTotal={cantidadTotal}
+            subtotal={subtotal}
+            onCambiarCantidad={(id, cantidad) => setCantidadesMayorista((prev) => ({ ...prev, [id]: cantidad }))}
+            onAgregar={handleAgregar}
+            onQuitar={quitarProducto}
+            onClickTarjeta={manejarClickTarjeta}
+            onTeclaTarjeta={manejarTeclaTarjeta}
+          />
 
           {!cargando && !errorProductos && mostrarPaginador && (
             <PaginadorCatalogo
-              pagina={pagina}
+              pagina={paginaMostrada}
               ultimaPagina={ultimaPaginaPermitida}
               tieneSiguiente={tieneSiguiente}
               compacto={paginadorCompacto}
