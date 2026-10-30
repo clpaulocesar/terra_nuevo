@@ -97,7 +97,7 @@ export default function PieCliente({ enCarrito }) {
               <a
                 aria-label="Instagram de TERRA"
                 className="flex size-11 items-center justify-center rounded-xl border border-stone-200/80 bg-white text-stone-700 shadow-xs transition-all duration-150 hover:border-terra-primario hover:bg-terra-primario hover:text-white active:scale-95 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:border-terra-primario dark:hover:bg-terra-primario dark:hover:text-white"
-                href="https://www.instagram.com"
+                href="https://www.instagram.com/terracolchonesymuebles?srtk=MWZjZGd3aHdjdWozeA=="
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -120,7 +120,7 @@ export default function PieCliente({ enCarrito }) {
               <a
                 aria-label="Facebook de TERRA"
                 className="flex size-11 items-center justify-center rounded-xl border border-stone-200/80 bg-white text-stone-700 shadow-xs transition-all duration-150 hover:border-terra-primario hover:bg-terra-primario hover:text-white active:scale-95 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:border-terra-primario dark:hover:bg-terra-primario dark:hover:text-white"
-                href="https://www.facebook.com"
+                href="https://www.facebook.com/share/1Fn2vb2B4s/"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -132,7 +132,7 @@ export default function PieCliente({ enCarrito }) {
               <a
                 aria-label="TikTok de TERRA"
                 className="flex size-11 items-center justify-center rounded-xl border border-stone-200/80 bg-white text-stone-700 shadow-xs transition-all duration-150 hover:border-terra-primario hover:bg-terra-primario hover:text-white active:scale-95 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200 dark:hover:border-terra-primario dark:hover:bg-terra-primario dark:hover:text-white"
-                href="https://www.tiktok.com"
+                href="https://www.tiktok.com/@terra.hogar?_r=1&_t=ZS-9AzGtALVAjl"
                 target="_blank"
                 rel="noopener noreferrer"
               >
