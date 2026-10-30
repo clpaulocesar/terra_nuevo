@@ -85,19 +85,6 @@ html[data-theme="dark"] textarea,
 html[data-theme="dark"] select { color: var(--td-text); }
 html[data-theme="dark"] ::placeholder { color: #8f847d; }
 
-/* ---------- Asistente ---------- */
-html[data-theme="dark"] .chat-panel,
-html[data-theme="dark"] .chat-form { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .chat-mensajes { background: var(--td-bg); }
-html[data-theme="dark"] .chat-msg-asistente,
-html[data-theme="dark"] .chat-cancelar-grabacion { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .chat-imagen { background: var(--td-surface-3); border-color: var(--td-line); }
-html[data-theme="dark"] .chat-escribiendo { color: var(--td-muted); }
-html[data-theme="dark"] .chat-msg-asistente a { color: #ffb3bd; }
-html[data-theme="dark"] .chat-form input { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .chat-msg-error,
-html[data-theme="dark"] .chat-grabando-info { background: #3a1a1c; border-color: #5a2a2e; color: #ff9a92; }
-
 /* ---------- Genéricos restantes (index.css) ---------- */
 html[data-theme="dark"] .quantity-controls button { background: var(--td-surface-2); color: var(--td-text); }
 html[data-theme="dark"] .icon-danger { background: #3a1a1c; color: #ff9a92; }
@@ -106,9 +93,6 @@ html[data-theme="dark"] .field-error { color: #ff9a92; }
 html[data-theme="dark"] .success-icon { color: var(--td-ok); }
 html[data-theme="dark"] .code-card { background: var(--td-surface); color: var(--td-text); }
 html[data-theme="dark"] .code-card strong { color: var(--td-ok); }
-
-/* ---------- Asistente: restos ---------- */
-html[data-theme="dark"] .chat-cancelar-grabacion:hover { background: var(--td-surface-3); color: var(--td-text); }
 
 
 

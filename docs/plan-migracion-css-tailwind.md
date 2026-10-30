@@ -67,13 +67,21 @@ Para cada archivo `.css` a migrar se ejecutará el siguiente ciclo estricto:
   - Eliminación de reglas residuales en `theme-dark.css`.
   - Eliminación física de `src/components/WebAccountModal.css`.
 
-#### **Fase 5: `src/components/ui/BotonTema.css`**
-- **Componente asociado:** [`src/components/ui/BotonTema.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/ui/BotonTema.jsx)
-- **Objetivo:** Selector de tema claro/oscuro con utilidades de transición y micro-animaciones.
+#### **Fase 5: `src/components/ui/BotonTema.css`** ✅ (Completada 2026-10-30)
+- **Componente asociado:** [`src/components/ui/BotonTema.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/ui/BotonTema.jsx).
+- **Acciones realizadas:**
+  - Migración a utilidades de Tailwind v4 y tokens `@theme` (`bg-terra-control`, `text-terra-texto-control`, `border-terra-borde-control`, etc.), compatibles de forma automática con modo claro y noche sin reglas de tema extra.
+  - Micro-animación en hover (rotación suave del icono `group-hover:rotate-[20deg]` con `motion-reduce:transform-none`).
+  - Eliminación física de `src/components/ui/BotonTema.css`.
 
-#### **Fase 6: `src/components/chat/ChatAsistente.css`**
-- **Componente asociado:** [`src/components/chat/ChatAsistente.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/chat/ChatAsistente.jsx)
-- **Objetivo:** Widget flotante del chatbot n8n (panel de conversación, burbujas de chat, botón de envío).
+#### **Fase 6: `src/components/chat/ChatAsistente.css`** ✅ (Completada 2026-10-30)
+- **Componentes asociados:** [`src/components/chat/ChatAsistente.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/chat/ChatAsistente.jsx) y [`src/components/chat/MensajeMarkdown.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/chat/MensajeMarkdown.jsx).
+- **Acciones realizadas:**
+  - Migración completa del widget flotante del chatbot de n8n a utilidades Tailwind v4 (panel de conversación responsivo, cabecera con botón de cierre, historial de mensajes con auto-scroll, burbujas por rol: asistente, usuario, error, escribiendo).
+  - Estilos integrados para notas de voz (reproductor de audio, estado de grabación con punto pulsante accesible y contador).
+  - Conservación de clases hook requeridas por la variante global (`chat-widget` y `abierto` para `@custom-variant con-asistente-abierto` en `index.css`).
+  - Purga de reglas obsoletas `.chat-*` en `src/theme-dark.css`.
+  - Eliminación física de `src/components/chat/ChatAsistente.css`.
 
 #### **Fase 7: `src/components/ui/TecladoTactil.css`**
 - **Componente asociado:** [`src/components/ui/TecladoTactil.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/ui/TecladoTactil.jsx)
