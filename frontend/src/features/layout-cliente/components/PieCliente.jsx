@@ -47,9 +47,14 @@ export default function PieCliente({ enCarrito }) {
                 </svg>
                 <p className="leading-relaxed break-words">
                   <strong className="font-semibold text-neutral-900 dark:text-white">Dirección:</strong>{' '}
-                  <span className="text-stone-700 dark:text-stone-300">
+                  <a
+                    className="text-terra-primario hover:text-terra-primario-oscuro hover:underline"
+                    href="https://maps.app.goo.gl/LoTZEQQyioWcT4S27"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
                     Av. Carmelo Ortiz #3795 (entre 3.er y 4.º anillo, paralela a las rieles del tren, zona Nueva Feria Barrio Lindo)
-                  </span>
+                  </a>
                 </p>
               </div>
 
