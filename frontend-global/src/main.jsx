@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from 'react';
+import { StrictMode, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import Header from './components/Header.jsx';
 import Footer from './components/Footer.jsx';
@@ -14,6 +14,7 @@ import { SUCURSALES_DATA } from './data/sucursalesData.js';
 import { CATEGORY_PILLS } from './data/catalogoData.js';
 import { listarProductosDestacados, obtenerCategorias } from './services/api.js';
 import { crearPedidoBackend } from './services/pedidoService.js';
+import { registrarVistaPublica } from './services/analyticsService.js';
 import { VozProvider, useVoz } from './context/VozContext.jsx';
 import TutorialVozModal from './components/TutorialVozModal.jsx';
 import { TemporadaProvider, useTemporada } from './context/TemporadaContext.jsx';
@@ -33,6 +34,7 @@ function AppGlobalContent() {
 
   const [sucursalActiva, setSucursalActiva] = useState(SUCURSALES_DATA[0]);
   const [paginaActual, setPaginaActual] = useState('inicio');
+  const ultimaPaginaRegistrada = useRef(null);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('todas');
   const [busqueda, setBusqueda] = useState('');
   const [busquedaAplicada, setBusquedaAplicada] = useState('');
@@ -42,6 +44,22 @@ function AppGlobalContent() {
     CATEGORY_PILLS.filter((categoria) => categoria.id !== 'todas' && !categoria.isOffer)
   );
   const { temporada, festivoActual, alternarDiaNoche, esModoDia } = useTemporada();
+
+  useEffect(() => {
+    if (ultimaPaginaRegistrada.current === paginaActual) return;
+    ultimaPaginaRegistrada.current = paginaActual;
+
+    const rutas = {
+      inicio: '/',
+      catalogo: '/catalogo',
+      detalle: '/productos',
+      carrito: '/carrito',
+      checkout: '/checkout',
+    };
+
+    registrarVistaPublica(rutas[paginaActual] || '/')
+      .catch((error) => console.error('No se pudo registrar la visita pública:', error));
+  }, [paginaActual]);
 
   // Cart & Drawers
   const [cartOpen, setCartOpen] = useState(false);

@@ -23,6 +23,67 @@
   padding: 1rem;
 }
 
+.reports--visitas {
+  --rep-bg: var(--terra-fondo);
+  --rep-ink: var(--terra-texto);
+  --rep-muted: var(--terra-texto-suave);
+  --rep-line: var(--terra-borde);
+  --rep-soft: var(--terra-superficie-2);
+}
+
+.reports--visitas .rep-hero,
+.reports--visitas .rep-filters,
+.reports--visitas .rep-kpi,
+.reports--visitas .rep-card {
+  background: var(--terra-superficie);
+  border-color: var(--terra-borde);
+  color: var(--terra-texto);
+}
+
+.reports--visitas .rep-hero {
+  background-image: none;
+}
+
+.reports--visitas .rep-card {
+  grid-column: span 6;
+}
+
+.reports--visitas .rep-eyebrow,
+.reports--visitas .rep-kpi__top i {
+  color: var(--terra-primario);
+}
+
+.reports--visitas .rep-eyebrow i {
+  background: var(--terra-primario);
+}
+
+.reports--visitas .rep-kpi__top i {
+  background: var(--terra-superficie-2);
+}
+
+.reports--visitas .rep-filters__pills {
+  border-color: var(--terra-borde);
+}
+
+.reports--visitas .rep-alert {
+  background: var(--terra-superficie-2);
+  border-color: var(--terra-borde);
+  color: var(--terra-texto);
+}
+
+.reports--visitas .rep-table th {
+  background: var(--terra-superficie-2);
+  color: var(--terra-texto-suave);
+}
+
+.reports--visitas .rep-table td {
+  border-color: var(--terra-borde-suave);
+}
+
+.reports--visitas .rep-table tbody tr:hover {
+  background: var(--terra-superficie-2);
+}
+
 .reports h1,
 .reports h2,
 .reports h3 {
@@ -1233,6 +1294,9 @@
   .rep-span-4 {
     grid-column: span 12;
   }
+  .reports--visitas .rep-card {
+    grid-column: span 12;
+  }
   .rep-filters__fields {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1330,4 +1394,25 @@
     break-inside: avoid;
     box-shadow: none;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rep-eyebrow i,
+  .rep-spin {
+    animation: none;
+  }
+  .reports .rep-btn,
+  .reports .rep-pill {
+    transition: none;
+  }
+}
+
+.a11y-sin-animacion .rep-eyebrow i,
+.a11y-sin-animacion .rep-spin {
+  animation: none;
+}
+
+.a11y-sin-animacion .reports .rep-btn,
+.a11y-sin-animacion .reports .rep-pill {
+  transition: none;
 }
