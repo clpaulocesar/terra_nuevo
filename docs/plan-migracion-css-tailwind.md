@@ -48,17 +48,24 @@ Para cada archivo `.css` a migrar se ejecutará el siguiente ciclo estricto:
   - Migración de `SelectorCategorias.jsx` (control desplegable, menú flotante y buscador) a Tailwind v4 y reemplazo de iconos a `IconoMaterial`.
   - Eliminación física de `src/pages/Categorias.css` y de su import. Reducción de ~7.8 kB en el CSS compilado.
 
-#### **Fase 3: `src/routes/ClienteTheme.css`**
-- **Componentes asociados:** Usado en [`src/routes/AppRoutes.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/routes/AppRoutes.jsx).
-- **Objetivo:** Reemplazar las variables heredadas remanentes y eliminar el archivo.
+#### **Fase 3: `src/routes/ClienteTheme.css`** ✅ (Completada 2026-10-30)
+- **Componentes asociados:** [`src/routes/AppRoutes.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/routes/AppRoutes.jsx) y limpieza en [`src/theme-dark.css`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/theme-dark.css).
+- **Acciones realizadas:**
+  - Retiro del `import './ClienteTheme.css';` en `AppRoutes.jsx`.
+  - Depuración de selectores muertos en `theme-dark.css` (reglas antiguas de Bienvenida, Categorías y acentos de `ClienteTheme.css`).
+  - Eliminación física de `src/routes/ClienteTheme.css`. Con esto queda finalizado el **Bloque A (Portada y Navegación del Cliente)**.
 
 ---
 
 ### Bloque B: Componentes UI y Flotantes
 
-#### **Fase 4: `src/components/WebAccountModal.css`**
-- **Componente asociado:** [`src/components/WebAccountModal.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/WebAccountModal.jsx)
-- **Objetivo:** Modal de login mayorista con Tailwind v4 (fondos, inputs, botones de inicio).
+#### **Fase 4: `src/components/WebAccountModal.css`** ✅ (Completada 2026-10-30)
+- **Componente asociado:** [`src/components/WebAccountModal.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/WebAccountModal.jsx).
+- **Acciones realizadas:**
+  - Migración completa del diálogo modal, formulario de inicio de sesión mayorista, inputs con iconos, botón de visibilidad de contraseña, recordatorio y botón de WhatsApp a utilidades de Tailwind v4 y tokens `@theme`.
+  - Formateo legible del componente conforme a las reglas de estilo de `AGENTS.md` (una sentencia por línea, indentación limpia).
+  - Eliminación de reglas residuales en `theme-dark.css`.
+  - Eliminación física de `src/components/WebAccountModal.css`.
 
 #### **Fase 5: `src/components/ui/BotonTema.css`**
 - **Componente asociado:** [`src/components/ui/BotonTema.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/ui/BotonTema.jsx)

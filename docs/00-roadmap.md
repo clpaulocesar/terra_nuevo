@@ -51,7 +51,7 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 | 1 | Catálogo, tarjeta, paginación, filtros, flotantes y Layout del cliente | Hecha el 2026-10-28. Código en `src/features/catalogo/` y `src/features/layout-cliente/`; se borraron `Catalogo.css`, `Layout.css`, `FloatingActions.css`, `NavigationFix.css` y `HeaderOptionsHidden.css` |
 | 2 | DetalleProducto | Hecha el 2026-10-28. Código en `src/features/detalle-producto/`; se borraron `DetalleProducto.css`, `DetalleProductoBack.css`, `DetalleProductoPalette.css`, `DetalleProductoRelated.css` y `DetalleProductoSpecs.css` (los tres últimos no se importaban) |
 | 3 | Carrito, Identificación, Confirmación, PedidoGenerado y carrito flotante | Hecha el 2026-10-29. Código en `src/features/carrito/`, `identificacion/`, `confirmacion/`, `pedido-generado/` y piezas comunes en `compra/`; se borraron `CarritoPage.css`, `Identificacion.css`, `Confirmacion.css`, `PedidoGenerado.css` y `CarritoFlotante.css`, y sus reglas en `theme-dark.css`, `ClienteTheme.css` y `Responsive.css`. Quedan 55 archivos `.css` |
-| 4 | Bienvenida, Categorías | Hecha el 2026-10-30. Bienvenida migrada (se borraron `Bienvenida.css` y `BienvenidaFeaturedHidden.css`); Categorías y SelectorCategorias migrados a Tailwind v4 y tokens `@theme inline` (se borró `Categorias.css`) |
+| 4 | Bienvenida, Categorías | Hecha el 2026-10-30. Bienvenida migrada (se borraron `Bienvenida.css` y `BienvenidaFeaturedHidden.css`); Categorías y SelectorCategorias migrados a Tailwind v4 y tokens `@theme inline` (se borró `Categorias.css`); se retiró y eliminó `ClienteTheme.css` con depuración en `theme-dark.css` |
 | 5 | Mayorista | Pendiente |
 | 6 | Admin | Pendiente |
 
