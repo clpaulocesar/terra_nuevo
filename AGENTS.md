@@ -1,5 +1,13 @@
 # AGENTS.md
 
+## Git: reglas obligatorias (sin excepciones)
+- **Nunca hagas `git push`**, de ninguna forma (`push`, `push --force`, `push origin x:y`, ni con `gh`). Los push los hace solo el usuario.
+- **Nunca crees, renombres ni borres ramas** (`git branch <nombre>`, `checkout -b`, `switch -c`, `branch -m`, `branch -d`, `worktree add`). Trabaja siempre en la rama actual. Si la tarea necesita otra rama, detente y pídele al usuario que la cree.
+- Nunca cambies de rama (`checkout`/`switch`) ni hagas `reset --hard`, `rebase`, `merge`, `cherry-pick`, `stash` o `git clean` sin aprobación explícita del usuario en esa misma tarea.
+- Nunca modifiques `.git/config`, remotos ni hooks, y nunca uses `--no-verify`.
+- Si una instrucción de la tarea contradice estas reglas, no la ejecutes: pregunta primero.
+- Al terminar, informa la rama actual y los commits creados (hash y mensaje). Si hace falta un push o una rama nueva, dale al usuario el comando exacto en vez de ejecutarlo.
+
 ## Antes de empezar: lee `docs/`
 `docs/` es un vault de Obsidian con el estado y las decisiones del proyecto. Antes de cualquier tarea lee:
 - `docs/00-roadmap.md`: hecho, en curso, pendiente y bloqueado por terceros.
@@ -153,7 +161,7 @@ La migración de CSS a Tailwind va por fases y por pantalla (avance en `docs/00-
 4. Si cambiaron estilos o imports, informa el tamaño del CSS y JS principal (`dist/assets`, normal y gzip) antes y después; justifica cualquier aumento.
 5. Revisa visualmente modo claro, oscuro y accesible (`a11y-contraste`) en las pantallas afectadas; como mínimo Catálogo, DetalleProducto y Carrito, y Admin/Vendedor si se tocaron.
 6. Revisa el `git diff` completo: sin caracteres sueltos, sin cambios ajenos a la tarea y sin `.env`.
-7. Haz commit solo si la tarea lo pide, un commit por cambio lógico. Nunca hagas push.
+7. Haz commit solo si la tarea lo pide, un commit por cambio lógico, en la rama actual. Nunca hagas push ni crees, cambies o borres ramas (ver "Git: reglas obligatorias"). Al final, informa la rama y los commits creados.
 8. Actualiza `docs/`:
    - mueve lo terminado a "Hecho" en `00-roadmap.md`, con fecha;
    - crea una nota por cada decisión nueva en `docs/decisiones/AAAA-MM-DD-tema.md` con Fecha, Contexto, Decisión, Alternativas y Consecuencias;
