@@ -167,6 +167,7 @@ export default function CatalogoPage() {
   const {
     productos,
     paginaMostrada,
+    indicePrimero,
     recargando,
     cargando,
     error: errorProductos,
@@ -192,7 +193,7 @@ export default function CatalogoPage() {
   useColumnasGrilla(grillaRef, (columnas, indiceVisible) => {
     const nuevo = limitePorColumnas(columnas);
     if (nuevo === limite) return;
-    if (limite) setPagina(paginaConProducto((paginaMostrada - 1) * limite + indiceVisible, nuevo));
+    if (limite) setPagina(paginaConProducto(indicePrimero + indiceVisible, nuevo));
     setLimite(nuevo);
   });
 

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { listarCategorias, listarProductosPaginado } from '../services/productoService.js';
+import { completarUltimaPagina } from '../utils/paginacion.js';
 
 // Store del catálogo (estilo redux: estado + reducer + acciones) que vive por encima
 // del router. Cachea cada página por combinación de filtros, así al volver de la
@@ -146,24 +147,43 @@ export function useCatalogoPaginado({ buscar = '', categoria = '', orden = 'reco
   const filtros = useMemo(() => ({ buscar, categoria, orden, limite, soloOfertas }), [buscar, categoria, orden, limite, soloOfertas]);
   const clave = claveFiltros(filtros);
   const consulta = estado.consultas[clave];
-  const productos = consulta?.paginas?.[pagina];
+  const productosPagina = consulta?.paginas?.[pagina];
   const estadoPagina = estado.estados[clave]?.[pagina];
   const error = estado.errores[clave]?.[pagina] || '';
 
   useEffect(() => {
-    if (limite && !productos && estadoPagina !== 'error') cargarPagina(filtros, pagina).catch(() => {});
-  }, [limite, productos, estadoPagina, filtros, pagina, cargarPagina]);
+    if (limite && !productosPagina && estadoPagina !== 'error') cargarPagina(filtros, pagina).catch(() => {});
+  }, [limite, productosPagina, estadoPagina, filtros, pagina, cargarPagina]);
+
+  // Última página incompleta con más productos que el límite: se muestran los últimos
+  // `limite` del filtro, completando con el final de la página anterior (se pide si no
+  // está en caché; si falla, queda la última página tal cual).
+  const completar = Boolean(productosPagina) && pagina > 1 && typeof consulta?.total === 'number'
+    && consulta.total > limite && pagina === consulta.totalPaginas && productosPagina.length < limite;
+  const paginaPrevia = completar ? consulta.paginas[pagina - 1] : undefined;
+  const esperarPrevia = completar && !paginaPrevia && estado.estados[clave]?.[pagina - 1] !== 'error';
+  useEffect(() => {
+    if (esperarPrevia) cargarPagina(filtros, pagina - 1).catch(() => {});
+  }, [esperarPrevia, filtros, pagina, cargarPagina]);
+  const productos = useMemo(() => {
+    if (esperarPrevia) return undefined;
+    return paginaPrevia ? completarUltimaPagina(paginaPrevia, productosPagina, limite) : productosPagina;
+  }, [esperarPrevia, paginaPrevia, productosPagina, limite]);
+  // Posición en el listado completo de la primera tarjeta (para ubicarla al cambiar el límite).
+  const indicePrimero = paginaPrevia && productos
+    ? consulta.total - productos.length
+    : (pagina - 1) * (limite || 0);
 
   // Si solo cambió el límite (cambiaron las columnas de la grilla), mientras llega la
   // página nueva se sigue mostrando la anterior: sin parpadeo ni indicador de carga.
   const claveSinLimite = claveFiltros({ ...filtros, limite: 0 });
   const [anterior, setAnterior] = useState(null);
   if (productos && anterior?.productos !== productos) {
-    setAnterior({ productos, consulta, pagina, limite, claveSinLimite });
+    setAnterior({ productos, consulta, pagina, indicePrimero, limite, claveSinLimite });
   }
   const mostrarAnterior = !productos && !error && Boolean(anterior)
     && anterior.claveSinLimite === claveSinLimite && anterior.limite !== limite;
-  const vista = mostrarAnterior ? anterior : { productos, consulta, pagina };
+  const vista = mostrarAnterior ? anterior : { productos, consulta, pagina, indicePrimero };
 
   useEffect(() => {
     if (!estado.categoriasCargadas) cargarCategorias().catch(() => {});
@@ -185,6 +205,7 @@ export function useCatalogoPaginado({ buscar = '', categoria = '', orden = 'reco
     productos: vista.productos || [],
     // Página de los productos que se muestran (la anterior mientras se recarga).
     paginaMostrada: vista.pagina,
+    indicePrimero: vista.indicePrimero,
     recargando: mostrarAnterior,
     enCache: Boolean(productos),
     cargando: !vista.productos && estadoPagina !== 'error',

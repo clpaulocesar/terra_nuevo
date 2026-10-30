@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { paginasVisibles, usarPaginadorCompacto } from '../paginacion.js';
+import { completarUltimaPagina, paginasVisibles, usarPaginadorCompacto } from '../paginacion.js';
 
 test('versión completa: página intermedia con saltos a ambos lados', () => {
   assert.deepEqual(paginasVisibles(5, 826), [1, 'gap-4', 4, 5, 6, 'gap-826', 826]);
@@ -36,4 +36,23 @@ test('con texto al 150 % la versión compacta llega a la tablet de 768 px', () =
   assert.equal(usarPaginadorCompacto(768, 24), true);
   assert.equal(usarPaginadorCompacto(1024, 24), false);
   assert.equal(usarPaginadorCompacto(360, 0), true);
+});
+
+const productosDe = (desde, hasta) => Array.from({ length: hasta - desde }, (_, i) => ({ id: desde + i }));
+
+test('última página incompleta: se completa con el final de la anterior', () => {
+  // 103 productos de a 15: la página 7 tiene 13 (90–102); faltan 2 de la página 6 (88 y 89).
+  const completa = completarUltimaPagina(productosDe(75, 90), productosDe(90, 103), 15);
+  assert.deepEqual(completa.map((p) => p.id), [88, 89, ...productosDe(90, 103).map((p) => p.id)]);
+});
+
+test('última página ya completa: no cambia', () => {
+  const ultima = productosDe(90, 105);
+  assert.equal(completarUltimaPagina(productosDe(75, 90), ultima, 15), ultima);
+});
+
+test('sin ids repetidos aunque la anterior traiga alguno de la última', () => {
+  const completa = completarUltimaPagina([...productosDe(75, 89), { id: 90 }], productosDe(90, 103), 15);
+  assert.equal(new Set(completa.map((p) => p.id)).size, completa.length);
+  assert.equal(completa.length, 15);
 });

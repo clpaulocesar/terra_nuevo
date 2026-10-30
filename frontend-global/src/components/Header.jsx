@@ -136,13 +136,13 @@ export default function Header({
             </button>
           </div>
           <div className="flex items-center gap-2 sm:gap-space-md shrink-0">
-            <a className="hidden md:flex items-center gap-1 text-on-surface-variant hover:text-on-surface" href="tel:+59133445500">
+            <a className="hidden md:flex items-center gap-1 text-on-surface-variant hover:text-on-surface" href="tel:+59175335697">
               <span className="material-symbols-outlined text-[15px] text-tertiary">call</span>
-              <span>(3) 344-5500</span>
+              <span>+591 75335697</span>
             </a>
             <a
               className="flex items-center gap-1 text-on-surface-variant hover:text-on-surface"
-              href="https://wa.me/59133445500"
+              href="https://wa.me/59175335697"
               target="_blank"
               rel="noreferrer"
             >
