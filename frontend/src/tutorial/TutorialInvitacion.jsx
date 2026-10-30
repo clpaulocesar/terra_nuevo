@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { BookOpen } from 'lucide-react';
-import './tutorial.css';
 
 export default function TutorialInvitacion({ abierto, onComenzar, onOmitir }) {
   const botonComenzarRef = useRef(null);
@@ -43,50 +42,55 @@ export default function TutorialInvitacion({ abierto, onComenzar, onOmitir }) {
   if (!abierto) return null;
 
   return (
-    <div className="tutorial-invite">
+    <div className="fixed inset-0 z-400 flex items-center justify-center p-4 bg-black/65 animate-terra-aparecer">
       <button
         type="button"
-        className="tutorial-invite__fondo"
+        className="absolute inset-0 bg-transparent border-0 p-0 cursor-default"
         onClick={onOmitir}
         tabIndex={-1}
         aria-hidden="true"
       />
       <section
         ref={tarjetaRef}
-        className="tutorial-invite__card"
+        className="relative w-full max-w-[26rem] p-6 sm:p-8 rounded-[1.25rem] bg-terra-superficie border border-terra-borde shadow-2xl text-center text-terra-texto animate-terra-aparecer"
         role="dialog"
         aria-modal="true"
         aria-labelledby="tutorial-invite-titulo"
       >
-        <span className="tutorial-invite__icono" aria-hidden="true">
-          <BookOpen size={36} />
+        <span
+          className="inline-flex items-center justify-center w-14 h-14 mb-3.5 rounded-2xl bg-terra-primario-suave text-terra-primario"
+          aria-hidden="true"
+        >
+          <BookOpen size={32} />
         </span>
-        <p className="tutorial-invite__etiqueta">Guía rápida</p>
-        <h2 className="tutorial-invite__titulo" id="tutorial-invite-titulo">
+        <p className="text-terra-xs font-extrabold uppercase tracking-wider text-terra-primario mb-1.5">
+          Guía rápida
+        </p>
+        <h2 className="text-terra-xl font-black leading-tight text-terra-texto mb-2.5" id="tutorial-invite-titulo">
           Tutorial: uso de la web
         </h2>
-        <p className="tutorial-invite__texto">
+        <p className="text-terra-sm leading-relaxed text-terra-texto-suave mb-5">
           Te mostramos paso a paso cómo buscar productos, usar las categorías,
           aprovechar las ofertas y completar tu compra.
         </p>
-        <div className="tutorial-invite__acciones">
+        <div className="grid gap-2.5">
           <button
             ref={botonComenzarRef}
             type="button"
-            className="tutorial-invite__boton tutorial-invite__boton--principal"
+            className="inline-flex items-center justify-center min-h-12 px-4 rounded-xl bg-terra-primario hover:bg-terra-primario-oscuro text-white text-terra-sm font-extrabold cursor-pointer transition-colors"
             onClick={onComenzar}
           >
             Comenzar tutorial
           </button>
           <button
             type="button"
-            className="tutorial-invite__boton"
+            className="inline-flex items-center justify-center min-h-12 px-4 rounded-xl bg-terra-control hover:bg-terra-control-hover border border-terra-borde text-terra-texto hover:text-terra-primario text-terra-sm font-extrabold cursor-pointer transition-colors"
             onClick={onOmitir}
           >
             Ahora no
           </button>
         </div>
-        <small className="tutorial-invite__nota">
+        <small className="block text-terra-xs text-terra-texto-suave mt-4 leading-normal">
           Puedes repetirlo cuando quieras desde el botón Tutorial.
         </small>
       </section>

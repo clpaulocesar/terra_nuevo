@@ -83,17 +83,25 @@ Para cada archivo `.css` a migrar se ejecutará el siguiente ciclo estricto:
   - Purga de reglas obsoletas `.chat-*` en `src/theme-dark.css`.
   - Eliminación física de `src/components/chat/ChatAsistente.css`.
 
-#### **Fase 7: `src/components/ui/TecladoTactil.css`**
-- **Componente asociado:** [`src/components/ui/TecladoTactil.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/ui/TecladoTactil.jsx)
-- **Objetivo:** Teclado en pantalla del kiosco con teclas táctiles adaptadas a zonas de toque ≥ 44 px.
+#### **Fase 7: `src/components/ui/TecladoTactil.css`** ✅ (Completada 2026-10-30)
+- **Componente asociado:** [`src/components/ui/TecladoTactil.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/ui/TecladoTactil.jsx).
+- **Acciones realizadas:**
+  - Migración integral a Tailwind v4 manteniendo la clase gancho `.tt-board` en el contenedor raíz para preservar la regla de accesibilidad en `accesibilidad.css`.
+  - Reemplazo de spans `material-symbols-outlined` por el componente oficial [`IconoMaterial.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/ui/IconoMaterial.jsx).
+  - Popover de vista previa flotante de tecla presionado reescrito con clases Tailwind nativas sin pseudoelementos manuales ni animaciones complejas en CSS.
+  - Eliminación física de `src/components/ui/TecladoTactil.css`.
 
-#### **Fase 8: `src/tutorial/tutorial.css`**
-- **Componentes asociados:** [`src/tutorial/`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/tutorial)
-- **Objetivo:** Popovers y resaltados del tour guiado (driver.js) con tokens del sistema.
+#### **Fase 8: `src/tutorial/tutorial.css`** ✅ (Completada 2026-10-30)
+- **Componentes asociados:** [`src/tutorial/BotonTutorial.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/tutorial/BotonTutorial.jsx), [`src/tutorial/TutorialInvitacion.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/tutorial/TutorialInvitacion.jsx) y estilos para `driver.js`.
+- **Acciones realizadas:**
+  - Migración de `BotonTutorial` y del modal `TutorialInvitacion` a Tailwind v4 puro con micro-animaciones y tokens `@theme`.
+  - Depuración de `tutorial.css` conservando única y exclusivamente las reglas requeridas para estilizar los popovers dinámicos de la librería externa `driver.js`, enlazadas a tokens semánticos `var(--terra-*)`.
 
-#### **Fase 9: `src/styles/alertas.css`**
-- **Componente asociado:** Modales globales SweetAlert2 (`src/services/api.js`, etc.).
-- **Objetivo:** Ajustar los estilos de SweetAlert2 a clases globales o utilidades limpias.
+#### **Fase 9: `src/styles/alertas.css`** ✅ (Completada 2026-10-30)
+- **Componente asociado:** Diálogos SweetAlert2 globales vía [`src/utils/alertas.js`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/utils/alertas.js).
+- **Acciones realizadas:**
+  - Conversión de `alertas.css` a variables CSS semánticas (`--terra-superficie`, `--terra-borde`, `--terra-texto`, `--terra-primario`, `--terra-control`), eliminando colores fijos hexadecimales.
+  - Purga de reglas heredadas y con `!important` en `src/theme-dark.css`.
 
 ---
 

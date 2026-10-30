@@ -96,15 +96,6 @@ html[data-theme="dark"] .code-card strong { color: var(--td-ok); }
 
 
 
-/* ---------- Alertas SweetAlert (styles/alertas.css) ---------- */
-html[data-theme="dark"] .terra-swal.swal2-popup,
-html[data-theme="dark"] .terra-swal { background: var(--td-surface) !important; color: var(--td-text); }
-html[data-theme="dark"] .terra-swal .swal2-title { color: var(--td-text); }
-html[data-theme="dark"] .terra-swal .swal2-html-container,
-html[data-theme="dark"] .terra-swal .swal2-content { color: var(--td-muted); }
-html[data-theme="dark"] .terra-swal .btn-danger { background: var(--td-surface-2); color: var(--td-text); }
-html[data-theme="dark"] .terra-swal .btn-danger:hover { background: var(--td-surface-3); }
-
 /* ---------- Perfil mayorista (PanelMayorista.css) ---------- */
 html[data-theme="dark"] .wholesale-profile-view { color: var(--td-text); }
 html[data-theme="dark"] .b2b-breadcrumb-current,
