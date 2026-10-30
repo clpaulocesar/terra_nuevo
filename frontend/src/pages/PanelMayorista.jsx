@@ -17,7 +17,6 @@ import { SesionClienteContext } from '../context/SesionClienteContext.jsx';
 import { actualizarPerfilMayorista } from '../services/sesionClienteService.js';
 import { apiRequest } from '../services/api.js';
 import MapaEntregaMayorista from '../components/mayorista/MapaEntregaMayorista.jsx';
-import './PanelMayorista.css';
 
 export default function PanelMayorista() {
   const { sesion, esMayorista, iniciarSesion } = useContext(SesionClienteContext);
@@ -236,70 +235,90 @@ export default function PanelMayorista() {
   };
 
   return (
-    <div className="wholesale-profile-view">
-      {/* ====================================================================
-          1. HEADER CON BREADCRUMBS Y BOTONES DE ACCIÓN
-          ==================================================================== */}
-      <section className="b2b-profile-header">
-        <div className="b2b-profile-header__info">
-          <div className="b2b-breadcrumbs">
-            <span className="b2b-breadcrumb-brand">Portal Mayorista</span>
-            <span className="b2b-breadcrumb-sep">/</span>
-            <span className="b2b-breadcrumb-current">Mi Cuenta</span>
+    <div className="w-full max-w-5xl mx-auto flex flex-col gap-6 font-terra text-terra-texto pb-14">
+      {/* 1. Header con Breadcrumbs y Botones de Acción */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-3 border-b border-terra-borde">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2 text-terra-xs font-semibold">
+            <span className="font-extrabold tracking-wider uppercase text-terra-primario dark:text-terra-acento">
+              Portal Mayorista
+            </span>
+            <span className="text-terra-texto-suave">/</span>
+            <span className="text-terra-texto-suave">Mi Cuenta</span>
           </div>
-          <h1>Mi Perfil Mayorista</h1>
-          <p>Actualiza tus datos de contacto comercial, facturación y la ubicación de tu domicilio para la entrega de tus pedidos.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-terra-texto tracking-tight m-0 leading-tight">
+            Mi Perfil Mayorista
+          </h1>
+          <p className="text-terra-xs sm:text-terra-sm text-terra-texto-suave m-0 leading-relaxed">
+            Actualiza tus datos de contacto comercial, facturación y la ubicación de tu domicilio para la entrega de tus pedidos.
+          </p>
         </div>
-        <div className="b2b-profile-header__actions">
-          <button type="button" className="b2b-btn-cancel" onClick={handleCancelar} disabled={guardando}>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            className="px-4 py-2.5 rounded-terra-boton border border-terra-borde bg-terra-control hover:bg-terra-control-hover text-terra-texto text-terra-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
+            onClick={handleCancelar}
+            disabled={guardando}
+          >
             Cancelar
           </button>
-          <button type="button" className="b2b-btn-save" onClick={handleGuardar} disabled={guardando}>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-terra-boton bg-terra-primario hover:bg-terra-primario-oscuro text-white text-terra-xs font-bold transition-colors cursor-pointer disabled:opacity-50 shadow-terra-sm"
+            onClick={handleGuardar}
+            disabled={guardando}
+          >
             <CheckCircle2 size={17} />
             <span>{guardando ? 'Guardando…' : 'Guardar Cambios'}</span>
           </button>
         </div>
       </section>
 
-      {/* Alerta interactiva de confirmación */}
+      {/* Alertas interactivas */}
       {guardadoExito && (
-        <div className="b2b-success-alert" role="status">
-          <CheckCircle2 size={18} />
+        <div
+          role="status"
+          className="p-3.5 rounded-terra-campo bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-2.5 text-terra-xs font-semibold"
+        >
+          <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>¡Datos de perfil comercial, facturación y dirección de envío actualizados correctamente!</span>
         </div>
       )}
+
       {errorGuardado && (
-        <div className="b2b-success-alert" role="alert" style={{ background: '#fff1f2', borderColor: '#fecdd3', color: '#9f1239' }}>
-          <Info size={18} />
+        <div
+          role="alert"
+          className="p-3.5 rounded-terra-campo bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-200 border border-rose-200 dark:border-rose-800/60 flex items-center gap-2.5 text-terra-xs font-semibold"
+        >
+          <Info size={18} className="text-rose-600 dark:text-rose-400 shrink-0" />
           <span>{errorGuardado}</span>
         </div>
       )}
 
-      {/* ====================================================================
-          2. HERO CARD (AVATAR / LOGO CORPORATIVO & METADATOS)
-          ==================================================================== */}
-      <article className="b2b-profile-card">
-        <div className="b2b-profile-card__content">
-          <div className="b2b-avatar-wrap">
-            <div className="b2b-avatar-box">
-              <span className="b2b-avatar-initials">{iniciales}</span>
-              <span className="b2b-avatar-subtag">Mueblería</span>
-            </div>
+      {/* 2. Hero Card (Avatar / Razón Social & Metadatos) */}
+      <article className="p-6 rounded-terra-tarjeta bg-terra-superficie border border-terra-borde shadow-terra-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div className="size-16 sm:size-20 rounded-2xl bg-terra-primario-suave border border-terra-primario/20 flex flex-col items-center justify-center text-terra-primario dark:text-terra-acento shrink-0 shadow-terra-sm">
+            <span className="text-xl sm:text-2xl font-black">{iniciales}</span>
+            <span className="text-terra-3xs font-extrabold uppercase tracking-wider opacity-80">Mayorista</span>
           </div>
 
-          <div className="b2b-profile-details">
-            <div className="b2b-profile-title-row">
-              <h2>{razonSocial}</h2>
-              <span className="b2b-verified-badge">
-                <BadgeCheck size={14} />
+          <div className="flex flex-col gap-1.5 min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2 className="text-xl sm:text-2xl font-bold text-terra-texto m-0 truncate">
+                {razonSocial}
+              </h2>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-terra-3xs font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                <BadgeCheck size={13} />
                 Cliente Mayorista Autorizado
               </span>
             </div>
-            <p className="b2b-profile-meta">
-              <span style={{ fontWeight: 600, color: '#1f2937' }}>Titular: {nombreTitular}</span>
+            <p className="text-terra-xs text-terra-texto-suave m-0 flex flex-wrap items-center gap-2 font-medium">
+              <span className="font-bold text-terra-texto">Titular: {nombreTitular}</span>
               <span>•</span>
               <span>
-                NIT: <strong>{nit}</strong>
+                NIT: <strong className="font-mono text-terra-texto">{nit}</strong>
               </span>
               <span>•</span>
               <span>Santa Cruz, Bolivia</span>
@@ -308,178 +327,183 @@ export default function PanelMayorista() {
         </div>
       </article>
 
-      {/* ====================================================================
-          3. FORMULARIO PRINCIPAL
-          ==================================================================== */}
-      <form id="form-perfil-mayorista" onSubmit={handleGuardar} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {/* SECCIÓN A: Datos de Contacto y Representación Comercial */}
-        <section className="b2b-form-section">
-          <div className="b2b-form-section__header">
-            <div className="b2b-section-title-wrap">
-              <Building2 size={20} style={{ color: 'var(--terra-wine-b2b)' }} />
-              <h3>Datos de Contacto y Representación Comercial</h3>
-            </div>
+      {/* 3. Formulario Principal */}
+      <form id="form-perfil-mayorista" onSubmit={handleGuardar} className="flex flex-col gap-6">
+        {/* Sección A: Datos de Contacto y Representación Comercial */}
+        <section className="p-6 rounded-terra-tarjeta bg-terra-superficie border border-terra-borde shadow-terra-sm flex flex-col gap-5">
+          <div className="flex items-center gap-2.5 pb-3 border-b border-terra-borde">
+            <Building2 size={20} className="text-terra-primario dark:text-terra-acento" />
+            <h3 className="text-terra-md font-bold text-terra-texto m-0">
+              Datos de Contacto y Representación Comercial
+            </h3>
           </div>
 
-          <div className="b2b-fields-grid-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Nombre completo */}
-            <div className="b2b-field-box">
-              <label htmlFor="input-nombre">Nombre completo del encargado / titular</label>
-              <div className="b2b-input-container">
-                <span className="b2b-field-icon">
-                  <User size={18} />
-                </span>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="input-nombre" className="text-terra-xs font-bold text-terra-texto">
+                Nombre completo del encargado / titular
+              </label>
+              <div className="relative flex items-center">
+                <User size={18} className="absolute left-3.5 text-terra-texto-suave pointer-events-none" />
                 <input
                   id="input-nombre"
-                  className="b2b-text-input"
                   required
                   type="text"
                   value={nombreTitular}
                   onChange={(e) => setNombreTitular(e.target.value)}
+                  className="w-full min-h-[3rem] pl-10 pr-3.5 rounded-terra-campo bg-terra-superficie-2 border border-terra-borde text-terra-texto text-terra-sm placeholder:text-terra-texto-suave outline-none focus:border-terra-primario focus:ring-2 focus:ring-terra-primario/15 transition-all"
                 />
               </div>
             </div>
 
             {/* Teléfono móvil */}
-            <div className="b2b-field-box">
-              <label htmlFor="input-telefono">Teléfono móvil / WhatsApp directo (Entrega)</label>
-              <div className="b2b-input-container">
-                <span className="b2b-field-icon" style={{ color: '#059669' }}>
-                  <PhoneCall size={18} />
-                </span>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="input-telefono" className="text-terra-xs font-bold text-terra-texto">
+                Teléfono móvil / WhatsApp directo (Entrega)
+              </label>
+              <div className="relative flex items-center">
+                <PhoneCall size={18} className="absolute left-3.5 text-emerald-600 dark:text-emerald-400 pointer-events-none" />
                 <input
                   id="input-telefono"
-                  className="b2b-text-input"
-                  style={{ fontFamily: 'monospace' }}
                   required
                   type="tel"
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
+                  className="w-full min-h-[3rem] pl-10 pr-3.5 rounded-terra-campo bg-terra-superficie-2 border border-terra-borde text-terra-texto text-terra-sm font-mono placeholder:text-terra-texto-suave outline-none focus:border-terra-primario focus:ring-2 focus:ring-terra-primario/15 transition-all"
                 />
               </div>
-              <p className="b2b-field-helper">Utilizado para coordinar la entrega de tu pedido.</p>
+              <p className="text-terra-3xs text-terra-texto-suave m-0">
+                Utilizado para coordinar la entrega de tu pedido.
+              </p>
             </div>
 
             {/* Correo electrónico */}
-            <div className="b2b-field-box">
-              <label htmlFor="input-correo">Correo electrónico de facturación y notas de entrega</label>
-              <div className="b2b-input-container">
-                <span className="b2b-field-icon">
-                  <Mail size={18} />
-                </span>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="input-correo" className="text-terra-xs font-bold text-terra-texto">
+                Correo electrónico de facturación y notas de entrega
+              </label>
+              <div className="relative flex items-center">
+                <Mail size={18} className="absolute left-3.5 text-terra-texto-suave pointer-events-none" />
                 <input
                   id="input-correo"
-                  className="b2b-text-input"
                   required
                   readOnly
                   title="El correo de acceso se gestiona con soporte TERRA"
                   type="email"
                   value={correo}
                   onChange={(e) => setCorreo(e.target.value)}
+                  className="w-full min-h-[3rem] pl-10 pr-3.5 rounded-terra-campo bg-terra-control border border-terra-borde text-terra-texto-suave text-terra-sm outline-none cursor-not-allowed"
                 />
               </div>
             </div>
 
             {/* Razón Social y NIT Comercial */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-              <div className="b2b-field-box">
-                <label htmlFor="input-razon">Razón Social</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="input-razon" className="text-terra-xs font-bold text-terra-texto">
+                  Razón Social
+                </label>
                 <input
                   id="input-razon"
-                  className="b2b-text-input b2b-text-input--no-icon"
                   required
                   type="text"
                   value={razonSocial}
                   onChange={(e) => setRazonSocial(e.target.value)}
+                  className="w-full min-h-[3rem] px-3.5 rounded-terra-campo bg-terra-superficie-2 border border-terra-borde text-terra-texto text-terra-sm outline-none focus:border-terra-primario focus:ring-2 focus:ring-terra-primario/15 transition-all"
                 />
               </div>
-              <div className="b2b-field-box">
-                <label htmlFor="input-nit">NIT Comercial</label>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="input-nit" className="text-terra-xs font-bold text-terra-texto">
+                  NIT Comercial
+                </label>
                 <input
                   id="input-nit"
-                  className="b2b-text-input b2b-text-input--no-icon"
-                  style={{ fontFamily: 'monospace', fontWeight: 700 }}
+                  maxLength={20}
                   inputMode="numeric"
-                  maxLength="20"
                   type="text"
                   value={nit}
                   onChange={(e) => setNit(e.target.value)}
+                  className="w-full min-h-[3rem] px-3.5 rounded-terra-campo bg-terra-superficie-2 border border-terra-borde text-terra-texto text-terra-sm font-mono font-bold outline-none focus:border-terra-primario focus:ring-2 focus:ring-terra-primario/15 transition-all"
                 />
               </div>
             </div>
           </div>
         </section>
 
-        {/* SECCIÓN B: Dirección de Envío */}
-        <section className="b2b-form-section">
-          <div className="b2b-form-section__header">
-            <div className="b2b-section-title-wrap">
-              <Truck size={20} style={{ color: 'var(--terra-wine-b2b)' }} />
-              <div>
-                <h3>Dirección de Envío</h3>
-              </div>
+        {/* Sección B: Dirección de Envío */}
+        <section className="p-6 rounded-terra-tarjeta bg-terra-superficie border border-terra-borde shadow-terra-sm flex flex-col gap-5">
+          <div className="flex items-center justify-between gap-3 pb-3 border-b border-terra-borde">
+            <div className="flex items-center gap-2.5">
+              <Truck size={20} className="text-terra-primario dark:text-terra-acento" />
+              <h3 className="text-terra-md font-bold text-terra-texto m-0">
+                Dirección de Envío
+              </h3>
             </div>
-            <span className="b2b-verified-badge">
-              <CheckCircle2 size={14} />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-terra-3xs font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+              <CheckCircle2 size={13} />
               Ubicación de entrega registrada
             </span>
           </div>
 
-          <div className="b2b-fields-grid-2">
-            {/* Dirección de envío / Domicilio */}
-            <div className="b2b-field-box">
-              <label htmlFor="input-direccion">Dirección de envío / Domicilio</label>
-              <div className="b2b-input-container">
-                <span className="b2b-field-icon">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Dirección de envío */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="input-direccion" className="text-terra-xs font-bold text-terra-texto">
+                Dirección de envío / Domicilio
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-3.5 text-terra-texto-suave pointer-events-none">
                   {cargandoDireccion ? (
-                    <Loader2 size={18} className="b2b-spinner-icon" style={{ color: 'var(--terra-wine-b2b)' }} />
+                    <Loader2 size={18} className="animate-spin text-terra-primario dark:text-terra-acento" />
                   ) : (
                     <Home size={18} />
                   )}
                 </span>
                 <input
                   id="input-direccion"
-                  className="b2b-text-input"
                   placeholder="Ej.: Av. Banzer #123, Bartos"
                   required
-                  maxLength="250"
+                  maxLength={250}
                   type="text"
                   value={direccion}
                   onChange={handleDireccionChange}
+                  className="w-full min-h-[3rem] pl-10 pr-3.5 rounded-terra-campo bg-terra-superficie-2 border border-terra-borde text-terra-texto text-terra-sm placeholder:text-terra-texto-suave outline-none focus:border-terra-primario focus:ring-2 focus:ring-terra-primario/15 transition-all"
                 />
               </div>
-              <p className="b2b-field-helper">
+              <p className="text-terra-3xs text-terra-texto-suave m-0">
                 {cargandoDireccion ? (
-                  <span style={{ color: 'var(--terra-wine-b2b)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <Loader2 size={12} className="b2b-spinner-icon" />
+                  <span className="text-terra-primario dark:text-terra-acento font-semibold inline-flex items-center gap-1">
+                    <Loader2 size={12} className="animate-spin" />
                     Detectando dirección automáticamente desde el mapa…
                   </span>
                 ) : (
-                  'Se completa y registra automáticamente al mover o hacer clic en el mapa. También puedes editarla manualmente.'
+                  'Se completa automáticamente al mover o hacer clic en el mapa. También puedes editarla manualmente.'
                 )}
               </p>
             </div>
 
             {/* Referencias */}
-            <div className="b2b-field-box">
-              <label htmlFor="input-referencia">Referencia para ubicar tu domicilio</label>
-              <div className="b2b-input-container">
-                <span className="b2b-field-icon">
-                  <Info size={18} />
-                </span>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="input-referencia" className="text-terra-xs font-bold text-terra-texto">
+                Referencia para ubicar tu domicilio
+              </label>
+              <div className="relative flex items-center">
+                <Info size={18} className="absolute left-3.5 text-terra-texto-suave pointer-events-none" />
                 <input
                   id="input-referencia"
-                  className="b2b-text-input"
-                  maxLength="250"
+                  maxLength={250}
                   type="text"
                   value={referencia}
                   onChange={(e) => setReferencia(e.target.value)}
+                  className="w-full min-h-[3rem] pl-10 pr-3.5 rounded-terra-campo bg-terra-superficie-2 border border-terra-borde text-terra-texto text-terra-sm placeholder:text-terra-texto-suave outline-none focus:border-terra-primario focus:ring-2 focus:ring-terra-primario/15 transition-all"
                 />
               </div>
             </div>
           </div>
 
-          {/* Mapa Leaflet interactivo para registrar el domicilio de entrega */}
+          {/* Mapa Leaflet interactivo */}
           <MapaEntregaMayorista
             gps={gps}
             onGpsChange={handleGpsChange}
@@ -491,16 +515,15 @@ export default function PanelMayorista() {
         </section>
 
         {/* Footer del Formulario */}
-        <div className="b2b-profile-footer">
-          <p className="b2b-sync-notice">
-            <CheckCircle2 size={16} style={{ color: '#059669' }} />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-2">
+          <p className="text-terra-xs text-terra-texto-suave m-0 flex items-center gap-2">
+            <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>Tus datos comerciales se mantienen sincronizados con tu cuenta mayorista de Terra Autoservicio.</span>
           </p>
-          <div className="b2b-footer-actions">
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
-              className="b2b-btn-cancel"
-              style={{ flex: 1 }}
+              className="px-4 py-2.5 rounded-terra-boton border border-terra-borde bg-terra-control hover:bg-terra-control-hover text-terra-texto text-terra-xs font-bold transition-colors cursor-pointer disabled:opacity-50 flex-1 sm:flex-none"
               onClick={handleCancelar}
               disabled={guardando}
             >
@@ -508,8 +531,7 @@ export default function PanelMayorista() {
             </button>
             <button
               type="submit"
-              className="b2b-btn-save"
-              style={{ flex: 1, justifyContent: 'center' }}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-terra-boton bg-terra-primario hover:bg-terra-primario-oscuro text-white text-terra-xs font-bold transition-colors cursor-pointer disabled:opacity-50 shadow-terra-sm flex-1 sm:flex-none"
               disabled={guardando}
             >
               <Save size={16} />

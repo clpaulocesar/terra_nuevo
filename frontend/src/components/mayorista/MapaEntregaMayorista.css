@@ -1,0 +1,73 @@
+/* Estilos específicos para marcadores HTML dinámicos de Leaflet en el mapa mayorista */
+
+.leaflet-b2b-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-b2b-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.22));
+}
+
+.leaflet-b2b-bubble {
+  background-color: var(--terra-superficie);
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.65rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border: 1.5px solid var(--terra-primario);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--terra-texto);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  max-width: 190px;
+}
+
+.leaflet-b2b-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaflet-b2b-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+  flex-shrink: 0;
+}
+
+.leaflet-b2b-pin {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 9999px;
+  background-color: var(--terra-primario);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  border: 2.5px solid var(--terra-superficie);
+  margin-top: -3px;
+}
+
+.leaflet-b2b-shadow {
+  width: 0.8rem;
+  height: 0.3rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 9999px;
+  filter: blur(1.5px);
+  margin-top: 2px;
+}
+
+html[data-theme="dark"] .leaflet-b2b-bubble {
+  background-color: var(--terra-superficie);
+  color: var(--terra-texto);
+  border-color: var(--terra-acento);
+}
