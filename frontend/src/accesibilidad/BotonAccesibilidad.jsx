@@ -63,7 +63,7 @@ export default function BotonAccesibilidad() {
   const opcionesVisibles = OPCIONES.filter((o) => soportaLectura || o.clave !== 'leerEnVoz');
 
   return (
-    <div className="a11y-flotante">
+    <div className="a11y-flotante en-flujo-compra:hidden con-carrito-abierto:hidden">
       <button
         ref={botonRef}
         type="button"

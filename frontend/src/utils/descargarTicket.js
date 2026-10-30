@@ -1,182 +1,22 @@
 import { toJpeg } from 'html-to-image';
-import { formatoMoneda } from './formatoMoneda.js';
-
-function escapar(valor) {
-  return String(valor ?? '').replace(/[&<>'"]/g, (caracter) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#039;',
-    '"': '&quot;',
-  })[caracter]);
-}
+import { construirTicketPedidoHtml } from './ticketPedidoHtml.js';
 
 // Genera el ticket del pedido como imagen JPG y lo descarga.
 // Mantiene la misma firma que la versión HTML para no tocar a los llamadores.
 export async function descargarTicket(pedido, cliente = {}, items = []) {
   if (!pedido || typeof document === 'undefined') return;
 
-  const fecha = new Intl.DateTimeFormat('es-BO', {
-    dateStyle: 'long',
-    timeStyle: 'short',
-    timeZone: 'America/La_Paz',
-  }).format(new Date(pedido.fecha || Date.now()));
-
-  const nombreCliente = cliente?.nombre || pedido.cliente_nombre || (typeof pedido.cliente === 'string' ? pedido.cliente : '') || 'Compra como invitado';
-  const telefonoCliente = cliente?.telefono || pedido.cliente_telefono || pedido.telefono || '';
-  const nitCliente = cliente?.nit || pedido.cliente_nit || pedido.nit || '';
-  const direccionEntrega = cliente?.direccion || pedido.direccion_entrega;
-  const referenciaEntrega = cliente?.referencia || pedido.referencia_entrega;
-  const zonaEnvio = pedido.zona_envio || pedido.delivery_zone_name || cliente?.zona || pedido.zona || '';
-  const tarifaPendiente = Boolean(pedido.tarifa_envio_pendiente || pedido.delivery_fee_pending);
-
-  const esEnvio = Boolean(
-    direccionEntrega ||
-    pedido.tipo_entrega === 'home_delivery' ||
-    pedido.tipoEntrega === 'home_delivery' ||
-    pedido.fulfillment_type === 'home_delivery' ||
-    zonaEnvio ||
-    (Array.isArray(pedido.items) && pedido.items.some((i) => (i.tipoEntrega || i.tipo_entrega || i.delivery_type) === 'home_delivery'))
-  );
-
-  const costoEnvio = Number(
-    pedido.costo_envio ??
-    pedido.delivery_fee ??
-    (pedido.delivery_fee_minor !== undefined ? Number(pedido.delivery_fee_minor) / 100 : null) ??
-    0
-  );
-
-  const totalPedido = Number(pedido.total ?? (pedido.total_minor !== undefined ? Number(pedido.total_minor) / 100 : 0)) || 0;
-  const subtotalProductos = Number(
-    pedido.subtotal ??
-    (pedido.subtotal_minor !== undefined ? Number(pedido.subtotal_minor) / 100 : null) ??
-    (esEnvio && !tarifaPendiente ? Math.max(0, totalPedido - costoEnvio) : totalPedido)
-  );
-
-  const metodoPago = pedido.metodo_pago || pedido.metodo_pago_solicitado;
-  const estadoClave = String(pedido.estado || '').toLowerCase();
-  const cobrado = ['completed', 'paid', 'pagado', 'delivered', 'entregado', 'shipped', 'ready_for_pickup', 'out_for_delivery'].includes(estadoClave);
-  const anulado = ['cancelled', 'cancelado'].includes(estadoClave);
-  const estadoTexto = anulado ? 'Cancelado / Anulado' : (cobrado ? 'Cobrado' : 'Pendiente de pago');
-
-  const itemsTicket = Array.isArray(items) && items.length
-    ? items
-    : (Array.isArray(pedido.items) ? pedido.items : []);
-  const resumenEntrega = itemsTicket.reduce(
-    (resumen, item) => {
-      const tipoEntrega = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
-      const cantidad = Number(item.cantidad || item.quantity || 1);
-      if (tipoEntrega === 'home_delivery') resumen.envio += cantidad;
-      else resumen.retiro += cantidad;
-      return resumen;
-    },
-    { envio: 0, retiro: 0 }
-  );
-  const textoEntrega = resumenEntrega.envio && resumenEntrega.retiro
-    ? `Modalidad mixta: ${resumenEntrega.envio} para envío y ${resumenEntrega.retiro} para retiro en tienda`
-    : resumenEntrega.envio
-      ? `Envío a domicilio: ${resumenEntrega.envio} producto(s)`
-      : `Retiro en tienda: ${resumenEntrega.retiro} producto(s)`;
-
-  const filas = itemsTicket
-    .map(
-      (item) => {
-        const tipoEntrega = item.tipoEntrega || item.tipo_entrega || item.delivery_type;
-        const etiquetaEntrega = esEnvio
-          ? (tipoEntrega === 'home_delivery' || (!tipoEntrega && direccionEntrega)
-            ? '<div style="margin-top: 3px;"><span style="display: inline-block; background: #fdeeee; color: #a6192e; border: 1px solid #fecdd3; border-radius: 4px; font-size: 10px; font-weight: 700; padding: 1px 6px;">🚚 Envío a domicilio</span></div>'
-            : '<div style="margin-top: 3px;"><span style="display: inline-block; background: #e6f4ea; color: #004230; border: 1px solid #ceead6; border-radius: 4px; font-size: 10px; font-weight: 700; padding: 1px 6px;">🛍️ Llevado en tienda</span></div>')
-          : '<div style="margin-top: 3px;"><span style="display: inline-block; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 10px; font-weight: 700; padding: 1px 6px;">🛍️ Llevado / Retiro en tienda</span></div>';
-        const cant = Number(item.cantidad || item.quantity || 1);
-        const precio = Number(item.precioUnitario || item.precio || 0);
-        const sub = Number(item.subtotal || cant * precio);
-        return `
-      <tr>
-        <td style="padding: 8px 0; border-bottom: 1px dashed #e2e8f0;">
-          <div style="font-weight: 600; color: #1e293b;">${escapar(item.nombre || item.product_name || 'Producto')}</div>
-          <div style="color: #64748b; font-size: 12px;">${cant} × ${formatoMoneda(precio)}</div>
-          ${item.color?.nombre || item.color ? `<div style="color: #64748b; font-size: 11px; margin-top: 2px;">Color: ${escapar(item.color?.nombre || item.color)}</div>` : ''}
-          ${etiquetaEntrega}
-        </td>
-        <td style="padding: 8px 0; text-align: right; border-bottom: 1px dashed #e2e8f0; vertical-align: bottom; font-weight: 700; color: #0f172a;">
-          ${formatoMoneda(sub)}
-        </td>
-      </tr>`;
-      }
-    )
-    .join('');
-
-  const codigoCabecera = pedido.numero ? `Pedido #${pedido.numero} · #${pedido.codigo || pedido.id}` : `#${pedido.codigo || pedido.id}`;
-
-  const ticketHtml = `
-  <div style="width: 380px; background: #ffffff; padding: 28px; border-radius: 16px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a;">
-    <div style="text-align: center; border-bottom: 2px dashed #a6192e; padding-bottom: 18px; margin-bottom: 20px;">
-      <img src="/logo-terra.png" alt="TERRA Autoservicio" style="width: 240px; max-width: 100%; height: auto; display: block; margin: 0 auto;" />
-      <div style="margin: 8px 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Ticket de Pago en Caja · Terminal Autoservicio</div>
-    </div>
-
-    <div style="background: #fff1f2; border: 2px dashed #a6192e; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 20px;">
-      <div style="font-size: 11px; text-transform: uppercase; color: #8e1527; font-weight: 700; letter-spacing: 1.2px;">Código de Pago</div>
-      <div style="font-size: 20px; color: #a6192e; letter-spacing: 1.5px; margin-top: 6px; font-family: monospace; word-break: break-all; font-weight: 800;">${escapar(codigoCabecera)}</div>
-      ${pedido.erp_cotizacion_numero ? `<div style="font-size: 13px; color: #64748b; margin-top: 4px; font-weight: 700;">Cotización TERRA Nº ${escapar(String(pedido.erp_cotizacion_numero))}</div>` : ''}
-    </div>
-
-    <div style="font-size: 13px; margin-bottom: 20px; background: #f1f5f9; padding: 12px 14px; border-radius: 8px;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Fecha:</span> <b style="color: #1e293b;">${escapar(fecha)}</b></div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Cliente:</span> <b style="color: #1e293b;">${escapar(nombreCliente)}</b></div>
-      ${telefonoCliente ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Teléfono:</span> <b style="color: #1e293b;">${escapar(telefonoCliente)}</b></div>` : ''}
-      ${nitCliente ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">NIT/CI:</span> <b style="color: #1e293b;">${escapar(nitCliente)}</b></div>` : ''}
-      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Modalidad:</span> <b style="color: ${esEnvio ? '#a6192e' : '#146440'};">${escapar(textoEntrega)}</b></div>
-      ${esEnvio && zonaEnvio ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Zona de envío:</span> <b style="color: #1e293b;">${escapar(zonaEnvio)}</b></div>` : ''}
-      ${direccionEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Dirección:</span> <b style="color: #1e293b;">${escapar(direccionEntrega)}</b></div>` : ''}
-      ${referenciaEntrega ? `<div style="margin-bottom: 6px;"><span style="color: #64748b;">Referencia:</span> <b style="color: #1e293b;">${escapar(referenciaEntrega)}</b></div>` : ''}
-      ${metodoPago ? `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;"><span style="color: #64748b;">Medio de pago:</span> <b style="color: #a6192e;">${escapar(metodoPago === 'qr' ? `QR Simple (Glosa: ${pedido.codigo || pedido.id})` : metodoPago.toUpperCase())}</b></div>` : ''}
-      <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Estado:</span> <b style="color: ${anulado ? '#a6192e' : (cobrado ? '#146440' : '#9a6513')};">${estadoTexto}</b></div>
-    </div>
-
-    <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px;">
-      <thead>
-        <tr>
-          <th style="text-align: left; font-size: 11px; text-transform: uppercase; color: #94a3b8; padding-bottom: 8px; letter-spacing: 0.8px;">Detalle</th>
-          <th style="text-align: right; font-size: 11px; text-transform: uppercase; color: #94a3b8; padding-bottom: 8px; letter-spacing: 0.8px;">Subtotal</th>
-        </tr>
-      </thead>
-      <tbody>${filas}</tbody>
-    </table>
-
-    ${esEnvio ? `
-    <div style="border-top: 1px dashed #cbd5e1; padding: 10px 0 6px; font-size: 13px;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #64748b;">
-        <span>Subtotal artículos:</span>
-        <b style="color: #1e293b;">${formatoMoneda(subtotalProductos)}</b>
-      </div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #a6192e;">
-        <span>Tarifa de envío ${zonaEnvio ? `(${escapar(zonaEnvio)})` : ''}:</span>
-        <b style="font-weight: 700;">${tarifaPendiente ? 'Por definir en caja' : (costoEnvio === 0 ? 'GRATIS (Bs 0.00)' : formatoMoneda(costoEnvio))}</b>
-      </div>
-    </div>
-    ` : ''}
-
-    <div style="border-top: 2px solid #0f172a; padding-top: 14px; display: flex; justify-content: space-between; align-items: center; font-size: 17px; font-weight: 800;">
-      <span>${anulado ? 'Total:' : (cobrado ? 'Total cobrado:' : 'Total a pagar:')}</span>
-      <span style="color: #a6192e; font-size: 20px;">${formatoMoneda(totalPedido)}</span>
-    </div>
-
-    <div style="text-align: center; font-size: 11px; color: #94a3b8; margin-top: 24px; border-top: 1px dashed #e2e8f0; padding-top: 14px; line-height: 1.5;">
-      ${cobrado ? 'Conserva este comprobante como constancia de tu compra.' : `Presenta este código en caja para pagar y ${esEnvio ? 'coordinar el envío a domicilio' : 'retirar tus productos'}.`}<br />
-      ¡Gracias por tu compra en TERRA!
-    </div>
-  </div>`;
+  const { html } = construirTicketPedidoHtml(pedido, cliente, items);
 
   // El nodo debe estar en el documento para que html-to-image calcule los estilos.
   const contenedor = document.createElement('div');
-  contenedor.setAttribute('style', 'position: fixed; left: -10000px; top: 0;');
-  contenedor.innerHTML = ticketHtml;
+  contenedor.setAttribute('style', 'position: fixed; left: -10000px; top: 0; width: 440px;');
+  contenedor.innerHTML = html;
   document.body.appendChild(contenedor);
 
   try {
     const dataUrl = await toJpeg(contenedor.firstElementChild, {
-      quality: 0.92,
+      quality: 0.95,
       pixelRatio: 2,
       backgroundColor: '#ffffff',
     });

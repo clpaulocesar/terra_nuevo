@@ -42,7 +42,7 @@ export default function CarritoFlotante() {
       )}
 
       <aside
-        className={`fixed top-0 right-0 flex h-screen w-[min(25rem,calc(100vw-1rem))] flex-col bg-terra-superficie
+        className={`fixed top-0 right-0 flex h-dvh w-[min(25rem,calc(100vw-1rem))] flex-col bg-terra-superficie
           shadow-terra-cajon transition-transform duration-250 motion-reduce:transition-none
           ${abierto ? 'translate-x-0' : 'pointer-events-none translate-x-[105%]'}`}
         aria-hidden={!abierto}
@@ -85,7 +85,8 @@ export default function CarritoFlotante() {
         </div>
 
         <footer
-          className="flex flex-col gap-2.5 border-t border-terra-borde-suave bg-terra-superficie px-4 pt-3.5 pb-4.5"
+          className="flex flex-col gap-2.5 border-t border-terra-borde-suave bg-terra-superficie px-4 pt-3.5
+            pb-[max(1.125rem,env(safe-area-inset-bottom))]"
         >
           <div className="flex items-center justify-between font-extrabold">
             <span>Total</span>
@@ -113,6 +114,7 @@ export default function CarritoFlotante() {
 
       <button
         type="button"
+        data-tour="carrito-flotante"
         className={`relative ${BOTON_FLOTANTE} ${abierto ? 'hidden' : 'inline-flex'}`}
         onClick={() => setAbierto((v) => !v)}
         aria-expanded={abierto}

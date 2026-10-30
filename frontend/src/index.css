@@ -21,6 +21,10 @@
 @custom-variant con-carrito-abierto (&:where(.app-shell:has(.cart-widget.abierto) *));
 /* En Identificación el carrito flotante se oculta: tapa los controles del formulario. */
 @custom-variant en-identificacion (&:where(.app-shell:has([data-pagina=identificacion]) *));
+/* En el flujo de compra (carrito, identificación, confirmación y pedido) el botón de
+   accesibilidad se oculta: sus controles compiten con los de la página y tapan el
+   botón principal del resumen en el teléfono. */
+@custom-variant en-flujo-compra (&:where(.app-shell:has(:is(.cart-page, .confirm-page, .pedido-page, [data-pagina=identificacion])) *));
 /* Por debajo de 761 px el resumen del Carrito y de Confirmación es una hoja fija abajo
    (components/ui/HojaInferior.jsx). */
 @custom-variant con-resumen-fijo (@media (width < 47.5625rem));

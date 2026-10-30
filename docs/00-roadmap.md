@@ -11,6 +11,8 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
 ## Hecho
 
 ### 2026-10-30
+- **Ticket de pedido unificado (sin commit)**: `utils/ticketPedidoHtml.js` genera la misma estructura para el JPG del cliente y del admin (`descargarTicket`) y para la impresión térmica (`imprimirTicketPedido`), con datos a 15 px, código a 20 px, total a 22 px y ancho de 80 mm. Decisión: [[2026-10-30-ticket-unificado]].
+- **Accesibilidad y flotantes del flujo de compra (sin commit)**: el botón ♿ se oculta en Carrito, Identificación, Confirmación y Pedido generado, y mientras el carrito flotante está abierto. El cajón usa `h-dvh` y respeta la zona segura inferior, y el tutorial ya marca el botón del carrito flotante para no saltarse ese paso. Decisión: [[2026-10-30-flotantes-flujo-compra]].
 - **Se eliminó `frontend-global/`**: la app duplicada del sitio público ya no se mantiene; el cliente se sirve solo desde `frontend/` (kiosco, backoffice y mayorista).
 - **Grilla del catálogo adaptable al ancho** (catálogo, ofertas y categorías, cliente y mayorista): `auto-fill` con ancho mínimo de tarjeta de 13 rem (`--spacing-terra-tarjeta-min`) en lugar de columnas por breakpoint. 1 columna de 360 a 430 px, 2 a 640 y 768 px, 3 a 1024 × 768; con texto al 150 % entran menos solas. La foto conserva su proporción con un tope de 210 px de alto. Se borraron la anulación de `accesibilidad.css` y las reglas de `.product-grid`. Decisión: [[2026-10-30-grilla-catalogo-auto-fill]].
 
