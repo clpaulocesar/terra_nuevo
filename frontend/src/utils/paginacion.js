@@ -11,6 +11,17 @@ export function usarPaginadorCompacto(anchoPx, fuenteRaizPx = 16) {
   return Number(anchoPx) / fuente < ANCHO_PAGINADOR_COMPACTO_REM;
 }
 
+// Última página con menos productos que el límite: se completa con el final de la página
+// anterior (esos productos se repiten) para mostrar los últimos `limite` del filtro y que
+// la grilla quede con sus filas llenas. Sin ids repetidos.
+export function completarUltimaPagina(anterior, ultima, limite) {
+  const faltan = Math.max(0, limite - ultima.length);
+  if (!faltan) return ultima;
+  const enUltima = new Set(ultima.map((producto) => producto.id));
+  const relleno = anterior.filter((producto) => !enUltima.has(producto.id)).slice(-faltan);
+  return [...relleno, ...ultima];
+}
+
 function conSaltos(paginas) {
   const resultado = [];
   paginas.forEach((n, i) => {
