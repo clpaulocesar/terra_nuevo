@@ -19,8 +19,8 @@ export default function TarjetaRelacionado({ producto }) {
           alt={producto.nombre}
         />
       </figure>
-      <h3 className={`${MARGEN} mt-3 mb-1 text-terra-sm`}>{producto.nombre}</h3>
-      <p className={`${MARGEN} mb-3 line-clamp-3 min-h-[3.1em] text-terra-2xs leading-normal text-terra-texto-suave`}>
+      <h3 className={`${MARGEN} mt-3 mb-1 line-clamp-2 text-terra-sm`}>{producto.nombre}</h3>
+      <p className={`${MARGEN} mb-3 line-clamp-2 min-h-[2.8em] text-terra-2xs leading-normal text-terra-texto-suave`}>
         {producto.descripcion || producto.categoria}
       </p>
       <strong className={`${MARGEN} text-terra-md`}>{formatoMoneda(producto.precio)}</strong>
