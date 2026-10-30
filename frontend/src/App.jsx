@@ -9,6 +9,20 @@ import AppRoutes from './routes/AppRoutes.jsx';
 
 export default function App() {
   return (
-    <TemaProvider><AccesibilidadProvider><ModoAccesibleProvider><SesionClienteProvider><ClienteProvider><CarritoProvider><CatalogoProvider><AppRoutes /></CatalogoProvider></CarritoProvider></ClienteProvider></SesionClienteProvider></ModoAccesibleProvider></AccesibilidadProvider></TemaProvider>
+    <TemaProvider>
+      <AccesibilidadProvider>
+        <ModoAccesibleProvider>
+          <SesionClienteProvider>
+            <ClienteProvider>
+              <CarritoProvider>
+                <CatalogoProvider>
+                  <AppRoutes />
+                </CatalogoProvider>
+              </CarritoProvider>
+            </ClienteProvider>
+          </SesionClienteProvider>
+        </ModoAccesibleProvider>
+      </AccesibilidadProvider>
+    </TemaProvider>
   );
 }

@@ -103,7 +103,7 @@ export function AccesibilidadProvider({ children }) {
     setVozActiva(activa);
     try { localStorage.setItem(CLAVE_VOZ, activa ? '1' : '0'); } catch { /* sin almacenamiento: sólo esta sesión */ }
     if (activa) {
-      hablar('Lectura por voz activada. Tocá o navegá con el teclado y te leo cada elemento. Decí "ayuda" con el micrófono para conocer los comandos.');
+      hablar('Lectura por voz activada. Toca o navega con el teclado y te leo cada elemento. Di "ayuda" con el micrófono para conocer los comandos.');
     } else {
       hablar('Lectura por voz desactivada.');
     }
@@ -117,7 +117,7 @@ export function AccesibilidadProvider({ children }) {
     return () => { if (manejadorComandoRef.current === fn) manejadorComandoRef.current = null; };
   }, []);
 
-  // Ejecuta una frase como si se hubiera dicho por voz (botones del panel "Podés decir…").
+  // Ejecuta una frase como si se hubiera dicho por voz (botones del panel "Puedes decir…").
   const ejecutarComando = useCallback((frase) => {
     const texto = String(frase || '').trim();
     if (!texto) return false;
@@ -136,7 +136,7 @@ export function AccesibilidadProvider({ children }) {
   // Escucha una sola frase y la entrega al manejador registrado.
   const escuchar = useCallback(() => {
     if (!soportaReconocimiento) {
-      anunciar('Este navegador no soporta comandos de voz. Usá Chrome o Edge.', { forzar: true });
+      anunciar('Este navegador no soporta comandos de voz. Usa Chrome o Edge.', { forzar: true });
       return;
     }
     if (reconocimientoRef.current) { detenerEscucha(); return; }
@@ -151,14 +151,14 @@ export function AccesibilidadProvider({ children }) {
       const alternativas = Array.from(evento.results?.[0] || []).map((r) => String(r.transcript || '').trim()).filter(Boolean);
       const frase = alternativas[0] || '';
       const manejador = manejadorComandoRef.current;
-      if (!frase) { anunciar('No entendí. Probá de nuevo.', { forzar: true }); return; }
+      if (!frase) { anunciar('No entendí. Prueba de nuevo.', { forzar: true }); return; }
       if (manejador) manejador(frase, alternativas);
       else anunciar(`Escuché: ${frase}`, { forzar: true });
     };
     rec.onerror = (evento) => {
       const codigo = evento?.error;
-      if (codigo === 'not-allowed' || codigo === 'service-not-allowed') anunciar('Permití el uso del micrófono en el navegador para usar comandos de voz.', { forzar: true });
-      else if (codigo === 'no-speech') anunciar('No escuché nada. Tocá el micrófono y hablá.', { forzar: true });
+      if (codigo === 'not-allowed' || codigo === 'service-not-allowed') anunciar('Permite el uso del micrófono en el navegador para usar comandos de voz.', { forzar: true });
+      else if (codigo === 'no-speech') anunciar('No escuché nada. Toca el micrófono y habla.', { forzar: true });
       else if (codigo !== 'aborted') anunciar('No se pudo usar el micrófono.', { forzar: true });
     };
     rec.onend = () => { reconocimientoRef.current = null; setEscuchando(false); };

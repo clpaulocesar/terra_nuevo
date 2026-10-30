@@ -56,8 +56,8 @@ export default function Categorias() {
           <span className="categorias-tag">
             <LayoutGrid size={15} /> Catálogo dinámico 2026
           </span>
-          <h1>Elegí la categoría y empezá <span>tu compra</span></h1>
-          <p>Descubrí las líneas con más compras de la tienda o abrí el selector para ver todas las categorías disponibles.</p>
+          <h1>Elige la categoría y empieza <span>tu compra</span></h1>
+          <p>Descubre las líneas con más compras de la tienda o abre el selector para ver todas las categorías disponibles.</p>
           <Link to="/catalogo" className="categorias-hero__cta">
             <Grid2X2 size={18} /> Ver todos los productos <ArrowRight size={18} />
           </Link>

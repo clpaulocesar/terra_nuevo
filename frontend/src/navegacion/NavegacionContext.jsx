@@ -45,7 +45,7 @@ export function NavegacionProvider({ children }) {
     const zona = zonaDeRuta(location.pathname);
     if (zona === 'admin' || zona === 'vendedor') return;
     setLoginMayoristaAbierto(true);
-    anunciar('Tu sesión mayorista venció. Volvé a iniciar sesión.', { forzar: true });
+    anunciar('Tu sesión mayorista venció. Vuelve a iniciar sesión.', { forzar: true });
   }, [sesionVencida, limpiarVencida, location.pathname, anunciar]);
 
   // ?login=1 en cualquier ruta pública abre el modal y limpia el parámetro.
@@ -85,7 +85,7 @@ export function NavegacionProvider({ children }) {
     const f = String(frase || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
     const si = /^(si|sí|dale|confirmo|confirmar|ok|claro|afirmativo)\b/.test(f);
     const no = /^(no|cancelar|cancela|negativo)\b/.test(f);
-    if (!si && !no) { anunciar('Decí sí o no.', { forzar: true }); return true; }
+    if (!si && !no) { anunciar('Di sí o no.', { forzar: true }); return true; }
     const pendiente = confirmacionPendiente;
     setConfirmacionPendiente(null);
     if (no) { anunciar('Cancelado.', { forzar: true }); return true; }
@@ -108,11 +108,11 @@ export function NavegacionProvider({ children }) {
     if (destino.accion === 'abrirLoginMayorista') {
       if (ctx.esMayorista) {
         navigate('/mi-cuenta');
-        anunciar('Ya tenés la sesión iniciada. Estás en Mi panel mayorista.', { forzar: true });
+        anunciar('Ya tienes la sesión iniciada. Estás en Mi panel mayorista.', { forzar: true });
       } else {
         if (zonaDeRuta(ctx.ruta) === 'admin' || zonaDeRuta(ctx.ruta) === 'vendedor') navigate('/');
         setLoginMayoristaAbierto(true);
-        anunciar('Ingresá tu correo y contraseña de mayorista.', { forzar: true });
+        anunciar('Ingresa tu correo y contraseña de mayorista.', { forzar: true });
       }
       return true;
     }
@@ -121,7 +121,7 @@ export function NavegacionProvider({ children }) {
       if (!puedeAcceder(clave, ctx)) { anunciar('No hay ninguna sesión iniciada.', { forzar: true }); return true; }
       if (origen === 'chat') { cerrarSesionActual(); return true; }
       setConfirmacionPendiente('cerrarSesion');
-      anunciar('¿Cerrar sesión? Decí sí o no.', { forzar: true });
+      anunciar('¿Cerrar sesión? Di sí o no.', { forzar: true });
       return true;
     }
 
@@ -131,7 +131,7 @@ export function NavegacionProvider({ children }) {
       if (zona === 'mayorista') {
         pendienteMayoristaRef.current = clave;
         setLoginMayoristaAbierto(true);
-        anunciar(`Primero iniciá sesión como mayorista para ir a ${destino.nombre}.`, { forzar: true });
+        anunciar(`Primero inicia sesión como mayorista para ir a ${destino.nombre}.`, { forzar: true });
         return true;
       }
       if (zona === 'admin' || zona === 'vendedor') {
@@ -141,10 +141,10 @@ export function NavegacionProvider({ children }) {
         }
         guardarDestinoPendiente(clave);
         navigate(zona === 'vendedor' ? '/vendedor/login' : '/admin/login');
-        anunciar(`Primero iniciá sesión. Ingresá tu correo y contraseña de ${zona === 'vendedor' ? 'vendedor' : 'administrador'}.`, { forzar: true });
+        anunciar(`Primero inicia sesión. Ingresa tu correo y contraseña de ${zona === 'vendedor' ? 'vendedor' : 'administrador'}.`, { forzar: true });
         return true;
       }
-      anunciar(`No tenés acceso a ${destino.nombre}.`, { forzar: true });
+      anunciar(`No tienes acceso a ${destino.nombre}.`, { forzar: true });
       return true;
     }
 
@@ -156,7 +156,7 @@ export function NavegacionProvider({ children }) {
     const ruta = parametros.ruta || destino.ruta;
     navigate(ruta);
     const aviso = clave === 'loginAdmin' || clave === 'loginVendedor'
-      ? `Estás en ${destino.nombre}. Ingresá tu correo y contraseña.`
+      ? `Estás en ${destino.nombre}. Ingresa tu correo y contraseña.`
       : `Estás en ${destino.nombre}.`;
     anunciar(aviso, { forzar: true });
     return true;

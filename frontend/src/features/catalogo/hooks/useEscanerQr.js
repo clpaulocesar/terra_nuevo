@@ -51,7 +51,7 @@ export function useEscanerQr({ abrirAlEntrar, items, agregarProducto, actualizar
     escanerProcesandoRef.current = false;
     setEscaneoPausado(false);
     setErrorEscaner(false);
-    setEstadoEscaner('Apuntá la cámara al siguiente código QR.');
+    setEstadoEscaner('Apunta la cámara al siguiente código QR.');
   };
 
   const procesarContenidoQr = async (contenido) => {
@@ -77,7 +77,7 @@ export function useEscanerQr({ abrirAlEntrar, items, agregarProducto, actualizar
         setEstadoEscaner(`Ya agregaste todas las unidades disponibles de ${producto.nombre}.`);
         setErrorEscaner(true);
       } else {
-        setEstadoEscaner(`${producto.nombre} agregado. Ajustá la cantidad, escaneá otro producto o confirmá la compra.`);
+        setEstadoEscaner(`${producto.nombre} agregado. Ajusta la cantidad, escanea otro producto o confirma la compra.`);
       }
     } catch (err) {
       setEstadoEscaner(err.message || 'No se pudo cargar el producto del QR.');
@@ -92,7 +92,7 @@ export function useEscanerQr({ abrirAlEntrar, items, agregarProducto, actualizar
     event.target.value = '';
     if (!archivo) return;
     if (!archivo.type.startsWith('image/')) {
-      setEstadoEscaner('Elegí una imagen que contenga el código QR.');
+      setEstadoEscaner('Elige una imagen que contenga el código QR.');
       setErrorEscaner(true);
       return;
     }
@@ -111,7 +111,7 @@ export function useEscanerQr({ abrirAlEntrar, items, agregarProducto, actualizar
       const resultado = await new BrowserQRCodeReader().decodeFromImageElement(imagen);
       await procesarContenidoQr(resultado.getText());
     } catch {
-      setEstadoEscaner('No encontramos un QR legible en esa imagen. Probá con una foto más nítida.');
+      setEstadoEscaner('No encontramos un QR legible en esa imagen. Prueba con una foto más nítida.');
       setErrorEscaner(true);
     } finally {
       URL.revokeObjectURL(urlImagen);
@@ -161,7 +161,7 @@ export function useEscanerQr({ abrirAlEntrar, items, agregarProducto, actualizar
         ? 'Permite el acceso a la cámara en tu navegador para escanear los productos.'
         : error?.name === 'NotFoundError'
         ? 'No se encontró una cámara disponible en este dispositivo.'
-        : 'No se pudo iniciar la cámara. Verificá los permisos del navegador y volvé a intentar.';
+        : 'No se pudo iniciar la cámara. Verifica los permisos del navegador y vuelve a intentar.';
       setEstadoEscaner(mensaje);
       setErrorEscaner(true);
     };
@@ -180,7 +180,7 @@ export function useEscanerQr({ abrirAlEntrar, items, agregarProducto, actualizar
         );
         if (cancelado) { controles.stop(); return; }
         controlesCamara = controles;
-        setEstadoEscaner((actual) => (actual === 'Solicitando acceso a la cámara…' ? 'Apuntá la cámara al código QR del producto.' : actual));
+        setEstadoEscaner((actual) => (actual === 'Solicitando acceso a la cámara…' ? 'Apunta la cámara al código QR del producto.' : actual));
       } catch (error) {
         mostrarErrorCamara(error);
       }

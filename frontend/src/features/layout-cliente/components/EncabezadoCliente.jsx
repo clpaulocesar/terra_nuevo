@@ -30,10 +30,11 @@ export default function EncabezadoCliente({
 }) {
   return (
     <header
-      className="site-header sticky top-0 z-50 flex min-h-15 items-center justify-between gap-1.5 border-b
+      className="sticky top-0 z-50 flex min-h-15 items-center justify-between gap-1.5 border-b
         border-terra-borde-suave bg-terra-encabezado px-2 pt-[calc(var(--terra-encabezado-py)+env(safe-area-inset-top,0px))]
         pb-(--terra-encabezado-py) shadow-[0_2px_12px_rgba(166,25,46,0.05)] backdrop-blur-sm
-        [--terra-encabezado-py:0.5rem] sm:gap-2 sm:px-3 lg:min-h-16 lg:px-4 lg:[--terra-encabezado-py:0.625rem] xl:px-6"
+        [--terra-encabezado-py:0.5rem] sm:gap-2 sm:px-3 lg:min-h-16 lg:px-4 lg:[--terra-encabezado-py:0.625rem] xl:px-6
+        print:hidden"
     >
       {/* En teléfono el logo cede espacio con texto al 150 %; desde 640 px las acciones pasan a otra línea. */}
       <Link to="/" className="flex min-w-0 items-center sm:shrink-0" title="TERRA Autoservicio" onClick={onLogo}>

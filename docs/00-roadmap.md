@@ -11,6 +11,10 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
 ## Hecho
 
 ### 2026-10-29
+- **Pie de página corporativo adaptado a todos los dispositivos**: diseño responsive optimizado para móviles (360px), tablets (768px portrait y 1024px landscape del kiosco) y pantallas de escritorio. Botones táctiles >= 44px (WCAG), espaciado lateral seguro ante botones flotantes y barra inferior de derechos de autor. Retiro temporal de la temática Halloween.
+- **Resumen del Carrito tapado por el pie en tablet vertical** (rama `fix/carrito-resumen-tablet`): el pie de `684e119` (`z-30`) quedaba encima de la hoja inferior de la fase 3, también en Confirmación. El pie va en el flujo y sin z-index, la reserva para la hoja la hace el pie (sin el hueco vacío dentro de la página) y el alto de la hoja cerrada se mide, así que con texto al 150 % el botón ya no queda cortado. Con "Botones grandes" del modo accesible, el asa de la hoja ya no se convierte en un recuadro vacío de 48 px con borde amarillo: sigue siendo una barra y solo crece su zona de toque (48 px). Decisión: [[2026-10-29-hoja-resumen-sobre-el-pie]].
+- **Textos del cliente en tuteo** (misma rama): 103 textos con voseo pasados a tú (88 en `frontend/src/` y 15 en `public/detalle-qr.html`). Decisión: [[2026-10-29-textos-en-tuteo]].
+- **Fase 3 de Tailwind** (flujo de compra y carrito flotante): ver la tabla de abajo y [[2026-10-28-migracion-tailwind]]. Corrige de paso que la barra inferior del teléfono tapaba "Continuar y generar pedido" en Carrito y Confirmación, el scroll horizontal del ticket en teléfono y los flotantes sobre el resumen de Confirmación.
 - **El catálogo ya no muestra productos con stock 0** (sin commit): `?stock=true` en el listado y en los conteos de categorías; la ficha, "Otros modelos" y el admin siguen viendo todo. La casilla "Solo con stock" de Ventas directas vuelve a funcionar. Decisión: [[2026-10-29-catalogo-sin-stock-cero]]. Pruebas: backend 50.
 
 ### 2026-10-28
@@ -40,13 +44,14 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 | 0 | Base: tokens `@theme`, variantes `dark:` y `contraste:`, reglas globales en `@layer base` | Hecha el 2026-10-28 |
 | 1 | Catálogo, tarjeta, paginación, filtros, flotantes y Layout del cliente | Hecha el 2026-10-28. Código en `src/features/catalogo/` y `src/features/layout-cliente/`; se borraron `Catalogo.css`, `Layout.css`, `FloatingActions.css`, `NavigationFix.css` y `HeaderOptionsHidden.css` |
 | 2 | DetalleProducto | Hecha el 2026-10-28. Código en `src/features/detalle-producto/`; se borraron `DetalleProducto.css`, `DetalleProductoBack.css`, `DetalleProductoPalette.css`, `DetalleProductoRelated.css` y `DetalleProductoSpecs.css` (los tres últimos no se importaban) |
-| 3 | Carrito, Identificación, Confirmación, PedidoGenerado | Pendiente |
+| 3 | Carrito, Identificación, Confirmación, PedidoGenerado y carrito flotante | Hecha el 2026-10-29. Código en `src/features/carrito/`, `identificacion/`, `confirmacion/`, `pedido-generado/` y piezas comunes en `compra/`; se borraron `CarritoPage.css`, `Identificacion.css`, `Confirmacion.css`, `PedidoGenerado.css` y `CarritoFlotante.css`, y sus reglas en `theme-dark.css`, `ClienteTheme.css` y `Responsive.css`. Quedan 55 archivos `.css` |
 | 4 | Bienvenida, Categorías | Pendiente |
 | 5 | Mayorista | Pendiente |
 | 6 | Admin | Pendiente |
 
 ### Otros
 - **Extraer hooks de `CatalogoPage.jsx`** (tarea aparte): supera las 300 líneas por la lógica de filtros, orden, paginación, voz y teclado. Pasarla a hooks en `src/features/catalogo/hooks/` sin cambiar comportamiento.
+- **Reducir el bundle JS principal** (tarea aparte): supera los 600 kB (≈ 614 kB, 186 kB gzip). Revisar qué pantallas del cliente y librerías entran en el chunk principal y separarlas por ruta con `React.lazy` (admin, vendedor y mayorista ya son lazy).
 - Subir los commits `f24bf3a` y `13f46df` **sin reescribir historia**: nada de force push sobre `812212d`, que ya está publicado.
 - Asignar clave a los 4 mayoristas existentes desde Clientes (botón de llave): hasta entonces no pueden entrar.
 
@@ -73,6 +78,8 @@ Por fases y por pantalla. Decisión: [[2026-10-28-migracion-tailwind]]. Reglas e
 - Revisión visual en modo claro, oscuro y alto contraste de Pedidos, Ventas directas y Clientes (cambios del 28/10 sin revisión en navegador).
 - Resueltos en la fase 1 de Tailwind: el asistente ya no tapa "Total a pagar en caja" en Confirmación; desde 768 px el botón de accesibilidad no pasa sobre la grilla; el enlace "Catálogo de Productos" queda en una línea (solo ícono entre 640 y 1023 px). Además, con texto al 150 % el encabezado ya no recorta el logo ni "Carrito" (pasa a dos líneas).
 - La guía de usuario `docs/GUIA_USUARIO_TERRA_AUTOSERVICIO.md` que cita `AGENTS.md` no existe.
+- **Pie del cliente con colores fijos → tokens.** `PieCliente.jsx` (de `684e119`) usa colores sueltos (`bg-[#f5f2eb]`, `border-[#e5ded4]`, `text-stone-600`, `text-neutral-800`, `text-emerald-600`...) y variantes `dark:` en lugar de los tokens `terra-*`. Pasarlo a tokens y revisarlo en claro, oscuro y contraste.
+- **Tuteo en admin, vendedores y backend.** Quedan textos con voseo en `src/pages/admin`, `src/pages/vendedor`, `src/components/admin`, `src/services/envioService.js` y en los mensajes del backend (por ejemplo, en [[erp-terra]]). Ver [[2026-10-29-textos-en-tuteo]].
 - Scripts de la raíz (`scripts/asignar-productos-central.mjs`, `scripts/reclasificar-categorias.mjs`, `scripts/importar-excel-supabase.mjs`) todavía mencionan Supabase o deducen TLS por el host.
 
 ## Bloqueado por terceros

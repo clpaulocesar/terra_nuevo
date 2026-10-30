@@ -7,7 +7,7 @@ export default function AvisoShowroom() {
       <MapPin size={24} className="size-9 rounded-md bg-terra-primario-claro p-1.5 text-terra-acento" />
       <TituloConBarra>Pruébalo en nuestro showroom</TituloConBarra>
       <p className="text-terra-xs leading-normal text-terra-texto-suave">
-        Visitá nuestro espacio de descanso para conocer el producto y recibir asesoramiento.
+        Visita nuestro espacio de descanso para conocer el producto y recibir asesoramiento.
       </p>
     </aside>
   );

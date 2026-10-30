@@ -95,7 +95,7 @@ export default function LectorVoz() {
       const titulos = Array.from(contenido.querySelectorAll('h1, h2')).map((el) => el.innerText.trim()).filter(Boolean).slice(0, 6);
       const botones = contenido.querySelectorAll('button, a[href]').length;
       const nombre = nombreDePagina(location.pathname);
-      anunciar(`${nombre}. ${titulos.length ? `Secciones: ${titulos.join('. ')}.` : ''} Hay ${botones} controles. Navegá con la tecla Tab o tocando la pantalla.`, { forzar: true });
+      anunciar(`${nombre}. ${titulos.length ? `Secciones: ${titulos.join('. ')}.` : ''} Hay ${botones} controles. Navega con la tecla Tab o tocando la pantalla.`, { forzar: true });
     };
 
     // Ayuda contextual: sólo los destinos de la zona y el rol actuales, de a 6.
@@ -108,9 +108,9 @@ export default function LectorVoz() {
       const quedan = nombres.length - ayudaOffsetRef.current;
       if (!tramo.length) {
         ayudaOffsetRef.current = 0;
-        return anunciar(`También podés decir: ${COMANDOS_FIJOS}.`, { forzar: true });
+        return anunciar(`También puedes decir: ${COMANDOS_FIJOS}.`, { forzar: true });
       }
-      anunciar(`Podés decir: ${tramo.join(', ')}. ${quedan > 0 ? 'Decí "más" para escuchar el resto.' : `También: ${COMANDOS_FIJOS}.`}`, { forzar: true });
+      anunciar(`Puedes decir: ${tramo.join(', ')}. ${quedan > 0 ? 'Di "más" para escuchar el resto.' : `También: ${COMANDOS_FIJOS}.`}`, { forzar: true });
     };
 
     // Instrucciones de armado/uso leídas en voz alta.
@@ -121,11 +121,11 @@ export default function LectorVoz() {
         const lista = Array.isArray(r) ? r : r?.data || [];
         if (!lista.length) {
           ultimasInstruccionesRef.current = '';
-          return anunciar(`No encontré instrucciones para ${termino}. Podés consultarlo con un asesor.`, { forzar: true });
+          return anunciar(`No encontré instrucciones para ${termino}. Puedes consultarlo con un asesor.`, { forzar: true });
         }
         const producto = lista[0];
         const pasos = String(producto.instrucciones || '').split(/\r?\n+/).map((p) => p.trim()).filter(Boolean);
-        const texto = `Instrucciones de ${producto.producto}. ${pasos.join('. ')}. ${producto.videos_url ? 'Hay un video de armado disponible en la ficha del producto.' : ''} Decí "repetir" para escucharlas de nuevo.`;
+        const texto = `Instrucciones de ${producto.producto}. ${pasos.join('. ')}. ${producto.videos_url ? 'Hay un video de armado disponible en la ficha del producto.' : ''} Di "repetir" para escucharlas de nuevo.`;
         ultimasInstruccionesRef.current = texto;
         anunciar(texto, { forzar: true });
       } catch (err) {
@@ -162,7 +162,7 @@ export default function LectorVoz() {
       if (pedidoAgregar) {
         const enCatalogo = location.pathname === '/catalogo';
         const enDetalle = location.pathname.startsWith('/productos/');
-        if (!enCatalogo && !enDetalle) return anunciar('Para agregar al carrito, primero abrí el catálogo o un producto. Decí "catálogo".', { forzar: true });
+        if (!enCatalogo && !enDetalle) return anunciar('Para agregar al carrito, primero abre el catálogo o un producto. Di "catálogo".', { forzar: true });
         emitir('agregar', pedidoAgregar);
         return;
       }
@@ -186,7 +186,7 @@ export default function LectorVoz() {
       if (destino === 'instrucciones') { leerInstrucciones(parametros.termino); return; }
       if (destino && ejecutarIntencion({ destino, parametros }, { origen: 'voz' })) return;
 
-      anunciar(`No entendí "${fraseOriginal}". Decí "ayuda" para escuchar las opciones.`, { forzar: true });
+      anunciar(`No entendí "${fraseOriginal}". Di "ayuda" para escuchar las opciones.`, { forzar: true });
     };
 
     return registrarManejadorComando(manejar);

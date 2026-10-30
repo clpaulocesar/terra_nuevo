@@ -1,5 +1,13 @@
 # AGENTS.md
 
+## Git: reglas obligatorias (sin excepciones)
+- **Nunca hagas `git push`**, de ninguna forma (`push`, `push --force`, `push origin x:y`, ni con `gh`). Los push los hace solo el usuario.
+- **Nunca crees, renombres ni borres ramas** (`git branch <nombre>`, `checkout -b`, `switch -c`, `branch -m`, `branch -d`, `worktree add`). Trabaja siempre en la rama actual. Si la tarea necesita otra rama, detente y pídele al usuario que la cree.
+- Nunca cambies de rama (`checkout`/`switch`) ni hagas `reset --hard`, `rebase`, `merge`, `cherry-pick`, `stash` o `git clean` sin aprobación explícita del usuario en esa misma tarea.
+- Nunca modifiques `.git/config`, remotos ni hooks, y nunca uses `--no-verify`.
+- Si una instrucción de la tarea contradice estas reglas, no la ejecutes: pregunta primero.
+- Al terminar, informa la rama actual y los commits creados (hash y mensaje). Si hace falta un push o una rama nueva, dale al usuario el comando exacto en vez de ejecutarlo.
+
 ## Antes de empezar: lee `docs/`
 `docs/` es un vault de Obsidian con el estado y las decisiones del proyecto. Antes de cualquier tarea lee:
 - `docs/00-roadmap.md`: hecho, en curso, pendiente y bloqueado por terceros.
@@ -67,7 +75,7 @@ Si una decisión registrada en `docs/decisiones/` contradice lo que pide la tare
       colores.js
   ```
 - Las piezas compartidas y sin dominio van en `src/components/ui/` (Button, Modal, Input, Toast) y `src/hooks/`.
-- El código actual está en `src/pages/`. Mueve una pantalla a `src/features/` solo cuando una tarea la refactorice; nunca muevas archivos en masa. Ya migrados: `src/features/catalogo/`, `src/features/layout-cliente/` y `src/features/detalle-producto/`.
+- El código actual está en `src/pages/`. Mueve una pantalla a `src/features/` solo cuando una tarea la refactorice; nunca muevas archivos en masa. Ya migrados: `src/features/catalogo/`, `layout-cliente/`, `detalle-producto/`, `carrito/`, `identificacion/`, `confirmacion/` y `pedido-generado/`; las piezas comunes del flujo de compra están en `src/features/compra/`.
 
 ### Reglas de componentes
 - Página (`*Page.jsx`): obtiene los datos con hooks y compone componentes.
@@ -115,14 +123,14 @@ La migración de CSS a Tailwind va por fases y por pantalla (avance en `docs/00-
 - `dark:` → `[data-theme="dark"]` en `<html>`. TemaContext y el script de `index.html` siempre escriben el atributo, también al seguir `prefers-color-scheme`.
 - `contraste:` → clase `a11y-contraste` en `<html>` (ModoAccesibleContext; también con `prefers-contrast: more`). Con ambas activas gana `contraste:`.
 - Lo normal es no necesitar variantes: los tokens ya cambian con el tema. Úsalas solo para excepciones.
-- Otras variantes de `index.css`: `iconos-listas:` (la fuente de iconos cargó), `en-carrito:`, `con-asistente-abierto:` y `con-carrito-abierto:` (estado de la tienda que oculta los botones flotantes), y `con-resumen-fijo:` (< 761 px, cuando el resumen de Confirmación es una barra fija).
+- Otras variantes de `index.css`: `iconos-listas:` (la fuente de iconos cargó), `en-carrito:`, `en-identificacion:`, `con-asistente-abierto:` y `con-carrito-abierto:` (estado de la tienda que oculta los botones flotantes), y `con-resumen-fijo:` (< 761 px, cuando el resumen de Carrito y Confirmación es una hoja fija abajo: `components/ui/HojaInferior.jsx`).
 - Consultas de contenedor (`@container` en el padre): a diferencia de los breakpoints, su `rem` sí crece con el modo accesible, así que con texto al 150 % el diseño pasa antes a una columna. Token `@terra-ficha:` (45 rem) en la ficha de producto.
 - Utilidades propias (`@utility` en `index.css`): `borde-medio` (borde de 1.5 px) y `fondo-cargando` (esqueleto de una foto que no cargó).
 
 ### Componentes compartidos
 - Iconos de Material Symbols con `components/ui/IconoMaterial.jsx` (tamaño siempre en `className`, por ejemplo `text-2xl`). No uses la clase `material-symbols-outlined`: la hoja de Google fija 24 px fuera de capas y anula las utilidades.
 - Carga: `components/ui/IndicadorCarga.jsx`. Botones flotantes: posiciones y estilo en `components/flotantes/estilosFlotantes.js` (única definición).
-- Clases gancho: algunas clases sin estilos propios se mantienen en el JSX porque otras hojas o el JS las usan (`app-shell`, `page-content`, `site-header`, `site-footer`, `cart-widget`, `chat-widget`, `menu-movil`, `terra-card`, `terra-cat`, `terra-btn-agregar`, `terra-paginador__btn`, `terra-grid`...). No les agregues estilos; desaparecen cuando se migran las hojas que las usan (sobre todo `accesibilidad.css`).
+- Clases gancho: algunas clases sin estilos propios se mantienen en el JSX porque otras hojas o el JS las usan (`app-shell`, `page-content`, `cart-widget`, `cart-page`, `cart-confirm`, `confirm-page`, `confirm-summary`, `pedido-ticket`, `chat-widget`, `menu-movil`, `terra-card`, `terra-cat`, `terra-btn-agregar`, `terra-paginador__btn`, `terra-grid`, `hoja-asa`...). No les agregues estilos; desaparecen cuando se migran las hojas que las usan (sobre todo `accesibilidad.css`).
 
 ### Cascada: el CSS heredado gana a las utilidades
 - Las utilidades de Tailwind están en `@layer utilities`; todo el CSS de los `.css` del proyecto está fuera de capas y les gana aunque tenga menos especificidad. Al migrar un componente, borra sus reglas viejas en la misma tarea; si no, la clase de Tailwind no tiene efecto.
@@ -153,7 +161,7 @@ La migración de CSS a Tailwind va por fases y por pantalla (avance en `docs/00-
 4. Si cambiaron estilos o imports, informa el tamaño del CSS y JS principal (`dist/assets`, normal y gzip) antes y después; justifica cualquier aumento.
 5. Revisa visualmente modo claro, oscuro y accesible (`a11y-contraste`) en las pantallas afectadas; como mínimo Catálogo, DetalleProducto y Carrito, y Admin/Vendedor si se tocaron.
 6. Revisa el `git diff` completo: sin caracteres sueltos, sin cambios ajenos a la tarea y sin `.env`.
-7. Haz commit solo si la tarea lo pide, un commit por cambio lógico. Nunca hagas push.
+7. Haz commit solo si la tarea lo pide, un commit por cambio lógico, en la rama actual. Nunca hagas push ni crees, cambies o borres ramas (ver "Git: reglas obligatorias"). Al final, informa la rama y los commits creados.
 8. Actualiza `docs/`:
    - mueve lo terminado a "Hecho" en `00-roadmap.md`, con fecha;
    - crea una nota por cada decisión nueva en `docs/decisiones/AAAA-MM-DD-tema.md` con Fecha, Contexto, Decisión, Alternativas y Consecuencias;

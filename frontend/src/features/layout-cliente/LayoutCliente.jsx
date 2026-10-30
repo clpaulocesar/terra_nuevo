@@ -6,7 +6,7 @@ import { useTutorial } from '../../context/TutorialContext.jsx';
 import { MODO_DEMO, WHATSAPP_COMPROBANTES } from '../../services/api.js';
 import { useNavegacion } from '../../navegacion/NavegacionContext.jsx';
 import ChatAsistente from '../../components/chat/ChatAsistente.jsx';
-import CarritoFlotante from '../../components/cart/CarritoFlotante.jsx';
+import CarritoFlotante from '../carrito/components/CarritoFlotante.jsx';
 import WebAccountModal from '../../components/WebAccountModal.jsx';
 import LectorVoz from '../../components/accesibilidad/LectorVoz.jsx';
 import SaltarContenido from '../../accesibilidad/SaltarContenido.jsx';
@@ -17,15 +17,15 @@ import NavegacionInferior from './components/NavegacionInferior.jsx';
 import PieCliente from './components/PieCliente.jsx';
 import BotonQrFlotante from './components/BotonQrFlotante.jsx';
 
-// En Confirmación, por debajo de 761 px el resumen es una barra fija de 8.5rem
-// (Confirmacion.css): los flotantes arrancan por encima para no taparla.
+// En Carrito y Confirmación, por debajo de 761 px el resumen es una hoja fija abajo
+// (HojaInferior): los flotantes y el botón de accesibilidad arrancan por encima.
 const FLOTANTES_SOBRE_RESUMEN =
-  `con-resumen-fijo:[--terra-flotante-abajo:calc(8.5rem+0.75rem+env(safe-area-inset-bottom,0px))]
+  `con-resumen-fijo:[--terra-flotante-abajo:calc(var(--terra-hoja-abajo)+var(--spacing-terra-hoja)+0.75rem)]
   con-resumen-fijo:[--terra-a11y-abajo:var(--terra-flotante-abajo)]`;
 
 // Contenedor de la tienda: encabezado, contenido, barra inferior en teléfono, pie y
-// botones flotantes. app-shell, page-content y site-*: ganchos de otras hojas
-// (Identificación, PedidoGenerado, mayorista) que todavía no se migraron.
+// botones flotantes. app-shell y page-content: ganchos de hojas que todavía no se
+// migraron (accesibilidad y mayorista).
 export default function LayoutCliente() {
   const { cantidadTotal } = useCarrito();
   const { sesion, esMayorista, cerrarSesion } = useContext(SesionClienteContext);
@@ -76,7 +76,7 @@ export default function LayoutCliente() {
     <div
       className={`app-shell flex min-h-screen flex-col bg-terra-fondo bg-[url('/images/inicio/fondo.webp')]
         bg-cover bg-fixed bg-center bg-no-repeat font-terra text-terra-texto dark:bg-none
-        ${enConfirmacion ? FLOTANTES_SOBRE_RESUMEN : ''}`}
+        ${enCarrito || enConfirmacion ? FLOTANTES_SOBRE_RESUMEN : ''}`}
     >
       <SaltarContenido />
       <LectorVoz />
@@ -113,7 +113,7 @@ export default function LayoutCliente() {
 
       <main
         className="page-content mx-auto w-full max-w-320 flex-1 px-4 py-3 sm:p-4 lg:px-4 lg:py-5
-          xl:px-[clamp(1rem,2.5vw,2rem)] xl:py-6 max-md:has-[>[data-pagina=catalogo]]:p-0"
+          xl:px-[clamp(1rem,2.5vw,2rem)] xl:py-6 max-md:has-[>[data-pagina=catalogo]]:p-0 print:p-0"
         id="contenido"
         tabIndex={-1}
       >
