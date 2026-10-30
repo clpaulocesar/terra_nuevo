@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
-import ImagenPerezosa from '../../../components/ui/ImagenPerezosa.jsx';
+import ImagenProducto from '../../../components/ui/ImagenProducto.jsx';
 import IconoMaterial from '../../../components/ui/IconoMaterial.jsx';
 import { formatoMoneda } from '../../../utils/formatoMoneda.js';
-import { imagenDeProducto, usarImagenFallback } from '../../../utils/imagenProducto.js';
 import { coloresDeProducto } from '../utils/productoCatalogo.js';
 import InsigniasProducto from './InsigniasProducto.jsx';
 import PrecioTarjeta from './PrecioTarjeta.jsx';
@@ -68,15 +67,12 @@ export default function TarjetaProducto({
           justify-center overflow-hidden bg-terra-fondo-imagen has-data-[cargada=false]:fondo-cargando
           ${esMayorista ? 'max-sm:aspect-16/10' : ''}`}
       >
-        {/* img-fallback (logo de TERRA): también la agrega usarImagenFallback si la foto falla. */}
-        <ImagenPerezosa
-          className={`terra-card__img block h-full w-full object-contain transition-[transform,opacity] duration-400
-            group-hover:scale-105 data-[cargada=false]:opacity-0 [&.img-fallback]:h-auto [&.img-fallback]:w-3/5
-            [&.img-fallback]:opacity-90 [&.img-fallback]:group-hover:scale-100
-            ${producto.imagen_url ? '' : 'img-fallback'}`}
+        <ImagenProducto
+          perezosa
+          className="terra-card__img block h-full w-full object-contain transition-[transform,opacity] duration-400
+            group-hover:scale-105 data-[cargada=false]:opacity-0 data-reemplazo:group-hover:scale-100"
           alt={producto.nombre}
-          src={imagenDeProducto(producto.imagen_url)}
-          onError={usarImagenFallback}
+          src={producto.imagen_url}
         />
         <InsigniasProducto producto={producto} esMasVendido={esMasVendido} />
         {producto.tagMedida && (

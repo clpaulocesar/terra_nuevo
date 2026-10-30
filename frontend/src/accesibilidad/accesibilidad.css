@@ -185,14 +185,16 @@ html.a11y-contraste :is(main, section, article, aside, header, footer, nav, form
   box-shadow: none !important;
   text-shadow: none !important;
 }
-html.a11y-contraste :is(img, video, canvas, svg) { background: transparent !important; }
+/* [data-reemplazo]: el logo de TERRA que reemplaza una foto (components/ui/ImagenProducto.jsx)
+   conserva su fondo blanco; su caligrafía es oscura y sobre negro no se lee. */
+html.a11y-contraste :is(img, video, canvas, svg):where(:not([data-reemplazo])) { background: transparent !important; }
 html.a11y-contraste :is(button, [role="button"], a.btn, .btn, .terra-btn-agregar, .cart-confirm, .cart-back, .confirm-summary > a, .product-buy__now, .categories-add, .warehouse-admin button):where(:not(.hoja-asa)) {
   background: #000 !important; background-image: none !important;
   color: #ffd400 !important; border: 2px solid #ffd400 !important; box-shadow: none !important;
 }
 html.a11y-contraste :is(button, [role="button"]):where(:not(.hoja-asa)):hover { background: #ffd400 !important; color: #000 !important; }
-html.a11y-contraste :is(button, [role="button"]):hover * { color: #000 !important; background: transparent !important; }
-html.a11y-contraste :is(button, [role="button"]) * { background: transparent !important; color: inherit !important; }
+html.a11y-contraste :is(button, [role="button"]):hover :where(:not([data-reemplazo])) { color: #000 !important; background: transparent !important; }
+html.a11y-contraste :is(button, [role="button"]) :where(:not([data-reemplazo])) { background: transparent !important; color: inherit !important; }
 html.a11y-contraste a { color: #ffd400 !important; text-decoration: underline; }
 html.a11y-contraste a * { color: inherit !important; }
 html.a11y-contraste :is(input, select, textarea) { background: #000 !important; color: #fff !important; border: 2px solid #fff !important; caret-color: #ffd400; }

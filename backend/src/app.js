@@ -19,6 +19,7 @@ import geocodificacionRoutes from './routes/geocodificacionRoutes.js';
 import envioRoutes from './routes/envioRoutes.js';
 import sucursalRoutes from './routes/sucursalRoutes.js';
 import archivoRoutes from './routes/archivoRoutes.js';
+import visitaRoutes from './routes/visitaRoutes.js';
 
 import { verificarConexion } from './config/database.js';
 
@@ -190,6 +191,7 @@ app.use('/api/geocodificacion', geocodificacionRoutes);
 app.use('/api/envios', envioRoutes);
 app.use('/api/sucursales', sucursalRoutes);
 app.use('/api/archivos', archivoRoutes);
+app.use('/api/visitas', visitaRoutes);
 
 // Manejo centralizado de errores.
 app.use(rutaNoEncontrada);

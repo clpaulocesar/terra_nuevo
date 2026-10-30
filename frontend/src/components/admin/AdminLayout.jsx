@@ -1,5 +1,22 @@
 import { useState } from 'react';
-import { Car, LayoutDashboard, Package, ReceiptText, Store, LogOut, Tags, TrendingUp, Truck, Users, X, ShoppingCart, UserCog, Warehouse, MapPinned } from 'lucide-react';
+import {
+  Car,
+  Eye,
+  LayoutDashboard,
+  LogOut,
+  MapPinned,
+  Package,
+  ReceiptText,
+  ShoppingCart,
+  Store,
+  Tags,
+  TrendingUp,
+  Truck,
+  UserCog,
+  Users,
+  Warehouse,
+  X,
+} from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { cerrarSesionAdmin, getAdminUser } from '../../services/adminService.js';
 import AdminHeader from './AdminHeader.jsx';
@@ -27,6 +44,7 @@ const enlaces = [
   { to: '/admin/clientes', label: 'Clientes', icon: Users, roles: ['admin', 'vendedor'] },
   { to: '/admin/personal', label: 'Personal', icon: UserCog, roles: ['admin'] },
   { to: '/admin/reportes', label: 'Reportes', icon: TrendingUp, roles: ['admin'] },
+  { to: '/admin/visitas', label: 'Visitas web', icon: Eye, roles: ['admin'] },
 ];
 
 export default function AdminLayout() {

@@ -1,4 +1,5 @@
-import { Package, Store, Truck } from 'lucide-react';
+import { Store, Truck } from 'lucide-react';
+import ImagenProducto from '../../../components/ui/ImagenProducto.jsx';
 import { formatoMoneda } from '../../../utils/formatoMoneda.js';
 import InsigniaEntrega from '../../compra/components/InsigniaEntrega.jsx';
 
@@ -18,18 +19,14 @@ export default function TarjetaItemEnvio({ item, esEnvio, onAlternar }) {
       aria-label={`${item.nombre}, ${modalidad}. Tocar para cambiar.`}
     >
       <span
-        className={`flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border
-          border-terra-borde ${item.imagen_url
-            ? 'bg-terra-fondo-imagen'
-            : 'bg-terra-superficie-2 text-terra-texto-suave'}`}
+        className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border
+          border-terra-borde bg-terra-fondo-imagen"
       >
-        {item.imagen_url
-          ? <img
-              src={item.imagen_url}
-              alt=""
-              className="size-full object-cover"
-            />
-          : <Package size={20} />}
+        <ImagenProducto
+          src={item.imagen_url}
+          alt=""
+          className="size-full object-cover data-reemplazo:object-contain data-reemplazo:p-0.5"
+        />
       </span>
       <span className="min-w-0 flex-1">
         <strong className="block truncate text-terra-xs font-bold text-terra-texto">{item.nombre}</strong>

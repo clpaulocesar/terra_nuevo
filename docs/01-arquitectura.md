@@ -18,6 +18,7 @@ flowchart LR
   K -->|GET imágenes| C
   K -->|webhook| N[n8n chatbot]
   N -->|/api/asistente| B
+  G -->|POST /api/visitas/publica| B
 ```
 
 ## Stack
@@ -62,5 +63,6 @@ flowchart LR
 - Catálogo: `products` (precio público y stock reescritos por el ERP), `categories`, `wholesale_price_tiers`, `product_images`, `product_instructions`.
 - Pedidos: `orders`, `order_items` (con `product_id` y `erp_codigo`), `payments`, `order_status_history` (lo llena un trigger que usa `auth.uid()`, que hoy devuelve NULL).
 - ERP: `erp_quotations`, `erp_product_sync_state`, `erp_warehouse_stocks`, `erp_sync_runs` (reservada para la fase 2).
+- Analítica pública: `public_page_views` registra página, hora e identificador aleatorio de sesión; lectura de reportes protegida para administradores en `/api/visitas/analitica`. Ver [[2026-10-30-visitas-web-anonimas]].
 - Clientes y cuentas: `customers`, `users`, `staff_accounts`.
 - Las columnas nuevas se agregan en tiempo de ejecución con `ADD COLUMN IF NOT EXISTS`; no hay migraciones formales.
