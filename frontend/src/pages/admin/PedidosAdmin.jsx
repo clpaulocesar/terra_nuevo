@@ -1156,14 +1156,14 @@ export default function PedidosAdmin() {
         </label>
         {(metodo === 'qr' || seleccion.metodo_pago_solicitado === 'qr') && (
           <div className="orders-hint" style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-start' }}>
-            <p>Cobro por QR Bancario: muestra el QR oficial al cliente y verifica el abono en la banca móvil.</p>
+            <p>Cobro por QR: la integración dinámica aún no está habilitada. Verifica el abono directamente en la banca móvil.</p>
             <button
               type="button"
               className="orders-modal-ticket-btn"
               onClick={() => setMostrarQrModal(true)}
               style={{ background: 'var(--vino, #a6192e)', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '0.4rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}
             >
-              <QrCode size={16} /> Mostrar QR Oficial al Cliente
+              <QrCode size={16} /> Ver estado de integración QR
             </button>
           </div>
         )}

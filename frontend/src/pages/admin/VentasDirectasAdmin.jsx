@@ -825,7 +825,7 @@ export default function VentasDirectasAdmin() {
               onClick={() => setMostrarQrModal(true)}
               style={{ marginBottom: '0.6rem', width: '100%', justifyContent: 'center' }}
             >
-              <QrCode size={16} /> Mostrar QR Oficial al Cliente
+              <QrCode size={16} /> Ver estado de integración QR
             </button>
           )}
 
