@@ -373,9 +373,7 @@ export async function actualizarProductoBD(id, datos) {
   await asegurarEscalasMayoristasBD();
 
   const idStr = String(id || '').trim();
-  const nuevoLanzamiento = datos.nuevoLanzamiento === undefined || datos.nuevoLanzamiento === null
-    ? null
-    : Boolean(datos.nuevoLanzamiento);
+  const nuevoLanzamiento = Boolean(datos.nuevoLanzamiento);
   const nuevoHasta = nuevoLanzamiento === true
     ? fechaFinNuevoLanzamiento(true, datos.nuevoDias)
     : null;
