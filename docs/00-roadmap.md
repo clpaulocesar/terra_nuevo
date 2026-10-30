@@ -10,6 +10,9 @@ Contexto técnico: [[01-arquitectura]] · Decisiones: carpeta `decisiones/` · T
 
 ## Hecho
 
+### 2026-10-30
+- **Grilla del catálogo adaptable al ancho** (catálogo, ofertas y categorías, cliente y mayorista): `auto-fill` con ancho mínimo de tarjeta de 13 rem (`--spacing-terra-tarjeta-min`) en lugar de columnas por breakpoint. 1 columna de 360 a 430 px, 2 a 640 y 768 px, 3 a 1024 × 768; con texto al 150 % entran menos solas. La foto conserva su proporción con un tope de 210 px de alto. Se borraron la anulación de `accesibilidad.css` y las reglas de `.product-grid`. Decisión: [[2026-10-30-grilla-catalogo-auto-fill]].
+
 ### 2026-10-29
 - **Pie de página corporativo adaptado a todos los dispositivos**: diseño responsive optimizado para móviles (360px), tablets (768px portrait y 1024px landscape del kiosco) y pantallas de escritorio. Botones táctiles >= 44px (WCAG), espaciado lateral seguro ante botones flotantes y barra inferior de derechos de autor. Retiro temporal de la temática Halloween.
 - **Resumen del Carrito tapado por el pie en tablet vertical** (rama `fix/carrito-resumen-tablet`): el pie de `684e119` (`z-30`) quedaba encima de la hoja inferior de la fase 3, también en Confirmación. El pie va en el flujo y sin z-index, la reserva para la hoja la hace el pie (sin el hueco vacío dentro de la página) y el alto de la hoja cerrada se mide, así que con texto al 150 % el botón ya no queda cortado. Con "Botones grandes" del modo accesible, el asa de la hoja ya no se convierte en un recuadro vacío de 48 px con borde amarillo: sigue siendo una barra y solo crece su zona de toque (48 px). Decisión: [[2026-10-29-hoja-resumen-sobre-el-pie]].

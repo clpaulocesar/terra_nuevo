@@ -218,6 +218,11 @@
   --spacing-terra-hueco: 6px;
   /* Hoja inferior del resumen: margen inferior con la zona segura. */
   --spacing-terra-zona-segura: max(0.85rem, env(safe-area-inset-bottom));
+  /* Grilla del catálogo (auto-fill): ancho mínimo de una tarjeta y alto máximo de su foto.
+     13 rem da 1 columna en teléfono (hasta 430 px), 2 en tablet vertical y 3 en el kiosco
+     horizontal; al estar en rem, con el texto al 150 % entran menos columnas solas. */
+  --spacing-terra-tarjeta-min: 13rem;
+  --spacing-terra-foto-tarjeta: 13.125rem;
 }
 
 /* Borde de 1.5 px de campos, chips y botones del paginador (Tailwind v4 no tiene
@@ -352,7 +357,6 @@
 .category-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
 .category-chip { padding: 11px 16px; background: white; border: 1px solid #dae8dd; border-radius: 999px; font-weight: 650; }
 .category-chip.active { color: white; border-color: #16754a; background: #16754a; }
-.product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
 .product-card { overflow: hidden; display: flex; flex-direction: column; }
 .product-image { height: 164px; background: #edf6ef; display: grid; place-items: center; }
 .product-image span { font-size: 4.4rem; }
@@ -384,14 +388,11 @@
 .success-icon { color: #168251; margin-bottom: 18px; }
 .code-card { display: grid; gap: 14px; margin: 28px 0; padding: 28px 18px; background: white; border: 2px dashed #93c6a6; border-radius: 20px; overflow-wrap: anywhere; }
 .code-card strong { font-size: clamp(1.2rem, 3vw, 2.3rem); color: #125c3a; }
-@media (max-width: 1000px) { .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 750px) {
   .feature-grid { grid-template-columns: 1fr; }
-  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .section-heading { align-items: start; flex-direction: column; }
 }
 @media (max-width: 480px) {
-  .product-grid { grid-template-columns: 1fr; }
   .actions { flex-direction: column; }
   .form-card { padding: 18px; }
 }

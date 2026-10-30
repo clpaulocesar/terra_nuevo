@@ -63,9 +63,8 @@ export default function TarjetaProducto({
         ${disponible ? '' : 'pointer-events-none opacity-60'} ${borde}`}
     >
       <div
-        className={`terra-card__media relative flex aspect-square w-full items-center justify-center overflow-hidden
-          bg-terra-fondo-imagen lg:aspect-auto lg:h-52.5
-          has-data-[cargada=false]:fondo-cargando
+        className={`terra-card__media relative flex aspect-square max-h-terra-foto-tarjeta w-full items-center
+          justify-center overflow-hidden bg-terra-fondo-imagen has-data-[cargada=false]:fondo-cargando
           ${esMayorista ? 'max-sm:aspect-16/10' : ''}`}
       >
         {/* img-fallback (logo de TERRA): también la agrega usarImagenFallback si la foto falla. */}
