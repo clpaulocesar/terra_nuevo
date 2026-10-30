@@ -13,13 +13,26 @@ import { useNavegacion } from '../../navegacion/NavegacionContext.jsx';
 import { CLAVES_CHAT } from '../../navegacion/registroNavegacion.js';
 import { convertirAudioAWav } from '../../utils/audioWav.js';
 import { BOTON_FLOTANTE, OCULTO_EN_CARRITO, POSICION_ASISTENTE } from '../flotantes/estilosFlotantes.js';
-import './ChatAsistente.css';
 
 const BIENVENIDA = {
   id: 'bienvenida',
   rol: 'asistente',
   texto: '¡Hola! Soy el asistente de TERRA. ¿En qué puedo ayudarte?',
 };
+
+const BURBUJA_BASE = 'max-w-[85%] px-3.5 py-2.5 rounded-terra text-terra-sm leading-snug whitespace-pre-wrap break-words';
+
+function obtenerClaseBurbuja(rol) {
+  switch (rol) {
+    case 'usuario':
+      return 'self-end bg-terra-primario text-white rounded-br-[0.375rem] shadow-sm';
+    case 'error':
+      return 'self-start bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-900/50 rounded-terra';
+    case 'asistente':
+    default:
+      return 'self-start bg-terra-superficie text-terra-texto border border-terra-borde rounded-bl-[0.375rem] shadow-sm';
+  }
+}
 
 const MAX_SEGUNDOS_AUDIO = 60;
 
@@ -267,24 +280,32 @@ export default function ChatAsistente() {
         ${POSICION_ASISTENTE} ${OCULTO_EN_CARRITO}`}
     >
       {abierto && (
-        <section className="chat-panel" aria-label="Asistente virtual">
-          <header className="chat-panel-header">
+        <section
+          className="w-[min(23.75rem,calc(100vw-2rem))] sm:w-[min(21.25rem,calc(100vw-2rem))] lg:w-[min(23.75rem,calc(100vw-2rem))] h-[min(32.5rem,calc(100vh-11rem))] sm:h-[min(32.5rem,calc(100vh-7rem))] flex flex-col bg-terra-superficie border border-terra-borde rounded-terra-tarjeta shadow-terra-cajon overflow-hidden animate-terra-aparecer"
+          aria-label="Asistente virtual"
+        >
+          <header className="flex items-center justify-between px-4 py-3.5 bg-terra-primario text-white shrink-0">
             <div>
-              <strong>Asistente TERRA</strong>
-              <small>Responde en segundos</small>
+              <strong className="block text-terra-base font-bold leading-tight">Asistente TERRA</strong>
+              <small className="block text-terra-xs opacity-85 leading-tight">Responde en segundos</small>
             </div>
-            <button type="button" className="chat-cerrar" onClick={() => setAbierto(false)} aria-label="Cerrar chat">
+            <button
+              type="button"
+              className="inline-flex items-center justify-center p-1.5 rounded-terra-boton bg-white/15 hover:bg-white/30 text-white cursor-pointer transition-colors"
+              onClick={() => setAbierto(false)}
+              aria-label="Cerrar chat"
+            >
               <X size={18} />
             </button>
           </header>
 
-          <div className="chat-mensajes" ref={listaRef} role="log" aria-live="polite">
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2.5 bg-terra-fondo" ref={listaRef} role="log" aria-live="polite">
             {mensajes.map((m) => (
-              <div key={m.id} className={`chat-burbuja chat-msg-${m.rol}`}>
+              <div key={m.id} className={`${BURBUJA_BASE} ${obtenerClaseBurbuja(m.rol)}`}>
                 {m.rol === 'asistente' ? <MensajeMarkdown texto={m.texto} /> : m.texto}
                 {m.audioUrl && (
                   <audio
-                    className="chat-audio"
+                    className="block w-full min-w-[12.5rem] h-9 mt-1.5"
                     controls
                     preload="metadata"
                     src={m.audioUrl}
@@ -293,28 +314,38 @@ export default function ChatAsistente() {
                 )}
               </div>
             ))}
-            {enviando && <div className="chat-burbuja chat-msg-asistente chat-escribiendo">Escribiendo...</div>}
+            {enviando && (
+              <div
+                className={`${BURBUJA_BASE} self-start bg-terra-superficie text-terra-texto-suave border border-terra-borde rounded-bl-[0.375rem] italic`}
+              >
+                Escribiendo...
+              </div>
+            )}
           </div>
 
           {grabando ? (
-            <div className="chat-form chat-grabando" role="status" aria-live="assertive">
+            <div
+              className="flex items-center gap-2 p-3 border-t border-terra-borde bg-terra-superficie shrink-0"
+              role="status"
+              aria-live="assertive"
+            >
               <button
                 type="button"
-                className="chat-cancelar-grabacion"
+                className="inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-full border border-terra-borde bg-terra-superficie hover:bg-terra-control text-terra-texto-suave hover:text-terra-texto cursor-pointer transition-all"
                 onClick={cancelarGrabacion}
                 aria-label="Cancelar grabación"
                 title="Cancelar"
               >
                 <X size={18} />
               </button>
-              <div className="chat-grabando-info">
-                <span className="chat-grabando-punto" aria-hidden="true" />
+              <div className="flex-1 min-w-0 flex items-center gap-2 px-3.5 py-2.5 rounded-full border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200 text-terra-xs font-semibold whitespace-nowrap overflow-hidden">
+                <span className="w-2.5 h-2.5 rounded-full bg-terra-primario shrink-0 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
                 <span>Grabando… {formatearDuracion(segundosGrabados)}</span>
-                <small>máx. {formatearDuracion(MAX_SEGUNDOS_AUDIO)}</small>
+                <small className="ml-auto font-normal opacity-75">máx. {formatearDuracion(MAX_SEGUNDOS_AUDIO)}</small>
               </div>
               <button
                 type="button"
-                className="chat-enviar"
+                className="inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-full bg-terra-primario hover:bg-terra-primario-oscuro text-white cursor-pointer transition-all"
                 onClick={detenerGrabacion}
                 aria-label="Detener y enviar audio"
                 title="Enviar"
@@ -323,7 +354,7 @@ export default function ChatAsistente() {
               </button>
             </div>
           ) : (
-            <form className="chat-form" onSubmit={enviar}>
+            <form className="flex items-center gap-2 p-3 border-t border-terra-borde bg-terra-superficie shrink-0" onSubmit={enviar}>
               <input
                 ref={inputRef}
                 type="text"
@@ -333,11 +364,12 @@ export default function ChatAsistente() {
                 maxLength={1000}
                 disabled={enviando}
                 aria-label="Mensaje"
+                className="flex-1 min-w-0 px-3.5 py-2.5 rounded-full border border-terra-borde bg-terra-superficie text-terra-texto placeholder:text-terra-texto-suave text-terra-sm outline-none focus:border-terra-primario focus:ring-2 focus:ring-terra-primario/15 transition-all"
               />
               {SOPORTA_AUDIO && !entrada.trim() ? (
                 <button
                   type="button"
-                  className="chat-enviar chat-mic"
+                  className="inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-full bg-terra-tinta dark:bg-stone-800 hover:bg-neutral-800 dark:hover:bg-stone-700 text-white cursor-pointer transition-all"
                   onClick={iniciarGrabacion}
                   disabled={enviando}
                   aria-label="Grabar nota de voz"
@@ -346,7 +378,12 @@ export default function ChatAsistente() {
                   <Mic size={18} />
                 </button>
               ) : (
-                <button type="submit" className="chat-enviar" disabled={enviando || !entrada.trim()} aria-label="Enviar">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center w-11 h-11 shrink-0 rounded-full bg-terra-primario hover:bg-terra-primario-oscuro disabled:opacity-50 text-white cursor-pointer disabled:cursor-not-allowed transition-all"
+                  disabled={enviando || !entrada.trim()}
+                  aria-label="Enviar"
+                >
                   <Send size={18} />
                 </button>
               )}

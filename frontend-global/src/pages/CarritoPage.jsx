@@ -680,7 +680,7 @@ export default function CarritoPage({
                 </div>
                 <div>
                   <p className="font-label-interactive text-label-interactive font-semibold text-on-surface">Asistencia Santa Cruz</p>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant">Mesa de ayuda: +591 (3) 344-5500</p>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant">Mesa de ayuda: +591 75335697</p>
                 </div>
               </div>
             </div>

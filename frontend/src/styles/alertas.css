@@ -1,13 +1,17 @@
-/* Estilos de SweetAlert2 adaptados a la identidad de TERRA Autoservicio */
+/* Estilos de la librería externa SweetAlert2 adaptados al sistema de tokens de TERRA */
+
 .swal2-container.terra-swal-container {
-  font-family: 'Manrope', Arial, sans-serif;
+  font-family: inherit;
 }
 
 .swal2-popup.terra-swal {
-  border-radius: 1.4rem;
+  background: var(--terra-superficie);
+  border: 1px solid var(--terra-borde);
+  border-radius: 1.25rem;
   box-shadow: 0 24px 60px rgba(18, 24, 32, 0.22);
+  color: var(--terra-texto);
   padding: 2rem 1.7rem 1.6rem;
-  width: 30rem;
+  width: min(30rem, calc(100vw - 2rem));
 }
 
 .terra-swal .swal2-icon {
@@ -15,7 +19,7 @@
 }
 
 .terra-swal .swal2-title {
-  color: #121820;
+  color: var(--terra-texto);
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.01em;
@@ -25,7 +29,7 @@
 
 .terra-swal .swal2-html-container,
 .terra-swal .swal2-content {
-  color: #57534e;
+  color: var(--terra-texto-suave);
   font-size: 0.95rem;
   line-height: 1.55;
   margin: 0.6rem 0 0;
@@ -41,11 +45,13 @@
 /* Botón base (buttonsStyling: false) */
 .terra-swal .btn {
   align-items: center;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 0.85rem;
   cursor: pointer;
   display: inline-flex;
-  font: 800 0.92rem 'Manrope', Arial, sans-serif;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
   justify-content: center;
   min-height: 2.95rem;
   padding: 0.7rem 1.4rem;
@@ -57,27 +63,34 @@
 }
 
 .terra-swal .btn:focus-visible {
-  outline: 3px solid rgba(166, 25, 46, 0.35);
+  outline: 3px solid var(--terra-primario-suave);
   outline-offset: 2px;
 }
 
-/* Confirmar (acción destructiva) -> rojo de marca */
+/* Confirmar -> rojo de marca */
 .terra-swal .btn-success {
-  background: #a6192e;
+  background: var(--terra-primario);
   box-shadow: 0 8px 18px rgba(166, 25, 46, 0.28);
   color: #fff;
 }
 
 .terra-swal .btn-success:hover {
-  background: #8e1527;
+  background: var(--terra-primario-oscuro);
 }
 
 /* Cancelar -> neutro */
 .terra-swal .btn-danger {
-  background: #e4e2e1;
-  color: #404944;
+  background: var(--terra-control);
+  border-color: var(--terra-borde);
+  color: var(--terra-texto-control);
 }
 
 .terra-swal .btn-danger:hover {
-  background: #d6d3d1;
+  background: var(--terra-control-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terra-swal .btn {
+    transition: none;
+  }
 }

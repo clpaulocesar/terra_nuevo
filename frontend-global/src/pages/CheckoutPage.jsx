@@ -1061,7 +1061,7 @@ export default function CheckoutPage({
                 <div className="flex items-center gap-space-sm">
                   <span className="material-symbols-outlined text-primary text-[20px]">headset_mic</span>
                   <p className="font-body-sm text-body-sm text-on-surface">
-                    <strong className="font-semibold">Soporte en Santa Cruz:</strong> Sucursal {sucursalActiva?.nombre || 'Central'} (3) 344-5500.
+                    <strong className="font-semibold">Soporte en Santa Cruz:</strong> Sucursal {sucursalActiva?.nombre || 'Central'} +591 75335697.
                   </p>
                 </div>
               </div>
@@ -1098,7 +1098,7 @@ export default function CheckoutPage({
       <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3 pointer-events-auto">
         <a
           className="flex items-center gap-2 bg-surface-container-lowest text-on-surface px-4 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all border border-surface-container"
-          href="https://wa.me/59177089421"
+          href="https://wa.me/59175335697"
           target="_blank"
           rel="noopener noreferrer"
         >
