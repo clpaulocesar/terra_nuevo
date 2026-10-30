@@ -21,7 +21,14 @@ function renderInline(texto, keyBase) {
       // Imagen
       if (URL_SEGURA.test(m[2])) {
         nodos.push(
-          <img key={key} className="chat-imagen" src={m[2]} alt={m[1] || 'Imagen'} loading="lazy" referrerPolicy="no-referrer" />,
+          <img
+            key={key}
+            className="block max-w-full max-h-[13.75rem] my-1.5 rounded-terra-boton border border-terra-borde object-cover bg-terra-superficie-2"
+            src={m[2]}
+            alt={m[1] || 'Imagen'}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+          />,
         );
       } else {
         nodos.push(m[1]);
@@ -30,7 +37,15 @@ function renderInline(texto, keyBase) {
       // Enlace
       if (URL_SEGURA.test(m[4])) {
         nodos.push(
-          <a key={key} href={m[4]} target="_blank" rel="noopener noreferrer">{m[3]}</a>,
+          <a
+            key={key}
+            href={m[4]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-terra-primario hover:underline font-semibold"
+          >
+            {m[3]}
+          </a>,
         );
       } else {
         nodos.push(m[3]);
