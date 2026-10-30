@@ -1,5 +1,20 @@
 /* Accesibilidad: botones de voz, enlace "saltar al contenido" y texto sólo para lectores */
 .terra-voz { display: inline-flex; align-items: center; gap: 0.35rem; }
+.terra-voz__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--terra-borde-control, #dcd9d9);
+  border-radius: 999px;
+  background: var(--terra-control, #f6f3f2);
+  color: var(--terra-texto-control, #404944);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.terra-voz__btn:hover { background: var(--terra-control-hover, #f0eded); color: var(--terra-primario, #a6192e); }
+.terra-voz__btn:active { transform: scale(0.95); }
 .terra-theme-btn--on { background: #a6192e !important; border-color: #a6192e !important; color: #fff !important; }
 .terra-theme-btn--on:hover { background: #8e1527 !important; color: #fff !important; }
 .terra-voz__btn--escuchando { animation: terraPulso 1.1s ease-in-out infinite; }
