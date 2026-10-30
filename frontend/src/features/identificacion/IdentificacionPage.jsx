@@ -48,7 +48,6 @@ export default function IdentificacionPage() {
 
   const propsCampo = (campo) => ({
     value: formulario.datos[campo] || '',
-    readOnly: teclado.esTactil,
     activo: activo === campo,
     error: formulario.errores[campo],
     onFocus: () => enfocarCampo(campo),

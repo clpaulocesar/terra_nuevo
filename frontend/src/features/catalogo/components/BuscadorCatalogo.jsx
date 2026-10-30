@@ -26,7 +26,6 @@ const BuscadorCatalogo = forwardRef(function BuscadorCatalogo(
         placeholder="Buscar colchones, sommiers, camas…"
         type="text"
         value={valor}
-        readOnly={esTactil}
         inputMode={esTactil ? 'none' : 'text'}
         onClick={onAbrirTeclado}
         onFocus={onAbrirTeclado}
