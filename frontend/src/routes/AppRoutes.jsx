@@ -30,6 +30,7 @@ const PersonalAdmin = lazy(() => import('../pages/admin/PersonalAdmin.jsx'));
 const CategoriasAdmin = lazy(() => import('../pages/admin/CategoriasAdmin.jsx'));
 const AlmacenAdmin = lazy(() => import('../pages/admin/AlmacenAdmin.jsx'));
 const ReportesAdmin = lazy(() => import('../pages/admin/ReportesAdmin.jsx'));
+const VisitasAdmin = lazy(() => import('../pages/admin/VisitasAdmin.jsx'));
 const TarifasEnvioAdmin = lazy(() => import('../pages/admin/TarifasEnvioAdmin.jsx'));
 const LoginAdmin = lazy(() => import('../pages/admin/LoginAdmin.jsx'));
 const VendedorLayout = lazy(() => import('../components/vendedor/VendedorLayout.jsx'));
@@ -72,6 +73,7 @@ export default function AppRoutes() {
           <Route path="clientes" element={<RutaAdmin roles={['admin', 'vendedor']}><ClientesAdmin /></RutaAdmin>} />
           <Route path="personal" element={<RutaAdmin roles={['admin']}><PersonalAdmin /></RutaAdmin>} />
           <Route path="reportes" element={<RutaAdmin roles={['admin']}><ReportesAdmin /></RutaAdmin>} />
+          <Route path="visitas" element={<RutaAdmin roles={['admin']}><VisitasAdmin /></RutaAdmin>} />
           <Route path="tarifas-envio" element={<RutaAdmin roles={['admin']}><TarifasEnvioAdmin /></RutaAdmin>} />
         </Route>
         <Route path="vendedor" element={<RutaAdmin roles={['vendedor', 'admin']}><VendedorLayout /></RutaAdmin>}>
