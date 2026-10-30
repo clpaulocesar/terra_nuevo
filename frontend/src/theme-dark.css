@@ -85,58 +85,6 @@ html[data-theme="dark"] textarea,
 html[data-theme="dark"] select { color: var(--td-text); }
 html[data-theme="dark"] ::placeholder { color: #8f847d; }
 
-/* ---------- Bienvenida ---------- */
-html[data-theme="dark"] .welcome-copy h1 { color: var(--td-text); }
-html[data-theme="dark"] .welcome-copy > p { color: var(--td-muted); }
-html[data-theme="dark"] .welcome-spot { background: rgba(30, 25, 23, 0.96); border-color: var(--td-line); }
-html[data-theme="dark"] .welcome-spot > b { color: var(--td-text); }
-html[data-theme="dark"] .welcome-spot > span,
-html[data-theme="dark"] .welcome-spot a { color: var(--td-muted); }
-html[data-theme="dark"] .welcome-trust { background: var(--td-surface); border-color: var(--td-line); }
-html[data-theme="dark"] .welcome-trust article + article { border-color: var(--td-line); }
-html[data-theme="dark"] .welcome-trust p { color: var(--td-text); }
-html[data-theme="dark"] .carousel-btn { background: rgba(30, 25, 23, 0.9); color: var(--td-text); }
-html[data-theme="dark"] .carousel-btn:hover { background: var(--td-surface-3); }
-
-/* ---------- Asistente ---------- */
-html[data-theme="dark"] .chat-panel,
-html[data-theme="dark"] .chat-form { background: var(--td-surface); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .chat-mensajes { background: var(--td-bg); }
-html[data-theme="dark"] .chat-msg-asistente,
-html[data-theme="dark"] .chat-cancelar-grabacion { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .chat-imagen { background: var(--td-surface-3); border-color: var(--td-line); }
-html[data-theme="dark"] .chat-escribiendo { color: var(--td-muted); }
-html[data-theme="dark"] .chat-msg-asistente a { color: #ffb3bd; }
-html[data-theme="dark"] .chat-form input { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .chat-msg-error,
-html[data-theme="dark"] .chat-grabando-info { background: #3a1a1c; border-color: #5a2a2e; color: #ff9a92; }
-
-/* ---------- Categorías ---------- */
-html[data-theme="dark"] .categorias-intro,
-html[data-theme="dark"] .categorias-all { background: var(--td-surface); }
-html[data-theme="dark"] .categorias-intro:after { background: rgba(255, 219, 155, 0.08); }
-html[data-theme="dark"] .categorias-intro p,
-html[data-theme="dark"] .categoria-body p,
-html[data-theme="dark"] .categorias-offer p,
-html[data-theme="dark"] .categorias-all p { color: var(--td-muted); }
-html[data-theme="dark"] .categorias-tag { background: var(--td-accent-soft); color: #ffb3bd; }
-html[data-theme="dark"] .categorias-pills { background: var(--td-surface-2); }
-html[data-theme="dark"] .categorias-pills a { color: var(--td-text); }
-html[data-theme="dark"] .categoria-card { background: var(--td-surface); color: var(--td-text); }
-html[data-theme="dark"] .categoria-body a { color: var(--td-text); }
-html[data-theme="dark"] .categorias-offer { background: #3a2b10; }
-html[data-theme="dark"] .categorias-offer span { color: #ffdb9b; }
-
-/* ---------- Acentos rojos de ClienteTheme.css, Bienvenida y Categorías ---------- */
-html[data-theme="dark"] .categoria-body strong,
-html[data-theme="dark"] .welcome-eyebrow,
-html[data-theme="dark"] .welcome-copy h1 span,
-html[data-theme="dark"] .welcome-spot a:hover,
-html[data-theme="dark"] .welcome-trust svg { color: #ffb3bd; }
-html[data-theme="dark"] .categorias-offer-icon { background: var(--td-accent-soft); color: #ffb3bd; }
-html[data-theme="dark"] .categorias-pills a:first-child,
-html[data-theme="dark"] .categoria-body a { background: var(--td-surface-2); color: var(--td-text); }
-
 /* ---------- Genéricos restantes (index.css) ---------- */
 html[data-theme="dark"] .quantity-controls button { background: var(--td-surface-2); color: var(--td-text); }
 html[data-theme="dark"] .icon-danger { background: #3a1a1c; color: #ff9a92; }
@@ -146,35 +94,7 @@ html[data-theme="dark"] .success-icon { color: var(--td-ok); }
 html[data-theme="dark"] .code-card { background: var(--td-surface); color: var(--td-text); }
 html[data-theme="dark"] .code-card strong { color: var(--td-ok); }
 
-/* ---------- Asistente: restos ---------- */
-html[data-theme="dark"] .chat-cancelar-grabacion:hover { background: var(--td-surface-3); color: var(--td-text); }
 
-/* ---------- Modal de cuenta web (WebAccountModal.css) ---------- */
-html[data-theme="dark"] .account-modal { background: rgba(0, 0, 0, 0.7); }
-html[data-theme="dark"] .account-modal__panel { background: var(--td-surface); color: var(--td-text); }
-html[data-theme="dark"] .account-modal__panel > header { border-bottom-color: var(--td-line); }
-html[data-theme="dark"] .account-modal__panel > header i { background: var(--td-line); }
-html[data-theme="dark"] .account-modal__panel > header b,
-html[data-theme="dark"] .account-modal__title,
-html[data-theme="dark"] .account-modal form > label { color: var(--td-text); }
-html[data-theme="dark"] .account-modal form input:not([type=checkbox]) { background: var(--td-surface-2); border-color: var(--td-line); color: var(--td-text); }
-html[data-theme="dark"] .account-modal__forgot { color: #ffb3bd; }
-html[data-theme="dark"] .account-modal__options label,
-html[data-theme="dark"] .account-modal__advisor { color: var(--td-muted); }
-html[data-theme="dark"] .account-modal__message { background: #3a1a1c; color: #ff9a92; }
-html[data-theme="dark"] .account-modal__advisor:before,
-html[data-theme="dark"] .account-modal__advisor:after { background: var(--td-line); }
-html[data-theme="dark"] .account-modal__whatsapp { background: var(--td-ok-bg); border-color: #24503a; color: var(--td-ok); }
-html[data-theme="dark"] .account-modal footer { background: var(--td-surface-2); color: var(--td-muted); }
-
-/* ---------- Alertas SweetAlert (styles/alertas.css) ---------- */
-html[data-theme="dark"] .terra-swal.swal2-popup,
-html[data-theme="dark"] .terra-swal { background: var(--td-surface) !important; color: var(--td-text); }
-html[data-theme="dark"] .terra-swal .swal2-title { color: var(--td-text); }
-html[data-theme="dark"] .terra-swal .swal2-html-container,
-html[data-theme="dark"] .terra-swal .swal2-content { color: var(--td-muted); }
-html[data-theme="dark"] .terra-swal .btn-danger { background: var(--td-surface-2); color: var(--td-text); }
-html[data-theme="dark"] .terra-swal .btn-danger:hover { background: var(--td-surface-3); }
 
 /* ---------- Perfil mayorista (PanelMayorista.css) ---------- */
 html[data-theme="dark"] .wholesale-profile-view { color: var(--td-text); }
