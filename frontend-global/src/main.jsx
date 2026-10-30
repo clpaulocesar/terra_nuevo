@@ -20,8 +20,8 @@ import TutorialVozModal from './components/TutorialVozModal.jsx';
 import { TemporadaProvider, useTemporada } from './context/TemporadaContext.jsx';
 import TemporadaAmbiental from './components/TemporadaAmbiental.jsx';
 import ChatAsistente from './components/chat/ChatAsistente.jsx';
-import './styles/temporadas.css';
-import './InicioCliente.css';
+import './index.css';
+
 
 function AppGlobalContent() {
   const {
