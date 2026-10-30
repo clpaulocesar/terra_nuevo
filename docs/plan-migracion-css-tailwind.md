@@ -107,17 +107,28 @@ Para cada archivo `.css` a migrar se ejecutará el siguiente ciclo estricto:
 
 ### Bloque C: Portal B2B Mayorista (Fase 5 del Roadmap)
 
-#### **Fase 10: `src/pages/InicioMayorista.css`**
+#### **Fase 10: `src/pages/InicioMayorista.css`** ✅ (Completada 2026-10-30)
 - **Componente asociado:** [`src/pages/InicioMayorista.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/pages/InicioMayorista.jsx)
-- **Objetivo:** Catálogo B2B, tarjetas de producto con escala de precios y resumen de pedido lateral.
+- **Acciones realizadas:**
+  - Migración completa del dashboard B2B a Tailwind v4 y tokens semánticos (hero banner con bienvenida personalizada, tarjetas KPI de métricas, gráfico de barras SVG de compras semestrales, categorías frecuentes y listado de pedidos recientes).
+  - Normalización de formato según directrices de `AGENTS.md` (desempaquetado de sentencias y desanidado de JSX).
+  - Eliminación física de `src/pages/InicioMayorista.css`.
 
-#### **Fase 11: `src/pages/PanelMayorista.css`**
-- **Componente asociado:** [`src/pages/PanelMayorista.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/pages/PanelMayorista.jsx)
-- **Objetivo:** Panel de cuenta mayorista, tarjetas de información fiscal y formularios de contacto.
+#### **Fase 11: `src/pages/PanelMayorista.css`** ✅ (Completada 2026-10-30)
+- **Componentes asociados:** [`src/pages/PanelMayorista.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/pages/PanelMayorista.jsx) y [`src/components/mayorista/MapaEntregaMayorista.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/mayorista/MapaEntregaMayorista.jsx)
+- **Acciones realizadas:**
+  - Migración del panel de perfil B2B y formularios fiscales/dirección a utilidades Tailwind v4 y tokens `@theme`.
+  - Contenedor responsivo y controles del mapa Leaflet migrados a Tailwind v4.
+  - Aislamiento limpio de estilos específicos de marcadores dinámicos `L.divIcon` en [`src/components/mayorista/MapaEntregaMayorista.css`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/components/mayorista/MapaEntregaMayorista.css) (permitido por `AGENTS.md` para bibliotecas externas).
+  - Depuración de reglas obsoletas `.b2b-*` en `src/theme-dark.css`.
+  - Eliminación física de `src/pages/PanelMayorista.css`.
 
-#### **Fase 12: `src/pages/PedidosMayorista.css`**
+#### **Fase 12: `src/pages/PedidosMayorista.css`** ✅ (Completada 2026-10-30)
 - **Componente asociado:** [`src/pages/PedidosMayorista.jsx`](file:///home/brayan/Documentos/Proyectos/Chamba/TerraProyecto/terratabletv2.0/frontend/src/pages/PedidosMayorista.jsx)
-- **Objetivo:** Tablas y tarjetas de historial de pedidos por mayor.
+- **Acciones realizadas:**
+  - Migración integral a utilidades Tailwind v4: barra de métricas (total invertido, pedidos completados, en proceso), buscador reactivo con filtros de estado (`todos`, `pendiente`, `completado`, `cancelado`), tabla de pedidos con paginación táctil y drawer/panel lateral de detalle de pedido con stepper de 4 etapas, desglose de ítems e integración de WhatsApp para soporte.
+  - Purga de todas las reglas B2B residuales en `src/theme-dark.css`.
+  - Eliminación física de `src/pages/PedidosMayorista.css`.
 
 ---
 
