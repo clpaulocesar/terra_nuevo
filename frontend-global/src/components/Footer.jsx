@@ -111,7 +111,7 @@ export default function Footer({ onNavegarASucursales }) {
             <p className="font-title-sm text-title-sm font-semibold text-on-surface mb-space-sm">Asistencia &amp; Contacto</p>
             <div className="space-y-space-sm font-body-sm text-body-sm text-on-surface-variant">
               <p className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px] text-primary">support_agent</span>Central Telefónica: +591 (3) 344-5500
+                <span className="material-symbols-outlined text-[18px] text-primary">support_agent</span>Central Telefónica: +591 75335697
               </p>
               <p className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-primary">mail</span>atencion@terramuebles.com.bo
