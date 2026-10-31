@@ -107,7 +107,7 @@ function AppGlobalContent() {
 
     listarProductosDestacados(controlador.signal)
       .then(setProductosDestacados)
-      .catch(() => {});
+      .catch(() => { });
 
     obtenerCategorias(controlador.signal)
       .then((categorias) => {
@@ -124,7 +124,7 @@ function AppGlobalContent() {
           );
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     return () => controlador.abort();
   }, []);
@@ -425,9 +425,8 @@ function AppGlobalContent() {
 
       {/* Interactive Toast Notification */}
       <div
-        className={`fixed top-48 right-6 z-50 transform transition-all duration-300 pointer-events-none bg-inverse-surface text-inverse-on-surface px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 ${
-          toast.visible ? 'translate-y-0 opacity-100' : 'translate-y-[-100px] opacity-0'
-        }`}
+        className={`fixed top-48 right-6 z-50 transform transition-all duration-300 pointer-events-none bg-inverse-surface text-inverse-on-surface px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 ${toast.visible ? 'translate-y-0 opacity-100' : 'translate-y-[-100px] opacity-0'
+          }`}
         id="catalog-toast"
       >
         <span className="material-symbols-outlined text-tertiary-fixed text-[24px]">check_circle</span>
