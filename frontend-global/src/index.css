@@ -1,73 +1,95 @@
 @import "tailwindcss";
 
-/* ========================================================= */
-/* DESIGN TOKENS & TIPOGRAFÍA TERRA                         */
-/* ========================================================= */
 @theme inline {
-  --font-sans: 'Plus Jakarta Sans', Arial, sans-serif;
+  --breakpoint-xs: 22.5rem;
 
-  --color-primary: var(--primary, #8b001a);
-  --color-primary-container: var(--primary-container, #a61b2e);
-  --color-primary-fixed: var(--primary-fixed, #ffdad8);
-  --color-primary-fixed-dim: var(--primary-fixed-dim, #ffb3b1);
-  --color-on-primary: var(--on-primary, #ffffff);
-  --color-on-primary-container: var(--on-primary-container, #ffc3c1);
-  --color-on-primary-fixed: var(--on-primary-fixed, #410008);
-  --color-on-primary-fixed-variant: var(--on-primary-fixed-variant, #733333);
-
-  --color-secondary: var(--secondary, #5f5e5e);
-  --color-secondary-container: var(--secondary-container, #e2dfde);
-  --color-secondary-fixed: var(--secondary-fixed, #e5e2e1);
-  --color-secondary-fixed-dim: var(--secondary-fixed-dim, #c8c6c5);
-  --color-on-secondary: var(--on-secondary, #ffffff);
-  --color-on-secondary-fixed: var(--on-secondary-fixed, #1b1b1c);
-  --color-on-secondary-fixed-variant: var(--on-secondary-fixed-variant, #474746);
-
-  --color-tertiary: var(--tertiary, #554000);
-  --color-tertiary-container: var(--tertiary-container, #725600);
-  --color-tertiary-fixed: var(--tertiary-fixed, #ffdf99);
-  --color-tertiary-fixed-dim: var(--tertiary-fixed-dim, #ecc15a);
-  --color-on-tertiary-fixed: var(--on-tertiary-fixed, #251a00);
-  --color-on-tertiary-container: var(--on-tertiary-container, #f8cc64);
-
-  --color-surface: var(--surface, #fbf9f5);
-  --color-surface-bright: var(--surface-bright, #fbf9f5);
-  --color-surface-dim: var(--surface-dim, #dbdad6);
-  --color-surface-container-lowest: var(--surface-container-lowest, #ffffff);
-  --color-surface-container-low: var(--surface-container-low, #f5f3ef);
-  --color-surface-container: var(--surface-container, #f0eeea);
-  --color-surface-container-high: var(--surface-container-high, #eae8e4);
-  --color-surface-container-highest: var(--surface-container-highest, #e4e2de);
-  --color-surface-variant: var(--surface-variant, #e4e2de);
-  --color-surface-tint: var(--surface-tint, #8b001a);
-
-  --color-on-surface: var(--on-surface, #1b1c1a);
-  --color-on-surface-variant: var(--on-surface-variant, #5b403f);
   --color-inverse-surface: var(--inverse-surface, #30312e);
-  --color-inverse-on-surface: var(--inverse-on-surface, #f2f0ec);
-  --color-inverse-primary: var(--inverse-primary, #ffb3b1);
-
-  --color-outline: var(--outline, #947170);
-  --color-outline-variant: var(--outline-variant, #e3bebc);
-  --color-error: var(--error, #ba1a1a);
+  --color-primary-fixed: var(--primary-fixed, #ffdad8);
   --color-error-container: var(--error-container, #ffdad6);
+  --color-secondary-fixed: var(--secondary-fixed, #e5e2e1);
+  --color-outline-variant: var(--outline-variant, #e3bebc);
   --color-on-error: var(--on-error, #ffffff);
+  --color-on-primary-container: var(--on-primary-container, #ffc3c1);
   --color-on-error-container: var(--on-error-container, #93000a);
+  --color-on-secondary-fixed: var(--on-secondary-fixed, #1b1b1c);
+  --color-tertiary-fixed-dim: var(--tertiary-fixed-dim, #ecc15a);
+  --color-on-background: var(--on-surface, #1b1c1a);
+  --color-on-tertiary-fixed: var(--on-tertiary-fixed, #251a00);
+  --color-surface-container-low: var(--surface-container-low, #f5f3ef);
+  --color-surface-bright: var(--surface-bright, #fbf9f5);
+  --color-surface-container-high: var(--surface-container-high, #eae8e4);
+  --color-on-tertiary-container: var(--on-tertiary-container, #f8cc64);
+  --color-secondary-fixed-dim: var(--secondary-fixed-dim, #c8c6c5);
+  --color-tertiary: var(--tertiary, #554000);
+  --color-secondary: var(--secondary, #5f5e5e);
+  --color-inverse-primary: var(--inverse-primary, #ffb3b1);
+  --color-on-secondary-fixed-variant: var(--on-secondary-fixed-variant, #474746);
+  --color-tertiary-fixed: var(--tertiary-fixed, #ffdf99);
+  --color-surface-tint: var(--primary, #b9192d);
+  --color-primary-fixed-dim: var(--primary-fixed-dim, #ffb3b1);
+  --color-tertiary-container: var(--tertiary-container, #725600);
+  --color-surface-container-lowest: var(--surface-container-lowest, #ffffff);
+  --color-secondary-container: var(--secondary-container, #e2dfde);
+  --color-on-secondary: var(--on-secondary, #ffffff);
+  --color-surface-dim: var(--surface-dim, #dbdad6);
+  --color-primary: var(--primary, #8b001a);
+  --color-on-surface-variant: var(--on-surface-variant, #5b403f);
+  --color-surface-container-highest: var(--surface-container-highest, #e4e2de);
+  --color-outline: var(--outline, #8f6f6e);
+  --color-on-secondary-container: var(--on-secondary-container, #636262);
+  --color-on-surface: var(--on-surface, #1b1c1a);
+  --color-on-tertiary: var(--on-tertiary, #ffffff);
+  --color-on-primary-fixed: var(--on-primary-fixed, #410007);
+  --color-inverse-on-surface: var(--inverse-on-surface, #f2f0ec);
+  --color-on-primary-fixed-variant: var(--on-primary-fixed-variant, #92001c);
+  --color-background: var(--surface, #fbf9f5);
+  --color-on-tertiary-fixed-variant: var(--on-tertiary-fixed-variant, #5a4300);
+  --color-surface: var(--surface, #fbf9f5);
+  --color-on-primary: var(--on-primary, #ffffff);
+  --color-surface-container: var(--surface-container, #f0eeea);
+  --color-surface-variant: var(--surface-variant, #e4e2de);
+  --color-error: var(--error, #ba1a1a);
+  --color-primary-container: var(--primary-container, #b31329);
 
-  --text-display-hero: 56px;
-  --text-display-hero--line-height: 64px;
-  --text-display-hero--letter-spacing: -0.03em;
-  --text-display-hero--font-weight: 700;
+  --color-terra-temporada-luz: var(--terra-temporada-luz, #ffad69);
+  --color-terra-temporada-sombra: var(--terra-temporada-sombra, #8a4ba5);
+  --color-terra-temporada-superficie: var(--terra-temporada-superficie, #22142f);
+
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-label-subtle: 'Plus Jakarta Sans', sans-serif;
+  --font-title-sm: 'Plus Jakarta Sans', sans-serif;
+  --font-body-md: 'Plus Jakarta Sans', sans-serif;
+  --font-display-hero-mobile: 'Plus Jakarta Sans', sans-serif;
+  --font-body-lg: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-xl-mobile: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-lg: 'Plus Jakarta Sans', sans-serif;
+  --font-display-hero: 'Plus Jakarta Sans', sans-serif;
+  --font-label-caps: 'Plus Jakarta Sans', sans-serif;
+  --font-label-interactive: 'Plus Jakarta Sans', sans-serif;
+  --font-body-sm: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-md: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-xl: 'Plus Jakarta Sans', sans-serif;
+
+  --text-label-subtle: 12px;
+  --text-label-subtle--line-height: 16px;
+  --text-label-subtle--font-weight: 500;
+
+  --text-title-sm: 18px;
+  --text-title-sm--line-height: 24px;
+  --text-title-sm--font-weight: 600;
+
+  --text-body-md: 15px;
+  --text-body-md--line-height: 22px;
+  --text-body-md--font-weight: 400;
 
   --text-display-hero-mobile: 38px;
   --text-display-hero-mobile--line-height: 44px;
   --text-display-hero-mobile--letter-spacing: -0.02em;
   --text-display-hero-mobile--font-weight: 700;
 
-  --text-headline-xl: 40px;
-  --text-headline-xl--line-height: 48px;
-  --text-headline-xl--letter-spacing: -0.02em;
-  --text-headline-xl--font-weight: 600;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-lg--font-weight: 400;
 
   --text-headline-xl-mobile: 30px;
   --text-headline-xl-mobile--line-height: 38px;
@@ -79,21 +101,10 @@
   --text-headline-lg--letter-spacing: -0.01em;
   --text-headline-lg--font-weight: 600;
 
-  --text-headline-md: 22px;
-  --text-headline-md--line-height: 30px;
-  --text-headline-md--font-weight: 600;
-
-  --text-body-lg: 18px;
-  --text-body-lg--line-height: 28px;
-  --text-body-lg--font-weight: 400;
-
-  --text-body-md: 15px;
-  --text-body-md--line-height: 22px;
-  --text-body-md--font-weight: 400;
-
-  --text-body-sm: 13px;
-  --text-body-sm--line-height: 18px;
-  --text-body-sm--font-weight: 400;
+  --text-display-hero: 56px;
+  --text-display-hero--line-height: 64px;
+  --text-display-hero--letter-spacing: -0.03em;
+  --text-display-hero--font-weight: 700;
 
   --text-label-caps: 12px;
   --text-label-caps--line-height: 16px;
@@ -104,22 +115,34 @@
   --text-label-interactive--line-height: 20px;
   --text-label-interactive--font-weight: 600;
 
-  --spacing-space-xs: 0.25rem;
-  --spacing-space-sm: 0.5rem;
-  --spacing-space-md: 1rem;
-  --spacing-space-lg: 1.5rem;
-  --spacing-space-xl: 2.5rem;
-  --spacing-space-2xl: 4rem;
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 18px;
+  --text-body-sm--font-weight: 400;
 
-  --spacing-margin: 2rem;
-  --spacing-margin-mobile: 1rem;
-  --spacing-margin-kiosk: 3.5rem;
-  --spacing-gutter: 1.5rem;
+  --text-headline-md: 22px;
+  --text-headline-md--line-height: 30px;
+  --text-headline-md--font-weight: 600;
+
+  --text-headline-xl: 40px;
+  --text-headline-xl--line-height: 48px;
+  --text-headline-xl--letter-spacing: -0.02em;
+  --text-headline-xl--font-weight: 600;
+
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-2xl: 4rem;
+  --spacing-space-xs: 0.25rem;
   --spacing-gutter-kiosk: 2rem;
+  --spacing-margin: 2rem;
+  --spacing-space-md: 1rem;
+  --spacing-margin-mobile: 1rem;
+  --spacing-space-xl: 2.5rem;
+  --spacing-gutter: 1.5rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-margin-kiosk: 3.5rem;
 }
 
 /* ========================================================= */
-/* PALETA SEMÁNTICA POR MODO (DÍA / HALLOWEEN / NAVIDAD)     */
+/* PALETA SEMÁNTICA: MODO DÍA                                */
 /* ========================================================= */
 :root {
   color-scheme: light;
@@ -136,38 +159,125 @@
 
   --on-surface: #1b1c1a;
   --on-surface-variant: #5b403f;
-  --inverse-surface: #30312e;
-  --inverse-on-surface: #f2f0ec;
+  --on-background: #1b1c1a;
 
   --primary: #8b001a;
-  --primary-container: #a61b2e;
+  --primary-container: #b31329;
   --on-primary: #ffffff;
+  --primary-fixed: #ffdad8;
+  --primary-fixed-dim: #ffb3b1;
+  --on-primary-fixed: #410007;
+  --on-primary-fixed-variant: #92001c;
   --on-primary-container: #ffc3c1;
-
-  --secondary: #5f5e5e;
-  --secondary-container: #e2dfde;
-  --on-secondary: #ffffff;
 
   --tertiary: #554000;
   --tertiary-container: #725600;
   --tertiary-fixed: #ffdf99;
   --tertiary-fixed-dim: #ecc15a;
+  --on-tertiary: #ffffff;
+  --on-tertiary-fixed: #251a00;
+  --on-tertiary-fixed-variant: #5a4300;
+  --on-tertiary-container: #f8cc64;
 
-  --outline: #947170;
+  --outline: #8f6f6e;
   --outline-variant: #e3bebc;
+
+  --inverse-surface: #30312e;
+  --inverse-on-surface: #f2f0ec;
+  --inverse-primary: #ffb3b1;
+  --secondary: #5f5e5e;
+  --secondary-container: #e2dfde;
+  --secondary-fixed: #e5e2e1;
+  --secondary-fixed-dim: #c8c6c5;
+  --on-secondary: #ffffff;
+  --on-secondary-container: #636262;
+  --on-secondary-fixed: #1b1b1c;
+  --on-secondary-fixed-variant: #474746;
+
   --error: #ba1a1a;
   --error-container: #ffdad6;
   --on-error: #ffffff;
+  --on-error-container: #93000a;
+
+  --terra-temporada-luz: #e6a86c;
+  --terra-temporada-sombra: #5a386b;
+  --terra-temporada-superficie: #f0eeea;
 }
 
-/* Modo Halloween */
-body.hal-active {
+/* ========================================================= */
+/* MODO NOCHE (DARK)                                         */
+/* ========================================================= */
+html.dark,
+body.dark {
   color-scheme: dark;
 
-  --surface: #10091a;
-  --surface-bright: #1b102b;
-  --surface-dim: #0a0510;
-  --surface-container-lowest: #21172f;
+  --surface: #121311;
+  --surface-bright: #1c1d1a;
+  --surface-dim: #0d0e0c;
+  --surface-container-lowest: #191a17;
+  --surface-container-low: #1e1f1c;
+  --surface-container: #242522;
+  --surface-container-high: #2b2d29;
+  --surface-container-highest: #343631;
+  --surface-variant: #343631;
+
+  --on-surface: #edeae5;
+  --on-surface-variant: #b8b3ac;
+  --on-background: #edeae5;
+
+  --primary: #d42b44;
+  --primary-container: #8b001a;
+  --on-primary: #ffffff;
+  --primary-fixed: #5c000e;
+  --primary-fixed-dim: #ffb3b1;
+  --on-primary-fixed: #ffdad8;
+  --on-primary-fixed-variant: #ffb3b1;
+  --on-primary-container: #ffdada;
+
+  --tertiary: #ffd27a;
+  --tertiary-container: #856200;
+  --tertiary-fixed: #ffdf99;
+  --tertiary-fixed-dim: #ecc15a;
+  --on-tertiary: #251a00;
+  --on-tertiary-fixed: #251a00;
+  --on-tertiary-fixed-variant: #5a4300;
+  --on-tertiary-container: #ffe082;
+
+  --outline: #5a5451;
+  --outline-variant: #3a3433;
+
+  --inverse-surface: #edeae5;
+  --inverse-on-surface: #121311;
+  --inverse-primary: #8b001a;
+  --secondary: #9e9a96;
+  --secondary-container: #2b2d29;
+  --secondary-fixed: #3a3836;
+  --secondary-fixed-dim: #2b2a28;
+  --on-secondary: #121311;
+  --on-secondary-container: #d8d4cf;
+
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --on-error: #690005;
+  --on-error-container: #ffdad6;
+
+  --terra-temporada-luz: #ffd27a;
+  --terra-temporada-sombra: #6a3d7d;
+  --terra-temporada-superficie: #1e1f1c;
+}
+
+/* ========================================================= */
+/* TEMA FESTIVO: HALLOWEEN                                   */
+/* ========================================================= */
+body.hal-active,
+html[data-terra-season="halloween"],
+html.tema-halloween {
+  color-scheme: dark;
+
+  --surface: #100b19;
+  --surface-bright: #20142e;
+  --surface-dim: #0d0914;
+  --surface-container-lowest: #180e26;
   --surface-container-low: #1a1128;
   --surface-container: #271a35;
   --surface-container-high: #30203a;
@@ -176,1374 +286,690 @@ body.hal-active {
 
   --on-surface: #fff3ea;
   --on-surface-variant: #d9c6d7;
-  --inverse-surface: #4e2b45;
-  --inverse-on-surface: #100b19;
+  --on-background: #fff3ea;
 
   --primary: #de641b;
   --primary-container: #ad4b15;
   --on-primary: #ffffff;
-  --on-primary-container: #ffd5b5;
-
-  --secondary: #8955e8;
-  --secondary-container: #31223e;
-  --on-secondary: #fff3ea;
+  --primary-fixed: #5c000e;
+  --primary-fixed-dim: #ffb3b1;
+  --on-primary-container: #ffffff;
 
   --tertiary: #ffe0a2;
-  --tertiary-container: #684804;
-  --tertiary-fixed: #ffd182;
-  --tertiary-fixed-dim: #ffb74d;
+  --tertiary-container: #72511a;
+  --tertiary-fixed: #ffdf99;
+  --tertiary-fixed-dim: #ecc15a;
+  --on-tertiary: #251a00;
+  --on-tertiary-container: #ffeed0;
 
-  --outline: #ffad69;
-  --outline-variant: rgba(255, 172, 101, 0.28);
+  --outline: #a77c83;
+  --outline-variant: #5c3d53;
+
+  --inverse-surface: #4e2b45;
+  --inverse-on-surface: #fff3ea;
+  --secondary: #c2a6bf;
+  --secondary-container: #31223e;
+  --on-secondary: #100b19;
+  --on-secondary-container: #fff3ea;
+
+  --error: #ff8585;
+  --error-container: #801010;
+  --on-error: #ffffff;
+  --on-error-container: #ffd0d0;
+
+  --terra-temporada-luz: #ff9b55;
+  --terra-temporada-sombra: #8a4ba5;
+  --terra-temporada-superficie: #22142f;
 }
 
-/* Modo Navidad */
-body.xmas-active {
+/* ========================================================= */
+/* TEMA FESTIVO: NAVIDAD                                     */
+/* ========================================================= */
+body.xmas-active,
+html[data-terra-season="navidad"],
+html.tema-navidad {
   color-scheme: dark;
 
-  --surface: #031415;
-  --surface-bright: #0c2b29;
-  --surface-dim: #020d0e;
-  --surface-container-lowest: #0c2b29;
-  --surface-container-low: #082121;
-  --surface-container: #0e3330;
-  --surface-container-high: #13403c;
-  --surface-container-highest: #1a4e4a;
-  --surface-variant: #1a4e4a;
+  --surface: #061416;
+  --surface-bright: #102d30;
+  --surface-dim: #040e0f;
+  --surface-container-lowest: #0a2022;
+  --surface-container-low: #0b272a;
+  --surface-container: #174043;
+  --surface-container-high: #19464a;
+  --surface-container-highest: #225257;
+  --surface-variant: #225257;
 
-  --on-surface: #fbf7ee;
-  --on-surface-variant: #d8e5e1;
-  --inverse-surface: #d8e5e1;
-  --inverse-on-surface: #031415;
+  --on-surface: #fffdf4;
+  --on-surface-variant: #cedcda;
+  --on-background: #fffdf4;
 
   --primary: #be303a;
   --primary-container: #942832;
   --on-primary: #ffffff;
-  --on-primary-container: #ffd7d9;
-
-  --secondary: #2f855a;
-  --secondary-container: #0b2d2b;
-  --on-secondary: #fbf7ee;
+  --primary-fixed: #5c000e;
+  --primary-fixed-dim: #ffb3b1;
+  --on-primary-container: #ffffff;
 
   --tertiary: #f8c675;
-  --tertiary-container: #5c3e06;
-  --tertiary-fixed: #ffe1a0;
-  --tertiary-fixed-dim: #f8c675;
+  --tertiary-container: #6f5825;
+  --tertiary-fixed: #ffdf99;
+  --tertiary-fixed-dim: #ecc15a;
+  --on-tertiary: #251a00;
+  --on-tertiary-container: #fff0d4;
 
-  --outline: #d6b36b;
-  --outline-variant: rgba(248, 198, 108, 0.25);
+  --outline: #70908d;
+  --outline-variant: #335c5c;
+
+  --inverse-surface: #103233;
+  --inverse-on-surface: #fffdf4;
+  --secondary: #98b8b5;
+  --secondary-container: #1c494a;
+  --on-secondary: #061416;
+  --on-secondary-container: #fffdf4;
+
+  --error: #ff8585;
+  --error-container: #801010;
+  --on-error: #ffffff;
+  --on-error-container: #ffd0d0;
+
+  --terra-temporada-luz: #f8c675;
+  --terra-temporada-sombra: #2b7569;
+  --terra-temporada-superficie: #0b2d2f;
 }
 
 /* ========================================================= */
-/* BASE RESETS & SCROLLBAR                                   */
+/* REGLAS GLOBALES                                           */
 /* ========================================================= */
 @layer base {
-
-  html,
-  body {
+  html, body {
     margin: 0;
     padding: 0;
-    overscroll-behavior: none;
+    scroll-behavior: smooth;
     font-family: var(--font-sans);
-    background-color: var(--surface);
-    color: var(--on-surface);
-    transition: background-color 0.3s ease, color 0.3s ease;
   }
-
+  body {
+    overscroll-behavior: none;
+    transition: background-color 0.25s ease, color 0.2s ease;
+  }
   ::-webkit-scrollbar {
     display: none;
   }
 }
 
 /* ========================================================= */
-/* ANIMACIONES Y FIGURAS DE HALLOWEEN                       */
+/* ANIMACIONES Y UTILIDADES DE TEMPORADAS                    */
 /* ========================================================= */
-
-/* 1. Los Murciélagos Voladores */
-.hal-flyer {
-  position: absolute;
-  width: var(--bat-size, 21px);
-  height: auto;
-  top: var(--bat-top, 20%);
-  left: -15%;
-  opacity: var(--bat-opacity, 0.6);
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
-  pointer-events: none;
-  animation: halFly var(--bat-speed, 18s) linear infinite;
-  animation-delay: var(--bat-delay, 0s);
-  z-index: 25;
+@keyframes fadeIn {
+  from { opacity: 0.3; transform: scale(0.99); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-.hal-flyer svg {
-  display: block;
-  width: 100%;
-  transform-origin: 50% 24%;
-  animation: halFlap 0.48s ease-in-out infinite alternate;
+.animate-fadeIn {
+  animation: fadeIn 0.35s ease-out forwards;
 }
 
-.hal-flyer:nth-of-type(even) svg {
-  animation-duration: 0.35s;
+@keyframes temporada-volar {
+  from { transform: translateX(-10vw) translateY(1rem); }
+  to { transform: translateX(110vw) translateY(-5rem); }
 }
 
-@keyframes halFly {
-  0% {
-    transform: translate3d(-5vw, 10px, 0) scale(0.8) rotate(-5deg);
-  }
-
-  40% {
-    transform: translate3d(44vw, -30px, 0) scale(1) rotate(5deg);
-  }
-
-  100% {
-    transform: translate3d(125vw, -95px, 0) scale(1.2) rotate(-2deg);
-  }
+@keyframes temporada-brillar {
+  from { filter: brightness(0.75); opacity: 0.55; }
+  to { filter: brightness(1.25); opacity: 1; }
 }
 
-@keyframes halFlap {
-  0% {
-    transform: scaleY(1) rotate(-4deg);
-  }
-
-  100% {
-    transform: scaleY(0.56) rotate(3deg);
-  }
+@keyframes temporada-progreso {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
-/* 2. Brasas y Estrellas */
-.hal-stars {
-  position: absolute;
+.temporada-ambiental {
   inset: 0;
-  background-image: radial-gradient(#eec8ff 1px, transparent 1.5px),
-    radial-gradient(#f1b77e 1px, transparent 1.5px);
-  background-position: 30px 40px, 120px 120px;
-  background-size: 230px 170px, 330px 270px;
-  opacity: 0.33;
-}
-
-.hal-particle {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #fdba74;
-  box-shadow: 0 0 10px #ff963f;
-  left: var(--x);
-  top: var(--y);
-  opacity: 0.32;
-  animation: halFloat var(--t, 6s) ease-in-out infinite alternate;
-  animation-delay: var(--delay, 0s);
-}
-
-@keyframes halFloat {
-  from {
-    transform: translateY(10px);
-    opacity: 0.13;
-  }
-
-  to {
-    transform: translateY(-28px);
-    opacity: 0.48;
-  }
-}
-
-/* 3. Telarañas y Niebla */
-.hal-edge-web {
-  position: absolute;
-  top: 0;
-  width: 125px;
-  height: 125px;
-  opacity: 0.32;
-  pointer-events: none;
-}
-
-.hal-edge-web.right {
-  right: 0;
-  transform: scaleX(-1);
-}
-
-.hal-edge-web.left {
-  left: 0;
-}
-
-.hal-ambient-fog {
-  position: absolute;
-  width: 160%;
-  height: 24%;
-  bottom: -9%;
-  left: -20%;
-  background: radial-gradient(ellipse at 15% 60%, rgba(174, 126, 207, 0.15), transparent 40%),
-    radial-gradient(ellipse at 68% 50%, rgba(129, 74, 143, 0.17), transparent 42%);
-  filter: blur(36px);
-  animation: halFogDrift 17s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-@keyframes halFogDrift {
-  from {
-    transform: translateX(-4%);
-  }
-
-  to {
-    transform: translateX(5%);
-  }
-}
-
-/* 4. Hero Sky de Halloween (Luna y paisaje) */
-.hal-hero-sky {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
   overflow: hidden;
-  z-index: 0;
-}
-
-.hal-hero-moon {
-  position: absolute;
-  width: 195px;
-  height: 195px;
-  border-radius: 50%;
-  top: 14px;
-  right: 7%;
-  background: radial-gradient(circle at 36% 30%, #fff7dc 0%, #ffdf9a 48%, #ffa34b 100%);
-  box-shadow: 0 0 48px 20px rgba(255, 136, 49, 0.2), 0 0 130px rgba(255, 128, 50, 0.17);
-  opacity: 0.95;
-  animation: halMoonPulse 5s ease-in-out infinite;
-}
-
-@keyframes halMoonPulse {
-  50% {
-    box-shadow: 0 0 58px 24px rgba(255, 136, 49, 0.28), 0 0 180px rgba(255, 128, 50, 0.19);
-  }
-}
-
-.hal-hero-landscape {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 42%;
-  height: 170px;
-  opacity: 0.36;
-}
-
-.hal-hero-fog {
-  position: absolute;
-  right: -10%;
-  bottom: -38px;
-  width: 80%;
-  height: 190px;
-  background: radial-gradient(ellipse at center, rgba(172, 100, 178, 0.21), transparent 65%);
-  filter: blur(20px);
-  animation: halFogDrift 11s ease-in-out infinite alternate;
-}
-
-@keyframes halBlink {
-  50% {
-    opacity: 0.45;
-  }
-}
-
-@keyframes halProgress {
-  0% {
-    transform: scaleX(0);
-  }
-
-  100% {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes halExit {
-  from {
-    opacity: 1;
-    filter: blur(0);
-  }
-
-  to {
-    opacity: 0;
-    filter: blur(10px);
-  }
-}
-
-/* ========================================================= */
-/* ANIMACIONES Y FIGURAS DE NAVIDAD                         */
-/* ========================================================= */
-.xmas-bulb {
-  position: absolute;
-  top: 12px;
-  left: var(--left);
-  width: 12px;
-  height: 18px;
-  border-radius: 50% 50% 45% 45%;
-  background: var(--bulb);
-  box-shadow: 0 0 14px 4px var(--glow);
-  animation: xmasGlow var(--dur, 2s) ease-in-out infinite alternate;
-}
-
-@keyframes xmasGlow {
-  0% {
-    opacity: 0.45;
-    transform: scale(0.9);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-}
-
-.xmas-particle {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #f8c675;
-  box-shadow: 0 0 8px #f8c675;
-  left: var(--x);
-  top: var(--y);
-  opacity: 0.35;
-  animation: halFloat var(--t, 5s) ease-in-out infinite alternate;
-  animation-delay: var(--delay, 0s);
-}
-
-.xmas-hero-sky {
-  position: absolute;
-  inset: 0;
   pointer-events: none;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.xmas-hero-tree {
-  position: absolute;
-  right: 4%;
-  bottom: 0;
-  width: 48%;
-  height: 220px;
-  opacity: 0.85;
-}
-
-.xmas-hero-star {
-  position: absolute;
-  top: 25px;
-  right: 28%;
-  font-size: 32px;
-  color: #ffdf99;
-  text-shadow: 0 0 20px #ecc15a, 0 0 40px #ecc15a;
-  animation: xmasBob 3s ease-in-out infinite alternate;
-}
-
-@keyframes xmasBob {
-  0% {
-    transform: translateY(0);
-  }
-
-  100% {
-    transform: translateY(-8px) scale(1.08);
-  }
-}
-
-@keyframes xmasProgress {
-  0% {
-    transform: scaleX(0);
-  }
-
-  100% {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes xmasExit {
-  from {
-    opacity: 1;
-    filter: blur(0);
-  }
-
-  to {
-    opacity: 0;
-    filter: blur(10px);
-  }
-}
-
-/* ========================================================= */
-/* ESTILOS DEL CHAT ASISTENTE CON IA                        */
-/* ========================================================= */
-.chat-flotante-ventana {
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 50;
-  width: min(calc(100vw - 2rem), 400px);
-  max-height: min(calc(100vh - 3rem), 620px);
-  display: flex;
-  flex-direction: column;
-  border-radius: 1.5rem;
-  background-color: var(--surface-container-lowest);
-  border: 1px solid var(--outline-variant);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-  animation: chatFadeIn 0.25s ease-out;
+  z-index: 0;
 }
 
-@keyframes chatFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.96);
-  }
+.temporada-ambiental__orb {
+  border-radius: 9999px;
+  filter: blur(1rem);
+  opacity: 0.13;
+  position: absolute;
+}
 
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+.temporada-ambiental__orb--uno {
+  background: var(--terra-temporada-luz);
+  height: 18rem;
+  right: -5rem;
+  top: 8rem;
+  width: 18rem;
+}
+
+.temporada-ambiental__orb--dos {
+  background: var(--terra-temporada-sombra);
+  bottom: 9rem;
+  height: 24rem;
+  left: -8rem;
+  width: 24rem;
+}
+
+.temporada-ambiental__brillos {
+  background-image: radial-gradient(var(--terra-temporada-luz) 1px, transparent 1px);
+  background-size: 3.5rem 3.5rem;
+  inset: 0;
+  opacity: 0.08;
+  position: absolute;
+}
+
+.temporada-aviso {
+  align-items: center;
+  background: var(--terra-temporada-superficie);
+  border: 1px solid var(--outline-variant);
+  border-radius: 9999px;
+  bottom: 1.5rem;
+  box-shadow: 0 0.75rem 2rem color-mix(in srgb, var(--surface-dim) 80%, transparent);
+  color: var(--on-surface);
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  left: 1.5rem;
+  padding: 0.625rem 0.875rem;
+  position: fixed;
+  z-index: 60;
+}
+
+.temporada-repetir {
+  align-items: center;
+  background: var(--terra-temporada-superficie);
+  border: 1px solid var(--outline-variant);
+  border-radius: 9999px;
+  bottom: 4.75rem;
+  color: var(--on-surface);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  left: 1.5rem;
+  padding: 0.625rem 0.875rem;
+  position: fixed;
+  z-index: 60;
+}
+
+.temporada-hero {
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+}
+
+.temporada-hero__luna,
+.temporada-entrada__luna {
+  background: radial-gradient(circle at 36% 30%, var(--surface-bright), var(--terra-temporada-luz));
+  border-radius: 50%;
+  box-shadow: 0 0 4rem var(--terra-temporada-luz);
+  height: 12rem;
+  position: absolute;
+  right: 11%;
+  top: 1rem;
+  width: 12rem;
+}
+
+.temporada-hero__niebla {
+  background: radial-gradient(ellipse, var(--terra-temporada-sombra), transparent 68%);
+  bottom: -8rem;
+  filter: blur(1.5rem);
+  height: 14rem;
+  position: absolute;
+  right: -8rem;
+  width: 72%;
+}
+
+.temporada-hero__bat {
+  animation: temporada-volar 12s linear infinite;
+  color: var(--surface-dim);
+  opacity: 0.75;
+  position: absolute;
+  top: 20%;
+  width: 3.5rem;
+}
+
+.temporada-hero__bat--uno {
+  animation-delay: -3s;
+}
+
+.temporada-hero__bat--dos {
+  animation-delay: -8s;
+  top: 43%;
+  width: 2.5rem;
+}
+
+.temporada-hero__estrella {
+  animation: temporada-brillar 3s ease-in-out infinite alternate;
+  color: var(--terra-temporada-luz);
+  font-size: 8rem;
+  position: absolute;
+  right: 14%;
+  text-shadow: 0 0 2rem var(--terra-temporada-luz);
+  top: 1rem;
+}
+
+.temporada-hero__arbol {
+  bottom: -4rem;
+  color: var(--terra-temporada-sombra);
+  font-size: 20rem;
+  opacity: 0.5;
+  position: absolute;
+  right: 3%;
+}
+
+.temporada-hero__contenido {
+  margin-bottom: 1.25rem;
+  position: relative;
+  z-index: 11;
+}
+
+.temporada-hero__etiqueta {
+  align-items: center;
+  background: color-mix(in srgb, var(--terra-temporada-superficie) 78%, transparent);
+  border: 1px solid var(--outline-variant);
+  border-radius: 9999px;
+  color: var(--tertiary);
+  display: inline-flex;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  gap: 0.5rem;
+  letter-spacing: 0.08em;
+  padding: 0.5rem 0.75rem;
+  text-transform: uppercase;
+}
+
+.temporada-hero__titulo {
+  color: var(--on-surface);
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin: 0.75rem 0;
+  max-width: 28rem;
+}
+
+.temporada-contador {
+  align-items: center;
+  background: color-mix(in srgb, var(--terra-temporada-superficie) 82%, transparent);
+  border: 1px solid var(--outline-variant);
+  border-radius: 0.75rem;
+  color: var(--on-surface-variant);
+  display: flex;
+  font-size: 0.75rem;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  width: fit-content;
+}
+
+.temporada-contador strong {
+  color: var(--tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.temporada-entrada {
+  align-items: center;
+  background: var(--surface-dim);
+  color: var(--on-surface);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  overflow: hidden;
+  padding: 1.25rem;
+  position: fixed;
+  text-align: center;
+  z-index: 100;
+}
+
+.temporada-entrada__cielo {
+  background-image: radial-gradient(var(--terra-temporada-luz) 1px, transparent 1px);
+  background-size: 7rem 7rem;
+  inset: 0;
+  opacity: 0.22;
+  position: absolute;
+}
+
+.temporada-entrada__escena {
+  bottom: 0;
+  color: var(--terra-temporada-sombra);
+  font-size: 20rem;
+  height: 40%;
+  position: absolute;
+  width: 100%;
+}
+
+.temporada-entrada__escena .temporada-entrada__luna {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.temporada-entrada__contenido {
+  max-width: 40rem;
+  position: relative;
+  z-index: 1;
+}
+
+.temporada-entrada__contenido > p {
+  color: var(--on-surface-variant);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.temporada-entrada__icono {
+  animation: temporada-brillar 3s ease-in-out infinite alternate;
+  color: var(--tertiary);
+  font-size: 4rem;
+}
+
+.temporada-entrada__contenido h2 {
+  font-size: clamp(3.5rem, 11vw, 8rem);
+  letter-spacing: -0.09em;
+  line-height: 0.8;
+  margin: 1.5rem 0;
+}
+
+.temporada-entrada__contenido h2 span {
+  color: var(--terra-temporada-luz);
+  display: block;
+  font-size: 0.38em;
+  letter-spacing: 0.2em;
+  margin-top: 1rem;
+}
+
+.temporada-entrada__contenido button {
+  background: var(--primary);
+  border: 1px solid var(--tertiary);
+  border-radius: 9999px;
+  color: var(--on-primary);
+  cursor: pointer;
+  font-weight: 800;
+  margin-top: 1.25rem;
+  padding: 0.875rem 1.5rem;
+}
+
+.temporada-entrada__progreso {
+  animation: temporada-progreso 4.5s linear forwards;
+  background: linear-gradient(90deg, var(--terra-temporada-sombra), var(--terra-temporada-luz));
+  bottom: 0;
+  height: 0.25rem;
+  left: 0;
+  position: absolute;
+  transform-origin: left;
+  width: 100%;
+}
+
+/* ========================================================= */
+/* WIDGET DEL CHAT (ADAPTABLE A CADA TEMA DINÁMICO)          */
+/* ========================================================= */
+@keyframes chatFadeIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes chatPulso {
-
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-
-  50% {
-    transform: scale(1.08);
-    opacity: 0.85;
-  }
+  from { opacity: 0.3; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1.15); }
 }
 
-.chat-burbuja-usuario {
-  background-color: var(--primary);
-  color: var(--on-primary);
-  border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
-  padding: 0.75rem 1rem;
-  max-width: 82%;
-  margin-left: auto;
-  font-size: 0.875rem;
-  line-height: 1.4;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+.chat-widget {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 2rem;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+  font-family: inherit;
 }
 
-.chat-burbuja-bot {
-  background-color: var(--surface-container);
-  color: var(--on-surface);
-  border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
-  padding: 0.75rem 1rem;
-  max-width: 85%;
-  margin-right: auto;
-  font-size: 0.875rem;
-  line-height: 1.45;
+.chat-panel {
+  width: min(390px, calc(100vw - 2rem));
+  height: min(530px, calc(100vh - 7rem));
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-container-lowest);
   border: 1px solid var(--outline-variant);
-}
-
-
-/* ========================================================= */
-/* INTROS Y CONTROLES TEMÁTICOS */
-/* ========================================================= */
-.hal-float-control {
-  display: none;
-  position: fixed;
-  z-index: 41;
-  left: 23px;
-  bottom: 94px;
-  padding: 9px 12px;
-  border: 1px solid rgba(255, 172, 101, 0.37);
-  border-radius: 999px;
-  color: #ffe7cf;
-  background: linear-gradient(130deg, #401a32, #522419);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.32);
-  font: 700 11px 'Plus Jakarta Sans', sans-serif;
-  cursor: pointer;
-  align-items: center;
-  gap: 7px;
-}
-
-body.hal-active .hal-float-control {
-  display: flex;
-}
-
-.hal-float-control:hover {
-  background: linear-gradient(130deg, #58203e, #7f301a);
-}
-
-/* Cinematic Halloween Welcome Sequence */
-#hal-intro {
-  font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-  position: fixed;
-  inset: 0;
-  z-index: 1001;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  isolation: isolate;
-  padding: 20px;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
   overflow: hidden;
-  color: #fff7ef;
-  background: radial-gradient(circle at 50% 40%, #2b143d 0%, #150b24 36%, #090712 80%);
+  animation: chatFadeIn 0.22s ease-out;
 }
 
-#hal-intro.is-visible {
+.chat-panel-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.15rem;
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
-#hal-intro.is-leaving {
-  animation: halExit 0.65s ease forwards;
-  pointer-events: none;
+.chat-panel-header strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
-#hal-intro::before {
-  content: "";
-  position: absolute;
-  inset: -10%;
-  pointer-events: none;
-  background: radial-gradient(circle at 50% 80%, rgba(255, 105, 22, 0.19), transparent 35%),
-    radial-gradient(circle at 8% 16%, rgba(119, 60, 172, 0.16), transparent 33%);
+.chat-panel-header small {
+  opacity: 0.9;
+  font-size: 0.76rem;
 }
 
-.hal-intro-stars {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(circle, rgba(255, 230, 194, 0.8) 1px, transparent 1.4px),
-    radial-gradient(circle, rgba(198, 154, 238, 0.6) 1px, transparent 1.4px);
-  background-position: 0 0, 90px 130px;
-  background-size: 175px 155px, 240px 240px;
-  opacity: 0.26;
+.chat-cerrar {
+  display: inline-flex;
+  padding: 0.35rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
-.hal-intro-moon {
-  position: absolute;
-  top: 6%;
-  right: 15%;
-  width: min(23vw, 260px);
-  height: min(23vw, 260px);
-  border-radius: 50%;
-  background: radial-gradient(circle at 34% 32%, #fff3d0, #ffc774 64%, #fb8b40);
-  box-shadow: 0 0 70px 20px rgba(255, 154, 55, 0.15), 0 0 190px rgba(246, 123, 34, 0.1);
-  opacity: 0.77;
+.chat-cerrar:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
-.hal-intro-castle {
-  position: absolute;
-  bottom: -4px;
-  width: 100%;
-  height: 25%;
-  z-index: 0;
-  opacity: 0.58;
+.chat-mensajes {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  background: var(--surface-container-low);
 }
 
-.hal-intro-castle svg {
-  width: 100%;
-  height: 100%;
+.chat-burbuja {
+  max-width: 85%;
+  padding: 0.65rem 0.9rem;
+  border-radius: 1rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-msg-usuario {
+  align-self: flex-end;
+  background: var(--primary);
+  color: var(--on-primary);
+  border-bottom-right-radius: 0.25rem;
+}
+
+.chat-msg-asistente {
+  align-self: flex-start;
+  background: var(--surface-container-lowest);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+  border-bottom-left-radius: 0.25rem;
+}
+
+.chat-msg-error {
+  align-self: flex-start;
+  background: var(--error-container);
+  color: var(--on-error-container);
+  border: 1px solid var(--outline-variant);
+  font-size: 0.85rem;
+}
+
+.chat-imagen {
+  max-width: 100%;
+  max-height: 220px;
+  border-radius: 0.6rem;
+  margin-top: 0.35rem;
   display: block;
 }
 
-.hal-intro-bats {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
+.chat-burbuja a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: underline;
 }
 
-.hal-intro-bats .hal-flyer {
+.chat-escribiendo {
+  font-style: italic;
   opacity: 0.75;
 }
 
-.hal-intro-content {
-  z-index: 2;
-  width: min(100%, 760px);
-  text-align: center;
-  padding: 52px 15px;
-  position: relative;
+.chat-audio {
+  width: 100%;
+  max-width: 240px;
+  height: 36px;
+  margin-top: 0.4rem;
 }
 
-.hal-intro-eyebrow {
+.chat-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-container-lowest);
+  border-top: 1px solid var(--outline-variant);
+}
+
+.chat-form input {
+  flex: 1;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--outline-variant);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  outline: none;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+}
+
+.chat-form input:focus {
+  border-color: var(--primary);
+  background: var(--surface-container-lowest);
+}
+
+.chat-enviar {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: #ffba78;
-  letter-spacing: 0.36em;
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  margin-bottom: 27px;
-}
-
-.hal-intro-eyebrow::before,
-.hal-intro-eyebrow::after {
-  content: "";
-  display: block;
-  height: 1px;
-  width: 27px;
-  background: linear-gradient(90deg, transparent, #ffba78);
-}
-
-.hal-intro-eyebrow::after {
-  transform: scaleX(-1);
-}
-
-.hal-intro-logo {
-  font-weight: 800;
-  line-height: 0.9;
-  font-size: clamp(70px, 13vw, 156px);
-  letter-spacing: -0.095em;
-  text-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-  margin: 0 0 18px;
-  color: #fff5e7;
-}
-
-.hal-intro-logo span {
-  display: block;
-  font-size: clamp(25px, 5vw, 55px);
-  letter-spacing: 0.24em;
-  color: #ff944d;
-  margin-top: 17px;
-  margin-left: 10px;
-  font-weight: 800;
-}
-
-.hal-intro-caption {
-  margin: 22px auto 0;
-  color: #e5cee6;
-  max-width: 500px;
-  line-height: 1.75;
-  font-size: 15px;
-}
-
-.hal-intro-cta {
-  margin-top: 29px;
-  border: 1px solid rgba(255, 195, 135, 0.5);
-  background: linear-gradient(105deg, #f58b3f, #dc581f);
-  border-radius: 999px;
-  color: #ffffff;
-  padding: 12px 25px;
-  font-weight: 800;
-  letter-spacing: 0.025em;
-  cursor: pointer;
-  box-shadow: 0 14px 40px rgba(225, 85, 29, 0.27);
-  transition: transform 0.2s ease;
-}
-
-.hal-intro-cta:hover {
-  transform: translateY(-3px);
-}
-
-.hal-intro-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.hal-intro-progress::after {
-  content: "";
-  display: block;
-  height: 100%;
-  width: 100%;
-  transform-origin: left;
-  background: linear-gradient(90deg, #8d52ce, #f27328, #ffd38a);
-  animation: halProgress 4.4s linear forwards;
-}
-
-.hal-intro-note {
-  font-size: 11px;
-  color: #bca5c3;
-  margin-top: 18px;
-}
-
-.hal-intro-web {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 260px;
-  opacity: 0.2;
-}
-
-.hal-intro-web.right {
-  right: 0;
-  left: auto;
-  transform: scaleX(-1);
-}
-
-@keyframes halFly {
-  0% {
-    transform: translate3d(-5vw, 10px, 0) scale(0.8) rotate(-5deg);
-  }
-
-  40% {
-    transform: translate3d(44vw, -30px, 0) scale(1) rotate(5deg);
-  }
-
-  100% {
-    transform: translate3d(125vw, -95px, 0) scale(1.2) rotate(-2deg);
-  }
-}
-
-@keyframes halFlap {
-  0% {
-    transform: scaleY(1) rotate(-4deg);
-  }
-
-  100% {
-    transform: scaleY(0.56) rotate(3deg);
-  }
-}
-
-@keyframes halMoonPulse {
-  50% {
-    box-shadow: 0 0 58px 24px rgba(255, 136, 49, 0.28), 0 0 180px rgba(255, 128, 50, 0.19);
-  }
-}
-
-@keyframes halFogDrift {
-  from {
-    transform: translateX(-4%);
-  }
-
-  to {
-    transform: translateX(5%);
-  }
-}
-
-@keyframes halFloat {
-  from {
-    transform: translateY(10px);
-    opacity: 0.13;
-  }
-
-  to {
-    transform: translateY(-28px);
-    opacity: 0.48;
-  }
-}
-
-@keyframes halBlink {
-  50% {
-    opacity: 0.45;
-  }
-}
-
-@keyframes halProgress {
-  0% {
-    transform: scaleX(0);
-  }
-
-  100% {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes halExit {
-  from {
-    opacity: 1;
-    filter: blur(0);
-  }
-
-  to {
-    opacity: 0;
-    filter: blur(10px);
-  }
-}
-
-
-.xmas-float-control {
-  display: none;
-  position: fixed;
-  z-index: 41;
-  left: 22px;
-  bottom: 92px;
-  padding: 10px 13px;
-  border: 1px solid rgba(248, 211, 146, 0.45);
-  border-radius: 999px;
-  color: #fff8e8;
-  background: linear-gradient(125deg, #0c4a42, #a42f40);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.26);
-  font: 700 11px 'Plus Jakarta Sans', sans-serif;
-  cursor: pointer;
-}
-
-body.xmas-active .xmas-float-control {
-  display: block;
-}
-
-/* Cinematic Christmas Welcome Sequence */
-#xmas-intro {
-  font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-  position: fixed;
-  inset: 0;
-  z-index: 1001;
-  display: none;
   justify-content: center;
-  align-items: center;
-  isolation: isolate;
-  padding: 20px;
-  overflow: hidden;
-  color: #fffaf0;
-  background: radial-gradient(circle at 55% 38%, #18584e 0%, #092b30 42%, #031719 100%);
-}
-
-#xmas-intro.is-visible {
-  display: flex;
-}
-
-#xmas-intro.is-leaving {
-  animation: xmasExit 0.65s ease forwards;
-  pointer-events: none;
-}
-
-#xmas-intro:before {
-  content: "";
-  position: absolute;
-  inset: -10%;
-  background: radial-gradient(circle at 50% 90%, rgba(248, 186, 86, 0.17), transparent 43%);
-  pointer-events: none;
-}
-
-.xmas-intro-stars {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(circle, #f8e3ba 1px, transparent 1.4px),
-    radial-gradient(circle, #a5e2d5 1px, transparent 1.4px);
-  background-size: 185px 150px, 230px 250px;
-  background-position: 10px 15px, 90px 100px;
-  opacity: 0.33;
-}
-
-.xmas-intro-content {
-  position: relative;
-  z-index: 2;
-  max-width: 760px;
-  text-align: center;
-  padding: 48px 12px;
-}
-
-.xmas-intro-icon {
-  font-size: 76px;
-  margin-bottom: 13px;
-  filter: drop-shadow(0 0 24px rgba(248, 213, 151, 0.55));
-  animation: xmasBob 4s ease-in-out infinite;
-}
-
-.xmas-intro-eyebrow {
-  color: #ffe6b8;
-  letter-spacing: 0.3em;
-  font-weight: 800;
-  font-size: 11px;
-  text-transform: uppercase;
-  margin-bottom: 18px;
-}
-
-.xmas-intro-logo {
-  font-weight: 800;
-  line-height: 0.92;
-  font-size: clamp(67px, 13vw, 150px);
-  letter-spacing: -0.09em;
-  color: #fff9e8;
-  text-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
-  margin: 0;
-}
-
-.xmas-intro-logo span {
-  display: block;
-  font-size: clamp(27px, 5vw, 56px);
-  letter-spacing: 0.19em;
-  color: #f4d69e;
-  margin: 20px auto 0;
-  font-weight: 800;
-}
-
-.xmas-intro-caption {
-  color: #d6e7dd;
-  max-width: 500px;
-  line-height: 1.75;
-  font-size: 15px;
-  margin: 25px auto 0;
-}
-
-.xmas-intro-cta {
-  margin-top: 27px;
-  border: 1px solid rgba(253, 224, 166, 0.55);
-  background: linear-gradient(115deg, #cb434b, #982c38);
+  width: 2.4rem;
+  height: 2.4rem;
+  border: none;
   border-radius: 999px;
-  color: #ffffff;
-  padding: 12px 26px;
-  font-weight: 800;
+  background: var(--primary);
+  color: var(--on-primary);
   cursor: pointer;
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  transition: transform 0.1s ease, background 0.15s ease;
 }
 
-.xmas-intro-cta:hover {
-  transform: translateY(-3px);
+.chat-enviar:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: scale(1.04);
 }
 
-.xmas-intro-note {
-  font-size: 11px;
-  color: #b9d1c5;
-  margin-top: 18px;
+.chat-enviar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-.xmas-intro-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.08);
+.chat-mic {
+  background: var(--surface-container-high);
+  color: var(--on-surface);
 }
 
-.xmas-intro-progress:after {
-  content: "";
-  display: block;
-  height: 100%;
-  width: 100%;
-  transform-origin: left;
-  background: linear-gradient(90deg, #2d9a7a, #f1c070, #b83e4c);
-  animation: xmasProgress 4.5s linear forwards;
+.chat-mic:hover:not(:disabled) {
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
-.xmas-float-icon {
-  position: absolute;
-  color: #f7d99d;
-  text-shadow: 0 0 15px rgba(254, 234, 175, 0.6);
-  font-size: var(--sz);
-  left: var(--x);
-  top: var(--y);
-  animation: xmasBob var(--dur) ease-in-out infinite alternate;
-  animation-delay: var(--delay);
+.chat-grabando {
+  background: var(--surface-container-low);
 }
 
-.xmas-forest {
-  position: absolute;
-  bottom: -5px;
-  width: 100%;
-  height: 31%;
-  opacity: 0.42;
-  pointer-events: none;
+.chat-cancelar-grabacion {
+  border: none;
+  background: none;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  padding: 0.35rem;
 }
 
-.xmas-forest svg {
-  height: 100%;
-  width: 100%;
+.chat-grabando-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--error);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
-@keyframes xmasGlow {
-  from {
-    opacity: 0.4;
-    filter: brightness(0.8);
-  }
-
-  to {
-    opacity: 1;
-    filter: brightness(1.28);
-  }
+.chat-grabando-punto {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  background: var(--error);
+  animation: chatPulso 1s infinite alternate;
 }
 
-@keyframes xmasSparkle {
-  from {
-    transform: translateY(12px) scale(0.7);
-    opacity: 0.15;
+@media (max-width: 640px) {
+  .chat-widget {
+    right: 0.5rem;
+    left: 0.5rem;
+    bottom: 0.75rem;
+    align-items: stretch;
   }
-
-  to {
-    transform: translateY(-26px) scale(1.15);
-    opacity: 0.7;
-  }
-}
-
-@keyframes xmasBob {
-  from {
-    transform: translateY(0);
-  }
-
-  to {
-    transform: translateY(-12px);
-  }
-}
-
-@keyframes xmasProgress {
-  from {
-    transform: scaleX(0);
-  }
-
-  to {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes xmasExit {
-  from {
-    opacity: 1;
-    filter: blur(0);
-  }
-
-  to {
-    opacity: 0;
-    filter: blur(9px);
-  }
-}
-
-/* Responsive Rules Matching Reference */
-@media (max-width: 1160px) {
-  .hal-hero-moon {
-    right: 3%;
-    width: 155px;
-    height: 155px;
-  }
-
-  .hal-feature-sticker {
-    right: 0;
-    top: 3%;
-    width: 74px;
-    height: 74px;
-  }
-
-  .xmas-hero-tree {
-    width: 70%;
-    opacity: 0.38;
-  }
-
-  .xmas-hero-ring {
-    width: 135px;
-    height: 135px;
-    right: 3%;
-    top: 10px;
-  }
-
-  .xmas-hero-star {
-    font-size: 80px;
-    right: 9%;
-    top: 20px;
-  }
-}
-
-@media (max-width: 900px) {
-  .hal-hero-moon {
-    width: 120px;
-    height: 120px;
-    right: 6%;
-    top: 13%;
-    opacity: 0.55;
-  }
-
-  .hal-season-title {
-    font-size: clamp(37px, 7vw, 60px);
-  }
-}
-
-@media (max-width: 600px) {
-  .hal-season-tag {
-    font-size: 9px;
-    letter-spacing: 0.1em;
-  }
-
-  .hal-hero-moon {
-    right: -15px;
-    top: 0;
-    width: 100px;
-    height: 100px;
-    opacity: 0.35;
-  }
-
-  .hal-intro-moon {
-    top: 10%;
-    right: 6%;
-    width: 115px;
-    height: 115px;
-    opacity: 0.4;
-  }
-
-  .hal-intro-web {
-    width: 135px;
-  }
-
-  .hal-hero-landscape {
-    width: 65%;
-  }
-
-  .hal-season-title {
-    font-size: clamp(35px, 9vw, 47px);
-  }
-
-  .hal-countdown-wrap {
+  .chat-panel {
     width: 100%;
+    height: min(540px, calc(100vh - 4.5rem));
+    border-radius: 1rem;
   }
-
-  .hal-feature-sticker {
-    width: 66px;
-    height: 66px;
-    top: 4%;
-  }
-
-  .hal-edge-web {
-    width: 75px;
-    height: 75px;
-  }
-
-  .hal-float-control {
-    left: 10px;
-    bottom: 85px;
-    font-size: 10px;
-  }
-
-  .hal-flyer {
-    opacity: 0.42;
-  }
-
-  .xmas-season-title {
-    font-size: clamp(35px, 9vw, 47px);
-  }
-
-  .xmas-hero-ring {
-    width: 100px;
-    height: 100px;
-    opacity: 0.55;
-  }
-
-  .xmas-hero-star {
-    font-size: 60px;
-    right: 9%;
-    opacity: 0.5;
-  }
-
-  .xmas-sticker {
-    font-size: 23px;
-    top: 4%;
-    padding: 7px;
-  }
-
-  .xmas-countdown-wrap {
-    width: 100%;
-  }
-
-  .xmas-intro-icon {
-    font-size: 55px;
-  }
-
-  .xmas-float-icon {
-    opacity: 0.6;
-  }
-
-  .xmas-float-control {
-    left: 10px;
-    bottom: 85px;
-  }
-}
-
-/* ========================================================= */
-/* SEASONAL CART DRAWER STYLING (HALLOWEEN & NAVIDAD)       */
-/* ========================================================= */
-body.hal-active .cart-drawer-panel {
-  background-color: #180e26 !important;
-  color: #f3ecf8 !important;
-  border-left: 1px solid rgba(251, 146, 60, 0.25) !important;
-  box-shadow: -10px 0 50px rgba(0, 0, 0, 0.75) !important;
-}
-
-body.hal-active .cart-drawer-header {
-  background: linear-gradient(135deg, #28143a 0%, #170a24 100%) !important;
-  border-bottom: 1px solid rgba(251, 146, 60, 0.28) !important;
-}
-
-body.hal-active .cart-drawer-icon-box {
-  background-color: rgba(251, 146, 60, 0.2) !important;
-  color: #ff9d42 !important;
-}
-
-body.hal-active .cart-drawer-close-btn {
-  background-color: rgba(251, 146, 60, 0.15) !important;
-  color: #f3ecf8 !important;
-}
-
-body.hal-active .cart-drawer-close-btn:hover {
-  background-color: rgba(251, 146, 60, 0.3) !important;
-}
-
-body.hal-active .cart-drawer-branch-chip {
-  background-color: rgba(16, 9, 26, 0.7) !important;
-  border: 1px solid rgba(251, 146, 60, 0.2) !important;
-}
-
-body.hal-active .cart-drawer-change-btn {
-  color: #ffaa5e !important;
-}
-
-body.hal-active .cart-drawer-delivery {
-  background-color: #1e1130 !important;
-  border-color: rgba(251, 146, 60, 0.18) !important;
-  color: #d1c2dc !important;
-}
-
-body.hal-active .cart-drawer-items {
-  background-color: #12091c !important;
-}
-
-body.hal-active .cart-drawer-item-card {
-  background-color: #211331 !important;
-  border-color: rgba(251, 146, 60, 0.22) !important;
-  color: #f3ecf8 !important;
-}
-
-body.hal-active .cart-drawer-item-img {
-  background-color: #180d25 !important;
-  border-color: rgba(251, 146, 60, 0.18) !important;
-}
-
-body.hal-active .cart-drawer-item-category {
-  background-color: #331a46 !important;
-  color: #ffaa5e !important;
-}
-
-body.hal-active .cart-drawer-item-total {
-  color: #ff9d42 !important;
-}
-
-body.hal-active .cart-drawer-item-title {
-  color: #f3ecf8 !important;
-}
-
-body.hal-active .cart-drawer-item-unit {
-  color: #bcaec6 !important;
-}
-
-body.hal-active .cart-drawer-qty-pill {
-  background-color: #2c1740 !important;
-  border-color: rgba(251, 146, 60, 0.25) !important;
-  color: #f3ecf8 !important;
-}
-
-body.hal-active .cart-drawer-summary {
-  background-color: #1a0f28 !important;
-  border-color: rgba(251, 146, 60, 0.22) !important;
-  color: #f3ecf8 !important;
-}
-
-body.hal-active .cart-drawer-total-price {
-  color: #ff9d42 !important;
-}
-
-body.hal-active .cart-drawer-pay-btn {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 20px rgba(234, 88, 12, 0.45) !important;
-}
-
-body.hal-active .cart-drawer-full-btn {
-  background-color: #2b173e !important;
-  color: #f3ecf8 !important;
-  border: 1px solid rgba(251, 146, 60, 0.22) !important;
-}
-
-body.hal-active .cart-drawer-clear-btn {
-  color: #a592b2 !important;
-}
-
-body.hal-active .cart-drawer-clear-btn:hover {
-  color: #ff9d42 !important;
-}
-
-body.hal-active .cart-drawer-trust-pillars {
-  border-color: rgba(251, 146, 60, 0.18) !important;
-  color: #d1c2dc !important;
-}
-
-body.hal-active .cart-drawer-trust-pillars .text-primary {
-  color: #ff9d42 !important;
-}
-
-/* Christmas Cart Drawer */
-body.xmas-active .cart-drawer-panel {
-  background-color: #061e1f !important;
-  color: #fbf7ee !important;
-  border-left: 1px solid rgba(248, 198, 108, 0.25) !important;
-  box-shadow: -10px 0 50px rgba(0, 0, 0, 0.75) !important;
-}
-
-body.xmas-active .cart-drawer-header {
-  background: linear-gradient(135deg, #092c28 0%, #031817 100%) !important;
-  border-bottom: 1px solid rgba(248, 198, 108, 0.3) !important;
-}
-
-body.xmas-active .cart-drawer-icon-box {
-  background-color: rgba(248, 198, 108, 0.2) !important;
-  color: #f8c675 !important;
-}
-
-body.xmas-active .cart-drawer-delivery {
-  background-color: #092526 !important;
-  border-color: rgba(248, 198, 108, 0.18) !important;
-  color: #d8e5e1 !important;
-}
-
-body.xmas-active .cart-drawer-items {
-  background-color: #031415 !important;
-}
-
-body.xmas-active .cart-drawer-item-card {
-  background-color: #0c2b29 !important;
-  border-color: rgba(248, 198, 108, 0.2) !important;
-  color: #fbf7ee !important;
-}
-
-body.xmas-active .cart-drawer-item-img {
-  background-color: #082121 !important;
-  border-color: rgba(248, 198, 108, 0.18) !important;
-}
-
-body.xmas-active .cart-drawer-summary {
-  background-color: #082223 !important;
-  border-color: rgba(248, 198, 108, 0.22) !important;
-  color: #fbf7ee !important;
-}
-
-body.xmas-active .cart-drawer-total-price {
-  color: #f8c675 !important;
-}
-
-body.xmas-active .cart-drawer-pay-btn {
-  background: linear-gradient(135deg, #be303a 0%, #942832 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 20px rgba(190, 48, 58, 0.45) !important;
-}
-
-body.xmas-active .cart-drawer-full-btn {
-  background-color: #0b2d2b !important;
-  color: #fbf7ee !important;
-  border: 1px solid rgba(248, 198, 108, 0.25) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-
-  .hal-flyer,
-  .hal-flyer svg,
-  .hal-ambient-fog,
-  .hal-hero-fog,
-  .hal-hero-moon,
-  .hal-particle,
-  .hal-season-tag .hal-dot {
-    animation: none !important;
+  html,
+  body,
+  header,
+  main,
+  section,
+  button,
+  input,
+  aside {
+    transition: none !important;
   }
-
-  .hal-intro-progress::after {
+  .animate-fadeIn,
+  .temporada-hero__bat,
+  .temporada-hero__estrella,
+  .temporada-entrada__icono,
+  .temporada-entrada__progreso,
+  .chat-grabando-punto {
     animation: none !important;
-    transform: scaleX(1) !important;
-  }
-
-  body.hal-active .hal-flyer {
-    display: none !important;
-  }
-
-  .xmas-bulb,
-  .xmas-particle,
-  .xmas-float-icon,
-  .xmas-hero-star,
-  .xmas-intro-icon {
-    animation: none !important;
-  }
-
-  .xmas-intro-progress:after {
-    animation: none !important;
-    transform: scaleX(1) !important;
   }
 }
+

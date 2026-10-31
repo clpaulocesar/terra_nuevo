@@ -11,6 +11,7 @@ import { useVoz } from '../../context/VozContext.jsx';
 import MensajeMarkdown from './MensajeMarkdown.jsx';
 import { convertirAudioAWav } from '../../utils/audioWav.js';
 
+
 const BIENVENIDA = {
   id: 'bienvenida',
   rol: 'asistente',

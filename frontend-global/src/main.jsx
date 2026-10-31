@@ -22,6 +22,7 @@ import TemporadaAmbiental from './components/TemporadaAmbiental.jsx';
 import ChatAsistente from './components/chat/ChatAsistente.jsx';
 import './index.css';
 
+
 function AppGlobalContent() {
   const {
     anunciar,
