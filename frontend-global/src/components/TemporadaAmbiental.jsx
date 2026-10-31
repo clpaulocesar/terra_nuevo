@@ -43,7 +43,7 @@ export default function TemporadaAmbiental() {
       {esHalloween && (
         <>
           {/* Ambient Canvas */}
-          <div className="hal-canvas" aria-hidden="true">
+          <div className="hal-canvas pointer-events-none fixed inset-0 z-20 overflow-hidden select-none" aria-hidden="true">
             <div className="hal-stars" />
             <div className="hal-ambient-fog" />
 
@@ -171,7 +171,7 @@ export default function TemporadaAmbiental() {
       {esNavidad && (
         <>
           {/* Ambient Canvas */}
-          <div className="xmas-canvas" aria-hidden="true">
+          <div className="xmas-canvas pointer-events-none fixed inset-0 z-20 overflow-hidden select-none" aria-hidden="true">
             <div className="xmas-lights">
               {[
                 { left: '1.00%', bulb: '#f5c96c', glow: '#f5c96c70', dur: '1.7s' },

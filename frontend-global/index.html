@@ -1,135 +1,51 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="TERRA Muebles &amp; Colchones - Autoservicio Santa Cruz" />
-    <title>TERRA Muebles &amp; Colchones - Autoservicio Santa Cruz</title>
-    <script src="/config.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-    <style>
-      @layer base {
-        html, body { margin: 0; padding: 0; }
-        body { overscroll-behavior: none; }
-        main > :first-child { margin-top: 0 !important; }
-        main > :last-child { margin-bottom: 0 !important; }
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TERRA Muebles &amp; Colchones - Autoservicio Santa Cruz" />
+  <title>TERRA Muebles &amp; Colchones - Autoservicio Santa Cruz</title>
+  <script src="/config.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    rel="stylesheet" />
+  <style>
+    @layer base {
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
       }
-      ::-webkit-scrollbar { display: none; }
-    </style>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "inverse-surface": "var(--inverse-surface, #30312e)",
-              "primary-fixed": "var(--primary-fixed, #ffdad8)",
-              "error-container": "var(--error-container, #ffdad6)",
-              "secondary-fixed": "var(--secondary-fixed, #e5e2e1)",
-              "outline-variant": "var(--outline-variant, #e3bebc)",
-              "on-error": "var(--on-error, #ffffff)",
-              "on-primary-container": "var(--on-primary-container, #ffc3c1)",
-              "on-error-container": "var(--on-error-container, #93000a)",
-              "on-secondary-fixed": "var(--on-secondary-fixed, #1b1b1c)",
-              "tertiary-fixed-dim": "var(--tertiary-fixed-dim, #ecc15a)",
-              "on-background": "var(--on-surface, #1b1c1a)",
-              "on-tertiary-fixed": "var(--on-tertiary-fixed, #251a00)",
-              "surface-container-low": "var(--surface-container-low, #f5f3ef)",
-              "surface-bright": "var(--surface-bright, #fbf9f5)",
-              "surface-container-high": "var(--surface-container-high, #eae8e4)",
-              "on-tertiary-container": "var(--on-tertiary-container, #f8cc64)",
-              "secondary-fixed-dim": "var(--secondary-fixed-dim, #c8c6c5)",
-              "tertiary": "var(--tertiary, #554000)",
-              "secondary": "var(--secondary, #5f5e5e)",
-              "inverse-primary": "var(--inverse-primary, #ffb3b1)",
-              "on-secondary-fixed-variant": "var(--on-secondary-fixed-variant, #474746)",
-              "tertiary-fixed": "var(--tertiary-fixed, #ffdf99)",
-              "surface-tint": "var(--primary, #b9192d)",
-              "primary-fixed-dim": "var(--primary-fixed-dim, #ffb3b1)",
-              "tertiary-container": "var(--tertiary-container, #725600)",
-              "surface-container-lowest": "var(--surface-container-lowest, #ffffff)",
-              "secondary-container": "var(--secondary-container, #e2dfde)",
-              "on-secondary": "var(--on-secondary, #ffffff)",
-              "surface-dim": "var(--surface-dim, #dbdad6)",
-              "primary": "var(--primary, #8b001a)",
-              "on-surface-variant": "var(--on-surface-variant, #5b403f)",
-              "surface-container-highest": "var(--surface-container-highest, #e4e2de)",
-              "outline": "var(--outline, #8f6f6e)",
-              "on-secondary-container": "var(--on-secondary-container, #636262)",
-              "on-surface": "var(--on-surface, #1b1c1a)",
-              "on-tertiary": "var(--on-tertiary, #ffffff)",
-              "on-primary-fixed": "var(--on-primary-fixed, #410007)",
-              "inverse-on-surface": "var(--inverse-on-surface, #f2f0ec)",
-              "on-primary-fixed-variant": "var(--on-primary-fixed-variant, #92001c)",
-              "background": "var(--surface, #fbf9f5)",
-              "on-tertiary-fixed-variant": "var(--on-tertiary-fixed-variant, #5a4300)",
-              "surface": "var(--surface, #fbf9f5)",
-              "on-primary": "var(--on-primary, #ffffff)",
-              "surface-container": "var(--surface-container, #f0eeea)",
-              "surface-variant": "var(--surface-variant, #e4e2de)",
-              "error": "var(--error, #ba1a1a)",
-              "primary-container": "var(--primary-container, #b31329)"
-            },
-            borderRadius: {
-              DEFAULT: "0.25rem",
-              lg: "0.5rem",
-              xl: "0.75rem",
-              full: "9999px"
-            },
-            spacing: {
-              "space-lg": "1.5rem",
-              "space-2xl": "4rem",
-              "space-xs": "0.25rem",
-              "gutter-kiosk": "2rem",
-              margin: "2rem",
-              "space-md": "1rem",
-              "margin-mobile": "1rem",
-              "space-xl": "2.5rem",
-              gutter: "1.5rem",
-              "space-sm": "0.5rem",
-              "margin-kiosk": "3.5rem"
-            },
-            fontFamily: {
-              "label-subtle": ["Plus Jakarta Sans", "sans-serif"],
-              "title-sm": ["Plus Jakarta Sans", "sans-serif"],
-              "body-md": ["Plus Jakarta Sans", "sans-serif"],
-              "display-hero-mobile": ["Plus Jakarta Sans", "sans-serif"],
-              "body-lg": ["Plus Jakarta Sans", "sans-serif"],
-              "headline-xl-mobile": ["Plus Jakarta Sans", "sans-serif"],
-              "headline-lg": ["Plus Jakarta Sans", "sans-serif"],
-              "display-hero": ["Plus Jakarta Sans", "sans-serif"],
-              "label-caps": ["Plus Jakarta Sans", "sans-serif"],
-              "label-interactive": ["Plus Jakarta Sans", "sans-serif"],
-              "body-sm": ["Plus Jakarta Sans", "sans-serif"],
-              "headline-md": ["Plus Jakarta Sans", "sans-serif"],
-              "headline-xl": ["Plus Jakarta Sans", "sans-serif"]
-            },
-            fontSize: {
-              "label-subtle": ["12px", { lineHeight: "16px", fontWeight: "500" }],
-              "title-sm": ["18px", { lineHeight: "24px", fontWeight: "600" }],
-              "body-md": ["15px", { lineHeight: "22px", fontWeight: "400" }],
-              "display-hero-mobile": ["38px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "700" }],
-              "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
-              "headline-xl-mobile": ["30px", { lineHeight: "38px", letterSpacing: "-0.015em", fontWeight: "600" }],
-              "headline-lg": ["28px", { lineHeight: "36px", letterSpacing: "-0.01em", fontWeight: "600" }],
-              "display-hero": ["56px", { lineHeight: "64px", letterSpacing: "-0.03em", fontWeight: "700" }],
-              "label-caps": ["12px", { lineHeight: "16px", letterSpacing: "0.12em", fontWeight: "700" }],
-              "label-interactive": ["15px", { lineHeight: "20px", fontWeight: "600" }],
-              "body-sm": ["13px", { lineHeight: "18px", fontWeight: "400" }],
-              "headline-md": ["22px", { lineHeight: "30px", fontWeight: "600" }],
-              "headline-xl": ["40px", { lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "600" }]
-            }
-          }
-        }
-      };
-    </script>
-  </head>
-  <body class="bg-surface font-body-md text-body-md text-on-surface">
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+      body {
+        overscroll-behavior: none;
+      }
+
+      main> :first-child {
+        margin-top: 0 !important;
+      }
+
+      main> :last-child {
+        margin-bottom: 0 !important;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+
+</head>
+
+<body class="bg-surface font-body-md text-body-md text-on-surface">
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>

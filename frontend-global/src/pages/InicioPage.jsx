@@ -442,6 +442,7 @@ export default function InicioPage({
                   className="w-full h-full object-cover transition-opacity duration-500 animate-fadeIn"
                   src={slideActivo.src}
                   alt={slideActivo.alt}
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/logo-terra.png"; }}
                 />
                 <button
                   type="button"
@@ -713,6 +714,7 @@ export default function InicioPage({
                       src={prod.src}
                       alt={prod.titulo}
                       loading="lazy"
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/logo-terra.png"; }}
                     />
                     {/* Badges superiores (OFERTA y Más vendido apilados idénticos a la foto de referencia) */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 pointer-events-none items-start">
