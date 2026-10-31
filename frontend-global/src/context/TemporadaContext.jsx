@@ -73,11 +73,13 @@ export function TemporadaProvider({ children }) {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     document.documentElement.dataset.terraSeason = temporada;
+    document.documentElement.classList.toggle('dark', temporada !== 'normal');
     document.body.classList.toggle('hal-active', temporada === 'halloween');
     document.body.classList.toggle('xmas-active', temporada === 'navidad');
     document.body.classList.toggle('season-standard', temporada === 'normal');
 
     return () => {
+      document.documentElement.classList.remove('dark');
       document.body.classList.remove('hal-active', 'xmas-active', 'season-standard');
     };
   }, [temporada]);

@@ -244,30 +244,42 @@ export default function InicioPage({
           <div className="lg:col-span-5 flex flex-col items-start z-10">
             {/* Christmas Copy Block */}
             {esNavidad && (
-              <div style={{ width: '100%' }}>
-                <div className="xmas-season-tag inline-flex items-center gap-2 mb-4">
-                  <i /> NAVIDAD EN TERRA · {anioActual}
+              <div className="w-full">
+                <div className="xmas-season-tag inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-xs font-bold tracking-wider uppercase mb-4 shadow-sm backdrop-blur-sm">
+                  <i className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> NAVIDAD EN TERRA · {anioActual}
                 </div>
-                <h1 className="xmas-season-title">
-                  Esta Navidad,<em>tu hogar brilla más.</em>
+                <h1 className="xmas-season-title text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-4">
+                  Esta Navidad, <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-300 to-emerald-300">tu hogar brilla más.</span>
                 </h1>
-                <p className="xmas-season-description">
+                <p className="xmas-season-description text-sm sm:text-base text-emerald-100/90 leading-relaxed max-w-lg mb-6">
                   Que cada rincón invite a compartir. Descubre muebles para reunir a quienes más quieres y crear momentos inolvidables.
                 </p>
-                <div className="xmas-countdown-wrap mb-6" role="status" aria-live="off">
-                  <div className="xmas-countdown-heading">La magia de Navidad llega en</div>
+                <div className="xmas-countdown-wrap p-4 rounded-2xl bg-black/40 border border-emerald-500/25 backdrop-blur-md shadow-xl mb-6 max-w-md" role="status" aria-live="off">
+                  <div className="xmas-countdown-heading text-[11px] font-extrabold uppercase tracking-widest text-amber-200/90 mb-3">La magia de Navidad llega en</div>
                   {!cuentaRegresiva.finalizado ? (
-                    <div className="xmas-time-grid">
-                      <div className="xmas-time-group"><span className="xmas-time-number">{cuentaRegresiva.dd}</span><span className="xmas-time-label">Días</span></div>
-                      <span className="xmas-time-sep">:</span>
-                      <div className="xmas-time-group"><span className="xmas-time-number">{cuentaRegresiva.hh}</span><span className="xmas-time-label">Horas</span></div>
-                      <span className="xmas-time-sep">:</span>
-                      <div className="xmas-time-group"><span className="xmas-time-number">{cuentaRegresiva.mm}</span><span className="xmas-time-label">Min</span></div>
-                      <span className="xmas-time-sep">:</span>
-                      <div className="xmas-time-group"><span className="xmas-time-number">{cuentaRegresiva.ss}</span><span className="xmas-time-label">Seg</span></div>
+                    <div className="xmas-time-grid flex items-center justify-start gap-2 sm:gap-3">
+                      <div className="xmas-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="xmas-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.dd}</span>
+                        <span className="xmas-time-label text-[10px] font-bold uppercase tracking-wider text-emerald-200/70 mt-1">Días</span>
+                      </div>
+                      <span className="xmas-time-sep text-xl font-bold text-amber-400 -mt-3 select-none">:</span>
+                      <div className="xmas-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="xmas-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.hh}</span>
+                        <span className="xmas-time-label text-[10px] font-bold uppercase tracking-wider text-emerald-200/70 mt-1">Horas</span>
+                      </div>
+                      <span className="xmas-time-sep text-xl font-bold text-amber-400 -mt-3 select-none">:</span>
+                      <div className="xmas-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="xmas-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.mm}</span>
+                        <span className="xmas-time-label text-[10px] font-bold uppercase tracking-wider text-emerald-200/70 mt-1">Min</span>
+                      </div>
+                      <span className="xmas-time-sep text-xl font-bold text-amber-400 -mt-3 select-none">:</span>
+                      <div className="xmas-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="xmas-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.ss}</span>
+                        <span className="xmas-time-label text-[10px] font-bold uppercase tracking-wider text-emerald-200/70 mt-1">Seg</span>
+                      </div>
                     </div>
                   ) : (
-                    <p className="xmas-countdown-ended">¡Felices fiestas! Que la alegría llene tu hogar.</p>
+                    <p className="xmas-countdown-ended text-sm font-bold text-amber-300">¡Felices fiestas! Que la alegría llene tu hogar.</p>
                   )}
                 </div>
               </div>
@@ -275,30 +287,42 @@ export default function InicioPage({
 
             {/* Halloween Copy Block */}
             {esHalloween && (
-              <div style={{ width: '100%' }}>
-                <div className="hal-season-tag inline-flex items-center gap-2 mb-4">
-                  <span className="hal-dot" /> TEMPORADA DE HALLOWEEN · TERRA {anioActual}
+              <div className="w-full">
+                <div className="hal-season-tag inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-950/40 border border-orange-500/30 text-orange-200 text-xs font-bold tracking-wider uppercase mb-4 shadow-sm backdrop-blur-sm">
+                  <span className="hal-dot w-2 h-2 rounded-full bg-orange-500 animate-pulse" /> TEMPORADA DE HALLOWEEN · TERRA {anioActual}
                 </div>
-                <h1 className="hal-season-title">
-                  Este Halloween,<em>tu hogar se transforma.</em>
+                <h1 className="hal-season-title text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-4">
+                  Este Halloween, <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-purple-400">tu hogar se transforma.</span>
                 </h1>
-                <p className="hal-season-description">
+                <p className="hal-season-description text-sm sm:text-base text-purple-100/90 leading-relaxed max-w-lg mb-6">
                   Una atmósfera diferente, diseños que enamoran y la magia de octubre en cada espacio. Descubre nuestro universo TERRA.
                 </p>
-                <div className="hal-countdown-wrap mb-6" role="status" aria-live="off">
-                  <div className="hal-countdown-heading">La noche de Halloween llega en</div>
+                <div className="hal-countdown-wrap p-4 rounded-2xl bg-black/40 border border-orange-500/25 backdrop-blur-md shadow-xl mb-6 max-w-md" role="status" aria-live="off">
+                  <div className="hal-countdown-heading text-[11px] font-extrabold uppercase tracking-widest text-orange-300/90 mb-3">La noche de Halloween llega en</div>
                   {!cuentaRegresiva.finalizado ? (
-                    <div className="hal-time-grid">
-                      <div className="hal-time-group"><span className="hal-time-number">{cuentaRegresiva.dd}</span><span className="hal-time-label">Días</span></div>
-                      <span className="hal-time-sep">:</span>
-                      <div className="hal-time-group"><span className="hal-time-number">{cuentaRegresiva.hh}</span><span className="hal-time-label">Horas</span></div>
-                      <span className="hal-time-sep">:</span>
-                      <div className="hal-time-group"><span className="hal-time-number">{cuentaRegresiva.mm}</span><span className="hal-time-label">Min</span></div>
-                      <span className="hal-time-sep">:</span>
-                      <div className="hal-time-group"><span className="hal-time-number">{cuentaRegresiva.ss}</span><span className="hal-time-label">Seg</span></div>
+                    <div className="hal-time-grid flex items-center justify-start gap-2 sm:gap-3">
+                      <div className="hal-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="hal-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.dd}</span>
+                        <span className="hal-time-label text-[10px] font-bold uppercase tracking-wider text-orange-200/70 mt-1">Días</span>
+                      </div>
+                      <span className="hal-time-sep text-xl font-bold text-orange-400 -mt-3 select-none">:</span>
+                      <div className="hal-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="hal-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.hh}</span>
+                        <span className="hal-time-label text-[10px] font-bold uppercase tracking-wider text-orange-200/70 mt-1">Horas</span>
+                      </div>
+                      <span className="hal-time-sep text-xl font-bold text-orange-400 -mt-3 select-none">:</span>
+                      <div className="hal-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="hal-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.mm}</span>
+                        <span className="hal-time-label text-[10px] font-bold uppercase tracking-wider text-orange-200/70 mt-1">Min</span>
+                      </div>
+                      <span className="hal-time-sep text-xl font-bold text-orange-400 -mt-3 select-none">:</span>
+                      <div className="hal-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="hal-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.ss}</span>
+                        <span className="hal-time-label text-[10px] font-bold uppercase tracking-wider text-orange-200/70 mt-1">Seg</span>
+                      </div>
                     </div>
                   ) : (
-                    <p className="hal-countdown-ended">¡Feliz Halloween! La celebración ya comenzó.</p>
+                    <p className="hal-countdown-ended text-sm font-bold text-orange-300">¡Feliz Halloween! La celebración ya comenzó.</p>
                   )}
                 </div>
               </div>
@@ -771,12 +795,6 @@ export default function InicioPage({
           </div>
         </div>
       </section>
-
-      {/* Interactive Terminal Footnote matching Reference */}
-      <div className="w-full text-center py-4 bg-surface-container text-on-surface-variant font-label-subtle text-label-subtle">
-        <p>TERRA AUTOSERVICIO · {sucursalActiva.nombre}, Santa Cruz de la Sierra</p>
-        <p className="text-[11px] opacity-80 mt-0.5">Terminal táctil optimizado para celular, tablet, kiosco físico y PC</p>
-      </div>
     </div>
   );
 }
