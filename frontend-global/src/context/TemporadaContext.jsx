@@ -29,14 +29,15 @@ export function obtenerFechaBolivia() {
   }
 }
 
-export function detectarTemporada({ month, day }) {
-  if (month === 10 && day >= CONFIG_TEMPORADAS.halloween.startDay && day <= CONFIG_TEMPORADAS.halloween.endDay) {
+export function detectarTemporada({ month, day } = {}) {
+  const fecha = month !== undefined ? { month, day } : obtenerFechaBolivia();
+  if (fecha.month === 10 && fecha.day >= CONFIG_TEMPORADAS.halloween.startDay && fecha.day <= CONFIG_TEMPORADAS.halloween.endDay) {
     return 'halloween';
   }
-  if (month >= 11 || (month === 1 && day <= CONFIG_TEMPORADAS.navidad.endDay)) {
+  if (fecha.month >= 11 || (fecha.month === 1 && fecha.day <= CONFIG_TEMPORADAS.navidad.endDay)) {
     return 'navidad';
   }
-  return 'normal';
+  return 'halloween';
 }
 
 function leerTemporadaInicial() {
@@ -45,7 +46,12 @@ function leerTemporadaInicial() {
   if (['halloween', 'navidad', 'normal'].includes(param)) {
     return param;
   }
-  return detectarTemporada(obtenerFechaBolivia());
+  const guardado = localStorage.getItem('terra_estilo_temporada');
+  if (['halloween', 'navidad', 'normal'].includes(guardado)) {
+    return guardado;
+  }
+  // Diseño principal por defecto: 'normal'
+  return 'normal';
 }
 
 export function TemporadaProvider({ children }) {
@@ -67,11 +73,13 @@ export function TemporadaProvider({ children }) {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     document.documentElement.dataset.terraSeason = temporada;
+    document.documentElement.classList.toggle('dark', temporada !== 'normal');
     document.body.classList.toggle('hal-active', temporada === 'halloween');
     document.body.classList.toggle('xmas-active', temporada === 'navidad');
     document.body.classList.toggle('season-standard', temporada === 'normal');
 
     return () => {
+      document.documentElement.classList.remove('dark');
       document.body.classList.remove('hal-active', 'xmas-active', 'season-standard');
     };
   }, [temporada]);
@@ -106,36 +114,27 @@ export function TemporadaProvider({ children }) {
     if (!['halloween', 'navidad', 'normal'].includes(nueva)) return;
     setTemporada(nueva);
     try {
+      localStorage.setItem('terra_estilo_temporada', nueva);
       const url = new URL(window.location.href);
       url.searchParams.set('tema', nueva);
       window.history.replaceState({}, '', url.toString());
     } catch {
-      /* sin soporte url */
+      /* ignore */
     }
   }, []);
 
   const alternarDiaNoche = useCallback(() => {
     setTemporada((prev) => {
-      if (prev === 'normal') {
-        const objetivo = festivoActual === 'normal' ? 'halloween' : festivoActual;
-        try {
-          const url = new URL(window.location.href);
-          url.searchParams.set('tema', objetivo);
-          window.history.replaceState({}, '', url.toString());
-        } catch {
-          /* sin soporte url */
-        }
-        return objetivo;
-      } else {
-        try {
-          const url = new URL(window.location.href);
-          url.searchParams.set('tema', 'normal');
-          window.history.replaceState({}, '', url.toString());
-        } catch {
-          /* sin soporte url */
-        }
-        return 'normal';
+      const objetivo = prev === 'normal' ? festivoActual : 'normal';
+      try {
+        localStorage.setItem('terra_estilo_temporada', objetivo);
+        const url = new URL(window.location.href);
+        url.searchParams.set('tema', objetivo);
+        window.history.replaceState({}, '', url.toString());
+      } catch {
+        /* ignore */
       }
+      return objetivo;
     });
   }, [festivoActual]);
 

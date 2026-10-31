@@ -358,26 +358,26 @@ export default function Header({
               </button>
             </div>
 
-            {/* THEME SWITCHER (MODO DÍA / HALLOWEEN) - VISIBLE ON ALL SCREENS */}
+            {/* THEME SWITCHER (MODO NORMAL / MODO NOCHE FESTIVO) */}
             <button
               type="button"
-              className={`h-8 sm:h-9 px-2 sm:px-3 rounded-full flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer font-label-interactive text-[11px] sm:text-[12px] font-semibold border shrink-0 ${
+              className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-full flex items-center gap-1.5 transition-all cursor-pointer font-label-interactive text-[11px] sm:text-[12px] font-semibold border shrink-0 ${
                 temporada === 'halloween'
-                  ? 'bg-purple-950/60 border-amber-500/50 text-amber-400 shadow-sm'
+                  ? 'bg-purple-950/70 border-amber-500/50 text-amber-300 shadow-sm hover:bg-purple-900/80'
                   : temporada === 'navidad'
-                  ? 'bg-emerald-950/60 border-amber-400/50 text-amber-300 shadow-sm'
-                  : 'bg-surface-container-lowest border-outline-variant/30 text-on-surface hover:bg-surface-container-high shadow-xs'
+                  ? 'bg-emerald-950/70 border-amber-400/50 text-amber-300 shadow-sm hover:bg-emerald-900/80'
+                  : 'bg-surface-container-lowest border-outline-variant/40 text-on-surface hover:bg-surface-container-high shadow-xs'
               }`}
               title={
                 temporada !== 'normal'
-                  ? `Modo Noche (${temporada === 'halloween' ? 'Halloween' : 'Festivo'}) activo. Clic para cambiar a Modo Día (Diseño normal).`
-                  : `Modo Día activo. Clic para activar Modo Noche (${festivoActual === 'halloween' ? 'Halloween' : 'Festivo'}).`
+                  ? `Modo Noche (${temporada === 'halloween' ? 'Halloween' : 'Festivo'}) activo. Clic para cambiar a Modo Normal.`
+                  : `Modo Normal activo. Clic para activar Modo Noche (${festivoActual === 'halloween' ? 'Halloween' : 'Festivo'}).`
               }
               onClick={onToggleModoOscuro}
               aria-label={
                 temporada !== 'normal'
-                  ? 'Cambiar a Modo Día normal'
-                  : 'Cambiar a Modo Noche festivo'
+                  ? 'Cambiar a Modo Normal'
+                  : 'Cambiar a Modo Noche'
               }
             >
               <span
@@ -400,7 +400,7 @@ export default function Header({
                   ? 'Halloween'
                   : temporada === 'navidad'
                   ? 'Navidad'
-                  : 'Modo Día'}
+                  : 'Modo Normal'}
               </span>
             </button>
 

@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "node --test --test-concurrency=1 \"test/**/*.test.js\"",
+    "test:baneco:crypto": "node --test test/banecoCrypto.test.js",
     "test:carga": "node scripts/test_carga.js",
     "start": "node server.js",
     "dev": "node --watch server.js"

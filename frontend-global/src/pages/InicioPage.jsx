@@ -53,7 +53,7 @@ export default function InicioPage({
   onVerDetalle,
   productosDestacados = [],
 }) {
-  const { esHalloween, esNavidad, esNormal, anioActual, cuentaRegresiva } = useTemporada();
+  const { esHalloween, esNavidad, anioActual, cuentaRegresiva } = useTemporada();
   const [slideIndex, setSlideIndex] = useState(0);
   const [filtroCategoria, setFiltroCategoria] = useState('todos');
 
@@ -178,10 +178,21 @@ export default function InicioPage({
       >
         {/* Halloween Atmosphere Sky */}
         {esHalloween && (
-          <div className="hal-hero-sky pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+          <div className="hal-hero-sky" aria-hidden="true" style={{ display: 'block', pointerEvents: 'none', zIndex: 0 }}>
             <div className="hal-stars" />
             <div className="hal-hero-moon" />
-            <div className="hal-hero-landscape">
+            <div
+              className="hal-hero-landscape"
+              style={{
+                pointerEvents: 'none',
+                position: 'absolute',
+                right: 0,
+                bottom: 0,
+                width: '42%',
+                height: '170px',
+                opacity: 0.28,
+              }}
+            >
               <svg viewBox="0 0 1000 270" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   fill="#090811"
@@ -200,10 +211,10 @@ export default function InicioPage({
 
         {/* Christmas Atmosphere Sky */}
         {esNavidad && (
-          <div className="xmas-hero-sky pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+          <div className="xmas-hero-sky" aria-hidden="true" style={{ display: 'block', pointerEvents: 'none', zIndex: 0 }}>
             <div className="xmas-hero-ring" />
             <div className="xmas-hero-star">✦</div>
-            <div className="xmas-hero-tree">
+            <div className="xmas-hero-tree" style={{ pointerEvents: 'none', opacity: 0.38 }}>
               <svg viewBox="0 0 700 330" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
                 <path d="M0 330v-60q90-40 180 0 40 25 75 0 80-35 160 8 150-45 285 0v52z" fill="#041f23" />
                 <path d="M140 300l65-98-27 0 52-72-23 0 58-77 57 77-24 0 53 72-28 0 64 98z" fill="#092d27" />
@@ -224,74 +235,101 @@ export default function InicioPage({
           </div>
         )}
 
-        {/* Atmospheric lighting blurs matching reference */}
+        {/* Atmospheric lighting blurs matching showroom ambience */}
         <div className="absolute -top-24 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/2 right-10 w-[500px] h-[500px] bg-tertiary-fixed-dim/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           {/* Left Copy Column */}
           <div className="lg:col-span-5 flex flex-col items-start z-10">
-            {esNavidad ? (
-              <>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-lowest shadow-sm mb-4 text-[#d14a53] font-bold text-xs">
-                  <span>🎄</span> NAVIDAD EN TERRA · {anioActual}
+            {/* Christmas Copy Block */}
+            {esNavidad && (
+              <div className="w-full">
+                <div className="xmas-season-tag inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-xs font-bold tracking-wider uppercase mb-4 shadow-sm backdrop-blur-sm">
+                  <i className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> NAVIDAD EN TERRA · {anioActual}
                 </div>
-                <div className="w-full">
-                  <h1 className="font-display-hero text-display-hero text-on-surface font-extrabold tracking-tight leading-none mb-4">
-                    Esta Navidad, <em className="italic text-[#d14a53] block not-italic">tu hogar brilla más.</em>
-                  </h1>
-                  <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-6 max-w-lg">
-                    Que cada rincón invite a compartir. Descubre muebles para reunir a quienes más quieres y crear momentos inolvidables.
-                  </p>
-                  <div className="p-4 rounded-2xl bg-surface-container-lowest shadow-sm mb-8" role="status" aria-live="off">
-                    <div className="text-xs uppercase font-bold tracking-wider text-on-surface-variant mb-2">La magia de Navidad llega en</div>
-                    {!cuentaRegresiva.finalizado ? (
-                      <div className="flex items-center gap-3 font-mono font-bold text-lg text-primary">
-                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.dd}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Días</span></div>
-                        <span>:</span>
-                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.hh}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Horas</span></div>
-                        <span>:</span>
-                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.mm}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Min</span></div>
-                        <span>:</span>
-                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.ss}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Seg</span></div>
+                <h1 className="xmas-season-title text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-4">
+                  Esta Navidad, <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-300 to-emerald-300">tu hogar brilla más.</span>
+                </h1>
+                <p className="xmas-season-description text-sm sm:text-base text-emerald-100/90 leading-relaxed max-w-lg mb-6">
+                  Que cada rincón invite a compartir. Descubre muebles para reunir a quienes más quieres y crear momentos inolvidables.
+                </p>
+                <div className="xmas-countdown-wrap p-4 rounded-2xl bg-black/40 border border-emerald-500/25 backdrop-blur-md shadow-xl mb-6 max-w-md" role="status" aria-live="off">
+                  <div className="xmas-countdown-heading text-[11px] font-extrabold uppercase tracking-widest text-amber-200/90 mb-3">La magia de Navidad llega en</div>
+                  {!cuentaRegresiva.finalizado ? (
+                    <div className="xmas-time-grid flex items-center justify-start gap-2 sm:gap-3">
+                      <div className="xmas-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="xmas-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.dd}</span>
+                        <span className="xmas-time-label text-[10px] font-bold uppercase tracking-wider text-emerald-200/70 mt-1">Días</span>
                       </div>
-                    ) : (
-                      <p className="text-sm text-primary font-semibold">¡Felices fiestas! Que la alegría llene tu hogar.</p>
-                    )}
-                  </div>
-                </div>
-              </>
-            ) : esHalloween ? (
-              <>
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-lowest shadow-sm mb-4 text-[#ff7518] font-bold text-xs">
-                  <span className="w-2 h-2 rounded-full bg-[#ff7518] animate-pulse" /> TEMPORADA DE HALLOWEEN · TERRA {anioActual}
-                </div>
-                <div className="w-full">
-                  <h1 className="font-display-hero text-display-hero text-on-surface font-extrabold tracking-tight leading-none mb-4">
-                    Este Halloween, <em className="italic text-[#ff7518] block not-italic">tu hogar se transforma.</em>
-                  </h1>
-                  <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-6 max-w-lg">
-                    Una atmósfera diferente, diseños que enamoran y la magia de octubre en cada espacio. Descubre nuestro universo TERRA.
-                  </p>
-                  <div className="p-4 rounded-2xl bg-surface-container-lowest shadow-sm mb-8" role="status" aria-live="off">
-                    <div className="text-xs uppercase font-bold tracking-wider text-on-surface-variant mb-2">La noche de Halloween llega en</div>
-                    {!cuentaRegresiva.finalizado ? (
-                      <div className="flex items-center gap-3 font-mono font-bold text-lg text-[#ff7518]">
-                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.dd}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Días</span></div>
-                        <span>:</span>
-                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.hh}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Horas</span></div>
-                        <span>:</span>
-                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.mm}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Min</span></div>
-                        <span>:</span>
-                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.ss}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Seg</span></div>
+                      <span className="xmas-time-sep text-xl font-bold text-amber-400 -mt-3 select-none">:</span>
+                      <div className="xmas-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="xmas-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.hh}</span>
+                        <span className="xmas-time-label text-[10px] font-bold uppercase tracking-wider text-emerald-200/70 mt-1">Horas</span>
                       </div>
-                    ) : (
-                      <p className="text-sm text-[#ff7518] font-semibold">¡Feliz Halloween! La celebración ya comenzó.</p>
-                    )}
-                  </div>
+                      <span className="xmas-time-sep text-xl font-bold text-amber-400 -mt-3 select-none">:</span>
+                      <div className="xmas-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="xmas-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.mm}</span>
+                        <span className="xmas-time-label text-[10px] font-bold uppercase tracking-wider text-emerald-200/70 mt-1">Min</span>
+                      </div>
+                      <span className="xmas-time-sep text-xl font-bold text-amber-400 -mt-3 select-none">:</span>
+                      <div className="xmas-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="xmas-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.ss}</span>
+                        <span className="xmas-time-label text-[10px] font-bold uppercase tracking-wider text-emerald-200/70 mt-1">Seg</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="xmas-countdown-ended text-sm font-bold text-amber-300">¡Felices fiestas! Que la alegría llene tu hogar.</p>
+                  )}
                 </div>
-              </>
-            ) : (
+              </div>
+            )}
+
+            {/* Halloween Copy Block */}
+            {esHalloween && (
+              <div className="w-full">
+                <div className="hal-season-tag inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-950/40 border border-orange-500/30 text-orange-200 text-xs font-bold tracking-wider uppercase mb-4 shadow-sm backdrop-blur-sm">
+                  <span className="hal-dot w-2 h-2 rounded-full bg-orange-500 animate-pulse" /> TEMPORADA DE HALLOWEEN · TERRA {anioActual}
+                </div>
+                <h1 className="hal-season-title text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-4">
+                  Este Halloween, <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-purple-400">tu hogar se transforma.</span>
+                </h1>
+                <p className="hal-season-description text-sm sm:text-base text-purple-100/90 leading-relaxed max-w-lg mb-6">
+                  Una atmósfera diferente, diseños que enamoran y la magia de octubre en cada espacio. Descubre nuestro universo TERRA.
+                </p>
+                <div className="hal-countdown-wrap p-4 rounded-2xl bg-black/40 border border-orange-500/25 backdrop-blur-md shadow-xl mb-6 max-w-md" role="status" aria-live="off">
+                  <div className="hal-countdown-heading text-[11px] font-extrabold uppercase tracking-widest text-orange-300/90 mb-3">La noche de Halloween llega en</div>
+                  {!cuentaRegresiva.finalizado ? (
+                    <div className="hal-time-grid flex items-center justify-start gap-2 sm:gap-3">
+                      <div className="hal-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="hal-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.dd}</span>
+                        <span className="hal-time-label text-[10px] font-bold uppercase tracking-wider text-orange-200/70 mt-1">Días</span>
+                      </div>
+                      <span className="hal-time-sep text-xl font-bold text-orange-400 -mt-3 select-none">:</span>
+                      <div className="hal-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="hal-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.hh}</span>
+                        <span className="hal-time-label text-[10px] font-bold uppercase tracking-wider text-orange-200/70 mt-1">Horas</span>
+                      </div>
+                      <span className="hal-time-sep text-xl font-bold text-orange-400 -mt-3 select-none">:</span>
+                      <div className="hal-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="hal-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.mm}</span>
+                        <span className="hal-time-label text-[10px] font-bold uppercase tracking-wider text-orange-200/70 mt-1">Min</span>
+                      </div>
+                      <span className="hal-time-sep text-xl font-bold text-orange-400 -mt-3 select-none">:</span>
+                      <div className="hal-time-group flex flex-col items-center justify-center min-w-[54px] sm:min-w-[64px] py-2 px-1 bg-white/5 border border-white/10 rounded-xl">
+                        <span className="hal-time-number text-2xl sm:text-3xl font-black text-white tabular-nums leading-none">{cuentaRegresiva.ss}</span>
+                        <span className="hal-time-label text-[10px] font-bold uppercase tracking-wider text-orange-200/70 mt-1">Seg</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="hal-countdown-ended text-sm font-bold text-orange-300">¡Feliz Halloween! La celebración ya comenzó.</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Standard Terra Copy (Only when Normal Mode) */}
+            {!esHalloween && !esNavidad && (
               <>
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-lowest shadow-sm mb-6">
                   <span className="material-symbols-outlined text-primary text-[16px]">chair</span>
@@ -334,7 +372,7 @@ export default function InicioPage({
                 onClick={() => document.getElementById('sucursales-section')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 <span className="material-symbols-outlined text-primary text-[20px]">store</span>
-                <span>Ver Salas SCZ</span>
+                <span>Ver 5 Salas SCZ</span>
               </button>
             </div>
 
@@ -349,14 +387,26 @@ export default function InicioPage({
 
           {/* Right Interactive Showcase Card */}
           <div className="lg:col-span-7 relative z-10">
-            {/* Christmas & Halloween Feature Stickers */}
             {esNavidad && (
-              <div className="pointer-events-none absolute -top-6 -right-6 z-20 text-4xl select-none" aria-hidden="true">
+              <div className="xmas-sticker" aria-hidden="true">
                 🎁
               </div>
             )}
             {esHalloween && (
-              <div className="pointer-events-none absolute -top-8 -right-6 z-20 w-20 h-20 select-none drop-shadow-lg" aria-hidden="true">
+              <div
+                className="hal-feature-sticker"
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  right: '2%',
+                  top: '4%',
+                  width: '76px',
+                  height: '76px',
+                  pointerEvents: 'none',
+                  zIndex: 20,
+                  filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))',
+                }}
+              >
                 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <defs>
                     <linearGradient id="pumpkinFill" x1="0" y1="0" x2="1" y2="1">
@@ -384,7 +434,8 @@ export default function InicioPage({
                 </svg>
               </div>
             )}
-<div className="relative bg-surface-container-lowest rounded-3xl p-4 sm:p-6 shadow-xl transition-all">
+
+            <div className="relative bg-surface-container-lowest rounded-3xl p-4 sm:p-6 shadow-xl transition-all">
               <div className="relative w-full aspect-[5/4] sm:aspect-[16/10] lg:aspect-[16/9] rounded-2xl overflow-hidden bg-surface-container">
                 <img
                   key={slideActivo.src}
@@ -496,7 +547,7 @@ export default function InicioPage({
                 RED METROPOLITANA SANTA CRUZ
               </span>
               <h2 className="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight">
-                Nuestras 3 Sucursales &amp; Puntos de Retiro
+                Nuestras 5 Salas &amp; Puntos de Retiro
               </h2>
               <p className="font-body-md text-body-md text-on-surface-variant mt-1">
                 Verifica existencias en vivo, programa retiro sin costo o solicita asesoría personalizada en el salón.

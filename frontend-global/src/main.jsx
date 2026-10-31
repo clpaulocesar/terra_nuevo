@@ -106,8 +106,28 @@ function AppGlobalContent() {
     const controlador = new AbortController();
 
     listarProductosDestacados(controlador.signal)
-      .then(setProductosDestacados)
-      .catch(() => { });
+      .then((prods) => {
+        if (Array.isArray(prods) && prods.length > 0) {
+          setProductosDestacados(prods);
+        } else {
+          listarProductos({ limite: 24, signal: controlador.signal })
+            .then((res) => {
+              if (Array.isArray(res?.productos) && res.productos.length > 0) {
+                setProductosDestacados(res.productos);
+              }
+            })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {
+        listarProductos({ limite: 24, signal: controlador.signal })
+          .then((res) => {
+            if (Array.isArray(res?.productos) && res.productos.length > 0) {
+              setProductosDestacados(res.productos);
+            }
+          })
+          .catch(() => {});
+      });
 
     obtenerCategorias(controlador.signal)
       .then((categorias) => {

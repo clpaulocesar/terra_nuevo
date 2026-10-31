@@ -28,6 +28,14 @@ Lo que bloquea o condiciona el trabajo y depende de otra persona o equipo. Cuand
 - Que la cotización valida stock contra ALMACEN CENTRAL ([[2026-10-28-stock-solo-almacen-central]]).
 - Si la cotización reserva stock en el ERP o solo al facturar ([[2026-10-28-cotizacion-al-cobrar]]).
 
+## Banco Económico (Baneco)
+
+### QR dinámico
+- **Situación**: se recibió el manual API Market v1.3.0; se prepararon configuración/validación sandbox y rutas backend que responden `501`. No hay llamadas a Baneco y el QR estático se retiró.
+- **Qué falta confirmar para implementar**: URL y credenciales del sandbox, llave AES, cuenta de abono, encabezado del token, modo/formato de cifrado, vigencia de token/QR y si se habilitará el callback.
+- **Seguridad**: valores sensibles solo en `backend/.env`; nunca compartirlos por chat, añadirlos al frontend ni versionarlos.
+- Ver [[qr-baneco]] · [[2026-10-30-preparacion-qr-dinamico-baneco]].
+
 ## Oscar (infraestructura)
 
 ### TLS en PostgreSQL
