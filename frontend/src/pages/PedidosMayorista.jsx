@@ -21,15 +21,38 @@ import { listarMisPedidosMayorista, obtenerMiPedidoMayorista } from '../services
 import { WHATSAPP_COMPROBANTES } from '../services/api.js';
 import { formatoMoneda } from '../utils/formatoMoneda.js';
 import { descargarTicket } from '../utils/descargarTicket.js';
-import './PedidosMayorista.css';
 
 const ESTADOS_ESTILOS = {
-  out_for_delivery: { label: 'En tránsito', pillClass: 'status-pill-clean--blue', activeStep: 3 },
-  preparing: { label: 'En preparación', pillClass: 'status-pill-clean--slate', activeStep: 3 },
-  completed: { label: 'Entregado', pillClass: 'status-pill-clean--green', activeStep: 4 },
-  pending: { label: 'Pendiente pago', pillClass: 'status-pill-clean--amber', activeStep: 1 },
-  confirmed: { label: 'Cobrado', pillClass: 'status-pill-clean--slate', activeStep: 2 },
-  cancelled: { label: 'Cancelado', pillClass: 'status-pill-clean--rose', activeStep: 0 },
+  out_for_delivery: {
+    label: 'En tránsito',
+    badgeClase: 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border-sky-200 dark:border-sky-800/60',
+    activeStep: 3,
+  },
+  preparing: {
+    label: 'En preparación',
+    badgeClase: 'bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+    activeStep: 3,
+  },
+  completed: {
+    label: 'Entregado',
+    badgeClase: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60',
+    activeStep: 4,
+  },
+  pending: {
+    label: 'Pendiente pago',
+    badgeClase: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800/60',
+    activeStep: 1,
+  },
+  confirmed: {
+    label: 'Cobrado',
+    badgeClase: 'bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+    activeStep: 2,
+  },
+  cancelled: {
+    label: 'Cancelado',
+    badgeClase: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border-rose-200 dark:border-rose-800/60',
+    activeStep: 0,
+  },
 };
 
 function calcularUnidades(itemsTexto = '') {
@@ -67,42 +90,55 @@ export default function PedidosMayorista() {
       .then((res) => {
         const lista = Array.isArray(res) ? res : [];
         const adaptados = lista.map((p, idx) => {
-            const estadoKey = p.estado || 'pending';
-            const estadoConfig = ESTADOS_ESTILOS[estadoKey] || { label: p.estado, pillClass: 'status-pill-clean--slate', activeStep: 1 };
-            const fechaObj = new Date(p.fecha || Date.now());
-            return {
-              id: p.id || `p-${idx}`,
-              codigo: p.codigo || `#TR-${String(p.id).slice(-4)}`,
-              factura: 'Factura pendiente de emisión',
-              facturaCompleta: 'Factura pendiente de emisión',
-              fecha: p.fecha || new Date().toISOString(),
-              fechaTexto: fechaObj.toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' }),
-              horaTexto: fechaObj.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }),
-              itemsResumen: p.items || 'Detalle no especificado',
-              totalUnidades: calcularUnidades(p.items),
-              total: Number(p.total || 0),
-              metodoPago: p.metodo_pago ? p.metodo_pago.slice(0, 15) : 'Crédito 30d',
-              metodoPagoCompleto: p.metodo_pago || 'Línea de Crédito 30 días (Aprobado)',
-              estado: estadoKey,
-              estadoTexto: estadoConfig.label,
-              llegadaEstimada: estadoKey === 'completed' ? 'Entregado conforme' : 'En proceso de despacho',
-              lugarEntrega: p.direccion_entrega || 'Retiro en tienda / coordinar en caja',
-              direccion_entrega: p.direccion_entrega || '',
-              referencia_entrega: p.referencia_entrega || '',
-              chofer: 'Pendiente de asignación',
-              asesor: 'Consulta con un asesor TERRA',
-              itemsDetalle: [
-                {
-                  id: `linea-${idx}`,
-                  nombre: p.items || 'Lote de productos B2B',
-                  detalle: 'Medidas comerciales de catálogo mayorista',
-                  cantidad: calcularUnidades(p.items),
-                  precioUnitario: Math.round(Number(p.total || 0) / Math.max(1, calcularUnidades(p.items))),
-                  subtotal: Number(p.total || 0),
-                  descuento: null,
-                },
-              ],
-            };
+          const estadoKey = p.estado || 'pending';
+          const estadoConfig = ESTADOS_ESTILOS[estadoKey] || {
+            label: p.estado,
+            badgeClase: 'bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 border-slate-300 dark:border-slate-700',
+            activeStep: 1,
+          };
+          const fechaObj = new Date(p.fecha || Date.now());
+          return {
+            id: p.id || `p-${idx}`,
+            codigo: p.codigo || `#TR-${String(p.id).slice(-4)}`,
+            factura: 'Factura pendiente de emisión',
+            facturaCompleta: 'Factura pendiente de emisión',
+            fecha: p.fecha || new Date().toISOString(),
+            fechaTexto: fechaObj.toLocaleDateString('es-BO', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            }),
+            horaTexto: fechaObj.toLocaleTimeString('es-BO', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            itemsResumen: p.items || 'Detalle no especificado',
+            totalUnidades: calcularUnidades(p.items),
+            total: Number(p.total || 0),
+            metodoPago: p.metodo_pago ? p.metodo_pago.slice(0, 15) : 'Crédito 30d',
+            metodoPagoCompleto: p.metodo_pago || 'Línea de Crédito 30 días (Aprobado)',
+            estado: estadoKey,
+            estadoTexto: estadoConfig.label,
+            badgeClase: estadoConfig.badgeClase,
+            llegadaEstimada:
+              estadoKey === 'completed' ? 'Entregado conforme' : 'En proceso de despacho',
+            lugarEntrega: p.direccion_entrega || 'Retiro en tienda / coordinar en caja',
+            direccion_entrega: p.direccion_entrega || '',
+            referencia_entrega: p.referencia_entrega || '',
+            chofer: 'Pendiente de asignación',
+            asesor: 'Consulta con un asesor TERRA',
+            itemsDetalle: [
+              {
+                id: `linea-${idx}`,
+                nombre: p.items || 'Lote de productos B2B',
+                detalle: 'Medidas comerciales de catálogo mayorista',
+                cantidad: calcularUnidades(p.items),
+                precioUnitario: Math.round(Number(p.total || 0) / Math.max(1, calcularUnidades(p.items))),
+                subtotal: Number(p.total || 0),
+                descuento: null,
+              },
+            ],
+          };
         });
         setPedidos(adaptados);
         setPedidoActivoId(adaptados[0]?.id || null);
@@ -143,7 +179,9 @@ export default function PedidosMayorista() {
         }
       })
       .catch(() => {});
-    return () => { vigente = false; };
+    return () => {
+      vigente = false;
+    };
   }, [pedidoActivoId, sesion?.token]);
 
   // Filtrado reactivo
@@ -187,9 +225,11 @@ export default function PedidosMayorista() {
     const activos = pedidos.filter((pedido) => !['completed', 'cancelled'].includes(pedido.estado));
     const entregadosMes = pedidos.filter((pedido) => {
       const fecha = new Date(pedido.fecha);
-      return pedido.estado === 'completed'
-        && fecha.getMonth() === ahora.getMonth()
-        && fecha.getFullYear() === ahora.getFullYear();
+      return (
+        pedido.estado === 'completed' &&
+        fecha.getMonth() === ahora.getMonth() &&
+        fecha.getFullYear() === ahora.getFullYear()
+      );
     });
     const inversionAnual = pedidos
       .filter((pedido) => new Date(pedido.fecha).getFullYear() === ahora.getFullYear() && pedido.estado !== 'cancelled')
@@ -271,77 +311,99 @@ export default function PedidosMayorista() {
   if (!esMayorista) return <Navigate to="/catalogo" replace />;
 
   return (
-    <div className="wholesale-orders-dashboard" data-purpose="wholesale-orders-dashboard">
-      {/* ====================================================================
-          1. PAGE HEADER
-          ==================================================================== */}
-      <section className="orders-page-header" data-purpose="orders-header">
-        <div className="orders-page-header__left">
-          <div className="orders-page-header__title-row">
-            <h1>Mis pedidos</h1>
-            <span className="orders-account-badge">
-              <CheckCircle2 size={14} style={{ color: '#059669' }} />
+    <div className="w-full max-w-[1580px] mx-auto flex flex-col gap-6 font-terra text-terra-texto pb-14">
+      {/* 1. Header de Página */}
+      <section className="p-5 sm:p-6 rounded-terra-tarjeta bg-terra-superficie border border-terra-borde shadow-terra-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-terra-texto tracking-tight m-0">
+              Mis pedidos
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-terra-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+              <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400" />
               {sesion?.nombre || 'Cliente mayorista'} • NIT: {sesion?.nit || 'Sin NIT'}
             </span>
           </div>
-          <p className="orders-page-header__desc">
+          <p className="text-terra-xs sm:text-terra-sm text-terra-texto-suave m-0">
             Gestión de pedidos mayoristas directos de fábrica y estado de despachos.
           </p>
         </div>
-        <div className="orders-page-header__actions">
-          <button type="button" className="btn-export-excel" onClick={handleExportarExcel}>
-            <FileSpreadsheet size={15} />
+
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-terra-boton border border-terra-borde bg-terra-control hover:bg-terra-control-hover text-terra-texto text-terra-xs font-bold transition-colors cursor-pointer"
+            onClick={handleExportarExcel}
+          >
+            <FileSpreadsheet size={16} />
             Exportar Excel
           </button>
-          <Link to="/catalogo" className="btn-new-order">
-            <Plus size={15} />
+          <Link
+            to="/catalogo"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-terra-boton bg-terra-primario hover:bg-terra-primario-oscuro text-white text-terra-xs font-bold transition-colors shadow-terra-sm"
+          >
+            <Plus size={16} />
             Nueva compra / Catálogo
           </Link>
         </div>
       </section>
 
-      {/* ====================================================================
-          2. KPI SECTION (3 COLUMNAS CON DIVISORES)
-          ==================================================================== */}
-      <section className="orders-kpi-bar" data-purpose="b2b-kpis">
+      {/* 2. Sección de KPIs */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-3.5 p-4 sm:p-5 rounded-terra-tarjeta bg-terra-superficie border border-terra-borde shadow-terra-sm divide-y md:divide-y-0 md:divide-x divide-terra-borde">
         {/* KPI 1: Activos en curso */}
-        <div className="orders-kpi-col">
-          <div className="kpi-icon-square kpi-icon-square--blue">
+        <div className="flex items-center gap-3.5 pt-3 md:pt-0 md:px-3.5 first:pt-0 first:px-0">
+          <div className="size-11 rounded-terra-campo bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/60 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0">
             <Truck size={20} />
           </div>
-          <div className="kpi-meta-wrap">
-            <span className="kpi-title-tiny">Activos en curso</span>
-            <div className="kpi-values-row">
-              <span className="kpi-number-bold">{indicadores.activos.length} pedidos</span>
-              <span className="kpi-pill-badge kpi-pill-badge--blue">{indicadores.enCamino} en camino · {indicadores.enPlanta} en gestión</span>
+          <div className="flex flex-col">
+            <span className="text-terra-3xs text-terra-texto-suave font-bold uppercase tracking-wider">
+              Activos en curso
+            </span>
+            <div className="flex flex-wrap items-center gap-2 mt-0.5">
+              <span className="text-lg font-black text-terra-texto">
+                {indicadores.activos.length} pedidos
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-terra-3xs font-extrabold bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60">
+                {indicadores.enCamino} en camino · {indicadores.enPlanta} en gestión
+              </span>
             </div>
           </div>
         </div>
 
         {/* KPI 2: Entregados este mes */}
-        <div className="orders-kpi-col">
-          <div className="kpi-icon-square kpi-icon-square--green">
+        <div className="flex items-center gap-3.5 pt-3 md:pt-0 md:px-3.5 first:pt-0 first:px-0">
+          <div className="size-11 rounded-terra-campo bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0">
             <CheckCircle2 size={20} />
           </div>
-          <div className="kpi-meta-wrap">
-            <span className="kpi-title-tiny">Entregados este mes</span>
-            <div className="kpi-values-row">
-              <span className="kpi-number-bold" style={{ color: '#065f46' }}>{indicadores.entregadosMes} pedidos</span>
-              <span className="kpi-pill-badge kpi-pill-badge--gray">Datos de tu cuenta</span>
+          <div className="flex flex-col">
+            <span className="text-terra-3xs text-terra-texto-suave font-bold uppercase tracking-wider">
+              Entregados este mes
+            </span>
+            <div className="flex flex-wrap items-center gap-2 mt-0.5">
+              <span className="text-lg font-black text-emerald-700 dark:text-emerald-300">
+                {indicadores.entregadosMes} pedidos
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-terra-3xs font-bold bg-terra-control text-terra-texto border border-terra-borde">
+                Datos de tu cuenta
+              </span>
             </div>
           </div>
         </div>
 
-        {/* KPI 3: Inversión acumulada 2025 */}
-        <div className="orders-kpi-col">
-          <div className="kpi-icon-square kpi-icon-square--amber">
+        {/* KPI 3: Inversión acumulada */}
+        <div className="flex items-center gap-3.5 pt-3 md:pt-0 md:px-3.5 first:pt-0 first:px-0">
+          <div className="size-11 rounded-terra-campo bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
             <Coins size={20} />
           </div>
-          <div className="kpi-meta-wrap">
-            <span className="kpi-title-tiny">Inversión acumulada {new Date().getFullYear()}</span>
-            <div className="kpi-values-row">
-              <span className="kpi-number-bold">{formatoMoneda(indicadores.inversionAnual)}</span>
-              <span className="kpi-pill-badge kpi-pill-badge--green" style={{ backgroundColor: '#ecfdf5', fontWeight: 700 }}>
+          <div className="flex flex-col">
+            <span className="text-terra-3xs text-terra-texto-suave font-bold uppercase tracking-wider">
+              Inversión acumulada {new Date().getFullYear()}
+            </span>
+            <div className="flex flex-wrap items-center gap-2 mt-0.5">
+              <span className="text-lg font-black text-terra-texto">
+                {formatoMoneda(indicadores.inversionAnual)}
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-terra-3xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                 Total de pedidos
               </span>
             </div>
@@ -350,21 +412,20 @@ export default function PedidosMayorista() {
       </section>
 
       {errorCarga && (
-        <div className="orders-load-error" role="alert">
+        <div
+          role="alert"
+          className="p-3.5 rounded-terra-campo bg-rose-50 text-rose-800 dark:bg-rose-950/40 dark:text-rose-200 border border-rose-200 dark:border-rose-800/60 text-terra-xs font-semibold"
+        >
           {errorCarga}
         </div>
       )}
 
-      {/* ====================================================================
-          3. BARRA DE FILTROS RÁPIDOS
-          ==================================================================== */}
-      <section className="orders-filter-container" data-purpose="advanced-order-filters">
-        <div className="orders-search-input-wrap">
-          <span className="orders-search-icon">
-            <Search size={15} />
-          </span>
+      {/* 3. Barra de Filtros */}
+      <section className="p-4 rounded-terra-tarjeta bg-terra-superficie border border-terra-borde shadow-terra-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="relative flex-1 max-w-md flex items-center">
+          <Search size={16} className="absolute left-3 text-terra-texto-suave pointer-events-none" />
           <input
-            className="orders-search-field"
+            className="w-full min-h-[2.5rem] pl-9 pr-3 rounded-terra-campo bg-terra-superficie-2 border border-terra-borde text-terra-texto text-terra-xs placeholder:text-terra-texto-suave outline-none focus:border-terra-primario focus:ring-2 focus:ring-terra-primario/15 transition-all"
             type="text"
             placeholder="Buscar por Nº de pedido (#TR-9821) o factura..."
             aria-label="Buscar pedido por número o factura"
@@ -376,11 +437,15 @@ export default function PedidosMayorista() {
           />
         </div>
 
-        <div className="orders-filter-pills-row">
-          <div className="segmented-pill-box">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="inline-flex items-center p-1 rounded-terra-campo bg-terra-control border border-terra-borde gap-1">
             <button
               type="button"
-              className={`segmented-tab-btn ${segmentoActivo === 'todos' ? 'is-active' : ''}`}
+              className={`px-3 py-1 rounded-terra-chico text-terra-xs font-bold transition-colors cursor-pointer ${
+                segmentoActivo === 'todos'
+                  ? 'bg-terra-superficie text-terra-texto shadow-terra-sm'
+                  : 'text-terra-texto-suave hover:text-terra-texto'
+              }`}
               onClick={() => {
                 setSegmentoActivo('todos');
                 setPaginaActual(1);
@@ -390,7 +455,11 @@ export default function PedidosMayorista() {
             </button>
             <button
               type="button"
-              className={`segmented-tab-btn ${segmentoActivo === 'en_camino' ? 'is-active' : ''}`}
+              className={`px-3 py-1 rounded-terra-chico text-terra-xs font-bold transition-colors cursor-pointer ${
+                segmentoActivo === 'en_camino'
+                  ? 'bg-terra-superficie text-terra-texto shadow-terra-sm'
+                  : 'text-terra-texto-suave hover:text-terra-texto'
+              }`}
               onClick={() => {
                 setSegmentoActivo('en_camino');
                 setPaginaActual(1);
@@ -400,7 +469,11 @@ export default function PedidosMayorista() {
             </button>
             <button
               type="button"
-              className={`segmented-tab-btn ${segmentoActivo === 'completados' ? 'is-active' : ''}`}
+              className={`px-3 py-1 rounded-terra-chico text-terra-xs font-bold transition-colors cursor-pointer ${
+                segmentoActivo === 'completados'
+                  ? 'bg-terra-superficie text-terra-texto shadow-terra-sm'
+                  : 'text-terra-texto-suave hover:text-terra-texto'
+              }`}
               onClick={() => {
                 setSegmentoActivo('completados');
                 setPaginaActual(1);
@@ -412,7 +485,7 @@ export default function PedidosMayorista() {
 
           <button
             type="button"
-            className="btn-filter-clear"
+            className="px-3 py-1.5 text-terra-xs font-bold text-terra-texto-suave hover:text-terra-primario transition-colors cursor-pointer"
             onClick={() => {
               setBusqueda('');
               setSegmentoActivo('todos');
@@ -424,95 +497,107 @@ export default function PedidosMayorista() {
         </div>
       </section>
 
-      {/* ====================================================================
-          4. MASTER-DETAIL GRID
-          ==================================================================== */}
-      <div className="orders-master-detail-grid" data-purpose="master-detail-view">
-        {/* SUBSECCIÓN A: TABLA HISTÓRICA DE PEDIDOS (7 Cols en XL) */}
-        <div className="orders-table-wrapper">
-          <div className="orders-table-bar-top">
-            <div className="orders-table-title-left">
-              <strong>Histórico de Pedidos</strong>
-              <span className="orders-table-counter">{pedidosFiltrados.length} registros</span>
+      {/* 4. Master-Detail Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Subsección A: Tabla Histórica de Pedidos (7 Cols en LG) */}
+        <div className="lg:col-span-7 rounded-terra-tarjeta bg-terra-superficie border border-terra-borde shadow-terra-sm overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-terra-borde bg-terra-superficie-2">
+            <div className="flex items-center gap-2">
+              <strong className="text-terra-xs font-bold text-terra-texto">Histórico de Pedidos</strong>
+              <span className="px-2 py-0.5 rounded-full text-terra-3xs font-extrabold bg-terra-control text-terra-texto border border-terra-borde">
+                {pedidosFiltrados.length} registros
+              </span>
             </div>
-            <span className="orders-table-sort-label">Orden: Recientes</span>
+            <span className="text-terra-3xs text-terra-texto-suave font-medium">Orden: Recientes</span>
           </div>
 
-          <div className="orders-scrollable-area">
-            <table className="orders-data-table" id="orders-master-table">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-terra-xs border-collapse">
               <thead>
-                <tr>
-                  <th style={{ paddingLeft: '1.25rem' }}>Pedido / Estado</th>
-                  <th>Fecha</th>
-                  <th>Productos</th>
-                  <th>Total</th>
-                  <th style={{ textAlign: 'right', paddingRight: '1.25rem' }}>Acción</th>
+                <tr className="border-b border-terra-borde bg-terra-superficie-2 text-terra-texto-suave font-extrabold uppercase tracking-wider text-terra-3xs">
+                  <th className="p-3 pl-4">Pedido / Estado</th>
+                  <th className="p-3">Fecha</th>
+                  <th className="p-3">Productos</th>
+                  <th className="p-3">Total</th>
+                  <th className="p-3 pr-4 text-right">Acción</th>
                 </tr>
               </thead>
               <tbody>
                 {cargando ? (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', padding: '2.5rem', color: '#6b7280' }}>
+                    <td colSpan={5} className="text-center p-8 text-terra-texto-suave">
                       Cargando pedidos mayoristas...
                     </td>
                   </tr>
                 ) : pedidosPaginados.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', padding: '2.5rem', color: '#6b7280' }}>
+                    <td colSpan={5} className="text-center p-8 text-terra-texto-suave">
                       No se encontraron pedidos con el criterio de búsqueda.
                     </td>
                   </tr>
                 ) : (
                   pedidosPaginados.map((pedido) => {
                     const esSeleccionado = pedido.id === pedidoActivo?.id;
-                    const estadoConfig = ESTADOS_ESTILOS[pedido.estado] || {
-                      label: pedido.estadoTexto || pedido.estado,
-                      pillClass: 'status-pill-clean--slate',
-                    };
 
                     return (
                       <tr
                         key={pedido.id}
-                        className={esSeleccionado ? 'is-selected' : ''}
+                        className={`border-b border-terra-borde transition-colors cursor-pointer ${
+                          esSeleccionado
+                            ? 'bg-terra-primario-suave/40 dark:bg-terra-primario-suave'
+                            : 'hover:bg-terra-control/50'
+                        }`}
                         onClick={() => setPedidoActivoId(pedido.id)}
                       >
-                        <td style={{ paddingLeft: '1.25rem' }}>
-                          <div className="cell-order-code">
-                            <strong className={esSeleccionado ? 'cell-order-code--wine' : 'cell-order-code--dark'}>
+                        <td className="p-3 pl-4">
+                          <div className="flex items-center gap-2">
+                            <strong
+                              className={`font-mono font-bold ${
+                                esSeleccionado
+                                  ? 'text-terra-primario dark:text-terra-acento'
+                                  : 'text-terra-texto'
+                              }`}
+                            >
                               {pedido.codigo}
                             </strong>
-                            <span className={`status-pill-clean ${estadoConfig.pillClass}`}>
-                              {estadoConfig.label}
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-terra-3xs font-extrabold border ${pedido.badgeClase}`}
+                            >
+                              {pedido.estadoTexto}
                             </span>
                           </div>
-                          <div className="cell-subtext-gray">Factura: {pedido.factura}</div>
+                          <div className="text-terra-3xs text-terra-texto-suave mt-0.5">
+                            Factura: {pedido.factura}
+                          </div>
                         </td>
-                        <td>
-                          <div className="cell-date-bold">{pedido.fechaTexto}</div>
-                          <div className="cell-subtext-gray">{pedido.horaTexto}</div>
+                        <td className="p-3">
+                          <div className="font-bold text-terra-texto">{pedido.fechaTexto}</div>
+                          <div className="text-terra-3xs text-terra-texto-suave">{pedido.horaTexto}</div>
                         </td>
-                        <td>
-                          <div className="cell-items-text">{pedido.itemsResumen}</div>
-                          <div className="cell-subtext-gray">{pedido.totalUnidades} unid. en total</div>
+                        <td className="p-3">
+                          <div className="font-semibold text-terra-texto truncate max-w-[180px]">
+                            {pedido.itemsResumen}
+                          </div>
+                          <div className="text-terra-3xs text-terra-texto-suave">
+                            {pedido.totalUnidades} unid. en total
+                          </div>
                         </td>
-                        <td>
-                          <div className="cell-total-bold">{formatoMoneda(pedido.total)}</div>
-                          <div
-                            className={`cell-payment-cond ${
-                              pedido.metodoPago.toLowerCase().includes('crédito')
-                                ? 'cell-payment-cond--green'
-                                : pedido.metodoPago.toLowerCase().includes('pendiente')
-                                ? 'cell-payment-cond--amber'
-                                : ''
-                            }`}
-                          >
+                        <td className="p-3">
+                          <div className="font-extrabold text-terra-primario dark:text-terra-acento">
+                            {formatoMoneda(pedido.total)}
+                          </div>
+                          <div className="text-terra-3xs font-medium text-terra-texto-suave">
                             {pedido.metodoPago}
                           </div>
                         </td>
-                        <td style={{ textAlign: 'right', paddingRight: '1.25rem' }}>
+                        <td className="p-3 pr-4 text-right">
                           <button
                             type="button"
-                            className={esSeleccionado ? 'btn-table-action-primary' : 'btn-table-action-secondary'}
+                            className={`px-3 py-1.5 rounded-terra-boton text-terra-xs font-bold transition-colors cursor-pointer ${
+                              esSeleccionado
+                                ? 'bg-terra-primario text-white shadow-terra-sm'
+                                : 'bg-terra-control hover:bg-terra-control-hover text-terra-texto border border-terra-borde'
+                            }`}
                             onClick={(e) => {
                               e.stopPropagation();
                               setPedidoActivoId(pedido.id);
@@ -529,16 +614,16 @@ export default function PedidosMayorista() {
             </table>
           </div>
 
-          {/* Footer de Paginación */}
-          <div className="orders-table-pagination">
+          {/* Paginador */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 border-t border-terra-borde bg-terra-superficie-2 text-terra-xs text-terra-texto-suave">
             <span>
               Mostrando {pedidosFiltrados.length === 0 ? 0 : (paginaActual - 1) * LIMITE_PAGINA + 1}-
-              {Math.min(paginaActual * LIMITE_PAGINA, pedidosFiltrados.length)} de {pedidosFiltrados.length} pedidos recientes
+              {Math.min(paginaActual * LIMITE_PAGINA, pedidosFiltrados.length)} de {pedidosFiltrados.length} pedidos
             </span>
-            <div className="pagination-controls-box">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                className="pagination-btn-base"
+                className="px-3 py-1 rounded-terra-chico border border-terra-borde bg-terra-superficie hover:bg-terra-control text-terra-texto text-terra-xs font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 disabled={paginaActual <= 1}
                 onClick={() => setPaginaActual((p) => Math.max(1, p - 1))}
               >
@@ -548,7 +633,11 @@ export default function PedidosMayorista() {
                 <button
                   key={num}
                   type="button"
-                  className={`pagination-btn-base ${paginaActual === num ? 'is-active' : ''}`}
+                  className={`w-7 h-7 rounded-terra-chico text-terra-xs font-bold transition-colors cursor-pointer ${
+                    paginaActual === num
+                      ? 'bg-terra-primario text-white'
+                      : 'border border-terra-borde bg-terra-superficie hover:bg-terra-control text-terra-texto'
+                  }`}
                   onClick={() => setPaginaActual(num)}
                 >
                   {num}
@@ -556,7 +645,7 @@ export default function PedidosMayorista() {
               ))}
               <button
                 type="button"
-                className="pagination-btn-base"
+                className="px-3 py-1 rounded-terra-chico border border-terra-borde bg-terra-superficie hover:bg-terra-control text-terra-texto text-terra-xs font-bold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 disabled={paginaActual >= totalPaginas}
                 onClick={() => setPaginaActual((p) => Math.min(totalPaginas, p + 1))}
               >
@@ -566,93 +655,119 @@ export default function PedidosMayorista() {
           </div>
         </div>
 
-        {/* SUBSECCIÓN B: PANEL DE DETALLE PROFUNDO (5 Cols en XL) */}
-        <aside className="order-detail-panel-card" data-purpose="order-detail-card">
+        {/* Subsección B: Panel de Detalle (5 Cols en LG) */}
+        <aside className="lg:col-span-5 rounded-terra-tarjeta bg-terra-superficie border border-terra-borde shadow-terra-sm overflow-hidden sticky top-4 flex flex-col gap-4">
           {pedidoActivo ? (
             <>
               {/* Cabecera del Detalle */}
-              <div className="detail-panel-head">
-                <div className="detail-head-top-flex">
+              <div className="p-5 border-b border-terra-borde bg-terra-superficie-2 flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="detail-head-code-row">
-                      <span className="detail-head-tag">Detalle del Pedido</span>
-                      <span className="detail-head-number">{pedidoActivo.codigo}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-terra-3xs font-extrabold uppercase tracking-wider text-terra-primario dark:text-terra-acento">
+                        Detalle del Pedido
+                      </span>
+                      <span className="text-terra-sm font-mono font-bold text-terra-texto">
+                        {pedidoActivo.codigo}
+                      </span>
                     </div>
-                    <p className="detail-head-date">
+                    <p className="text-terra-xs text-terra-texto-suave m-0 mt-0.5">
                       {pedidoActivo.fechaTexto} • Factura {pedidoActivo.facturaCompleta || pedidoActivo.factura}
                     </p>
                   </div>
-                  <div className="detail-head-status-box">
-                    <span className="status-badge-pulse-wrap">
-                      <span className="status-pulse-dot" />
+                  <div className="flex flex-col items-end gap-1">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-terra-3xs font-extrabold border ${pedidoActivo.badgeClase}`}
+                    >
+                      <span className="size-1.5 rounded-full bg-current animate-pulse" />
                       {pedidoActivo.estadoTexto}
                     </span>
-                    <div className="detail-head-eta">{pedidoActivo.llegadaEstimada}</div>
+                    <div className="text-terra-3xs font-semibold text-terra-texto-suave">
+                      {pedidoActivo.llegadaEstimada}
+                    </div>
                   </div>
                 </div>
 
-                {/* Sub-fila de Ubicación y Chofer */}
-                <div className="detail-head-subrow">
-                  <div className="detail-location-pin">
-                    <MapPin size={15} style={{ color: '#9ca3af' }} />
-                    <span>{pedidoActivo.lugarEntrega}</span>
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-terra-borde/60 text-terra-xs text-terra-texto-suave">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <MapPin size={14} className="shrink-0 text-terra-primario dark:text-terra-acento" />
+                    <span className="truncate">{pedidoActivo.lugarEntrega}</span>
                   </div>
-                  <span className="detail-driver-text">{pedidoActivo.chofer}</span>
+                  <span className="font-semibold shrink-0">{pedidoActivo.chofer}</span>
                 </div>
               </div>
 
               {/* Lista de Ítems del Lote */}
-              <div className="detail-panel-body">
-                <div className="detail-section-title-sm">
+              <div className="px-5 flex flex-col gap-3">
+                <div className="text-terra-xs font-bold text-terra-texto">
                   Ítems del Lote ({pedidoActivo.totalUnidades} unidades)
                 </div>
-                <div className="detail-items-stack">
+                <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
                   {(pedidoActivo.itemsDetalle || []).map((item, idx) => (
-                    <div key={item.id || idx} className="detail-item-pill-card">
-                      <div className="detail-item-left">
-                        <span className="item-qty-sq">{item.cantidad}x</span>
-                        <div className="item-meta-titles">
-                          <h5>{item.nombre}</h5>
-                          <p>{item.detalle}</p>
+                    <div
+                      key={item.id || idx}
+                      className="flex items-center justify-between gap-3 p-3 rounded-terra-campo border border-terra-borde bg-terra-superficie-2"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="size-8 rounded-md bg-terra-control border border-terra-borde text-terra-texto text-terra-xs font-bold flex items-center justify-center shrink-0">
+                          {item.cantidad}x
+                        </span>
+                        <div className="flex flex-col min-w-0">
+                          <h5 className="text-terra-xs font-bold text-terra-texto m-0 truncate">
+                            {item.nombre}
+                          </h5>
+                          <p className="text-terra-3xs text-terra-texto-suave m-0 truncate">
+                            {item.detalle}
+                          </p>
                         </div>
                       </div>
-                      <div className="detail-item-right">
-                        <div className="detail-item-price-bold">{formatoMoneda(item.subtotal)}</div>
-                        <div className="detail-item-b2b-tag">{item.descuento || '-22% B2B'}</div>
+                      <div className="text-right shrink-0">
+                        <div className="text-terra-xs font-extrabold text-terra-primario dark:text-terra-acento">
+                          {formatoMoneda(item.subtotal)}
+                        </div>
+                        <div className="text-terra-3xs font-bold text-emerald-600 dark:text-emerald-400">
+                          {item.descuento || '-22% B2B'}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Total a pagar */}
-                <div className="detail-cost-total-row">
-                  <span>Total a pagar:</span>
-                  <div style={{ textAlign: 'right' }}>
-                    <div className="detail-total-amount">{formatoMoneda(pedidoActivo.total)}</div>
-                    <div className="detail-credit-label">{pedidoActivo.metodoPagoCompleto}</div>
+                <div className="flex items-center justify-between p-3.5 rounded-terra-campo bg-terra-primario-suave border border-terra-primario/20">
+                  <span className="text-terra-xs font-bold text-terra-texto">Total a pagar:</span>
+                  <div className="text-right">
+                    <div className="text-lg font-black text-terra-primario dark:text-terra-acento">
+                      {formatoMoneda(pedidoActivo.total)}
+                    </div>
+                    <div className="text-terra-3xs font-semibold text-terra-texto-suave">
+                      {pedidoActivo.metodoPagoCompleto}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Seguimiento de Despacho (Stepper Horizontal de 4 Pasos) */}
-              <div className="detail-tracking-section">
-                <div className="detail-section-title-sm">Seguimiento de Despacho</div>
-                <div className="tracking-4steps-grid">
+              {/* Stepper Horizontal */}
+              <div className="px-5 flex flex-col gap-2.5">
+                <div className="text-terra-xs font-bold text-terra-texto">
+                  Seguimiento de Despacho
+                </div>
+                <div className="grid grid-cols-4 gap-2 pt-1 pb-2">
                   {/* Paso 1: Confirmado */}
-                  <div className="tracking-step-col">
-                    <div className="tracking-step-circle tracking-step-circle--done">
+                  <div className="flex flex-col items-center gap-1.5 text-center">
+                    <div className="size-7 rounded-full bg-terra-primario text-white flex items-center justify-center text-xs">
                       <Check size={14} strokeWidth={3} />
                     </div>
-                    <span className="tracking-step-label tracking-step-label--bold">Confirmado</span>
+                    <span className="text-terra-3xs font-bold text-terra-texto">Confirmado</span>
                   </div>
 
                   {/* Paso 2: Pago OK */}
-                  <div className="tracking-step-col">
+                  <div className="flex flex-col items-center gap-1.5 text-center">
                     <div
-                      className={`tracking-step-circle ${
+                      className={`size-7 rounded-full flex items-center justify-center text-xs ${
                         pedidoActivo.estado !== 'pending' && pedidoActivo.estado !== 'cancelled'
-                          ? 'tracking-step-circle--done'
-                          : 'tracking-step-circle--gray'
+                          ? 'bg-terra-primario text-white'
+                          : 'bg-terra-control text-terra-texto-suave border border-terra-borde'
                       }`}
                     >
                       {pedidoActivo.estado !== 'pending' && pedidoActivo.estado !== 'cancelled' ? (
@@ -661,26 +776,18 @@ export default function PedidosMayorista() {
                         <Clock size={13} />
                       )}
                     </div>
-                    <span
-                      className={`tracking-step-label ${
-                        pedidoActivo.estado !== 'pending' && pedidoActivo.estado !== 'cancelled'
-                          ? 'tracking-step-label--bold'
-                          : 'tracking-step-label--gray'
-                      }`}
-                    >
-                      Pago OK
-                    </span>
+                    <span className="text-terra-3xs font-bold text-terra-texto">Pago OK</span>
                   </div>
 
-                  {/* Paso 3: En camión / En planta */}
-                  <div className="tracking-step-col">
+                  {/* Paso 3: En camión */}
+                  <div className="flex flex-col items-center gap-1.5 text-center">
                     <div
-                      className={`tracking-step-circle ${
+                      className={`size-7 rounded-full flex items-center justify-center text-xs ${
                         pedidoActivo.estado === 'completed'
-                          ? 'tracking-step-circle--done'
+                          ? 'bg-terra-primario text-white'
                           : ['out_for_delivery', 'preparing', 'ready_for_pickup'].includes(pedidoActivo.estado)
-                          ? 'tracking-step-circle--active'
-                          : 'tracking-step-circle--gray'
+                          ? 'bg-sky-600 text-white animate-pulse'
+                          : 'bg-terra-control text-terra-texto-suave border border-terra-borde'
                       }`}
                     >
                       {pedidoActivo.estado === 'completed' ? (
@@ -689,26 +796,18 @@ export default function PedidosMayorista() {
                         <Truck size={14} />
                       )}
                     </div>
-                    <span
-                      className={`tracking-step-label ${
-                        ['out_for_delivery', 'preparing', 'ready_for_pickup'].includes(pedidoActivo.estado)
-                          ? 'tracking-step-label--active'
-                          : pedidoActivo.estado === 'completed'
-                          ? 'tracking-step-label--bold'
-                          : 'tracking-step-label--gray'
-                      }`}
-                    >
+                    <span className="text-terra-3xs font-bold text-terra-texto">
                       {pedidoActivo.estado === 'preparing' ? 'En planta' : 'En camión'}
                     </span>
                   </div>
 
                   {/* Paso 4: Entregado */}
-                  <div className="tracking-step-col">
+                  <div className="flex flex-col items-center gap-1.5 text-center">
                     <div
-                      className={`tracking-step-circle ${
+                      className={`size-7 rounded-full flex items-center justify-center text-xs ${
                         pedidoActivo.estado === 'completed'
-                          ? 'tracking-step-circle--done'
-                          : 'tracking-step-circle--gray'
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-terra-control text-terra-texto-suave border border-terra-borde'
                       }`}
                     >
                       {pedidoActivo.estado === 'completed' ? (
@@ -717,35 +816,27 @@ export default function PedidosMayorista() {
                         <CheckCircle2 size={13} />
                       )}
                     </div>
-                    <span
-                      className={`tracking-step-label ${
-                        pedidoActivo.estado === 'completed'
-                          ? 'tracking-step-label--bold'
-                          : 'tracking-step-label--gray'
-                      }`}
-                    >
-                      Entregado
-                    </span>
+                    <span className="text-terra-3xs font-bold text-terra-texto">Entregado</span>
                   </div>
                 </div>
               </div>
 
               {/* Botones de Acción */}
-              <div className="detail-actions-box">
+              <div className="p-5 pt-0 flex flex-col gap-2.5">
                 <a
-                  className="btn-whatsapp-advisor-full"
+                  className="w-full py-2.5 px-4 rounded-terra-boton bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-terra-xs font-bold flex items-center justify-center gap-2 transition-colors no-underline"
                   href={wspAsesor}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  <MessageCircle size={15} />
+                  <MessageCircle size={16} />
                   <span>Contactar asesor Carlos Mercado</span>
                 </a>
 
-                <div className="detail-actions-2cols">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    className="btn-repeat-order-subtle"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-terra-boton border border-terra-borde bg-terra-control hover:bg-terra-control-hover text-terra-texto text-terra-xs font-bold transition-colors cursor-pointer"
                     onClick={() => handleRepetirCompra(pedidoActivo)}
                   >
                     <Repeat2 size={14} />
@@ -753,7 +844,7 @@ export default function PedidosMayorista() {
                   </button>
                   <button
                     type="button"
-                    className="btn-invoice-pdf-subtle"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-terra-boton border border-terra-borde bg-terra-control hover:bg-terra-control-hover text-terra-texto text-terra-xs font-bold transition-colors cursor-pointer"
                     onClick={() => handleDescargarTicket(pedidoActivo)}
                   >
                     <FileText size={14} />
@@ -763,30 +854,33 @@ export default function PedidosMayorista() {
               </div>
             </>
           ) : (
-            <div style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
-              <Package size={36} style={{ margin: '0 auto 0.75rem', color: '#9ca3af' }} />
-              <p>Selecciona un pedido para ver su detalle logístico.</p>
+            <div className="p-12 text-center text-terra-texto-suave">
+              <Package size={36} className="mx-auto mb-3 text-terra-texto-suave opacity-60" />
+              <p className="text-terra-xs m-0">Selecciona un pedido para ver su detalle logístico.</p>
             </div>
           )}
         </aside>
       </div>
 
-      {/* ====================================================================
-          5. FOOTER INSTITUCIONAL B2B
-          ==================================================================== */}
-      <footer className="orders-institutional-footer" data-purpose="institutional-footer">
-        <div className="orders-footer-inner">
-          <div className="orders-footer-brand-wrap">
-            <strong>Terra</strong>
-            <span className="orders-footer-pill">Autoservicio</span>
-            <span>— Portal Oficial para Distribuidores y Cuentas Mayoristas Bolivia.</span>
-          </div>
-          <div className="orders-footer-links">
-            <a href="#terminos" onClick={(e) => e.preventDefault()}>Términos Comerciales B2B</a>
-            <a href="#garantia" onClick={(e) => e.preventDefault()}>Garantía de Fábrica</a>
-            <span>Central Telefónica: +591 (2) 284-0000</span>
-            <span style={{ color: '#9ca3af' }}>© 2025 Terra Autoservicio. Todos los derechos reservados.</span>
-          </div>
+      {/* 5. Footer Institucional B2B */}
+      <footer className="p-5 rounded-terra-tarjeta bg-terra-superficie border border-terra-borde text-terra-xs text-terra-texto-suave flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <strong className="font-extrabold text-terra-texto">TERRA</strong>
+          <span className="px-2 py-0.5 rounded-full text-terra-3xs font-extrabold bg-terra-primario-suave text-terra-primario dark:text-terra-acento">
+            Autoservicio
+          </span>
+          <span>— Portal Oficial para Distribuidores y Cuentas Mayoristas Bolivia.</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 text-terra-3xs sm:text-terra-xs font-medium">
+          <a href="#terminos" onClick={(e) => e.preventDefault()} className="hover:underline">
+            Términos Comerciales B2B
+          </a>
+          <span>•</span>
+          <a href="#garantia" onClick={(e) => e.preventDefault()} className="hover:underline">
+            Garantía de Fábrica
+          </a>
+          <span>•</span>
+          <span>Central Telefónica: +591 (2) 284-0000</span>
         </div>
       </footer>
     </div>

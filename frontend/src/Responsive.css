@@ -39,7 +39,7 @@
     white-space: nowrap;
   }
 
-  .welcome-hero,.products-heading,.clients-heading,.orders-hero{align-items:flex-start!important;flex-direction:column!important}
+  .products-heading,.clients-heading,.orders-hero{align-items:flex-start!important;flex-direction:column!important}
   .products-toolbar,.clients-heading>div:last-child{max-width:100%;width:100%}
   .products-toolbar button,.clients-heading>div:last-child button{flex:1}
   .orders-list>header{align-items:flex-start!important;flex-direction:column!important;gap:.75rem}
@@ -61,23 +61,4 @@
   .orders-list>article{grid-template-columns:1fr 1fr!important;font-size:.72rem}
   .clients-table{font-size:.72rem}
   .clients-table th,.clients-table td{padding:.5rem .35rem!important}
-
-  /* Portada en teléfono: hero compacto para que el CTA y la foto entren sin recortes */
-  .welcome-retail{min-height:0!important;padding:1rem 0 0!important}
-  .welcome-hero{gap:1.25rem!important;padding:1rem .9rem!important}
-  .welcome-eyebrow{font-size:.7rem!important;margin-bottom:.6rem!important}
-  .welcome-copy h1{font-size:clamp(1.9rem,9vw,2.5rem)!important}
-  .welcome-copy>p{font-size:.92rem!important;line-height:1.6!important;margin-top:.8rem!important}
-  .welcome-actions{margin-top:1.25rem!important}
-  .welcome-cta{gap:.7rem!important;padding:.7rem 1.1rem .7rem .7rem!important}
-  .welcome-cta>span{height:2.6rem!important;width:2.6rem!important}
-  .welcome-cta b{font-size:.95rem!important}
-  .welcome-photo{min-height:250px!important}
-  .carousel-btn{height:2.4rem!important;width:2.4rem!important}
-  .carousel-btn.anterior{left:.6rem!important}
-  .carousel-btn.siguiente{right:.6rem!important}
-  .carousel-dots{bottom:.8rem!important;left:.8rem!important}
-  .welcome-spot{bottom:.6rem!important;padding:.55rem .75rem!important;right:.6rem!important}
-  .welcome-spot>b{font-size:.82rem!important}
-  .welcome-trust{margin-top:1.5rem!important}
 }
