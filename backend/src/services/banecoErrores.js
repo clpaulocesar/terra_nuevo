@@ -5,3 +5,11 @@ export class ErrorBanecoNoImplementado extends Error {
     this.codigo = 'baneco_no_implementado';
   }
 }
+
+export class ErrorBaneco extends Error {
+  constructor(mensaje, codigo = 'baneco_error') {
+    super(mensaje);
+    this.name = 'ErrorBaneco';
+    this.codigo = codigo;
+  }
+}

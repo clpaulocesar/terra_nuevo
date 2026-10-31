@@ -36,6 +36,14 @@ Decisión: [[2026-10-30-preparacion-qr-dinamico-baneco]] · Pagos: [[2026-10-28-
 
 `backend/.env.example` contiene valores vacíos para secretos y datos bancarios. `backend/src/config/baneco.js` valida la configuración sin imprimir sus valores y solo acepta la URL de pruebas documentada. No copiar credenciales reales a esta nota ni al repositorio.
 
+## Preparación de pruebas
+
+- Para AES unitario, copia `backend/.env.baneco.test.example` a `backend/.env.baneco.test`. Ese archivo local está ignorado por Git y solo debe contener vectores de prueba públicos de Baneco: clave de prueba, texto claro y cifrado esperado.
+- Ejecuta `cd backend && npm run test:baneco:crypto`. El test compara cifrado y descifrado con el vector oficial; si no está completo, informa que se omitió. No usa la llave real ni hace llamadas de red.
+- No uses credenciales de producción como vectores. Aún falta que el propietario implemente `banecoCrypto.js`; hasta entonces, con un vector configurado, la prueba fallará explícitamente con `baneco_no_implementado`.
+- El archivo de prueba reserva `BANECO_RUN_SANDBOX_TESTS` y `BANECO_TEST_ORDER_ID`, pero no habilita tráfico. Las pruebas reales al sandbox siguen pendientes del cliente API, del formato confirmado con Baneco y de un pedido de prueba válido. Nunca se ejecutan como parte de `npm test`.
+- No se debe compartir ni guardar la llave personal en `.env.example`, archivos de test versionados, frontend o documentación.
+
 ## Andamiaje backend disponible
 
 | Método | Ruta | Entrada prevista | Estado actual |
