@@ -752,6 +752,8 @@ export default function ProductosAdmin() {
     const precioNumerico = Number(datos.get('precio'));
     const precioOferta = datos.get('precio_oferta') === '' || datos.get('precio_oferta') === null ? null : Number(datos.get('precio_oferta'));
     const enOferta = datos.get('en_oferta') === 'on' && precioOferta > 0;
+    const nuevoLanzamiento = datos.get('nuevo_lanzamiento') === 'on';
+    const nuevoDias = datos.get('nuevo_dias') === '' || datos.get('nuevo_dias') === null ? null : Number(datos.get('nuevo_dias'));
     const payload = {
       nombre: datos.get('nombre'),
       sku: datos.get('sku'),
@@ -762,6 +764,8 @@ export default function ProductosAdmin() {
       precioFabrica: datos.get('precio_fabrica') === '' || datos.get('precio_fabrica') === null ? null : Number(datos.get('precio_fabrica')),
       precioOferta,
       enOferta,
+      nuevoLanzamiento,
+      nuevoDias,
       medida: datos.get('medida') || editarProducto.medida,
       descripcion: datos.get('descripcion') || editarProducto.descripcion,
       showroom: Number(datos.get('showroom')),
