@@ -75,11 +75,11 @@ export default function PieCliente({ enCarrito }) {
                   <strong className="font-semibold text-neutral-900 dark:text-white">Teléfono / WhatsApp:</strong>{' '}
                   <a
                     className="inline-flex min-h-11 items-center font-bold text-terra-primario transition-colors hover:text-terra-primario-oscuro hover:underline"
-                    href="https://wa.me/59175335697"
+                    href="https://wa.me/59169050660"
                     rel="noopener noreferrer"
                     target="_blank"
                   >
-                    +591 75335697
+                    +591 69050660
                   </a>
                 </p>
               </div>

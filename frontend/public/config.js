@@ -16,7 +16,7 @@ window.TERRA_CONFIG = {
   // Ejemplo producción: "https://n8n.midominio.com/webhook/xxxx-xxxx/chat"
  N8N_CHAT_URL: "https://january-raid-after-certificate.trycloudflare.com/webhook/cf2f2ecb-49f1-4287-9704-7f2214849274/chat",
   // WhatsApp principal de TERRA para solicitudes de comprobante (incluye código de país).
-  WHATSAPP_COMPROBANTES: "59175335697",
+  WHATSAPP_COMPROBANTES: "59169050660",
   // Dictado de correo y contraseña por voz en los logins. Desactivado por defecto:
   // el asistente abre el formulario y el usuario escribe.
   VOZ_DICTADO_CREDENCIALES: false,
