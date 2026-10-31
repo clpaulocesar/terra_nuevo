@@ -177,48 +177,52 @@ export default function InicioPage({
         className="w-full relative overflow-hidden px-margin py-space-xl lg:py-space-2xl bg-gradient-to-b from-surface via-surface-container-low to-surface"
       >
         {/* Halloween Atmosphere Sky */}
-        <div className="hal-hero-sky" aria-hidden="true">
-          <div className="hal-stars" />
-          <div className="hal-hero-moon" />
-          <div className="hal-hero-landscape">
-            <svg viewBox="0 0 1000 270" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                fill="#090811"
-                d="M0 225l90-28 42 12 26-43 33 12 42-34 65 25 48-28 30 20 40-12 38 14 22-42 32 11 24-78 20 13 22-13 24 81 35-18 27 23 60-33 36 22 35-15 46 30 30-20 20 25 48-28 37 20 60-25v150H0z"
-              />
-              <path
-                fill="#100918"
-                d="M450 230V106h35V65l-15-14 34-34 31 34-14 14v41h34v124M568 230V133h35V76l-13-12 26-26 27 26-14 12v57h35v97"
-              />
-              <path fill="#e2854d" opacity="0.7" d="M495 147h13v28h-13zM607 159h14v24h-14z" />
-            </svg>
+        {esHalloween && (
+          <div className="hal-hero-sky pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+            <div className="hal-stars" />
+            <div className="hal-hero-moon" />
+            <div className="hal-hero-landscape">
+              <svg viewBox="0 0 1000 270" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  fill="#090811"
+                  d="M0 225l90-28 42 12 26-43 33 12 42-34 65 25 48-28 30 20 40-12 38 14 22-42 32 11 24-78 20 13 22-13 24 81 35-18 27 23 60-33 36 22 35-15 46 30 30-20 20 25 48-28 37 20 60-25v150H0z"
+                />
+                <path
+                  fill="#100918"
+                  d="M450 230V106h35V65l-15-14 34-34 31 34-14 14v41h34v124M568 230V133h35V76l-13-12 26-26 27 26-14 12v57h35v97"
+                />
+                <path fill="#e2854d" opacity="0.7" d="M495 147h13v28h-13zM607 159h14v24h-14z" />
+              </svg>
+            </div>
+            <div className="hal-hero-fog" />
           </div>
-          <div className="hal-hero-fog" />
-        </div>
+        )}
 
         {/* Christmas Atmosphere Sky */}
-        <div className="xmas-hero-sky" aria-hidden="true">
-          <div className="xmas-hero-ring" />
-          <div className="xmas-hero-star">✦</div>
-          <div className="xmas-hero-tree">
-            <svg viewBox="0 0 700 330" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0 330v-60q90-40 180 0 40 25 75 0 80-35 160 8 150-45 285 0v52z" fill="#041f23" />
-              <path d="M140 300l65-98-27 0 52-72-23 0 58-77 57 77-24 0 53 72-28 0 64 98z" fill="#092d27" />
-              <path d="M365 308l52-75-20 0 43-64-19 0 48-61 48 61-20 0 44 64-20 0 52 75z" fill="#0b352c" />
-              <path d="M276 265V323M469 272V328" stroke="#70523c" strokeWidth="14" />
-              <path
-                d="M217 234q50 24 100 0M201 206q66 28 130 0M427 239q43 20 80 0"
-                stroke="#d6b36b"
-                strokeWidth="3"
-                opacity="0.6"
-                fill="none"
-              />
-              <circle cx="265" cy="154" r="5" fill="#f4d49f" />
-              <circle cx="477" cy="199" r="5" fill="#d14a53" />
-              <circle cx="225" cy="248" r="5" fill="#d14a53" />
-            </svg>
+        {esNavidad && (
+          <div className="xmas-hero-sky pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
+            <div className="xmas-hero-ring" />
+            <div className="xmas-hero-star">✦</div>
+            <div className="xmas-hero-tree">
+              <svg viewBox="0 0 700 330" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 330v-60q90-40 180 0 40 25 75 0 80-35 160 8 150-45 285 0v52z" fill="#041f23" />
+                <path d="M140 300l65-98-27 0 52-72-23 0 58-77 57 77-24 0 53 72-28 0 64 98z" fill="#092d27" />
+                <path d="M365 308l52-75-20 0 43-64-19 0 48-61 48 61-20 0 44 64-20 0 52 75z" fill="#0b352c" />
+                <path d="M276 265V323M469 272V328" stroke="#70523c" strokeWidth="14" />
+                <path
+                  d="M217 234q50 24 100 0M201 206q66 28 130 0M427 239q43 20 80 0"
+                  stroke="#d6b36b"
+                  strokeWidth="3"
+                  opacity="0.6"
+                  fill="none"
+                />
+                <circle cx="265" cy="154" r="5" fill="#f4d49f" />
+                <circle cx="477" cy="199" r="5" fill="#d14a53" />
+                <circle cx="225" cy="248" r="5" fill="#d14a53" />
+              </svg>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Atmospheric lighting blurs matching reference */}
         <div className="absolute -top-24 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
@@ -227,103 +231,84 @@ export default function InicioPage({
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Copy Column */}
           <div className="lg:col-span-5 flex flex-col items-start z-10">
-            {/* Christmas Copy Block */}
-            <div className="xmas-only xmas-flex xmas-season-tag">
-              <i /> NAVIDAD EN TERRA · {anioActual}
-            </div>
-            <div className="xmas-only" style={{ width: '100%' }}>
-              <h1 className="xmas-season-title">
-                Esta Navidad,<em>tu hogar brilla más.</em>
-              </h1>
-              <p className="xmas-season-description">
-                Que cada rincón invite a compartir. Descubre muebles para reunir a quienes más quieres y crear momentos inolvidables.
-              </p>
-              <div className="xmas-countdown-wrap" role="status" aria-live="off">
-                <div className="xmas-countdown-heading">La magia de Navidad llega en</div>
-                {!cuentaRegresiva.finalizado ? (
-                  <div className="xmas-time-grid">
-                    <div className="xmas-time-group">
-                      <span className="xmas-time-number">{cuentaRegresiva.dd}</span>
-                      <span className="xmas-time-label">Días</span>
-                    </div>
-                    <span className="xmas-time-sep">:</span>
-                    <div className="xmas-time-group">
-                      <span className="xmas-time-number">{cuentaRegresiva.hh}</span>
-                      <span className="xmas-time-label">Horas</span>
-                    </div>
-                    <span className="xmas-time-sep">:</span>
-                    <div className="xmas-time-group">
-                      <span className="xmas-time-number">{cuentaRegresiva.mm}</span>
-                      <span className="xmas-time-label">Min</span>
-                    </div>
-                    <span className="xmas-time-sep">:</span>
-                    <div className="xmas-time-group">
-                      <span className="xmas-time-number">{cuentaRegresiva.ss}</span>
-                      <span className="xmas-time-label">Seg</span>
-                    </div>
+            {esNavidad ? (
+              <>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-lowest shadow-sm mb-4 text-[#d14a53] font-bold text-xs">
+                  <span>🎄</span> NAVIDAD EN TERRA · {anioActual}
+                </div>
+                <div className="w-full">
+                  <h1 className="font-display-hero text-display-hero text-on-surface font-extrabold tracking-tight leading-none mb-4">
+                    Esta Navidad, <em className="italic text-[#d14a53] block not-italic">tu hogar brilla más.</em>
+                  </h1>
+                  <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-6 max-w-lg">
+                    Que cada rincón invite a compartir. Descubre muebles para reunir a quienes más quieres y crear momentos inolvidables.
+                  </p>
+                  <div className="p-4 rounded-2xl bg-surface-container-lowest shadow-sm mb-8" role="status" aria-live="off">
+                    <div className="text-xs uppercase font-bold tracking-wider text-on-surface-variant mb-2">La magia de Navidad llega en</div>
+                    {!cuentaRegresiva.finalizado ? (
+                      <div className="flex items-center gap-3 font-mono font-bold text-lg text-primary">
+                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.dd}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Días</span></div>
+                        <span>:</span>
+                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.hh}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Horas</span></div>
+                        <span>:</span>
+                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.mm}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Min</span></div>
+                        <span>:</span>
+                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.ss}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Seg</span></div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-primary font-semibold">¡Felices fiestas! Que la alegría llene tu hogar.</p>
+                    )}
                   </div>
-                ) : (
-                  <p className="xmas-countdown-ended">¡Felices fiestas! Que la alegría llene tu hogar.</p>
-                )}
-              </div>
-            </div>
-
-            {/* Halloween Copy Block */}
-            <div className="hal-only hal-flex hal-season-tag">
-              <span className="hal-dot" /> TEMPORADA DE HALLOWEEN · TERRA {anioActual}
-            </div>
-            <div className="hal-only" style={{ width: '100%' }}>
-              <h1 className="hal-season-title">
-                Este Halloween,<em>tu hogar se transforma.</em>
-              </h1>
-              <p className="hal-season-description">
-                Una atmósfera diferente, diseños que enamoran y la magia de octubre en cada espacio. Descubre nuestro universo TERRA.
-              </p>
-              <div className="hal-countdown-wrap" role="status" aria-live="off">
-                <div className="hal-countdown-heading">La noche de Halloween llega en</div>
-                {!cuentaRegresiva.finalizado ? (
-                  <div className="hal-time-grid">
-                    <div className="hal-time-group">
-                      <span className="hal-time-number">{cuentaRegresiva.dd}</span>
-                      <span className="hal-time-label">Días</span>
-                    </div>
-                    <span className="hal-time-sep">:</span>
-                    <div className="hal-time-group">
-                      <span className="hal-time-number">{cuentaRegresiva.hh}</span>
-                      <span className="hal-time-label">Horas</span>
-                    </div>
-                    <span className="hal-time-sep">:</span>
-                    <div className="hal-time-group">
-                      <span className="hal-time-number">{cuentaRegresiva.mm}</span>
-                      <span className="hal-time-label">Min</span>
-                    </div>
-                    <span className="hal-time-sep">:</span>
-                    <div className="hal-time-group">
-                      <span className="hal-time-number">{cuentaRegresiva.ss}</span>
-                      <span className="hal-time-label">Seg</span>
-                    </div>
+                </div>
+              </>
+            ) : esHalloween ? (
+              <>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-lowest shadow-sm mb-4 text-[#ff7518] font-bold text-xs">
+                  <span className="w-2 h-2 rounded-full bg-[#ff7518] animate-pulse" /> TEMPORADA DE HALLOWEEN · TERRA {anioActual}
+                </div>
+                <div className="w-full">
+                  <h1 className="font-display-hero text-display-hero text-on-surface font-extrabold tracking-tight leading-none mb-4">
+                    Este Halloween, <em className="italic text-[#ff7518] block not-italic">tu hogar se transforma.</em>
+                  </h1>
+                  <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-6 max-w-lg">
+                    Una atmósfera diferente, diseños que enamoran y la magia de octubre en cada espacio. Descubre nuestro universo TERRA.
+                  </p>
+                  <div className="p-4 rounded-2xl bg-surface-container-lowest shadow-sm mb-8" role="status" aria-live="off">
+                    <div className="text-xs uppercase font-bold tracking-wider text-on-surface-variant mb-2">La noche de Halloween llega en</div>
+                    {!cuentaRegresiva.finalizado ? (
+                      <div className="flex items-center gap-3 font-mono font-bold text-lg text-[#ff7518]">
+                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.dd}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Días</span></div>
+                        <span>:</span>
+                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.hh}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Horas</span></div>
+                        <span>:</span>
+                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.mm}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Min</span></div>
+                        <span>:</span>
+                        <div className="flex flex-col items-center"><span className="text-2xl">{cuentaRegresiva.ss}</span><span className="text-[10px] font-sans font-normal uppercase text-on-surface-variant">Seg</span></div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-[#ff7518] font-semibold">¡Feliz Halloween! La celebración ya comenzó.</p>
+                    )}
                   </div>
-                ) : (
-                  <p className="hal-countdown-ended">¡Feliz Halloween! La celebración ya comenzó.</p>
-                )}
-              </div>
-            </div>
-
-            {/* Standard Terra Copy */}
-            <div className="hal-original-title inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-lowest shadow-sm mb-6">
-              <span className="material-symbols-outlined text-primary text-[16px]">chair</span>
-              <span className="font-label-caps text-label-caps tracking-widest text-on-surface-variant font-bold">
-                MUEBLES PARA CADA ESPACIO
-              </span>
-            </div>
-            <h1 className="hal-original-title font-display-hero text-display-hero text-on-surface font-extrabold tracking-tight leading-none mb-6">
-              Bienvenido a <br />
-              <span className="text-primary font-black tracking-normal">TERRA</span>
-            </h1>
-            <p className="hal-original-description font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-10 max-w-lg">
-              Tu hogar merece lo mejor. Encuentra los muebles ideales para cada espacio, con la calidad, confort y disponibilidad
-              inmediata en toda nuestra red de Santa Cruz.
-            </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-lowest shadow-sm mb-6">
+                  <span className="material-symbols-outlined text-primary text-[16px]">chair</span>
+                  <span className="font-label-caps text-label-caps tracking-widest text-on-surface-variant font-bold">
+                    MUEBLES PARA CADA ESPACIO
+                  </span>
+                </div>
+                <h1 className="font-display-hero text-display-hero text-on-surface font-extrabold tracking-tight leading-none mb-6">
+                  Bienvenido a <br />
+                  <span className="text-primary font-black tracking-normal">TERRA</span>
+                </h1>
+                <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-10 max-w-lg">
+                  Tu hogar merece lo mejor. Encuentra los muebles ideales para cada espacio, con la calidad, confort y disponibilidad
+                  inmediata en toda nuestra red de Santa Cruz.
+                </p>
+              </>
+            )}
 
             {/* Action Buttons Matching Reference */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
@@ -365,44 +350,48 @@ export default function InicioPage({
           {/* Right Interactive Showcase Card */}
           <div className="lg:col-span-7 relative z-10">
             {/* Christmas & Halloween Feature Stickers */}
-            <div className="xmas-only xmas-sticker" aria-hidden="true">
-              🎁
-            </div>
-            <div className="hal-only hal-feature-sticker" aria-hidden="true">
-              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <defs>
-                  <linearGradient id="pumpkinFill" x1="0" y1="0" x2="1" y2="1">
-                    <stop stopColor="#ffb04b" />
-                    <stop offset=".55" stopColor="#eb701a" />
-                    <stop offset="1" stopColor="#a83b12" />
-                  </linearGradient>
-                </defs>
-                <path d="M45 23c-5-9-2-18 7-21l5 6c-8 4-8 10-7 16" fill="#436b31" />
-                <path
-                  d="M49 27C26 7 9 26 11 55c2 29 28 44 39 36 17 10 38-10 39-35C91 27 73 10 49 27Z"
-                  fill="url(#pumpkinFill)"
-                  stroke="#8a3215"
-                  strokeWidth="2"
-                />
-                <path
-                  d="M50 26c-19 0-22 12-22 35 0 18 7 28 22 30M50 26c19 0 22 12 22 35 0 18-7 28-22 30"
-                  fill="none"
-                  stroke="#a74717"
-                  strokeWidth="2"
-                  opacity="0.5"
-                />
-                <path d="M27 53l12-15 7 18zM73 53L61 38l-7 18zM49 59l-6 8h13zM28 69q22 13 44 0l-6 11-8-6-8 6-9-6-7 6z" fill="#1a0c1c" />
-                <path d="M27 53l12-15 7 18zM73 53L61 38l-7 18z" fill="#ffd38c" opacity="0.5" />
-              </svg>
-            </div>
-
-            <div className="relative bg-surface-container-lowest rounded-3xl p-4 sm:p-6 shadow-xl transition-all">
+            {esNavidad && (
+              <div className="pointer-events-none absolute -top-6 -right-6 z-20 text-4xl select-none" aria-hidden="true">
+                🎁
+              </div>
+            )}
+            {esHalloween && (
+              <div className="pointer-events-none absolute -top-8 -right-6 z-20 w-20 h-20 select-none drop-shadow-lg" aria-hidden="true">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="pumpkinFill" x1="0" y1="0" x2="1" y2="1">
+                      <stop stopColor="#ffb04b" />
+                      <stop offset=".55" stopColor="#eb701a" />
+                      <stop offset="1" stopColor="#a83b12" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M45 23c-5-9-2-18 7-21l5 6c-8 4-8 10-7 16" fill="#436b31" />
+                  <path
+                    d="M49 27C26 7 9 26 11 55c2 29 28 44 39 36 17 10 38-10 39-35C91 27 73 10 49 27Z"
+                    fill="url(#pumpkinFill)"
+                    stroke="#8a3215"
+                    strokeWidth="2"
+                  />
+                  <path
+                    d="M50 26c-19 0-22 12-22 35 0 18 7 28 22 30M50 26c19 0 22 12 22 35 0 18-7 28-22 30"
+                    fill="none"
+                    stroke="#a74717"
+                    strokeWidth="2"
+                    opacity="0.5"
+                  />
+                  <path d="M27 53l12-15 7 18zM73 53L61 38l-7 18zM49 59l-6 8h13zM28 69q22 13 44 0l-6 11-8-6-8 6-9-6-7 6z" fill="#1a0c1c" />
+                  <path d="M27 53l12-15 7 18zM73 53L61 38l-7 18z" fill="#ffd38c" opacity="0.5" />
+                </svg>
+              </div>
+            )}
+<div className="relative bg-surface-container-lowest rounded-3xl p-4 sm:p-6 shadow-xl transition-all">
               <div className="relative w-full aspect-[5/4] sm:aspect-[16/10] lg:aspect-[16/9] rounded-2xl overflow-hidden bg-surface-container">
                 <img
                   key={slideActivo.src}
                   className="w-full h-full object-cover transition-opacity duration-500 animate-fadeIn"
                   src={slideActivo.src}
                   alt={slideActivo.alt}
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/logo-terra.png"; }}
                 />
                 <button
                   type="button"
@@ -674,6 +663,7 @@ export default function InicioPage({
                       src={prod.src}
                       alt={prod.titulo}
                       loading="lazy"
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/logo-terra.png"; }}
                     />
                     {/* Badges superiores (OFERTA y Más vendido apilados idénticos a la foto de referencia) */}
                     <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 pointer-events-none items-start">

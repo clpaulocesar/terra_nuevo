@@ -850,6 +850,7 @@ export default function CatalogoPage({
                         src={prod.imagen}
                         alt={prod.nombre}
                         loading="lazy"
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "/logo-terra.png"; }}
                       />
                     </div>
 
