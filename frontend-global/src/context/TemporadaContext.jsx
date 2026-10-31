@@ -29,27 +29,19 @@ export function obtenerFechaBolivia() {
   }
 }
 
-export function detectarTemporada({ month, day }) {
-  if (month === 10 && day >= CONFIG_TEMPORADAS.halloween.startDay && day <= CONFIG_TEMPORADAS.halloween.endDay) {
-    return 'halloween';
-  }
-  if (month >= 11 || (month === 1 && day <= CONFIG_TEMPORADAS.navidad.endDay)) {
-    return 'navidad';
-  }
+export function detectarTemporada() {
   return 'normal';
 }
 
 function leerTemporadaInicial() {
-  if (typeof window === 'undefined') return 'normal';
-  const param = new URLSearchParams(window.location.search).get('tema')?.toLowerCase();
-  if (['halloween', 'navidad', 'normal'].includes(param)) {
-    return param;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem('terra_estilo_temporada');
+      document.body.classList.remove('hal-active', 'xmas-active');
+    } catch {
+      /* ignore */
+    }
   }
-  const guardado = localStorage.getItem('terra_estilo_temporada');
-  if (['halloween', 'navidad', 'normal'].includes(guardado)) {
-    return guardado;
-  }
-  // Por defecto: 'normal' (formal local showroom limpio)
   return 'normal';
 }
 
@@ -108,41 +100,12 @@ export function TemporadaProvider({ children }) {
   }, []);
 
   const cambiarTemporada = useCallback((nueva) => {
-    if (!['halloween', 'navidad', 'normal'].includes(nueva)) return;
-    setTemporada(nueva);
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set('tema', nueva);
-      window.history.replaceState({}, '', url.toString());
-    } catch {
-      /* sin soporte url */
-    }
+    setTemporada('normal');
   }, []);
 
   const alternarDiaNoche = useCallback(() => {
-    setTemporada((prev) => {
-      if (prev === 'normal') {
-        const objetivo = festivoActual === 'normal' ? 'halloween' : festivoActual;
-        try {
-          const url = new URL(window.location.href);
-          url.searchParams.set('tema', objetivo);
-          window.history.replaceState({}, '', url.toString());
-        } catch {
-          /* sin soporte url */
-        }
-        return objetivo;
-      } else {
-        try {
-          const url = new URL(window.location.href);
-          url.searchParams.set('tema', 'normal');
-          window.history.replaceState({}, '', url.toString());
-        } catch {
-          /* sin soporte url */
-        }
-        return 'normal';
-      }
-    });
-  }, [festivoActual]);
+    setTemporada('normal');
+  }, []);
 
   // Timer de Cuenta Regresiva
   useEffect(() => {
