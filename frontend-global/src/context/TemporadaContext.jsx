@@ -29,19 +29,28 @@ export function obtenerFechaBolivia() {
   }
 }
 
-export function detectarTemporada() {
-  return 'normal';
+export function detectarTemporada({ month, day } = {}) {
+  const fecha = month !== undefined ? { month, day } : obtenerFechaBolivia();
+  if (fecha.month === 10 && fecha.day >= CONFIG_TEMPORADAS.halloween.startDay && fecha.day <= CONFIG_TEMPORADAS.halloween.endDay) {
+    return 'halloween';
+  }
+  if (fecha.month >= 11 || (fecha.month === 1 && fecha.day <= CONFIG_TEMPORADAS.navidad.endDay)) {
+    return 'navidad';
+  }
+  return 'halloween';
 }
 
 function leerTemporadaInicial() {
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.removeItem('terra_estilo_temporada');
-      document.body.classList.remove('hal-active', 'xmas-active');
-    } catch {
-      /* ignore */
-    }
+  if (typeof window === 'undefined') return 'normal';
+  const param = new URLSearchParams(window.location.search).get('tema')?.toLowerCase();
+  if (['halloween', 'navidad', 'normal'].includes(param)) {
+    return param;
   }
+  const guardado = localStorage.getItem('terra_estilo_temporada');
+  if (['halloween', 'navidad', 'normal'].includes(guardado)) {
+    return guardado;
+  }
+  // Diseño principal por defecto: 'normal'
   return 'normal';
 }
 
@@ -100,12 +109,32 @@ export function TemporadaProvider({ children }) {
   }, []);
 
   const cambiarTemporada = useCallback((nueva) => {
-    setTemporada('normal');
+    if (!['halloween', 'navidad', 'normal'].includes(nueva)) return;
+    setTemporada(nueva);
+    try {
+      localStorage.setItem('terra_estilo_temporada', nueva);
+      const url = new URL(window.location.href);
+      url.searchParams.set('tema', nueva);
+      window.history.replaceState({}, '', url.toString());
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const alternarDiaNoche = useCallback(() => {
-    setTemporada('normal');
-  }, []);
+    setTemporada((prev) => {
+      const objetivo = prev === 'normal' ? festivoActual : 'normal';
+      try {
+        localStorage.setItem('terra_estilo_temporada', objetivo);
+        const url = new URL(window.location.href);
+        url.searchParams.set('tema', objetivo);
+        window.history.replaceState({}, '', url.toString());
+      } catch {
+        /* ignore */
+      }
+      return objetivo;
+    });
+  }, [festivoActual]);
 
   // Timer de Cuenta Regresiva
   useEffect(() => {

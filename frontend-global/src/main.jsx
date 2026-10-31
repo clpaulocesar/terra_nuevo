@@ -262,6 +262,7 @@ function AppGlobalContent() {
 
   return (
     <div className="min-h-screen bg-surface font-body-md text-body-md text-on-surface">
+      <TemporadaAmbiental />
       {/* ========================================================= */}
       {/* ENCABEZADO UNIFICADO                                      */}
       {/* ========================================================= */}
