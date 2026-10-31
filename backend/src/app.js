@@ -20,6 +20,7 @@ import envioRoutes from './routes/envioRoutes.js';
 import sucursalRoutes from './routes/sucursalRoutes.js';
 import archivoRoutes from './routes/archivoRoutes.js';
 import visitaRoutes from './routes/visitaRoutes.js';
+import pagoQrRoutes from './routes/pagoQrRoutes.js';
 
 import { verificarConexion } from './config/database.js';
 
@@ -124,6 +125,52 @@ app.get('/openapi', (req, res) => {
       '/api/pedidos': {
         post: { summary: 'Crear un nuevo pedido' },
       },
+      '/api/pagos/qr': {
+        post: {
+          summary: 'Solicitar un QR dinámico Baneco para un pedido (andamiaje no implementado)',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['pedidoId'],
+                  properties: { pedidoId: { type: 'string', format: 'uuid' } },
+                },
+              },
+            },
+          },
+          responses: {
+            201: { description: 'QR generado (pendiente de implementar)' },
+            400: { description: 'ID de pedido inválido' },
+            501: { description: 'Integración con Baneco no implementada; no se genera QR ni se registra pago' },
+          },
+        },
+      },
+      '/api/pagos/qr/{qrId}': {
+        get: {
+          summary: 'Consultar estado de un QR Baneco (andamiaje no implementado)',
+          parameters: [
+            { name: 'qrId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          responses: {
+            200: { description: 'Estado consultado (pendiente de implementar)' },
+            400: { description: 'ID de QR inválido' },
+            501: { description: 'Integración con Baneco no implementada' },
+          },
+        },
+        delete: {
+          summary: 'Cancelar un QR Baneco (andamiaje no implementado)',
+          parameters: [
+            { name: 'qrId', in: 'path', required: true, schema: { type: 'string' } },
+          ],
+          responses: {
+            200: { description: 'QR cancelado (pendiente de implementar)' },
+            400: { description: 'ID de QR inválido' },
+            501: { description: 'Integración con Baneco no implementada' },
+          },
+        },
+      },
       '/api/clientes': {
         post: { summary: 'Registrar o buscar cliente' },
       },
@@ -192,6 +239,7 @@ app.use('/api/envios', envioRoutes);
 app.use('/api/sucursales', sucursalRoutes);
 app.use('/api/archivos', archivoRoutes);
 app.use('/api/visitas', visitaRoutes);
+app.use('/api/pagos', pagoQrRoutes);
 
 // Manejo centralizado de errores.
 app.use(rutaNoEncontrada);

@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { ReceiptText } from 'lucide-react';
-import ModalQrPago from '../../components/ui/ModalQrPago.jsx';
 import EnlaceVolver from '../../components/ui/EnlaceVolver.jsx';
 import AvisoPagoMostrador from '../compra/components/AvisoPagoMostrador.jsx';
 import { useConfirmacionPedido } from './hooks/useConfirmacionPedido.js';
@@ -13,7 +11,6 @@ import ResumenConfirmacion from './components/ResumenConfirmacion.jsx';
 // accesibilidad, para que no tapen el medio de pago ni "Confirmar y generar pedido".
 export default function ConfirmacionPage() {
   const pedido = useConfirmacionPedido();
-  const [mostrarModalQr, setMostrarModalQr] = useState(false);
   const { cliente, sesion, esFlujoMayorista, quiereEnvio } = pedido;
 
   // Tiene prioridad sobre el carrito vacío luego de completar la compra.
@@ -58,17 +55,9 @@ export default function ConfirmacionPage() {
             datos={datos}
             entrega={entrega}
           />
-          <ResumenConfirmacion
-            pedido={pedido}
-            onAmpliarQr={() => setMostrarModalQr(true)}
-          />
+          <ResumenConfirmacion pedido={pedido} />
         </div>
       </div>
-      <ModalQrPago
-        abierto={mostrarModalQr}
-        onCerrar={() => setMostrarModalQr(false)}
-        monto={pedido.subtotal}
-      />
     </section>
   );
 }

@@ -4,14 +4,19 @@ import ResumenPedidoMayorista from './ResumenPedidoMayorista.jsx';
 // Grilla de tarjetas: entran tantas columnas como quepan con el ancho mínimo de la tarjeta
 // (--spacing-terra-tarjeta-min, en rem), sin cortes por breakpoint. Con el texto al 150 % o
 // con la columna del resumen mayorista (desde 1024 px) entran menos, solas.
+// La grilla está siempre montada, aunque esté vacía (cargando, error o sin resultados, con
+// `aviso` debajo): refGrilla mide sus columnas para fijar el tamaño de página.
 const COLUMNAS = 'grid-cols-[repeat(auto-fill,minmax(min(100%,var(--spacing-terra-tarjeta-min)),1fr))]';
 
 export default function GrillaProductos({
-  productos, esMayorista, agregados, ventasMaximas, cantidadesMayorista, items, cantidadTotal, subtotal,
-  onCambiarCantidad, onAgregar, onQuitar, onClickTarjeta, onTeclaTarjeta, onAbrirDetalle, stateTarjeta,
+  refGrilla, aviso, productos, esMayorista, agregados, ventasMaximas, cantidadesMayorista, items, cantidadTotal,
+  subtotal, onCambiarCantidad, onAgregar, onQuitar, onClickTarjeta, onTeclaTarjeta, onAbrirDetalle, stateTarjeta,
 }) {
-  const grilla = (
-    <div className={`grid gap-3 md:gap-5 lg:gap-6 ${COLUMNAS}`}>
+  const tarjetas = (
+    <div
+      ref={refGrilla}
+      className={`grid gap-3 md:gap-5 lg:gap-6 ${COLUMNAS}`}
+    >
       {productos.map((producto, indice) => (
         <TarjetaProducto
           key={producto.id}
@@ -29,6 +34,12 @@ export default function GrillaProductos({
           onAbrirDetalle={onAbrirDetalle}
         />
       ))}
+    </div>
+  );
+  const grilla = (
+    <div className="min-w-0">
+      {tarjetas}
+      {aviso}
     </div>
   );
   if (!esMayorista) return grilla;

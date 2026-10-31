@@ -71,6 +71,7 @@ export default function LayoutCliente() {
   const enlaceAsesor = `https://wa.me/${WHATSAPP_COMPROBANTES}?text=${encodeURIComponent('Hola, necesito asesoramiento sobre mi cuenta mayorista TERRA.')}`;
   const enCarrito = location.pathname === '/carrito';
   const enConfirmacion = location.pathname === '/confirmacion';
+  const enInicio = location.pathname === '/';
 
   return (
     <div
@@ -112,8 +113,9 @@ export default function LayoutCliente() {
       )}
 
       <main
-        className="page-content mx-auto w-full max-w-320 flex-1 px-4 py-3 sm:p-4 lg:px-4 lg:py-5
-          xl:px-[clamp(1rem,2.5vw,2rem)] xl:py-6 max-md:has-[>[data-pagina=catalogo]]:p-0 print:p-0"
+        className={`page-content mx-auto w-full max-w-320 flex-1 px-4 sm:p-4 lg:px-4
+          xl:px-[clamp(1rem,2.5vw,2rem)] ${enInicio ? 'py-0 sm:py-0 lg:py-0 xl:py-0 flex flex-col' : 'py-3 sm:p-4 lg:py-5 xl:py-6'}
+          max-md:has-[>[data-pagina=catalogo]]:p-0 print:p-0`}
         id="contenido"
         tabIndex={-1}
       >

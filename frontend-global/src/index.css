@@ -1,0 +1,975 @@
+@import "tailwindcss";
+
+@theme inline {
+  --breakpoint-xs: 22.5rem;
+
+  --color-inverse-surface: var(--inverse-surface, #30312e);
+  --color-primary-fixed: var(--primary-fixed, #ffdad8);
+  --color-error-container: var(--error-container, #ffdad6);
+  --color-secondary-fixed: var(--secondary-fixed, #e5e2e1);
+  --color-outline-variant: var(--outline-variant, #e3bebc);
+  --color-on-error: var(--on-error, #ffffff);
+  --color-on-primary-container: var(--on-primary-container, #ffc3c1);
+  --color-on-error-container: var(--on-error-container, #93000a);
+  --color-on-secondary-fixed: var(--on-secondary-fixed, #1b1b1c);
+  --color-tertiary-fixed-dim: var(--tertiary-fixed-dim, #ecc15a);
+  --color-on-background: var(--on-surface, #1b1c1a);
+  --color-on-tertiary-fixed: var(--on-tertiary-fixed, #251a00);
+  --color-surface-container-low: var(--surface-container-low, #f5f3ef);
+  --color-surface-bright: var(--surface-bright, #fbf9f5);
+  --color-surface-container-high: var(--surface-container-high, #eae8e4);
+  --color-on-tertiary-container: var(--on-tertiary-container, #f8cc64);
+  --color-secondary-fixed-dim: var(--secondary-fixed-dim, #c8c6c5);
+  --color-tertiary: var(--tertiary, #554000);
+  --color-secondary: var(--secondary, #5f5e5e);
+  --color-inverse-primary: var(--inverse-primary, #ffb3b1);
+  --color-on-secondary-fixed-variant: var(--on-secondary-fixed-variant, #474746);
+  --color-tertiary-fixed: var(--tertiary-fixed, #ffdf99);
+  --color-surface-tint: var(--primary, #b9192d);
+  --color-primary-fixed-dim: var(--primary-fixed-dim, #ffb3b1);
+  --color-tertiary-container: var(--tertiary-container, #725600);
+  --color-surface-container-lowest: var(--surface-container-lowest, #ffffff);
+  --color-secondary-container: var(--secondary-container, #e2dfde);
+  --color-on-secondary: var(--on-secondary, #ffffff);
+  --color-surface-dim: var(--surface-dim, #dbdad6);
+  --color-primary: var(--primary, #8b001a);
+  --color-on-surface-variant: var(--on-surface-variant, #5b403f);
+  --color-surface-container-highest: var(--surface-container-highest, #e4e2de);
+  --color-outline: var(--outline, #8f6f6e);
+  --color-on-secondary-container: var(--on-secondary-container, #636262);
+  --color-on-surface: var(--on-surface, #1b1c1a);
+  --color-on-tertiary: var(--on-tertiary, #ffffff);
+  --color-on-primary-fixed: var(--on-primary-fixed, #410007);
+  --color-inverse-on-surface: var(--inverse-on-surface, #f2f0ec);
+  --color-on-primary-fixed-variant: var(--on-primary-fixed-variant, #92001c);
+  --color-background: var(--surface, #fbf9f5);
+  --color-on-tertiary-fixed-variant: var(--on-tertiary-fixed-variant, #5a4300);
+  --color-surface: var(--surface, #fbf9f5);
+  --color-on-primary: var(--on-primary, #ffffff);
+  --color-surface-container: var(--surface-container, #f0eeea);
+  --color-surface-variant: var(--surface-variant, #e4e2de);
+  --color-error: var(--error, #ba1a1a);
+  --color-primary-container: var(--primary-container, #b31329);
+
+  --color-terra-temporada-luz: var(--terra-temporada-luz, #ffad69);
+  --color-terra-temporada-sombra: var(--terra-temporada-sombra, #8a4ba5);
+  --color-terra-temporada-superficie: var(--terra-temporada-superficie, #22142f);
+
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-label-subtle: 'Plus Jakarta Sans', sans-serif;
+  --font-title-sm: 'Plus Jakarta Sans', sans-serif;
+  --font-body-md: 'Plus Jakarta Sans', sans-serif;
+  --font-display-hero-mobile: 'Plus Jakarta Sans', sans-serif;
+  --font-body-lg: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-xl-mobile: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-lg: 'Plus Jakarta Sans', sans-serif;
+  --font-display-hero: 'Plus Jakarta Sans', sans-serif;
+  --font-label-caps: 'Plus Jakarta Sans', sans-serif;
+  --font-label-interactive: 'Plus Jakarta Sans', sans-serif;
+  --font-body-sm: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-md: 'Plus Jakarta Sans', sans-serif;
+  --font-headline-xl: 'Plus Jakarta Sans', sans-serif;
+
+  --text-label-subtle: 12px;
+  --text-label-subtle--line-height: 16px;
+  --text-label-subtle--font-weight: 500;
+
+  --text-title-sm: 18px;
+  --text-title-sm--line-height: 24px;
+  --text-title-sm--font-weight: 600;
+
+  --text-body-md: 15px;
+  --text-body-md--line-height: 22px;
+  --text-body-md--font-weight: 400;
+
+  --text-display-hero-mobile: 38px;
+  --text-display-hero-mobile--line-height: 44px;
+  --text-display-hero-mobile--letter-spacing: -0.02em;
+  --text-display-hero-mobile--font-weight: 700;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-lg--font-weight: 400;
+
+  --text-headline-xl-mobile: 30px;
+  --text-headline-xl-mobile--line-height: 38px;
+  --text-headline-xl-mobile--letter-spacing: -0.015em;
+  --text-headline-xl-mobile--font-weight: 600;
+
+  --text-headline-lg: 28px;
+  --text-headline-lg--line-height: 36px;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-display-hero: 56px;
+  --text-display-hero--line-height: 64px;
+  --text-display-hero--letter-spacing: -0.03em;
+  --text-display-hero--font-weight: 700;
+
+  --text-label-caps: 12px;
+  --text-label-caps--line-height: 16px;
+  --text-label-caps--letter-spacing: 0.12em;
+  --text-label-caps--font-weight: 700;
+
+  --text-label-interactive: 15px;
+  --text-label-interactive--line-height: 20px;
+  --text-label-interactive--font-weight: 600;
+
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 18px;
+  --text-body-sm--font-weight: 400;
+
+  --text-headline-md: 22px;
+  --text-headline-md--line-height: 30px;
+  --text-headline-md--font-weight: 600;
+
+  --text-headline-xl: 40px;
+  --text-headline-xl--line-height: 48px;
+  --text-headline-xl--letter-spacing: -0.02em;
+  --text-headline-xl--font-weight: 600;
+
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-2xl: 4rem;
+  --spacing-space-xs: 0.25rem;
+  --spacing-gutter-kiosk: 2rem;
+  --spacing-margin: 2rem;
+  --spacing-space-md: 1rem;
+  --spacing-margin-mobile: 1rem;
+  --spacing-space-xl: 2.5rem;
+  --spacing-gutter: 1.5rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-margin-kiosk: 3.5rem;
+}
+
+/* ========================================================= */
+/* PALETA SEMÁNTICA: MODO DÍA                                */
+/* ========================================================= */
+:root {
+  color-scheme: light;
+
+  --surface: #fbf9f5;
+  --surface-bright: #fbf9f5;
+  --surface-dim: #dbdad6;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f5f3ef;
+  --surface-container: #f0eeea;
+  --surface-container-high: #eae8e4;
+  --surface-container-highest: #e4e2de;
+  --surface-variant: #e4e2de;
+
+  --on-surface: #1b1c1a;
+  --on-surface-variant: #5b403f;
+  --on-background: #1b1c1a;
+
+  --primary: #8b001a;
+  --primary-container: #b31329;
+  --on-primary: #ffffff;
+  --primary-fixed: #ffdad8;
+  --primary-fixed-dim: #ffb3b1;
+  --on-primary-fixed: #410007;
+  --on-primary-fixed-variant: #92001c;
+  --on-primary-container: #ffc3c1;
+
+  --tertiary: #554000;
+  --tertiary-container: #725600;
+  --tertiary-fixed: #ffdf99;
+  --tertiary-fixed-dim: #ecc15a;
+  --on-tertiary: #ffffff;
+  --on-tertiary-fixed: #251a00;
+  --on-tertiary-fixed-variant: #5a4300;
+  --on-tertiary-container: #f8cc64;
+
+  --outline: #8f6f6e;
+  --outline-variant: #e3bebc;
+
+  --inverse-surface: #30312e;
+  --inverse-on-surface: #f2f0ec;
+  --inverse-primary: #ffb3b1;
+  --secondary: #5f5e5e;
+  --secondary-container: #e2dfde;
+  --secondary-fixed: #e5e2e1;
+  --secondary-fixed-dim: #c8c6c5;
+  --on-secondary: #ffffff;
+  --on-secondary-container: #636262;
+  --on-secondary-fixed: #1b1b1c;
+  --on-secondary-fixed-variant: #474746;
+
+  --error: #ba1a1a;
+  --error-container: #ffdad6;
+  --on-error: #ffffff;
+  --on-error-container: #93000a;
+
+  --terra-temporada-luz: #e6a86c;
+  --terra-temporada-sombra: #5a386b;
+  --terra-temporada-superficie: #f0eeea;
+}
+
+/* ========================================================= */
+/* MODO NOCHE (DARK)                                         */
+/* ========================================================= */
+html.dark,
+body.dark {
+  color-scheme: dark;
+
+  --surface: #121311;
+  --surface-bright: #1c1d1a;
+  --surface-dim: #0d0e0c;
+  --surface-container-lowest: #191a17;
+  --surface-container-low: #1e1f1c;
+  --surface-container: #242522;
+  --surface-container-high: #2b2d29;
+  --surface-container-highest: #343631;
+  --surface-variant: #343631;
+
+  --on-surface: #edeae5;
+  --on-surface-variant: #b8b3ac;
+  --on-background: #edeae5;
+
+  --primary: #d42b44;
+  --primary-container: #8b001a;
+  --on-primary: #ffffff;
+  --primary-fixed: #5c000e;
+  --primary-fixed-dim: #ffb3b1;
+  --on-primary-fixed: #ffdad8;
+  --on-primary-fixed-variant: #ffb3b1;
+  --on-primary-container: #ffdada;
+
+  --tertiary: #ffd27a;
+  --tertiary-container: #856200;
+  --tertiary-fixed: #ffdf99;
+  --tertiary-fixed-dim: #ecc15a;
+  --on-tertiary: #251a00;
+  --on-tertiary-fixed: #251a00;
+  --on-tertiary-fixed-variant: #5a4300;
+  --on-tertiary-container: #ffe082;
+
+  --outline: #5a5451;
+  --outline-variant: #3a3433;
+
+  --inverse-surface: #edeae5;
+  --inverse-on-surface: #121311;
+  --inverse-primary: #8b001a;
+  --secondary: #9e9a96;
+  --secondary-container: #2b2d29;
+  --secondary-fixed: #3a3836;
+  --secondary-fixed-dim: #2b2a28;
+  --on-secondary: #121311;
+  --on-secondary-container: #d8d4cf;
+
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --on-error: #690005;
+  --on-error-container: #ffdad6;
+
+  --terra-temporada-luz: #ffd27a;
+  --terra-temporada-sombra: #6a3d7d;
+  --terra-temporada-superficie: #1e1f1c;
+}
+
+/* ========================================================= */
+/* TEMA FESTIVO: HALLOWEEN                                   */
+/* ========================================================= */
+body.hal-active,
+html[data-terra-season="halloween"],
+html.tema-halloween {
+  color-scheme: dark;
+
+  --surface: #100b19;
+  --surface-bright: #20142e;
+  --surface-dim: #0d0914;
+  --surface-container-lowest: #180e26;
+  --surface-container-low: #1a1128;
+  --surface-container: #271a35;
+  --surface-container-high: #30203a;
+  --surface-container-highest: #382640;
+  --surface-variant: #382640;
+
+  --on-surface: #fff3ea;
+  --on-surface-variant: #d9c6d7;
+  --on-background: #fff3ea;
+
+  --primary: #de641b;
+  --primary-container: #ad4b15;
+  --on-primary: #ffffff;
+  --primary-fixed: #5c000e;
+  --primary-fixed-dim: #ffb3b1;
+  --on-primary-container: #ffffff;
+
+  --tertiary: #ffe0a2;
+  --tertiary-container: #72511a;
+  --tertiary-fixed: #ffdf99;
+  --tertiary-fixed-dim: #ecc15a;
+  --on-tertiary: #251a00;
+  --on-tertiary-container: #ffeed0;
+
+  --outline: #a77c83;
+  --outline-variant: #5c3d53;
+
+  --inverse-surface: #4e2b45;
+  --inverse-on-surface: #fff3ea;
+  --secondary: #c2a6bf;
+  --secondary-container: #31223e;
+  --on-secondary: #100b19;
+  --on-secondary-container: #fff3ea;
+
+  --error: #ff8585;
+  --error-container: #801010;
+  --on-error: #ffffff;
+  --on-error-container: #ffd0d0;
+
+  --terra-temporada-luz: #ff9b55;
+  --terra-temporada-sombra: #8a4ba5;
+  --terra-temporada-superficie: #22142f;
+}
+
+/* ========================================================= */
+/* TEMA FESTIVO: NAVIDAD                                     */
+/* ========================================================= */
+body.xmas-active,
+html[data-terra-season="navidad"],
+html.tema-navidad {
+  color-scheme: dark;
+
+  --surface: #061416;
+  --surface-bright: #102d30;
+  --surface-dim: #040e0f;
+  --surface-container-lowest: #0a2022;
+  --surface-container-low: #0b272a;
+  --surface-container: #174043;
+  --surface-container-high: #19464a;
+  --surface-container-highest: #225257;
+  --surface-variant: #225257;
+
+  --on-surface: #fffdf4;
+  --on-surface-variant: #cedcda;
+  --on-background: #fffdf4;
+
+  --primary: #be303a;
+  --primary-container: #942832;
+  --on-primary: #ffffff;
+  --primary-fixed: #5c000e;
+  --primary-fixed-dim: #ffb3b1;
+  --on-primary-container: #ffffff;
+
+  --tertiary: #f8c675;
+  --tertiary-container: #6f5825;
+  --tertiary-fixed: #ffdf99;
+  --tertiary-fixed-dim: #ecc15a;
+  --on-tertiary: #251a00;
+  --on-tertiary-container: #fff0d4;
+
+  --outline: #70908d;
+  --outline-variant: #335c5c;
+
+  --inverse-surface: #103233;
+  --inverse-on-surface: #fffdf4;
+  --secondary: #98b8b5;
+  --secondary-container: #1c494a;
+  --on-secondary: #061416;
+  --on-secondary-container: #fffdf4;
+
+  --error: #ff8585;
+  --error-container: #801010;
+  --on-error: #ffffff;
+  --on-error-container: #ffd0d0;
+
+  --terra-temporada-luz: #f8c675;
+  --terra-temporada-sombra: #2b7569;
+  --terra-temporada-superficie: #0b2d2f;
+}
+
+/* ========================================================= */
+/* REGLAS GLOBALES                                           */
+/* ========================================================= */
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+  }
+  body {
+    overscroll-behavior: none;
+    transition: background-color 0.25s ease, color 0.2s ease;
+  }
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ========================================================= */
+/* ANIMACIONES Y UTILIDADES DE TEMPORADAS                    */
+/* ========================================================= */
+@keyframes fadeIn {
+  from { opacity: 0.3; transform: scale(0.99); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.35s ease-out forwards;
+}
+
+@keyframes temporada-volar {
+  from { transform: translateX(-10vw) translateY(1rem); }
+  to { transform: translateX(110vw) translateY(-5rem); }
+}
+
+@keyframes temporada-brillar {
+  from { filter: brightness(0.75); opacity: 0.55; }
+  to { filter: brightness(1.25); opacity: 1; }
+}
+
+@keyframes temporada-progreso {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.temporada-ambiental {
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: fixed;
+  z-index: 0;
+}
+
+.temporada-ambiental__orb {
+  border-radius: 9999px;
+  filter: blur(1rem);
+  opacity: 0.13;
+  position: absolute;
+}
+
+.temporada-ambiental__orb--uno {
+  background: var(--terra-temporada-luz);
+  height: 18rem;
+  right: -5rem;
+  top: 8rem;
+  width: 18rem;
+}
+
+.temporada-ambiental__orb--dos {
+  background: var(--terra-temporada-sombra);
+  bottom: 9rem;
+  height: 24rem;
+  left: -8rem;
+  width: 24rem;
+}
+
+.temporada-ambiental__brillos {
+  background-image: radial-gradient(var(--terra-temporada-luz) 1px, transparent 1px);
+  background-size: 3.5rem 3.5rem;
+  inset: 0;
+  opacity: 0.08;
+  position: absolute;
+}
+
+.temporada-aviso {
+  align-items: center;
+  background: var(--terra-temporada-superficie);
+  border: 1px solid var(--outline-variant);
+  border-radius: 9999px;
+  bottom: 1.5rem;
+  box-shadow: 0 0.75rem 2rem color-mix(in srgb, var(--surface-dim) 80%, transparent);
+  color: var(--on-surface);
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  left: 1.5rem;
+  padding: 0.625rem 0.875rem;
+  position: fixed;
+  z-index: 60;
+}
+
+.temporada-repetir {
+  align-items: center;
+  background: var(--terra-temporada-superficie);
+  border: 1px solid var(--outline-variant);
+  border-radius: 9999px;
+  bottom: 4.75rem;
+  color: var(--on-surface);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  left: 1.5rem;
+  padding: 0.625rem 0.875rem;
+  position: fixed;
+  z-index: 60;
+}
+
+.temporada-hero {
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+}
+
+.temporada-hero__luna,
+.temporada-entrada__luna {
+  background: radial-gradient(circle at 36% 30%, var(--surface-bright), var(--terra-temporada-luz));
+  border-radius: 50%;
+  box-shadow: 0 0 4rem var(--terra-temporada-luz);
+  height: 12rem;
+  position: absolute;
+  right: 11%;
+  top: 1rem;
+  width: 12rem;
+}
+
+.temporada-hero__niebla {
+  background: radial-gradient(ellipse, var(--terra-temporada-sombra), transparent 68%);
+  bottom: -8rem;
+  filter: blur(1.5rem);
+  height: 14rem;
+  position: absolute;
+  right: -8rem;
+  width: 72%;
+}
+
+.temporada-hero__bat {
+  animation: temporada-volar 12s linear infinite;
+  color: var(--surface-dim);
+  opacity: 0.75;
+  position: absolute;
+  top: 20%;
+  width: 3.5rem;
+}
+
+.temporada-hero__bat--uno {
+  animation-delay: -3s;
+}
+
+.temporada-hero__bat--dos {
+  animation-delay: -8s;
+  top: 43%;
+  width: 2.5rem;
+}
+
+.temporada-hero__estrella {
+  animation: temporada-brillar 3s ease-in-out infinite alternate;
+  color: var(--terra-temporada-luz);
+  font-size: 8rem;
+  position: absolute;
+  right: 14%;
+  text-shadow: 0 0 2rem var(--terra-temporada-luz);
+  top: 1rem;
+}
+
+.temporada-hero__arbol {
+  bottom: -4rem;
+  color: var(--terra-temporada-sombra);
+  font-size: 20rem;
+  opacity: 0.5;
+  position: absolute;
+  right: 3%;
+}
+
+.temporada-hero__contenido {
+  margin-bottom: 1.25rem;
+  position: relative;
+  z-index: 11;
+}
+
+.temporada-hero__etiqueta {
+  align-items: center;
+  background: color-mix(in srgb, var(--terra-temporada-superficie) 78%, transparent);
+  border: 1px solid var(--outline-variant);
+  border-radius: 9999px;
+  color: var(--tertiary);
+  display: inline-flex;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  gap: 0.5rem;
+  letter-spacing: 0.08em;
+  padding: 0.5rem 0.75rem;
+  text-transform: uppercase;
+}
+
+.temporada-hero__titulo {
+  color: var(--on-surface);
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin: 0.75rem 0;
+  max-width: 28rem;
+}
+
+.temporada-contador {
+  align-items: center;
+  background: color-mix(in srgb, var(--terra-temporada-superficie) 82%, transparent);
+  border: 1px solid var(--outline-variant);
+  border-radius: 0.75rem;
+  color: var(--on-surface-variant);
+  display: flex;
+  font-size: 0.75rem;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  width: fit-content;
+}
+
+.temporada-contador strong {
+  color: var(--tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.temporada-entrada {
+  align-items: center;
+  background: var(--surface-dim);
+  color: var(--on-surface);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  overflow: hidden;
+  padding: 1.25rem;
+  position: fixed;
+  text-align: center;
+  z-index: 100;
+}
+
+.temporada-entrada__cielo {
+  background-image: radial-gradient(var(--terra-temporada-luz) 1px, transparent 1px);
+  background-size: 7rem 7rem;
+  inset: 0;
+  opacity: 0.22;
+  position: absolute;
+}
+
+.temporada-entrada__escena {
+  bottom: 0;
+  color: var(--terra-temporada-sombra);
+  font-size: 20rem;
+  height: 40%;
+  position: absolute;
+  width: 100%;
+}
+
+.temporada-entrada__escena .temporada-entrada__luna {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.temporada-entrada__contenido {
+  max-width: 40rem;
+  position: relative;
+  z-index: 1;
+}
+
+.temporada-entrada__contenido > p {
+  color: var(--on-surface-variant);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.temporada-entrada__icono {
+  animation: temporada-brillar 3s ease-in-out infinite alternate;
+  color: var(--tertiary);
+  font-size: 4rem;
+}
+
+.temporada-entrada__contenido h2 {
+  font-size: clamp(3.5rem, 11vw, 8rem);
+  letter-spacing: -0.09em;
+  line-height: 0.8;
+  margin: 1.5rem 0;
+}
+
+.temporada-entrada__contenido h2 span {
+  color: var(--terra-temporada-luz);
+  display: block;
+  font-size: 0.38em;
+  letter-spacing: 0.2em;
+  margin-top: 1rem;
+}
+
+.temporada-entrada__contenido button {
+  background: var(--primary);
+  border: 1px solid var(--tertiary);
+  border-radius: 9999px;
+  color: var(--on-primary);
+  cursor: pointer;
+  font-weight: 800;
+  margin-top: 1.25rem;
+  padding: 0.875rem 1.5rem;
+}
+
+.temporada-entrada__progreso {
+  animation: temporada-progreso 4.5s linear forwards;
+  background: linear-gradient(90deg, var(--terra-temporada-sombra), var(--terra-temporada-luz));
+  bottom: 0;
+  height: 0.25rem;
+  left: 0;
+  position: absolute;
+  transform-origin: left;
+  width: 100%;
+}
+
+/* ========================================================= */
+/* WIDGET DEL CHAT (ADAPTABLE A CADA TEMA DINÁMICO)          */
+/* ========================================================= */
+@keyframes chatFadeIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes chatPulso {
+  from { opacity: 0.3; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1.15); }
+}
+
+.chat-widget {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 2rem;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+  font-family: inherit;
+}
+
+.chat-panel {
+  width: min(390px, calc(100vw - 2rem));
+  height: min(530px, calc(100vh - 7rem));
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  animation: chatFadeIn 0.22s ease-out;
+}
+
+.chat-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.15rem;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.chat-panel-header strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.chat-panel-header small {
+  opacity: 0.9;
+  font-size: 0.76rem;
+}
+
+.chat-cerrar {
+  display: inline-flex;
+  padding: 0.35rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.chat-cerrar:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.chat-mensajes {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  background: var(--surface-container-low);
+}
+
+.chat-burbuja {
+  max-width: 85%;
+  padding: 0.65rem 0.9rem;
+  border-radius: 1rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-msg-usuario {
+  align-self: flex-end;
+  background: var(--primary);
+  color: var(--on-primary);
+  border-bottom-right-radius: 0.25rem;
+}
+
+.chat-msg-asistente {
+  align-self: flex-start;
+  background: var(--surface-container-lowest);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+  border-bottom-left-radius: 0.25rem;
+}
+
+.chat-msg-error {
+  align-self: flex-start;
+  background: var(--error-container);
+  color: var(--on-error-container);
+  border: 1px solid var(--outline-variant);
+  font-size: 0.85rem;
+}
+
+.chat-imagen {
+  max-width: 100%;
+  max-height: 220px;
+  border-radius: 0.6rem;
+  margin-top: 0.35rem;
+  display: block;
+}
+
+.chat-burbuja a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.chat-escribiendo {
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.chat-audio {
+  width: 100%;
+  max-width: 240px;
+  height: 36px;
+  margin-top: 0.4rem;
+}
+
+.chat-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-container-lowest);
+  border-top: 1px solid var(--outline-variant);
+}
+
+.chat-form input {
+  flex: 1;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--outline-variant);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  outline: none;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+}
+
+.chat-form input:focus {
+  border-color: var(--primary);
+  background: var(--surface-container-lowest);
+}
+
+.chat-enviar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.chat-enviar:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: scale(1.04);
+}
+
+.chat-enviar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chat-mic {
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+}
+
+.chat-mic:hover:not(:disabled) {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.chat-grabando {
+  background: var(--surface-container-low);
+}
+
+.chat-cancelar-grabacion {
+  border: none;
+  background: none;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  padding: 0.35rem;
+}
+
+.chat-grabando-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--error);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.chat-grabando-punto {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  background: var(--error);
+  animation: chatPulso 1s infinite alternate;
+}
+
+@media (max-width: 640px) {
+  .chat-widget {
+    right: 0.5rem;
+    left: 0.5rem;
+    bottom: 0.75rem;
+    align-items: stretch;
+  }
+  .chat-panel {
+    width: 100%;
+    height: min(540px, calc(100vh - 4.5rem));
+    border-radius: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body,
+  header,
+  main,
+  section,
+  button,
+  input,
+  aside {
+    transition: none !important;
+  }
+  .animate-fadeIn,
+  .temporada-hero__bat,
+  .temporada-hero__estrella,
+  .temporada-entrada__icono,
+  .temporada-entrada__progreso,
+  .chat-grabando-punto {
+    animation: none !important;
+  }
+}
+

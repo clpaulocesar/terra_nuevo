@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { CheckCircle2, LocateFixed, MapPin, Navigation } from 'lucide-react';
+import './MapaEntregaMayorista.css';
 
 function parsearCoordenadas(gpsStr) {
   if (typeof gpsStr === 'string' && gpsStr.includes(',')) {
@@ -200,33 +201,44 @@ export default function MapaEntregaMayorista({
   };
 
   return (
-    <div className="b2b-leaflet-wrapper">
+    <div className="flex flex-col gap-2 mt-2">
       {/* Barra de controles superiores del mapa */}
-      <div className="b2b-map-controls-row">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <strong style={{ fontSize: '0.75rem', color: '#374151' }}>Ubicación de entrega en el mapa</strong>
-          <span className="b2b-gps-badge">GPS: {gps || 'Sin definir'}</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <strong className="text-terra-xs font-bold text-terra-texto">
+            Ubicación de entrega en el mapa
+          </strong>
+          <span className="px-2.5 py-0.5 rounded-full text-terra-3xs font-mono font-bold bg-terra-control text-terra-texto border border-terra-borde">
+            GPS: {gps || 'Sin definir'}
+          </span>
         </div>
 
-        <div className="b2b-map-action-buttons">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
-            className="b2b-btn-map-action"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-terra-boton border border-terra-borde bg-terra-control hover:bg-terra-control-hover text-terra-texto text-terra-xs font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={onObtenerGps}
             disabled={cargandoGps}
             title="Detectar coordenadas actuales"
           >
-            <LocateFixed size={14} style={{ color: 'var(--terra-wine-b2b)' }} />
+            <LocateFixed size={14} className="text-terra-primario dark:text-terra-acento" />
             <span>{cargandoGps ? 'Obteniendo GPS...' : 'Usar mi ubicación GPS actual'}</span>
           </button>
 
           <button
             type="button"
-            className={`b2b-btn-map-action ${modoFijarActivo ? 'b2b-btn-map-action--active' : ''}`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-terra-boton border text-terra-xs font-bold transition-colors cursor-pointer ${
+              modoFijarActivo
+                ? 'bg-terra-primario-suave border-terra-primario text-terra-primario dark:text-terra-acento'
+                : 'bg-terra-control hover:bg-terra-control-hover border-terra-borde text-terra-texto'
+            }`}
             onClick={toggleModoFijar}
             title="Haz clic en cualquier punto del mapa para mover el marcador"
           >
-            <MapPin size={14} style={{ color: modoFijarActivo ? 'var(--terra-wine-b2b)' : '#6b7280' }} />
+            <MapPin
+              size={14}
+              className={modoFijarActivo ? 'text-terra-primario dark:text-terra-acento' : 'text-terra-texto-suave'}
+            />
             <span>{modoFijarActivo ? 'Modo selección activo (haz clic en el mapa)' : 'Fijar punto en el mapa'}</span>
           </button>
         </div>
@@ -234,19 +246,19 @@ export default function MapaEntregaMayorista({
 
       {/* Indicador de ayuda al fijar punto */}
       {modoFijarActivo && (
-        <div className="b2b-map-hint-banner">
-          <Navigation size={13} style={{ color: 'var(--terra-wine-b2b)' }} />
+        <div className="flex items-center gap-2 p-2.5 rounded-terra-campo bg-terra-primario-suave border border-terra-primario/30 text-terra-primario dark:text-terra-acento text-terra-xs font-semibold my-1">
+          <Navigation size={13} className="shrink-0" />
           <span>Haz clic en cualquier punto del mapa o arrastra el marcador para fijar la ubicación de entrega.</span>
         </div>
       )}
 
       {/* Contenedor del mapa Leaflet */}
-      <div className="b2b-leaflet-container-frame">
-        <div ref={mapContainerRef} className="b2b-leaflet-map-element" />
+      <div className="relative w-full h-72 sm:h-80 rounded-terra-tarjeta overflow-hidden border border-terra-borde shadow-inner bg-terra-superficie-2">
+        <div ref={mapContainerRef} className="w-full h-full" />
 
         {/* Badge inferior de ubicación de entrega */}
-        <div className="b2b-map-truck-legend">
-          <CheckCircle2 size={13} style={{ color: '#059669' }} />
+        <div className="absolute bottom-3 left-3 z-[1000] flex items-center gap-2 px-3 py-1.5 rounded-terra-boton bg-terra-superficie/95 backdrop-blur-xs border border-terra-borde text-terra-3xs sm:text-terra-xs font-bold text-terra-texto shadow-terra-sm">
+          <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
           <span>Mapa interactivo: arrastra el pin o haz clic para marcar la ubicación de entrega</span>
         </div>
       </div>

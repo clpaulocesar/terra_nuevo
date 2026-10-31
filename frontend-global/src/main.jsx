@@ -20,8 +20,8 @@ import TutorialVozModal from './components/TutorialVozModal.jsx';
 import { TemporadaProvider, useTemporada } from './context/TemporadaContext.jsx';
 import TemporadaAmbiental from './components/TemporadaAmbiental.jsx';
 import ChatAsistente from './components/chat/ChatAsistente.jsx';
-import './styles/temporadas.css';
-import './InicioCliente.css';
+import './index.css';
+
 
 function AppGlobalContent() {
   const {
@@ -107,8 +107,28 @@ function AppGlobalContent() {
     const controlador = new AbortController();
 
     listarProductosDestacados(controlador.signal)
-      .then(setProductosDestacados)
-      .catch(() => {});
+      .then((prods) => {
+        if (Array.isArray(prods) && prods.length > 0) {
+          setProductosDestacados(prods);
+        } else {
+          listarProductos({ limite: 24, signal: controlador.signal })
+            .then((res) => {
+              if (Array.isArray(res?.productos) && res.productos.length > 0) {
+                setProductosDestacados(res.productos);
+              }
+            })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {
+        listarProductos({ limite: 24, signal: controlador.signal })
+          .then((res) => {
+            if (Array.isArray(res?.productos) && res.productos.length > 0) {
+              setProductosDestacados(res.productos);
+            }
+          })
+          .catch(() => {});
+      });
 
     obtenerCategorias(controlador.signal)
       .then((categorias) => {
@@ -125,7 +145,7 @@ function AppGlobalContent() {
           );
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     return () => controlador.abort();
   }, []);
@@ -426,9 +446,8 @@ function AppGlobalContent() {
 
       {/* Interactive Toast Notification */}
       <div
-        className={`fixed top-48 right-6 z-50 transform transition-all duration-300 pointer-events-none bg-inverse-surface text-inverse-on-surface px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 ${
-          toast.visible ? 'translate-y-0 opacity-100' : 'translate-y-[-100px] opacity-0'
-        }`}
+        className={`fixed top-48 right-6 z-50 transform transition-all duration-300 pointer-events-none bg-inverse-surface text-inverse-on-surface px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 ${toast.visible ? 'translate-y-0 opacity-100' : 'translate-y-[-100px] opacity-0'
+          }`}
         id="catalog-toast"
       >
         <span className="material-symbols-outlined text-tertiary-fixed text-[24px]">check_circle</span>

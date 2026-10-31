@@ -49,6 +49,7 @@ export function useTutorialGuiado({ esMayorista = false, alFinalizar } = {}) {
     const [{ driver }] = await Promise.all([
       import('driver.js'),
       import('driver.js/dist/driver.css'),
+      import('./tutorial.css'),
     ]);
 
     focoPrevioRef.current = document.activeElement;

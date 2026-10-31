@@ -91,3 +91,12 @@ Estado: en revisión (2026-10-29), sin commit.
 - **Confirmación en una columna entre 768 y 1023 px**: con la reserva de los flotantes, las dos columnas quedaban demasiado angostas; desde 1024 px siguen siendo dos.
 
 Relacionado: [[00-roadmap]] · [[2026-10-28-flotantes-y-catalogo-movil]]
+
+## Fase 5 (Portal B2B Mayorista)
+Estado: completada (2026-10-30).
+- Componentes migrados: `src/pages/InicioMayorista.jsx`, `src/pages/PanelMayorista.jsx`, `src/pages/PedidosMayorista.jsx` y `src/components/mayorista/MapaEntregaMayorista.jsx`.
+- Se eliminaron físicamente `src/pages/InicioMayorista.css`, `src/pages/PanelMayorista.css` y `src/pages/PedidosMayorista.css`.
+- Para el mapa Leaflet en `MapaEntregaMayorista.jsx`, el marcado interactivo dinámico inyectado en el DOM mediante `L.divIcon` se aisló en `src/components/mayorista/MapaEntregaMayorista.css` (permitido por `AGENTS.md` para bibliotecas externas) con variables de token `--terra-*`.
+- Se purgaron selectores obsoletos de `.b2b-*` en `src/theme-dark.css`.
+- Modo oscuro y contraste completamente funcionales a través de tokens semánticos nativos de Tailwind v4.
+

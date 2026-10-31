@@ -235,6 +235,13 @@
   border-width: 1.5px;
 }
 
+@utility line-clamp-* {
+  -webkit-line-clamp: --value(integer);
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  overflow: hidden;
+}
+
 /* Esqueleto animado mientras una foto todavía no cargó (tarjeta del catálogo). */
 @utility fondo-cargando {
   background-image: linear-gradient(100deg, var(--terra-esqueleto) 20%, var(--terra-superficie-2) 40%,

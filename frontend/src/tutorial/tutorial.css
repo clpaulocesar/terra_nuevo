@@ -1,227 +1,47 @@
-/* Botón, invitación y recorrido guiado del catálogo. */
+/* Sobrescrituras de la librería externa Driver.js para el recorrido guiado del catálogo. */
 
-.terra-tutorial-btn,
-.tutorial-invite__card,
-.terra-tour-popover {
-  --tour-surface: var(--terra-surface, var(--td-surface, #ffffff));
-  --tour-surface-soft: var(--terra-bg-soft, var(--td-surface-2, #faf7f5));
-  --tour-border: var(--terra-border, var(--td-line, #eadfd3));
-  --tour-text: var(--terra-text-dark, var(--td-text, #231a16));
-  --tour-muted: var(--terra-text-muted, var(--td-muted, #7a6f68));
-  --tour-accent: var(--terra-wine, var(--td-accent, #a6192e));
-  --tour-accent-soft: var(--terra-wine-light, var(--td-accent-soft, #fbecef));
-}
-
-.terra-tutorial-btn {
-  align-items: center;
-  background: #ffffff;
-  border: 1px solid #e3e3e3;
-  border-radius: 999px;
-  color: #303030;
-  cursor: pointer;
-  display: inline-flex;
-  font-family: 'Manrope', Arial, sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  gap: 0.45rem;
-  height: 42px;
-  justify-content: center;
-  padding: 0 0.9rem;
-  white-space: nowrap;
-}
-.terra-tutorial-btn svg {
-  color: #a6192e;
-}
-.terra-tutorial-btn:hover {
-  background: #f8f8f8;
-  border-color: #d8b2b8;
-  color: #a6192e;
-}
-.terra-tutorial-btn:focus-visible {
-  outline: 3px solid #a6192e55;
-  outline-offset: 2px;
-}
-
-.terra-tutorial-btn svg {
-  color: var(--tour-accent);
-}
-
-.terra-tutorial-btn:hover {
-  background: var(--tour-accent-soft);
-  border-color: var(--tour-accent);
-  color: var(--tour-accent);
-}
-
-.terra-tutorial-btn:focus-visible {
-  outline: 3px solid var(--tour-accent-soft);
-  outline-offset: 2px;
-}
-
-.terra-tutorial-btn--movil {
-  display: none;
-}
-
-.tutorial-invite {
-  align-items: center;
-  animation: tutorial-aparecer 0.2s ease-out;
-  background: rgba(18, 12, 11, 0.66);
-  display: flex;
-  inset: 0;
-  justify-content: center;
-  padding: 1rem;
-  position: fixed;
-  z-index: 400;
-}
-
-.tutorial-invite__fondo {
-  background: transparent;
-  border: 0;
-  inset: 0;
-  padding: 0;
-  position: absolute;
-}
-
-.tutorial-invite__card {
-  animation: tutorial-subir 0.24s ease-out;
-  background: var(--tour-surface);
-  border: 1px solid var(--tour-border);
-  border-radius: 20px;
-  box-shadow: 0 24px 60px rgba(20, 12, 10, 0.32);
-  color: var(--tour-text);
-  max-width: 26rem;
-  padding: clamp(1.4rem, 4vw, 2rem);
-  position: relative;
-  text-align: center;
-  width: 100%;
-}
-
-.tutorial-invite__icono {
-  align-items: center;
-  background: var(--tour-accent-soft);
-  border-radius: 16px;
-  color: var(--tour-accent);
-  display: inline-flex;
-  height: 3.6rem;
-  justify-content: center;
-  margin-bottom: 0.9rem;
-  width: 3.6rem;
-}
-
-.tutorial-invite__etiqueta {
-  color: var(--tour-accent);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  margin: 0 0 0.35rem;
-  text-transform: uppercase;
-}
-
-.tutorial-invite__titulo {
-  color: var(--tour-text);
-  font-size: 1.35rem;
-  font-weight: 900;
-  line-height: 1.2;
-  margin: 0 0 0.6rem;
-}
-
-.tutorial-invite__texto {
-  color: var(--tour-muted);
-  font-size: 0.9rem;
-  line-height: 1.55;
-  margin: 0 0 1.3rem;
-}
-
-.tutorial-invite__acciones {
-  display: grid;
-  gap: 0.55rem;
-}
-
-.tutorial-invite__boton {
-  align-items: center;
-  background: var(--tour-surface-soft);
-  border: 1px solid var(--tour-border);
-  border-radius: 12px;
-  color: var(--tour-text);
-  cursor: pointer;
-  display: inline-flex;
-  font-family: 'Manrope', Arial, sans-serif;
-  font-size: 0.9rem;
-  font-weight: 800;
-  justify-content: center;
-  min-height: 3rem;
-  padding: 0 1rem;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.tutorial-invite__boton:hover {
-  border-color: var(--tour-accent);
-  color: var(--tour-accent);
-}
-
-.tutorial-invite__boton--principal {
-  background: var(--tour-accent);
-  border-color: var(--tour-accent);
-  color: #ffffff;
-}
-
-.tutorial-invite__boton--principal:hover {
-  background: color-mix(in srgb, var(--tour-accent) 86%, #000000);
-  color: #ffffff;
-}
-
-.tutorial-invite__boton:focus-visible,
-.terra-tour-popover .driver-popover-footer-btn:focus-visible {
-  outline: 3px solid var(--tour-accent-soft);
-  outline-offset: 2px;
-}
-
-.tutorial-invite__nota {
-  color: var(--tour-muted);
-  display: block;
-  font-size: 0.72rem;
-  line-height: 1.4;
-  margin-top: 1rem;
-}
-
-/* Sobrescrituras de Driver.js: la tarjeta usa los tokens del sitio. */
 .terra-tour-popover.driver-popover {
-  background: var(--tour-surface);
-  border: 1px solid var(--tour-border);
-  border-radius: 16px;
-  box-shadow: 0 18px 45px rgba(18, 12, 11, 0.3);
-  color: var(--tour-text);
+  background-color: var(--terra-superficie) !important;
+  border: 1px solid var(--terra-borde) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 18px 45px rgba(18, 12, 11, 0.3) !important;
+  color: var(--terra-texto) !important;
   max-width: 22rem;
   min-width: 17rem;
-  padding: 1.1rem 1.15rem;
+  padding: 1.1rem 1.15rem !important;
 }
 
 .terra-tour-popover .driver-popover-title {
-  color: var(--tour-accent);
-  font-size: 1.05rem;
-  font-weight: 900;
-  line-height: 1.25;
+  color: var(--terra-primario) !important;
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
   padding-right: 0.5rem;
 }
 
+html[data-theme="dark"] .terra-tour-popover .driver-popover-title {
+  color: var(--terra-acento) !important;
+}
+
 .terra-tour-popover .driver-popover-description {
-  color: var(--tour-muted);
-  font-size: 0.88rem;
-  line-height: 1.5;
+  color: var(--terra-texto-suave) !important;
+  font-size: 0.88rem !important;
+  line-height: 1.5 !important;
   margin-top: 0.35rem;
 }
 
 .terra-tour-popover .driver-popover-footer {
   align-items: center;
-  border-top: 1px solid var(--tour-border);
+  border-top: 1px solid var(--terra-borde) !important;
   gap: 0.5rem;
   margin-top: 0.9rem;
   padding-top: 0.8rem;
 }
 
 .terra-tour-popover .driver-popover-progress-text {
-  color: var(--tour-muted);
-  font-size: 0.72rem;
-  font-weight: 700;
+  color: var(--terra-texto-suave) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
 }
 
 .terra-tour-popover .driver-popover-navigation-btns {
@@ -230,48 +50,63 @@
 }
 
 .terra-tour-popover .driver-popover-footer-btn {
-  border: 1px solid var(--tour-border);
-  border-radius: 999px;
-  color: var(--tour-text);
-  font-family: 'Manrope', Arial, sans-serif;
-  font-size: 0.8rem;
-  font-weight: 800;
-  min-height: 2.75rem;
-  padding: 0 0.95rem;
+  background-color: var(--terra-superficie-2) !important;
+  border: 1px solid var(--terra-borde) !important;
+  border-radius: 999px !important;
+  color: var(--terra-texto) !important;
+  font-family: inherit !important;
+  font-size: 0.8rem !important;
+  font-weight: 800 !important;
+  min-height: 2.75rem !important;
+  padding: 0 0.95rem !important;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .terra-tour-popover .driver-popover-footer-btn:hover {
-  background: var(--tour-accent-soft);
-  border-color: var(--tour-accent);
-  color: var(--tour-accent);
+  background-color: var(--terra-primario-suave) !important;
+  border-color: var(--terra-primario) !important;
+  color: var(--terra-primario) !important;
+}
+
+.terra-tour-popover .driver-popover-footer-btn:focus-visible {
+  outline: 3px solid var(--terra-primario-suave) !important;
+  outline-offset: 2px !important;
 }
 
 .terra-tour-popover .terra-tour-salir {
-  background: transparent;
-  border-color: transparent;
-  color: var(--tour-muted);
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: var(--terra-texto-suave) !important;
   margin-right: auto;
 }
 
 .terra-tour-popover .terra-tour-salir:hover {
-  background: var(--tour-accent-soft);
-  color: var(--tour-accent);
+  background-color: var(--terra-primario-suave) !important;
+  color: var(--terra-primario) !important;
 }
 
 .terra-tour-popover .driver-popover-navigation-btns .driver-popover-footer-btn:last-child {
-  background: var(--tour-accent);
-  border-color: var(--tour-accent);
-  color: #ffffff;
+  background-color: var(--terra-primario) !important;
+  border-color: var(--terra-primario) !important;
+  color: #ffffff !important;
 }
 
 .terra-tour-popover .driver-popover-navigation-btns .driver-popover-footer-btn:last-child:hover {
-  background: color-mix(in srgb, var(--tour-accent) 86%, #000000);
-  color: #ffffff;
+  background-color: var(--terra-primario-oscuro) !important;
+  color: #ffffff !important;
+}
+
+.terra-tour-popover .driver-popover-footer .driver-popover-btn-disabled,
+.terra-tour-popover .driver-popover-footer-btn:disabled {
+  background-color: var(--terra-control) !important;
+  border-color: var(--terra-borde) !important;
+  color: var(--terra-texto-suave) !important;
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
 }
 
 .terra-tour-popover .driver-popover-arrow {
-  display: none;
+  display: none !important;
 }
 
 .terra-tour-popover--movil.driver-popover {
@@ -284,47 +119,11 @@
 }
 
 .terra-tour-popover--movil .driver-popover-footer-btn {
-  min-height: 3rem;
-  padding: 0 1rem;
-}
-
-@media (max-width: 640px) {
-  .terra-tutorial-btn--movil {
-    display: inline-flex;
-    margin-left: 0.4rem;
-  }
-}
-
-/* Por debajo de 400 px solo el ícono; el nombre accesible está en aria-label. */
-@media (max-width: 399.98px) {
-  .terra-tutorial-btn--movil span {
-    display: none;
-  }
-
-  .terra-tutorial-btn--movil {
-    padding: 0;
-    width: 2.75rem;
-  }
-}
-
-@keyframes tutorial-aparecer {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes tutorial-subir {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  min-height: 3rem !important;
+  padding: 0 1rem !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tutorial-invite,
-  .tutorial-invite__card {
-    animation: none;
-  }
-
-  .terra-tutorial-btn,
-  .tutorial-invite__boton,
   .terra-tour-popover .driver-popover-footer-btn {
     transition: none;
   }
