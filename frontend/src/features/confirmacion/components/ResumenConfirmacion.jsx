@@ -10,7 +10,7 @@ import PagoQr from './PagoQr.jsx';
 // Liquidación, medio de pago y botón para generar el pedido: columna al costado y hoja
 // inferior en teléfono (cerrada solo muestra el total y el botón).
 // confirm-summary: gancho del alto contraste (accesibilidad.css).
-export default function ResumenConfirmacion({ pedido, onAmpliarQr }) {
+export default function ResumenConfirmacion({ pedido }) {
   const hoja = useHojaInferior();
   const ocultoCerrada = hoja.abierta ? '' : 'con-resumen-fijo:hidden';
   const sinZona = pedido.esFlujoMayorista && pedido.quiereEnvio && (!pedido.zonaEnvioId || pedido.cargandoTarifas);
@@ -36,7 +36,6 @@ export default function ResumenConfirmacion({ pedido, onAmpliarQr }) {
       {pedido.metodoPago === 'qr' && (
         <PagoQr
           total={pedido.totalConEnvio}
-          onAmpliar={onAmpliarQr}
           className={ocultoCerrada}
         />
       )}

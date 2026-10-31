@@ -45,7 +45,12 @@ function leerTemporadaInicial() {
   if (['halloween', 'navidad', 'normal'].includes(param)) {
     return param;
   }
-  return detectarTemporada(obtenerFechaBolivia());
+  const guardado = localStorage.getItem('terra_estilo_temporada');
+  if (['halloween', 'navidad', 'normal'].includes(guardado)) {
+    return guardado;
+  }
+  // Por defecto: 'normal' (formal local showroom limpio)
+  return 'normal';
 }
 
 export function TemporadaProvider({ children }) {

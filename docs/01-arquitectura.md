@@ -39,6 +39,7 @@ flowchart LR
   - la caché del token del ERP (8 h) y el límite de intentos de login viven en memoria del proceso.
 - Hoy `frontend/public/config.js` apunta a un backend en Vercel (`backend/vercel.json` lo publica como función serverless). Desde ahí el ERP no es alcanzable: queda como pendiente en [[00-roadmap]].
 - **Frontend**: SPA estática en Vercel. `frontend/public/config.js` (`window.TERRA_CONFIG`) define en tiempo de ejecución la URL de la API, el webhook de n8n y el WhatsApp de atención; se edita sin recompilar.
+- **QR Baneco**: configuración sandbox en `backend/.env.example`, validación en `backend/src/config/baneco.js`, extensiones AES/API en `backend/src/services/banecoCrypto.js` y `backend/src/services/banecoApiClient.js`, y rutas de contrato bajo `/api/pagos/qr`. El servicio responde `501` hasta que se implementen; no hay llamadas al banco ni confirmación automática activa. Ver [[qr-baneco]] y [[2026-10-30-preparacion-qr-dinamico-baneco]].
 - **n8n**: chatbot del kiosco. El webhook actual es un túnel efímero de Cloudflare (`*.trycloudflare.com`), así que cambia al reiniciar el túnel.
 
 ## Red interna
