@@ -45,18 +45,6 @@ export default function TemporadaAmbiental() {
           {/* Ambient Canvas */}
           <div className="hal-canvas" aria-hidden="true">
             <div className="hal-stars" />
-            <div className="hal-edge-web left">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#e3bacd" strokeWidth="1.3">
-                <path d="M1 1H200M1 1V200M1 1L200 200M1 1L200 120M1 1L120 200M1 1L200 65M1 1L65 200" />
-                <path d="M50 1Q51 40 30 30Q40 51 1 50M90 1Q95 68 60 60Q68 95 1 90M130 1Q132 99 89 89Q99 132 1 130M170 1Q171 124 117 117Q124 171 1 170" />
-              </svg>
-            </div>
-            <div className="hal-edge-web right">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#e3bacd" strokeWidth="1.3">
-                <path d="M1 1H200M1 1V200M1 1L200 200M1 1L200 120M1 1L120 200M1 1L200 65M1 1L65 200" />
-                <path d="M50 1Q51 40 30 30Q40 51 1 50M90 1Q95 68 60 60Q68 95 1 90M130 1Q132 99 89 89Q99 132 1 130M170 1Q171 124 117 117Q124 171 1 170" />
-              </svg>
-            </div>
             <div className="hal-ambient-fog" />
 
             {/* Glowing floating embers */}
@@ -143,19 +131,6 @@ export default function TemporadaAmbiental() {
             >
               <div className="hal-intro-stars" aria-hidden="true" />
               <div className="hal-intro-moon" aria-hidden="true" />
-              <div className="hal-intro-web" aria-hidden="true">
-                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#e3bacd" strokeWidth="1.3">
-                  <path d="M1 1H200M1 1V200M1 1L200 200M1 1L200 120M1 1L120 200M1 1L200 65M1 1L65 200" />
-                  <path d="M50 1Q51 40 30 30Q40 51 1 50M90 1Q95 68 60 60Q68 95 1 90M130 1Q132 99 89 89Q99 132 1 130M170 1Q171 124 117 117Q124 171 1 170" />
-                </svg>
-              </div>
-              <div className="hal-intro-web right" aria-hidden="true">
-                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#e3bacd" strokeWidth="1.3">
-                  <path d="M1 1H200M1 1V200M1 1L200 200M1 1L200 120M1 1L120 200M1 1L200 65M1 1L65 200" />
-                  <path d="M50 1Q51 40 30 30Q40 51 1 50M90 1Q95 68 60 60Q68 95 1 90M130 1Q132 99 89 89Q99 132 1 130M170 1Q171 124 117 117Q124 171 1 170" />
-                </svg>
-              </div>
-
               {/* Castle silhouette */}
               <div className="hal-intro-castle" aria-hidden="true">
                 <svg viewBox="0 0 1000 270" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
